@@ -1,0 +1,8 @@
+[Unit]
+Description=Buxton Configuration Service
+
+[Service]
+ExecStart=/usr/bin/bt-daemon
+
+[Install]
+WantedBy=multi-user.target

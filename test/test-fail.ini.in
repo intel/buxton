@@ -1,0 +1,10 @@
+#
+# All of these should trigger syntax errors
+#
+[default]
+fail
+boat
+fail \
+boat
+50 - 8 ;
+x + y ;

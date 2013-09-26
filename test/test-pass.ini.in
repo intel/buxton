@@ -1,0 +1,26 @@
+#
+# This is an example of a layer config file
+#
+
+[Defaults]
+Layers	= OS, Platform, System, Custom, User;
+SmackLabel= "_";
+Backend = gdbm;
+
+[OS]
+Description  = "Operating System configuration layer";
+
+[Platform]
+Description  = "Platform configuration layer";
+Backend = memory;
+
+[System]
+Description  = "System configuration layer";
+
+[Custom]
+Description  = "Special configuration layer";
+SmackLabel= "CarrierLocked";
+
+[User]
+Description  = "Per User configuration layer";
+
