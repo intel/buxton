@@ -58,6 +58,9 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 	length = strlen(name) + strlen(MODULE_DIRECTORY) + 5;
 	path = malloc(length);
 
+	if (!path)
+		return false;
+
 	sprintf(path, "%s/%s.so", MODULE_DIRECTORY, name);
 
 	/* Load the module */
