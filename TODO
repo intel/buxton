@@ -1,5 +1,3 @@
-- specify User=buxton in buxton.service - we don't want to run as root.
-
 - make install: create some default data path
 
 - cache smack rules in a hash table (hashed over

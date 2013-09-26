@@ -3,6 +3,7 @@ Description=Buxton Configuration Service
 
 [Service]
 ExecStart=/usr/bin/bt-daemon
+User=@BUXTON_USERNAME@
 
 [Install]
 WantedBy=multi-user.target
