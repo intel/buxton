@@ -2,7 +2,7 @@
 
 set -e
 
-autoreconf --force --install --symlink
+autoreconf --force --install --symlink --warnings=all
 
 args="\
 --sysconfdir=/etc \
