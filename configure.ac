@@ -33,25 +33,26 @@ AC_SUBST(MODULEDIR)
 AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
 
 # Options
-AC_ARG_WITH([systemdsystemunitdir], AC_HELP_STRING([--with-systemdsystemunitdir=DIR],
+AC_ARG_WITH([systemdsystemunitdir], AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
 	[path to systemd system service directory]), [path_systemdsystemunit=${withval}],
 	[path_systemdsystemunit="`$PKG_CONFIG --variable=systemdsystemunitdir systemd`"])
 SYSTEMD_SYSTEMUNITDIR="${path_systemdsystemunit}"
 AC_SUBST(SYSTEMD_SYSTEMUNITDIR)
 AM_CONDITIONAL(SYSTEMD, test -n "${path_systemdsystemunit}")
 
-AC_ARG_WITH([user], AC_HELP_STRING([--with-user=USER],
+AC_ARG_WITH([user], AS_HELP_STRING([--with-user=USER],
 	[user to run buxton as]), [username=${withval}],
 	[username="buxton"])
 BUXTON_USERNAME="${username}"
 AC_SUBST(BUXTON_USERNAME)
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket
 test/test-pass.ini
 test/test-fail.ini
 ])
+AC_OUTPUT
 
 AC_MSG_RESULT([
         buxton $VERSION
