@@ -51,6 +51,12 @@ typedef void (*module_destroy_func) (BuxtonBackend *backend);
 /* Initialise a backend module */
 bool init_backend(const char *name, BuxtonBackend *backend);
 
+/* Obtain the current backend for the given layer */
+BuxtonBackend *backend_for_layer(const char *layer);
+
+/* Directly manipulate buxton without socket connection */
+_bx_export_ bool buxton_direct_open(struct BuxtonClient *client);
+
 #endif /* btdaemonh_private */
 
 /*
