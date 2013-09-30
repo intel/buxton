@@ -61,15 +61,19 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/log.c \
 	src/shared/log.h \
 	src/include/bt-daemon-private.h \
-	src/shared/dictionary.c \
-	src/shared/dictionary.h \
-	src/shared/iniparser.c \
-	src/shared/iniparser.h \
 	src/shared/hashmap.c \
 	src/shared/hashmap.h \
 	src/shared/macro.h \
 	src/shared/util.h \
 	${NULL}
+
+if USE_LOCAL_INIPARSER
+libbuxton_shared_la_SOURCES += \
+	src/shared/dictionary.c \
+	src/shared/dictionary.h \
+	src/shared/iniparser.c \
+	src/shared/iniparser.h
+endif
 
 include_HEADERS += \
 	src/include/bt-daemon.h

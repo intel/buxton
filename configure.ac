@@ -46,6 +46,15 @@ AC_ARG_WITH([user], AS_HELP_STRING([--with-user=USER],
 BUXTON_USERNAME="${username}"
 AC_SUBST(BUXTON_USERNAME)
 
+AC_ARG_WITH([local-iniparser],
+	AS_HELP_STRING([--with-local-iniparser[default=yes]],
+		[Use built-in iniparser for config parsing]),
+	[use_local_iniparser="true"],
+	[PKG_CHECK_MODULES([INIPARSER], [iniparser],
+		[use_local_iniparser="false"],
+		[use_local_iniparser="true"])])
+AM_CONDITIONAL([USE_LOCAL_INIPARSER], [test x$use_local_iniparser = x"true"])
+
 AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket
