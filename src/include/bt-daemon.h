@@ -12,6 +12,8 @@
 #define _GNU_SOURCE
 
 #include <stdbool.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #ifndef btdaemonh
 #define btdaemonh
@@ -27,9 +29,15 @@
 
 struct BuxtonClient {
 	int fd;
+	bool direct;
+	pid_t pid;
 };
 
 _bx_export_ bool buxton_client_open(struct BuxtonClient *client);
+
+_bx_export_ bool buxton_client_set_string(struct BuxtonClient *client, const char *layer, const char *key, const char *value);
+
+_bx_export_ char* buxton_client_get_string(struct BuxtonClient *client, const char *layer, const char *key);
 
 #endif /* btdaemonh */
 
