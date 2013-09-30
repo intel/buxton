@@ -163,7 +163,7 @@ int main(void)
 			if (accepting[i] == 1) {
 				addr_len = sizeof(remote);
 				struct ucred cr;
-				if ((client = accept(fd, (struct sockaddr *)&remote, &addr_len)) == -1)
+				if ((client = accept(pollfds[i].fd, (struct sockaddr *)&remote, &addr_len)) == -1)
 				{
 					buxton_log("accept(): %m\n");
 				}
