@@ -197,7 +197,7 @@ int main(void)
 	for (int i=0; i<descriptors; i++) {
 		close(pollfds[i].fd);
 	}
-	for (client_list_item *i = client_list; *i;) {
+	for (client_list_item *i = client_list; i;) {
 		client_list_item *j = i->item_next;
 		free(i);
 		i = j;
