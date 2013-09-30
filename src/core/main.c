@@ -151,8 +151,7 @@ int main(void)
 			break;
 		}
 
-		nfds_t i;
-		for (i=0; i<nfds; i++) {
+		for (nfds_t i=0; i<nfds; i++) {
 			if (pollfds[i].fd == -1) {
 				/* TODO: Remove client from list  */
 				continue;
@@ -191,8 +190,7 @@ int main(void)
 
 	if (manual_start)
 		unlink(BUXTON_SOCKET);
-	int i ;
-	for (i=0; i<descriptors; i++) {
+	for (int i=0; i<descriptors; i++) {
 		close(pollfds[i].fd);
 	}
 	return EXIT_SUCCESS;
