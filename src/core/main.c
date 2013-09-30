@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "../shared/util.h"
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
@@ -175,12 +176,15 @@ int main(void)
 					continue;
 				}
 
-				client_list_item new_client;
-				LIST_INIT(client_list_item, item, &new_client);
+				client_list_item *new_client = malloc0(sizeof(client_list_item));
+				if (!new_client)
+					return EXIT_FAILURE;
 
-				new_client.client_socket = client;
-				new_client.credentials = cr;
-				LIST_PREPEND(client_list_item, item, client_list, &new_client);
+				LIST_INIT(client_list_item, item, new_client);
+
+				new_client->client_socket = client;
+				new_client->credentials = cr;
+				LIST_PREPEND(client_list_item, item, client_list, new_client);
 
 				buxton_log("New connection from UID %ld, PID %ld\n", cr.uid, cr.pid);
 			}
@@ -192,6 +196,11 @@ int main(void)
 		unlink(BUXTON_SOCKET);
 	for (int i=0; i<descriptors; i++) {
 		close(pollfds[i].fd);
+	}
+	for (client_list_item *i = client_list; *i;) {
+		client_list_item *j = i->item_next;
+		free(i);
+		i = j;
 	}
 	return EXIT_SUCCESS;
 }
