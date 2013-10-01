@@ -46,13 +46,14 @@ AC_ARG_WITH([user], AS_HELP_STRING([--with-user=USER],
 BUXTON_USERNAME="${username}"
 AC_SUBST(BUXTON_USERNAME)
 
+INIPARSER_CFLAGS="-I${srcdir}/src/shared/"
 AC_ARG_WITH([local-iniparser],
 	AS_HELP_STRING([--with-local-iniparser[default=yes]],
 		[Use built-in iniparser for config parsing]),
 	[use_local_iniparser="true"],
 	[PKG_CHECK_MODULES([INIPARSER], [iniparser >= 3.1],
 		[use_local_iniparser="false"],
-		[use_local_iniparser="true"])])
+		[use_local_iniparser="true"; AC_SUBST(INIPARSER_CFLAGS)])])
 AM_CONDITIONAL([USE_LOCAL_INIPARSER], [test x$use_local_iniparser = x"true"])
 
 AC_CONFIG_FILES([

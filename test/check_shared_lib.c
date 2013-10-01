@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iniparser.h>
 #include "../src/shared/log.h"
-#include "../src/shared/iniparser.h"
 #include "../src/shared/hashmap.h"
 
 START_TEST(log_write_check)
