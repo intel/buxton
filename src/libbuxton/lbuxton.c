@@ -74,19 +74,19 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 
 	dlerror();
 	cast = dlsym(handle, "buxton_module_init");
-	memcpy(&i_func, &cast, sizeof(i_func));
 	if ((error = dlerror()) != NULL) {
 		buxton_log("dlsym(): %s", error);
 		return false;
 	}
+	memcpy(&i_func, &cast, sizeof(i_func));
 	dlerror();
 
 	cast = dlsym(handle, "buxton_module_destroy");
-	memcpy(&d_func, &cast, sizeof(d_func));
 	if ((error = dlerror()) != NULL) {
 		buxton_log("dlsym(): %s", error);
 		return false;
 	}
+	memcpy(&d_func, &cast, sizeof(d_func));
 
 	i_func(name, backend);
 	backend->module = handle;
