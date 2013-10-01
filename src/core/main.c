@@ -89,7 +89,10 @@ int main(void)
 	LIST_HEAD_INIT(client_list_item, client_list);
 
 	descriptors = sd_listen_fds(0);
-	if (descriptors < 1) {
+	if (descriptors < 0) {
+		buxton_log("sd_listen_fds: %m\n");
+		exit(1);
+	} else if (descriptors == 0) {
 		/* Manual invocation */
 		manual_start = true;
 		union {
