@@ -74,7 +74,7 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 
 	dlerror();
 	cast = dlsym(handle, "buxton_module_init");
-	if ((error = dlerror()) != NULL) {
+	if ((error = dlerror()) != NULL || !cast) {
 		buxton_log("dlsym(): %s", error);
 		return false;
 	}
@@ -82,7 +82,7 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 	dlerror();
 
 	cast = dlsym(handle, "buxton_module_destroy");
-	if ((error = dlerror()) != NULL) {
+	if ((error = dlerror()) != NULL || !cast) {
 		buxton_log("dlsym(): %s", error);
 		return false;
 	}
