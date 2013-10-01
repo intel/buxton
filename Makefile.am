@@ -127,9 +127,11 @@ check_buxton_LDADD = \
 check_shared_lib_SOURCES = \
         test/check_shared_lib.c
 check_shared_lib_CFLAGS = \
-	@CHECK_CFLAGS@
+	@CHECK_CFLAGS@ \
+	@INIPARSER_CFLAGS@
 check_shared_lib_LDADD = \
 	@CHECK_LIBS@ \
+	@INIPARSER_LIBS@ \
 	libbuxton-shared.la
 check_DATA = \
 	test/test-pass.ini \
