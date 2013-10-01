@@ -34,6 +34,9 @@ TESTS = check_buxton check_shared_lib
 
 # set flags
 
+dist_sysconf_DATA = \
+	data/buxton.conf
+
 bin_PROGRAMS = \
 	bt-daemon \
 	buxtonctl
@@ -86,10 +89,12 @@ libbuxton_la_SOURCES = \
 
 libbuxton_la_CFLAGS = \
 	$(AM_CFLAGS) \
+	@INIPARSER_CFLAGS@ \
 	-fvisibility=hidden
 
 libbuxton_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
+	@INIPARSER_LIBS@ \
 	-version-info $(LIBBUXTON_CURRENT):$(LIBBUXTON_REVISION):$(LIBBUXTON_AGE)
 #	-Wl,--version-script=$(top_srcdir)/src/libbuxton/lbuxton.sym
 
