@@ -50,7 +50,7 @@ AC_ARG_WITH([local-iniparser],
 	AS_HELP_STRING([--with-local-iniparser[default=yes]],
 		[Use built-in iniparser for config parsing]),
 	[use_local_iniparser="true"],
-	[PKG_CHECK_MODULES([INIPARSER], [iniparser],
+	[PKG_CHECK_MODULES([INIPARSER], [iniparser >= 3.1],
 		[use_local_iniparser="false"],
 		[use_local_iniparser="true"])])
 AM_CONDITIONAL([USE_LOCAL_INIPARSER], [test x$use_local_iniparser = x"true"])
