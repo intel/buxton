@@ -27,7 +27,7 @@ PKG_CHECK_MODULES([CHECK], [check])
 PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
 
 # Checks for header files.
-AC_CHECK_HEADERS([gdbm.h])
+AC_CHECK_HEADERS([gdbm.h], [], [AC_MSG_ERROR([Unable to find gdbm headers])])
 MODULEDIR="${libdir}/buxton/modules"
 AC_SUBST(MODULEDIR)
 AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
