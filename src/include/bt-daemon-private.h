@@ -34,18 +34,17 @@ typedef struct client_list_item {
 } client_list_item;
 
 /* Module related code */
-typedef int (*get_string_func) (const char *key, char **out_value);
-typedef int (*set_string_func) (const char *key, const char *value);
+typedef int (*module_value_func) (const char *resource, const char *key, BuxtonData *data);
 
 typedef struct BuxtonBackend {
 	void *module;
 
-	set_string_func set_string;
-	get_string_func get_string;
+	module_value_func set_value;
+	module_value_func get_value;
 
 } BuxtonBackend;
 
-typedef int (*module_init_func) (const char *resource, BuxtonBackend *backend);
+typedef int (*module_init_func) (BuxtonBackend *backend);
 typedef void (*module_destroy_func) (BuxtonBackend *backend);
 
 /* Initialise a backend module */

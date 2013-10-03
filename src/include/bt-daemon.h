@@ -60,9 +60,9 @@ typedef struct BuxtonData {
 /* Buxton API Methods */
 _bx_export_ bool buxton_client_open(BuxtonClient *client);
 
-_bx_export_ bool buxton_client_set_string(BuxtonClient *client, const char *layer, const char *key, const char *value);
+_bx_export_ bool buxton_client_set_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
 
-_bx_export_ char* buxton_client_get_string(BuxtonClient *client, const char *layer, const char *key);
+_bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
 
 #endif /* btdaemonh */
 

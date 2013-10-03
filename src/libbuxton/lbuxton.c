@@ -66,17 +66,18 @@ bool buxton_direct_open(BuxtonClient *client) {
 	return true;
 }
 
-char* buxton_client_get_string(BuxtonClient *client,
-			      const char *layer,
-			      const char *key) {
-	/* TODO: Implement */
-	return NULL;
-}
-
-bool buxton_client_set_string(BuxtonClient *client,
+bool buxton_client_get_value(BuxtonClient *client,
 			      const char *layer,
 			      const char *key,
-			      const char *value) {
+			      BuxtonData *data) {
+	/* TODO: Implement */
+	return false;
+}
+
+bool buxton_client_set_value(BuxtonClient *client,
+			      const char *layer,
+			      const char *key,
+			      BuxtonData *data) {
 	/* TODO: Implement */
 	if (client->direct &&  hashmap_get(_directPermitted, client->pid) == client) {
 		/* Handle direct manipulation */
@@ -86,7 +87,7 @@ bool buxton_client_set_string(BuxtonClient *client,
 			/* Already logged */
 			return false;
 		}
-		return backend->set_string(key, value);
+		return backend->set_value(layer, key, data);
 	}
 
 	/* Normal interaction (wire-protocol) */
@@ -150,7 +151,7 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 	}
 	memcpy(&d_func, &cast, sizeof(d_func));
 
-	i_func(name, backend);
+	i_func(backend);
 	backend->module = handle;
 
 	/* TODO: Have this handled at global level and don't close in method */
