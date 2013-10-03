@@ -9,12 +9,14 @@
  * of the License, or (at your option) any later version.
  */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
+#include "../include/bt-daemon-private.h"
 #include "../shared/hashmap.h"
 
 static Hashmap *commands;
@@ -57,6 +59,7 @@ bool get_string(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	bool ret = false;
+	int arg_n = 1;
 	Command c_get_string, c_set_string;
 	Command c_help;
 	Command *command;
@@ -79,13 +82,23 @@ int main(int argc, char **argv) {
 	c_help.method = &print_help;
 	hashmap_put(commands, c_help.name, &c_help);
 
-	if (argc < 2) {
+	if (argc > 1 && strncmp(argv[1], "--direct", 8) == 0) {
+		if (geteuid() != 0) {
+			printf("Only root may use --direct\n");
+			goto end;
+		}
+		client.direct = true;
+		arg_n++;
+	}
+
+	if (argc < 3) {
+		/* Todo: print usage if a valid command name was given */
 		print_help(argc, argv);
 		goto end;
 	}
 
-	if ((command = hashmap_get(commands, argv[1])) == NULL) {
-		printf("Unknown command: %s\n", argv[1]);
+	if ((command = hashmap_get(commands, argv[arg_n])) == NULL) {
+		printf("Unknown command: %s\n", argv[arg_n]);
 		goto end;
 	}
 
@@ -102,11 +115,18 @@ int main(int argc, char **argv) {
 		goto end;
 	}
 
-	if (!buxton_client_open(&client))
-	{
-		buxton_log("Failed to talk to Buxton\n");
-		ret = false;
-		goto end;
+	if (client.direct) {
+		if (!buxton_direct_open(&client)){
+			buxton_log("Failed to directly talk to Buxton\n");
+			ret = false;
+			goto end;
+		}
+	} else {
+		if (!buxton_client_open(&client)) {
+			buxton_log("Failed to talk to Buxton\n");
+			ret = false;
+			goto end;
+		}
 	}
 
 	/* Connected to buxton_client, execute method */
