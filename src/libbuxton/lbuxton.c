@@ -16,7 +16,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <dirent.h>
+#include <string.h>
 
+#include <iniparser.h>
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 #include "../shared/log.h"
@@ -24,6 +27,10 @@
 
 static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
+static Hashmap *_layers = NULL;
+
+void buxton_init_layers(void);
+void buxton_load_layer_config(char *file);
 
 bool buxton_client_open(BuxtonClient *client) {
 	int bx_socket, r;
@@ -55,6 +62,9 @@ end:
 bool buxton_direct_open(BuxtonClient *client) {
 	if (!_directPermitted)
 		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
+
+	if (!_layers)
+		buxton_init_layers();
 
 	client->direct = true;
 	client->pid = getpid();
@@ -155,6 +165,59 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 	dlclose(handle);
 
 	return true;
+}
+
+/* Load layer configurations from disk */
+void buxton_init_layers(void) {
+	DIR *directory;
+	struct dirent *dir_entry;
+	const char *extension = ".layer";
+	size_t extension_size = strlen(extension);
+
+	if ((directory = opendir(CONFIG_DIRECTORY)) == NULL) {
+		buxton_log("Failed to open configuration directory\n");
+		return;
+	}
+
+	while (dir_entry = readdir(directory)) {
+		size_t stlen;
+
+		stlen = strlen(dir_entry->d_name);
+		if (stlen < extension_size)
+			continue;
+
+		if (strncmp(dir_entry->d_name + stlen - extension_size, extension, stlen) == 0) {
+			buxton_load_layer_config(dir_entry->d_name);
+		}
+	}
+
+	closedir(directory);
+}
+
+void buxton_load_layer_config(char *file) {
+	dictionary *ini;
+	char *path;
+	int length;
+
+	length = strlen(CONFIG_DIRECTORY) + strlen(file) + 2;
+	path = malloc(length);
+
+	if (!path)
+		return
+
+	snprintf(path, length, "%s/%s", CONFIG_DIRECTORY, file);
+
+	ini = iniparser_load(path);
+	if (ini == NULL) {
+		buxton_log("Failed to load buxton layer: %s\n", file);
+		goto finish;
+	}
+
+	/* Load layers, etc, from layer file */
+	iniparser_freedict(ini);
+
+finish:
+	free(path);
 }
 
 /*
