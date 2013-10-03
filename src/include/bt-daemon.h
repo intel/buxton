@@ -27,17 +27,17 @@
 #  define _bx_export_
 #endif
 
-struct BuxtonClient {
+typedef struct BuxtonClient {
 	int fd;
 	bool direct;
 	pid_t pid;
-};
+} BuxtonClient;
 
-_bx_export_ bool buxton_client_open(struct BuxtonClient *client);
+_bx_export_ bool buxton_client_open(BuxtonClient *client);
 
-_bx_export_ bool buxton_client_set_string(struct BuxtonClient *client, const char *layer, const char *key, const char *value);
+_bx_export_ bool buxton_client_set_string(BuxtonClient *client, const char *layer, const char *key, const char *value);
 
-_bx_export_ char* buxton_client_get_string(struct BuxtonClient *client, const char *layer, const char *key);
+_bx_export_ char* buxton_client_get_string(BuxtonClient *client, const char *layer, const char *key);
 
 #endif /* btdaemonh */
 

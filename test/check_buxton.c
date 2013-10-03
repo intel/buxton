@@ -15,7 +15,7 @@
 
 START_TEST(buxton_client_open_check)
 {
-	struct BuxtonClient c;
+	BuxtonClient c;
 	fail_if(buxton_client_open(&c) == true,
 		"Connection opened without daemon.");
 }
@@ -23,7 +23,7 @@ END_TEST
 
 START_TEST(buxton_direct_open_check)
 {
-	struct BuxtonClient c;
+	BuxtonClient c;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 }
@@ -31,7 +31,7 @@ END_TEST
 
 START_TEST(buxton_client_set_string_check)
 {
-	struct BuxtonClient c;
+	BuxtonClient c;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	fail_if(buxton_client_set_string(&c, "test", "bxt_test", "bxt_test_value") == false,

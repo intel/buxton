@@ -55,7 +55,7 @@ bool init_backend(const char *name, BuxtonBackend *backend);
 BuxtonBackend *backend_for_layer(const char *layer);
 
 /* Directly manipulate buxton without socket connection */
-_bx_export_ bool buxton_direct_open(struct BuxtonClient *client);
+_bx_export_ bool buxton_direct_open(BuxtonClient *client);
 
 #endif /* btdaemonh_private */
 
