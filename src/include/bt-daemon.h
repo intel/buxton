@@ -33,6 +33,31 @@ typedef struct BuxtonClient {
 	pid_t pid;
 } BuxtonClient;
 
+/* Buxton data types */
+typedef enum BuxtonDataType {
+	STRING,
+	BOOLEAN,
+	FLOAT,
+	INT,
+	DOUBLE,
+	LONG,
+} BuxtonDataType;
+
+typedef union BuxtonDataStore {
+	char *d_string;
+	bool d_boolean;
+	float d_float;
+	int d_int;
+	double d_double;
+	long d_long;
+} BuxtonDataStore;
+
+typedef struct BuxtonData {
+	BuxtonDataType type;
+	BuxtonDataStore store;
+} BuxtonData;
+
+/* Buxton API Methods */
 _bx_export_ bool buxton_client_open(BuxtonClient *client);
 
 _bx_export_ bool buxton_client_set_string(BuxtonClient *client, const char *layer, const char *key, const char *value);
