@@ -53,10 +53,6 @@ end:
 }
 
 bool buxton_direct_open(BuxtonClient *client) {
-	/* Forbid use by non superuser */
-	if (geteuid() != 0)
-		return false;
-
 	if (!_directPermitted)
 		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
 
@@ -79,7 +75,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 			      const char *key,
 			      BuxtonData *data) {
 	/* TODO: Implement */
-	if (client->direct &&  hashmap_get(_directPermitted, client->pid) == client) {
+	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, client->pid) == client) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
 		backend = backend_for_layer(layer);
