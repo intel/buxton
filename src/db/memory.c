@@ -11,19 +11,21 @@
 
 #define _GNU_SOURCE
 
-#include <gdbm.h>
-
+#include "../shared/hashmap.h"
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 
-
 /**
- * GDBM Database Module
+ * Memory Database Module
+ *
+ * Used for quick testing and debugging of Buxton, to ensure protocol
+ * and direct access are working as intended.
+ * Note this is not persistent.
  */
 
 
-static GDBM_FILE _database = NULL;
+static Hashmap *_resources;
 
 static int set_value(const char *resource, const char *key, BuxtonData *data) {
 	return false;
@@ -37,16 +39,12 @@ _bx_export_ void buxton_module_destroy(BuxtonBackend *backend) {
 	backend->set_value = NULL;
 	backend->get_value = NULL;
 
-	/* TODO: We'd close the GDBM here */
-	_database = NULL;
 }
 
 _bx_export_ int buxton_module_init(BuxtonBackend *backend) {
-	/* TODO: Initialise database */
-
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
-	backend->get_value = &get_value;
+	backend->set_value = &get_value;
 
 	return 0;
 }

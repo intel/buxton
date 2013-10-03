@@ -33,23 +33,35 @@ typedef struct client_list_item {
 	struct ucred credentials;
 } client_list_item;
 
+typedef struct BuxtonLayer {
+	char *name;
+	char *description;
+	char *smack_label;
+	char *backend;
+} BuxtonLayer;
+
 /* Module related code */
-typedef int (*get_string_func) (const char *key, char **out_value);
-typedef int (*set_string_func) (const char *key, const char *value);
+typedef int (*module_value_func) (const char *resource, const char *key, BuxtonData *data);
 
 typedef struct BuxtonBackend {
 	void *module;
 
-	set_string_func set_string;
-	get_string_func get_string;
+	module_value_func set_value;
+	module_value_func get_value;
 
 } BuxtonBackend;
 
-typedef int (*module_init_func) (const char *resource, BuxtonBackend *backend);
+typedef int (*module_init_func) (BuxtonBackend *backend);
 typedef void (*module_destroy_func) (BuxtonBackend *backend);
 
 /* Initialise a backend module */
 bool init_backend(const char *name, BuxtonBackend *backend);
+
+/* Obtain the current backend for the given layer */
+BuxtonBackend *backend_for_layer(const char *layer);
+
+/* Directly manipulate buxton without socket connection */
+_bx_export_ bool buxton_direct_open(BuxtonClient *client);
 
 #endif /* btdaemonh_private */
 

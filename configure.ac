@@ -32,6 +32,11 @@ MODULEDIR="${libdir}/buxton/modules"
 AC_SUBST(MODULEDIR)
 AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
 
+# Layers are installed in the configuration directory
+CONFIGDIR="${sysconfdir}/buxton"
+AC_SUBST(CONFIGDIR)
+AC_DEFINE_UNQUOTED([CONFIG_DIRECTORY], ["$CONFIGDIR"], [' '])
+
 # Options
 AC_ARG_WITH([systemdsystemunitdir], AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
 	[path to systemd system service directory]), [path_systemdsystemunit=${withval}],

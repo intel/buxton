@@ -12,6 +12,8 @@
 #define _GNU_SOURCE
 
 #include <stdbool.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #ifndef btdaemonh
 #define btdaemonh
@@ -25,11 +27,42 @@
 #  define _bx_export_
 #endif
 
-struct BuxtonClient {
+typedef struct BuxtonClient {
 	int fd;
-};
+	bool direct;
+	pid_t pid;
+} BuxtonClient;
 
-_bx_export_ bool buxton_client_open(struct BuxtonClient *client);
+/* Buxton data types */
+typedef enum BuxtonDataType {
+	STRING,
+	BOOLEAN,
+	FLOAT,
+	INT,
+	DOUBLE,
+	LONG,
+} BuxtonDataType;
+
+typedef union BuxtonDataStore {
+	char *d_string;
+	bool d_boolean;
+	float d_float;
+	int d_int;
+	double d_double;
+	long d_long;
+} BuxtonDataStore;
+
+typedef struct BuxtonData {
+	BuxtonDataType type;
+	BuxtonDataStore store;
+} BuxtonData;
+
+/* Buxton API Methods */
+_bx_export_ bool buxton_client_open(BuxtonClient *client);
+
+_bx_export_ bool buxton_client_set_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
+
+_bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
 
 #endif /* btdaemonh */
 
