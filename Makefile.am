@@ -98,7 +98,8 @@ libbuxton_la_LIBADD = \
 	-ldl
 
 pkglib_LTLIBRARIES += \
-	gdbm.la
+	gdbm.la \
+	memory.la
 
 gdbm_la_SOURCES =  \
 	src/db/gdbm.c
@@ -111,6 +112,19 @@ gdbm_la_LDFLAGS = \
 
 gdbm_la_LIBADD = \
 	-lgdbm
+
+# Use private hashmap build to prevent symbol mangling and
+# memory corruption issues
+memory_la_SOURCES = \
+	src/db/memory.c \
+	src/shared/hashmap.h \
+	src/shared/hashmap.c
+
+memory_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-fvisibility=hidden \
+	-module \
+	-avoid-version
 
 check_PROGRAMS = \
 	check_buxton \
