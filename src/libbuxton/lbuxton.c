@@ -211,7 +211,7 @@ bool buxton_load_layer_config(char *file) {
 	path = malloc(length);
 
 	if (!path)
-		return
+		return false;
 
 	snprintf(path, length, "%s/%s", CONFIG_DIRECTORY, file);
 
@@ -223,7 +223,6 @@ bool buxton_load_layer_config(char *file) {
 
 	/* Load layers, etc, from layer file */
 	top_section = iniparser_getsecname(ini, 0);
-	printf("Top section: %s\n", top_section);
 
 	/* Do we consider 'defaults' as standard ? */
 
