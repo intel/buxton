@@ -15,10 +15,15 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 #include "../shared/log.h"
+#include "../shared/hashmap.h"
+
+static Hashmap *_databases = NULL;
+static Hashmap *_directPermitted = NULL;
 
 bool buxton_client_open(struct BuxtonClient *client) {
 	int bx_socket, r;
@@ -45,6 +50,63 @@ close:
 	close(client->fd);
 end:
 	return ret;
+}
+
+bool buxton_direct_open(struct BuxtonClient *client) {
+	/* Forbid use by non superuser */
+	if (geteuid() != 0)
+		return false;
+
+	if (!_directPermitted)
+		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
+
+	client->direct = true;
+	client->pid = getpid();
+	hashmap_put(_directPermitted, (int)client->pid, client);
+	return true;
+}
+
+char* buxton_client_get_string(struct BuxtonClient *client,
+			      const char *layer,
+			      const char *key) {
+	/* TODO: Implement */
+	return NULL;
+}
+
+bool buxton_client_set_string(struct BuxtonClient *client,
+			      const char *layer,
+			      const char *key,
+			      const char *value) {
+	/* TODO: Implement */
+	if (client->direct &&  hashmap_get(_directPermitted, client->pid) == client) {
+		/* Handle direct manipulation */
+		BuxtonBackend *backend;
+		backend = backend_for_layer(layer);
+		if (!backend) {
+			/* Already logged */
+			return false;
+		}
+		return backend->set_string(key, value);
+	}
+
+	/* Normal interaction (wire-protocol) */
+	return false;
+}
+
+BuxtonBackend* backend_for_layer(const char *layer) {
+	BuxtonBackend *backend;
+
+	if (!_databases)
+		_databases = hashmap_new(string_hash_func, string_compare_func);
+	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer)) == NULL) {
+		/* attempt load of backend */
+		if (!init_backend(layer, backend)) {
+			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer);
+			return NULL;
+		}
+		hashmap_put(_databases, layer, backend);
+	}
+	return (BuxtonBackend*)hashmap_get(_databases, layer);
 }
 
 bool init_backend(const char *name, BuxtonBackend* backend) {

@@ -21,6 +21,24 @@ START_TEST(buxton_client_open_check)
 }
 END_TEST
 
+START_TEST(buxton_direct_open_check)
+{
+	struct BuxtonClient c;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+}
+END_TEST
+
+START_TEST(buxton_client_set_string_check)
+{
+	struct BuxtonClient c;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	fail_if(buxton_client_set_string(&c, "test", "bxt_test", "bxt_test_value") == false,
+		"Setting string in buxton directly failed.");
+}
+END_TEST
+
 Suite *
 buxton_suite(void)
 {
@@ -30,6 +48,11 @@ buxton_suite(void)
 	s = suite_create("buxton");
 	tc = tcase_create("buxton_client_lib_functions");
 	tcase_add_test(tc, buxton_client_open_check);
+
+	tcase_add_test(tc, buxton_direct_open_check);
+
+	tcase_add_test(tc, buxton_client_set_string_check);
+
 	suite_add_tcase(s, tc);
 
 	return s;
