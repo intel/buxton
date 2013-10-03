@@ -18,7 +18,7 @@
 #include "../shared/hashmap.h"
 
 static Hashmap *commands;
-static struct BuxtonClient client;
+static BuxtonClient client;
 
 typedef bool (*command_method) (int argc, char **argv);
 

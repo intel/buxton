@@ -25,7 +25,7 @@
 static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
 
-bool buxton_client_open(struct BuxtonClient *client) {
+bool buxton_client_open(BuxtonClient *client) {
 	int bx_socket, r;
 	struct sockaddr_un remote;
 	bool ret;
@@ -52,7 +52,7 @@ end:
 	return ret;
 }
 
-bool buxton_direct_open(struct BuxtonClient *client) {
+bool buxton_direct_open(BuxtonClient *client) {
 	/* Forbid use by non superuser */
 	if (geteuid() != 0)
 		return false;
@@ -66,14 +66,14 @@ bool buxton_direct_open(struct BuxtonClient *client) {
 	return true;
 }
 
-char* buxton_client_get_string(struct BuxtonClient *client,
+char* buxton_client_get_string(BuxtonClient *client,
 			      const char *layer,
 			      const char *key) {
 	/* TODO: Implement */
 	return NULL;
 }
 
-bool buxton_client_set_string(struct BuxtonClient *client,
+bool buxton_client_set_string(BuxtonClient *client,
 			      const char *layer,
 			      const char *key,
 			      const char *value) {
