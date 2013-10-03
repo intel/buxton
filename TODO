@@ -6,11 +6,6 @@
 
     Owner: Patrick
 
-- implement '--direct' option to directly manipulate layers without
-  using socket
-
-    Owner: Michael Ikey Doherty
-
 - complete gdbm backend to be integrated with layers
 
     Owner: Michael Ikey Doherty
