@@ -23,34 +23,30 @@
  */
 
 
-static const char *_resource = NULL;
 static GDBM_FILE _database = NULL;
 
-static int set_string(const char *key, const char *value) {
+static int set_value(const char *resource, const char *key, BuxtonData *data) {
 	return false;
 }
 
-static int get_string(const char *key, char **out_value) {
+static int get_value(const char *resource, const char *key, BuxtonData *data) {
 	return false;
 }
 
 _bx_export_ void buxton_module_destroy(BuxtonBackend *backend) {
-	backend->set_string = NULL;
-	backend->get_string = NULL;
+	backend->set_value = NULL;
+	backend->get_value = NULL;
 
-	_resource = NULL;
 	/* TODO: We'd close the GDBM here */
 	_database = NULL;
 }
 
-_bx_export_ int buxton_module_init(const char *resource, BuxtonBackend *backend) {
+_bx_export_ int buxton_module_init(BuxtonBackend *backend) {
 	/* TODO: Initialise database */
 
 	/* Point the struct methods back to our own */
-	backend->set_string = &set_string;
-	backend->get_string = &get_string;
-
-	_resource = resource;
+	backend->set_value = &set_value;
+	backend->get_value = &get_value;
 
 	return 0;
 }
