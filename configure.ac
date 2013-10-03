@@ -32,6 +32,11 @@ MODULEDIR="${libdir}/buxton/modules"
 AC_SUBST(MODULEDIR)
 AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
 
+# Default config file location
+BUXTON_CONF="${sysconfdir}/buxton.conf"
+AC_SUBST(BUXTON_CONF)
+AC_DEFINE_UNQUOTED([DEFAULT_CONFIGURATION_FILE], ["$BUXTON_CONF"])
+
 # Options
 AC_ARG_WITH([systemdsystemunitdir], AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
 	[path to systemd system service directory]), [path_systemdsystemunit=${withval}],
