@@ -29,8 +29,8 @@ static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
 static Hashmap *_layers = NULL;
 
-void buxton_init_layers(void);
-void buxton_load_layer_config(char *file);
+bool buxton_init_layers(void);
+bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 
 bool buxton_client_open(BuxtonClient *client) {
 	int bx_socket, r;
@@ -168,10 +168,11 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 }
 
 /* Load layer configurations from disk */
-void buxton_init_layers(void) {
+bool buxton_init_layers(void) {
+	bool ret = false;
 	dictionary *ini;
 	char *path;
-	int length;
+	int nlayers = 0;
 
 	path = DEFAULT_CONFIGURATION_FILE;
 
@@ -181,12 +182,100 @@ void buxton_init_layers(void) {
 		goto finish;
 	}
 
-	/* Load layers, etc, from layer file */
+	nlayers = iniparser_getnsec(ini);
+	if (nlayers <= 0) {
+		buxton_log("No layers defined in buxton conf file: %s\n", path);
+		goto end;
+	}
+
+	_layers = hashmap_new(string_hash_func, string_compare_func);
+	if (!_layers)
+		goto end;
+
+	for (int n = 0; n < nlayers; n++) {
+		BuxtonLayer *layer;
+		char *section_name;
+
+		layer = malloc(sizeof(BuxtonLayer));
+		if (!layer)
+			continue;
+
+		section_name = iniparser_getsecname(ini, n);
+		if (!section_name) {
+			buxton_log("Failed to find section number: %d\n", n);
+			continue;
+		}
+
+		if (!parse_layer(ini, section_name, layer)) {
+			buxton_log("Failed to load layer: %s\n", section_name);
+			continue;
+		}
+		hashmap_put(_layers, layer->name, layer);
+	}
+	ret = true;
+
+end:
 	iniparser_freedict(ini);
-
 finish:
-	return;
+	return ret;
+}
 
+bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out) {
+	bool ret = false;
+	size_t len = strlen(name);
+	char *k_desc, *k_backend, *k_type, *k_priority;
+	char *_desc, *_backend, *_type, *_priority;
+
+	k_desc = malloc(len + strlen(":description"));
+	if (!k_desc)
+		goto end;
+	sprintf(k_desc, "%s:description", name);
+
+	k_backend = malloc(len + strlen(":backend"));
+	if (!k_backend)
+		goto end;
+	sprintf(k_backend, "%s:backend", name);
+
+	k_type = malloc(len + strlen(":type"));
+	if (!k_type)
+		goto end;
+	sprintf(k_type, "%s:type", name);
+
+	k_priority = malloc(len + strlen(":priority"));
+	if (!k_priority)
+		goto end;
+	sprintf(k_priority, "%s:priority", name);
+
+	_type = iniparser_getstring(ini, k_type, NULL);
+	/* Type and Name are mandatory! */
+	if (_type == NULL || name == NULL)
+		goto end;
+
+	out->name = strdup(name);
+	out->type = strdup(_type);
+
+	/* Ok to be null */
+	_desc = iniparser_getstring(ini, k_desc, NULL);
+	if (_desc != NULL)
+		out->description = strdup(_desc);
+	_backend = iniparser_getstring(ini, k_backend, NULL);
+	if (_backend != NULL)
+		out->backend = strdup(_backend);
+	_priority = iniparser_getstring(ini, k_priority, NULL);
+	if (_priority != NULL)
+		out->priority = strdup(_priority);
+	ret = true;
+end:
+	if (k_desc)
+		free(k_desc);
+	if (k_backend)
+		free(k_backend);
+	if (k_type)
+		free(k_type);
+	if (k_priority)
+		free(k_priority);
+
+	return ret;
 }
 
 /*

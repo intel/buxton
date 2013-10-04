@@ -33,6 +33,14 @@ typedef struct client_list_item {
 	struct ucred credentials;
 } client_list_item;
 
+typedef struct BuxtonLayer {
+	char *name;
+	char *type;
+	char *backend;
+	char *priority;
+	char *description;
+} BuxtonLayer;
+
 /* Module related code */
 typedef int (*module_value_func) (const char *resource, const char *key, BuxtonData *data);
 
