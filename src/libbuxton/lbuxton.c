@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <dirent.h>
 #include <string.h>
 
 #include <iniparser.h>
@@ -29,8 +28,8 @@ static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
 static Hashmap *_layers = NULL;
 
-void buxton_init_layers(void);
-void buxton_load_layer_config(char *file);
+bool buxton_init_layers(void);
+bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 
 bool buxton_client_open(BuxtonClient *client) {
 	int bx_socket, r;
@@ -100,20 +99,30 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return false;
 }
 
-BuxtonBackend* backend_for_layer(const char *layer) {
+BuxtonBackend* backend_for_layer(const char *layer_name) {
+	BuxtonLayer *layer;
 	BuxtonBackend *backend;
 
+	if (!_layers) {
+		buxton_log("buxton incorrectly initialized\n");
+		return NULL;
+	}
 	if (!_databases)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
-	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer)) == NULL) {
+	if ((layer = (BuxtonLayer*)hashmap_get(_layers, layer_name)) == NULL) {
+		/* Request for non-existent layer */
+		return NULL;
+	}
+
+	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->backend)) == NULL) {
 		/* attempt load of backend */
-		if (!init_backend(layer, backend)) {
-			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer);
+		if (!init_backend(layer->backend, backend)) {
+			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
 			return NULL;
 		}
-		hashmap_put(_databases, layer, backend);
+		hashmap_put(_databases, layer->name, backend);
 	}
-	return (BuxtonBackend*)hashmap_get(_databases, layer);
+	return (BuxtonBackend*)hashmap_get(_databases, layer->name);
 }
 
 bool init_backend(const char *name, BuxtonBackend* backend) {
@@ -168,10 +177,19 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 }
 
 /* Load layer configurations from disk */
-void buxton_init_layers(void) {
+bool buxton_init_layers(void) {
+	bool ret = false;
 	dictionary *ini;
 	char *path;
-	int length;
+	char *top_section;
+	char *top_layers;
+	char *top_label;
+	char *top_backend;
+	char *keys;
+	char *current_key;
+	char *layer_key, *label_key, *backend_key;
+	const char *separator = ", ";
+	char *tok;
 
 	path = DEFAULT_CONFIGURATION_FILE;
 
@@ -182,11 +200,141 @@ void buxton_init_layers(void) {
 	}
 
 	/* Load layers, etc, from layer file */
+	top_section = iniparser_getsecname(ini, 0);
+
+	/* set key names */
+	layer_key = malloc(strlen(top_section) + 8);
+	if (!layer_key)
+		goto fail;
+	label_key = malloc(strlen(top_section) + 12);
+	if (!label_key)
+		goto fail;
+	backend_key = malloc(strlen(top_section) + 9);
+	if (!backend_key)
+		goto fail;
+
+	sprintf(layer_key, "%s:layers", top_section);
+	sprintf(label_key, "%s:smacklabel", top_section);
+	sprintf(backend_key, "%s:backend", top_section);
+
+	_layers = hashmap_new(string_hash_func, string_compare_func);
+	if (!_layers)
+		goto fail;
+
+	/* Now read in all layer names */
+	top_layers = iniparser_getstring(ini, layer_key, NULL);
+	if (top_layers == NULL) {
+		buxton_log("Failed to determine default layers for %s\n", path);
+		goto fail;
+	}
+
+	/* Get the main smack label */
+	top_label = iniparser_getstring(ini, label_key, NULL);
+	if (top_label == NULL) {
+		buxton_log("Failed to determine default SMACK Label for %s\n", path);
+		goto fail;
+	}
+
+	/* Get the primary backend */
+	top_backend = iniparser_getstring(ini, backend_key, NULL);
+	if (top_backend == NULL) {
+		buxton_log("Failed to determine default backend for %s\n", path);
+		goto fail;
+	}
+
+	keys = strdup(top_layers);
+	current_key = strtok(keys, ", ");
+
+	if (current_key == NULL) {
+		buxton_log("Invalid file: %s\n", path);
+		goto tok_end;
+	}
+
+	tok = keys;
+	while ((current_key = strtok(tok, separator)) != NULL) {
+		BuxtonLayer *layer;
+
+		layer = malloc(sizeof(BuxtonLayer));
+		if (!layer)
+			continue;
+
+		if (!parse_layer(ini, current_key, layer)) {
+			buxton_log("Failed to load layer: %s\n", current_key);
+			continue;
+		}
+		if (!layer->smack_label)
+			layer->smack_label = strdup(top_label);
+		if (!layer->backend)
+			layer->backend = strdup(top_backend);
+		hashmap_put(_layers, layer->name, layer);
+		tok = NULL;
+	}
+	ret = true;
+
+tok_end:
+	free(keys);
+	goto end;
+fail:
+	if (layer_key)
+		free(layer_key);
+	if (label_key)
+		free(label_key);
+	if (backend_key)
+		free(backend_key);
+	ret = false;
+end:
 	iniparser_freedict(ini);
-
 finish:
-	return;
+	return ret;
+}
 
+bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out) {
+	bool ret = false;
+	size_t len = strlen(name);
+	char *desc, *label, *backend_name;
+	char *description;
+	char *_label, *_backend;
+
+	desc = malloc(len + strlen(":description"));
+	if (!desc)
+		goto end;
+	sprintf(desc, "%s:description", name);
+
+	label = malloc(len + strlen(":smacklabel"));
+	if (!label)
+		goto end;
+	sprintf(label, "%s:smacklabel", name);
+
+	backend_name = malloc(len + strlen(":backend"));
+	if (!backend_name)
+		goto end;
+	sprintf(backend_name, "%s:backend", name);
+
+	description = iniparser_getstring(ini, desc, NULL);
+	/* Description is mandatory! */
+	if (description == NULL)
+		goto end;
+
+	out->name = strdup(name);
+	out->description = strdup(description);
+
+	/* Ok to be null */
+	_label = iniparser_getstring(ini, label, NULL);
+	if (_label != NULL)
+		out->smack_label = strdup(_label);
+	_backend = iniparser_getstring(ini, backend_name, NULL);
+	if (_backend != NULL)
+		out->backend = strdup(_backend);
+	ret = true;
+end:
+	if (desc)
+		free(desc);
+	if (label)
+		free(label);
+	if (backend_name)
+		free(backend_name);
+
+	return ret;
 }
 
 /*

@@ -16,29 +16,29 @@
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
-
+#include "../shared/hashmap.h"
 
 /**
  * GDBM Database Module
  */
 
 
-static GDBM_FILE _database = NULL;
+static Hashmap *_resources = NULL;
 
 static int set_value(const char *resource, const char *key, BuxtonData *data) {
 	return false;
 }
 
-static int get_value(const char *resource, const char *key, BuxtonData *data) {
-	return false;
+static BuxtonData* get_value(const char *resource, const char *key) {
+	return NULL;
 }
 
 _bx_export_ void buxton_module_destroy(BuxtonBackend *backend) {
 	backend->set_value = NULL;
 	backend->get_value = NULL;
 
-	/* TODO: We'd close the GDBM here */
-	_database = NULL;
+	/* TODO: We'd close the GDBMs here */
+	_resources = NULL;
 }
 
 _bx_export_ int buxton_module_init(BuxtonBackend *backend) {

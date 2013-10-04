@@ -28,14 +28,14 @@ PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
 
 # Checks for header files.
 AC_CHECK_HEADERS([gdbm.h], [], [AC_MSG_ERROR([Unable to find gdbm headers])])
-MODULEDIR="${libdir}/buxton/modules"
+MODULEDIR="${libdir}/buxton"
 AC_SUBST(MODULEDIR)
 AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
 
 # Default config file location
 BUXTON_CONF="${sysconfdir}/buxton.conf"
 AC_SUBST(BUXTON_CONF)
-AC_DEFINE_UNQUOTED([DEFAULT_CONFIGURATION_FILE], ["$BUXTON_CONF"])
+AC_DEFINE_UNQUOTED([DEFAULT_CONFIGURATION_FILE], ["$BUXTON_CONF"], [' '])
 
 # Options
 AC_ARG_WITH([systemdsystemunitdir], AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
