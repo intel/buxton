@@ -37,7 +37,7 @@ START_TEST(buxton_client_set_value_check)
 	BuxtonData data;
 	data.type = STRING;
 	data.store.d_string = "bxt_test_value";
-	fail_if(buxton_client_set_value(&c, "test", "bxt_test", &data) == false,
+	fail_if(buxton_client_set_value(&c, "OS", "bxt_test", &data) == false,
 		"Setting value in buxton directly failed.");
 }
 END_TEST

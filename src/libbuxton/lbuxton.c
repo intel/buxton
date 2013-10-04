@@ -99,20 +99,30 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return false;
 }
 
-BuxtonBackend* backend_for_layer(const char *layer) {
+BuxtonBackend* backend_for_layer(const char *layer_name) {
+	BuxtonLayer *layer;
 	BuxtonBackend *backend;
 
+	if (!_layers) {
+		buxton_log("buxton incorrectly initialized\n");
+		return NULL;
+	}
 	if (!_databases)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
-	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer)) == NULL) {
+	if ((layer = (BuxtonLayer*)hashmap_get(_layers, layer_name)) == NULL) {
+		/* Request for non-existent layer */
+		return NULL;
+	}
+
+	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->backend)) == NULL) {
 		/* attempt load of backend */
-		if (!init_backend(layer, backend)) {
-			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer);
+		if (!init_backend(layer->backend, backend)) {
+			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
 			return NULL;
 		}
-		hashmap_put(_databases, layer, backend);
+		hashmap_put(_databases, layer->name, backend);
 	}
-	return (BuxtonBackend*)hashmap_get(_databases, layer);
+	return (BuxtonBackend*)hashmap_get(_databases, layer->name);
 }
 
 bool init_backend(const char *name, BuxtonBackend* backend) {
@@ -242,16 +252,21 @@ bool buxton_init_layers(void) {
 
 	tok = keys;
 	while ((current_key = strtok(tok, separator)) != NULL) {
-		BuxtonLayer layer;
-		if (!parse_layer(ini, current_key, &layer)) {
+		BuxtonLayer *layer;
+
+		layer = malloc(sizeof(BuxtonLayer));
+		if (!layer)
+			continue;
+
+		if (!parse_layer(ini, current_key, layer)) {
 			buxton_log("Failed to load layer: %s\n", current_key);
 			continue;
 		}
-		if (layer.smack_label == NULL)
-			layer.smack_label = top_label;
-		if (layer.backend == NULL)
-			layer.backend = top_backend;
-		hashmap_put(_layers, layer.name, &layer);
+		if (!layer->smack_label)
+			layer->smack_label = strdup(top_label);
+		if (!layer->backend)
+			layer->backend = strdup(top_backend);
+		hashmap_put(_layers, layer->name, layer);
 		tok = NULL;
 	}
 	ret = true;
@@ -278,6 +293,7 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out) {
 	size_t len = strlen(name);
 	char *desc, *label, *backend_name;
 	char *description;
+	char *_label, *_backend;
 
 	desc = malloc(len + strlen(":description"));
 	if (!desc)
@@ -299,13 +315,16 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out) {
 	if (description == NULL)
 		goto end;
 
-	out->name = name;
-	out->description = description;
+	out->name = strdup(name);
+	out->description = strdup(description);
 
 	/* Ok to be null */
-	out->smack_label = iniparser_getstring(ini, label, NULL);
-	out->backend = iniparser_getstring(ini, backend_name, NULL);
-
+	_label = iniparser_getstring(ini, label, NULL);
+	if (_label != NULL)
+		out->smack_label = strdup(_label);
+	_backend = iniparser_getstring(ini, backend_name, NULL);
+	if (_backend != NULL)
+		out->backend = strdup(_backend);
 	ret = true;
 end:
 	if (desc)
