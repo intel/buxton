@@ -20,7 +20,8 @@
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 
-bool identify_socket(int fd, struct ucred *ucredr) {
+bool identify_socket(int fd, struct ucred *ucredr)
+{
 	/* Identity handling */
  	int nr, data;
 	struct msghdr msgh;

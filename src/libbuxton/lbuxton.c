@@ -32,7 +32,8 @@ static Hashmap *_layers = NULL;
 bool buxton_init_layers(void);
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 
-bool buxton_client_open(BuxtonClient *client) {
+bool buxton_client_open(BuxtonClient *client)
+{
 	int bx_socket, r;
 	struct sockaddr_un remote;
 	bool ret;
@@ -59,7 +60,8 @@ end:
 	return ret;
 }
 
-bool buxton_direct_open(BuxtonClient *client) {
+bool buxton_direct_open(BuxtonClient *client)
+{
 	if (!_directPermitted)
 		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
 
@@ -75,7 +77,8 @@ bool buxton_direct_open(BuxtonClient *client) {
 bool buxton_client_get_value(BuxtonClient *client,
 			      const char *layer,
 			      const char *key,
-			      BuxtonData *data) {
+			      BuxtonData *data)
+{
 	/* TODO: Implement */
 	return false;
 }
@@ -83,7 +86,8 @@ bool buxton_client_get_value(BuxtonClient *client,
 bool buxton_client_set_value(BuxtonClient *client,
 			      const char *layer,
 			      const char *key,
-			      BuxtonData *data) {
+			      BuxtonData *data)
+{
 	/* TODO: Implement */
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, client->pid) == client) {
 		/* Handle direct manipulation */
@@ -100,7 +104,8 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return false;
 }
 
-BuxtonBackend* backend_for_layer(const char *layer) {
+BuxtonBackend* backend_for_layer(const char *layer)
+{
 	BuxtonBackend *backend;
 
 	if (!_databases)
@@ -116,7 +121,8 @@ BuxtonBackend* backend_for_layer(const char *layer) {
 	return (BuxtonBackend*)hashmap_get(_databases, layer);
 }
 
-bool init_backend(const char *name, BuxtonBackend* backend) {
+bool init_backend(const char *name, BuxtonBackend* backend)
+{
 	void *handle, *cast;
 	char *path;
 	char *error;
@@ -168,7 +174,8 @@ bool init_backend(const char *name, BuxtonBackend* backend) {
 }
 
 /* Load layer configurations from disk */
-bool buxton_init_layers(void) {
+bool buxton_init_layers(void)
+{
 	bool ret = false;
 	dictionary *ini;
 	char *path;
@@ -220,7 +227,8 @@ finish:
 	return ret;
 }
 
-bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out) {
+bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
+{
 	bool ret = false;
 	size_t len = strlen(name);
 	char *k_desc, *k_backend, *k_type, *k_priority;
