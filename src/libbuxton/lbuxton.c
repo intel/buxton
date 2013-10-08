@@ -127,17 +127,13 @@ bool init_backend(const char *name, BuxtonBackend* backend)
 	void *handle, *cast;
 	char *path;
 	char *error;
-	int length;
+	int r;
 	module_init_func i_func;
 	module_destroy_func d_func;
 
-	length = strlen(name) + strlen(MODULE_DIRECTORY) + 5;
-	path = malloc(length);
-
-	if (!path)
+	r = asprintf(&path, "%s/%s.so", MODULE_DIRECTORY, name);
+	if (r == -1)
 		return false;
-
-	sprintf(path, "%s/%s.so", MODULE_DIRECTORY, name);
 
 	/* Load the module */
 	handle = dlopen(path, RTLD_LAZY);
@@ -231,29 +227,28 @@ finish:
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 {
 	bool ret = false;
-	size_t len = strlen(name);
-	char *k_desc, *k_backend, *k_type, *k_priority;
+	int r;
+	char *k_desc = NULL;
+	char *k_backend = NULL;
+	char *k_type = NULL;
+	char *k_priority = NULL;
 	char *_desc, *_backend, *_type, *_priority;
 
-	k_desc = malloc(len + strlen(":description"));
-	if (!k_desc)
+	r = asprintf(&k_desc, "%s:description", name);
+	if (r == -1)
 		goto end;
-	sprintf(k_desc, "%s:description", name);
 
-	k_backend = malloc(len + strlen(":backend"));
-	if (!k_backend)
+	r = asprintf(&k_backend, "%s:backend", name);
+	if (r == -1)
 		goto end;
-	sprintf(k_backend, "%s:backend", name);
 
-	k_type = malloc(len + strlen(":type"));
-	if (!k_type)
+	r = asprintf(&k_type, "%s:type", name);
+	if (r == -1)
 		goto end;
-	sprintf(k_type, "%s:type", name);
 
-	k_priority = malloc(len + strlen(":priority"));
-	if (!k_priority)
+	r = asprintf(&k_priority, "%s:priority", name);
+	if (r == -1)
 		goto end;
-	sprintf(k_priority, "%s:priority", name);
 
 	_type = iniparser_getstring(ini, k_type, NULL);
 	/* Type and Name are mandatory! */
