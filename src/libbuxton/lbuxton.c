@@ -212,6 +212,7 @@ bool buxton_init_layers(void)
 		}
 
 		if (!parse_layer(ini, section_name, layer)) {
+			free(layer);
 			buxton_log("Failed to load layer: %s\n", section_name);
 			continue;
 		}
