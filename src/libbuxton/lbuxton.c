@@ -144,7 +144,7 @@ bool init_backend(const char *name, BuxtonBackend* backend)
 	free(path);
 
 	if (!handle) {
-		buxton_log("dlopen(): %s", dlerror());
+		buxton_log("dlopen(): %s\n", dlerror());
 		return false;
 	}
 
