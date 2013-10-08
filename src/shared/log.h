@@ -9,6 +9,8 @@
  * of the License, or (at your option) any later version.
  */
 
+#pragma once
+
 #ifdef DEBUG
 #define buxton_debug() buxton_log()
 #else

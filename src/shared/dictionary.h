@@ -21,6 +21,8 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#pragma once
+
 /*-------------------------------------------------------------------------*/
 /**
    @file    dictionary.h
@@ -32,9 +34,6 @@
    informations retrieved from a configuration file (ini files).
 */
 /*--------------------------------------------------------------------------*/
-
-#ifndef _DICTIONARY_H_
-#define _DICTIONARY_H_
 
 /*---------------------------------------------------------------------------
                                 Includes
@@ -183,5 +182,3 @@ void dictionary_unset(dictionary * d, const char * key);
  */
 /*--------------------------------------------------------------------------*/
 void dictionary_dump(dictionary * d, FILE * out);
-
-#endif

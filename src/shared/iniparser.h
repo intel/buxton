@@ -21,6 +21,8 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#pragma once
+
 /*-------------------------------------------------------------------------*/
 /**
    @file    iniparser.h
@@ -28,9 +30,6 @@
    @brief   Parser for ini files.
 */
 /*--------------------------------------------------------------------------*/
-
-#ifndef _INIPARSER_H_
-#define _INIPARSER_H_
 
 /*---------------------------------------------------------------------------
                                 Includes
@@ -325,5 +324,3 @@ dictionary * iniparser_load(const char * ininame);
  */
 /*--------------------------------------------------------------------------*/
 void iniparser_freedict(dictionary * d);
-
-#endif

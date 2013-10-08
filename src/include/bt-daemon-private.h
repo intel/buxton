@@ -9,6 +9,8 @@
  * of the License, or (at your option) any later version.
  */
 
+#pragma once
+
 #define _GNU_SOURCE
 
 #include <assert.h>
@@ -19,9 +21,6 @@
 
 #include "../shared/list.h"
 #include "bt-daemon.h"
-
-#ifndef btdaemonh_private
-#define btdaemonh_private
 
 #define TIMEOUT 5000
 
@@ -63,8 +62,6 @@ BuxtonBackend *backend_for_layer(const char *layer);
 
 /* Directly manipulate buxton without socket connection */
 _bx_export_ bool buxton_direct_open(BuxtonClient *client);
-
-#endif /* btdaemonh_private */
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

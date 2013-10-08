@@ -9,14 +9,13 @@
  * of the License, or (at your option) any later version.
  */
 
+#pragma once
+
 #define _GNU_SOURCE
 
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/types.h>
-
-#ifndef btdaemonh
-#define btdaemonh
 
 #define BUXTON_SOCKET "/run/buxton-0"
 
@@ -63,8 +62,6 @@ _bx_export_ bool buxton_client_open(BuxtonClient *client);
 _bx_export_ bool buxton_client_set_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
 
 _bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
-
-#endif /* btdaemonh */
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
