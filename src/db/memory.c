@@ -32,9 +32,9 @@ static int set_value(const char *resource, const char *key, BuxtonData *data)
 	return false;
 }
 
-static int get_value(const char *resource, const char *key, BuxtonData *data)
+static BuxtonData* get_value(const char *resource, const char *key)
 {
-	return false;
+	return NULL;
 }
 
 _bx_export_ void buxton_module_destroy(BuxtonBackend *backend)

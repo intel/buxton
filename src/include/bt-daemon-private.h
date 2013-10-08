@@ -42,13 +42,13 @@ typedef struct BuxtonLayer {
 } BuxtonLayer;
 
 /* Module related code */
-typedef int (*module_value_func) (const char *resource, const char *key, BuxtonData *data);
-
+typedef int (*module_set_value_func) (const char *resource, const char *key, BuxtonData *data);
+typedef BuxtonData* (*module_get_value_func) (const char *resource, const char *key);
 typedef struct BuxtonBackend {
 	void *module;
 
-	module_value_func set_value;
-	module_value_func get_value;
+	module_set_value_func set_value;
+	module_get_value_func get_value;
 
 } BuxtonBackend;
 
