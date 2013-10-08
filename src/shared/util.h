@@ -62,20 +62,6 @@ bool streq_ptr(const char *a, const char *b) _pure_;
 
 #define malloc0(n) (calloc((n), 1))
 
-size_t page_size(void) {
-        static __thread size_t pgsz = 0;
-        long r;
-
-        if (_likely_(pgsz > 0))
-                return pgsz;
-
-        r = sysconf(_SC_PAGESIZE);
-        assert(r > 0);
-
-        pgsz = (size_t) r;
-        return pgsz;
-}
-
 _malloc_  _alloc_(1, 2) static inline void *malloc_multiply(size_t a, size_t b) {
         if (_unlikely_(b == 0 || a > ((size_t) -1) / b))
                 return NULL;

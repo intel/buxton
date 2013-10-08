@@ -9,6 +9,22 @@
  * of the License, or (at your option) any later version.
  */
 
+#include "../shared/util.h"
+
+size_t page_size(void) {
+        static __thread size_t pgsz = 0;
+        long r;
+
+        if (_likely_(pgsz > 0))
+                return pgsz;
+
+        r = sysconf(_SC_PAGESIZE);
+        assert(r > 0);
+
+        pgsz = (size_t) r;
+        return pgsz;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
