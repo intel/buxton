@@ -28,14 +28,6 @@ PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
 
 # Checks for header files.
 AC_CHECK_HEADERS([gdbm.h], [], [AC_MSG_ERROR([Unable to find gdbm headers])])
-MODULEDIR="${libdir}/buxton/modules"
-AC_SUBST(MODULEDIR)
-AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
-
-# Default config file location
-BUXTON_CONF="${sysconfdir}/buxton.conf"
-AC_SUBST(BUXTON_CONF)
-AC_DEFINE_UNQUOTED([DEFAULT_CONFIGURATION_FILE], ["$BUXTON_CONF"], [' '])
 
 # Options
 AC_ARG_WITH([systemdsystemunitdir], AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
@@ -60,6 +52,20 @@ AC_ARG_WITH([local-iniparser],
 		[use_local_iniparser="false"],
 		[use_local_iniparser="true"; AC_SUBST(INIPARSER_CFLAGS)])])
 AM_CONDITIONAL([USE_LOCAL_INIPARSER], [test x$use_local_iniparser = x"true"])
+
+AC_ARG_WITH([module-dir], AS_HELP_STRING([--with-module-dir=MODULEDIR],
+	[path to buxton modules]), [moduledir=${withval}],
+	[moduledir="${libdir}/buxton/modules"])
+MODULEDIR="${moduledir}"
+AC_SUBST(MODULEDIR)
+AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
+
+AC_ARG_WITH([config-path], AS_HELP_STRING([--with-config-path=CONFPATH],
+	[path to buxton configuration file]), [confpath=${withval}],
+	[confpath="${sysconfdir}/buxton.conf"])
+CONFPATH="${confpath}"
+AC_SUBST(CONFPATH)
+AC_DEFINE_UNQUOTED([DEFAULT_CONFIGURATION_FILE], ["$CONFPATH"], [' '])
 
 AC_CONFIG_FILES([
 data/buxton.service
