@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <string.h>
+#include <stdint.h>
 
 #include <iniparser.h>
 #include "../include/bt-daemon.h"
@@ -70,7 +71,7 @@ bool buxton_direct_open(BuxtonClient *client)
 
 	client->direct = true;
 	client->pid = getpid();
-	hashmap_put(_directPermitted, (int)client->pid, client);
+	hashmap_put(_directPermitted, &(client->pid), client);
 	return true;
 }
 
@@ -89,7 +90,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 			      BuxtonData *data)
 {
 	/* TODO: Implement */
-	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, client->pid) == client) {
+	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
 		backend = backend_for_layer(layer);
