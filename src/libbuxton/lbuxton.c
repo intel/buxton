@@ -234,7 +234,10 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	char *k_backend = NULL;
 	char *k_type = NULL;
 	char *k_priority = NULL;
-	char *_desc, *_backend, *_type, *_priority;
+	char *_desc = NULL;
+	char *_backend = NULL;
+	char *_type = NULL;
+	char *_priority = NULL;
 
 	r = asprintf(&k_desc, "%s:description", name);
 	if (r == -1)
@@ -253,24 +256,44 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 		goto end;
 
 	_type = iniparser_getstring(ini, k_type, NULL);
-	/* Type and Name are mandatory! */
-	if (_type == NULL || name == NULL)
+	_backend = iniparser_getstring(ini, k_backend, NULL);
+	_priority = iniparser_getstring(ini, k_priority, NULL);
+	_desc = iniparser_getstring(ini, k_desc, NULL);
+
+	if (!_type || !name || !_backend || !_priority || !_desc)
 		goto end;
 
 	out->name = strdup(name);
+	if (!out->name)
+		goto fail;
 	out->type = strdup(_type);
+	if (!out->type)
+		goto fail;
+	out->backend = strdup(_backend);
+	if (!out->backend)
+		goto fail;
+	out->priority = strdup(_backend);
+	if (!out->priority)
+		goto fail;
+	out->description = strdup(_backend);
+	if (!out->description)
+		goto fail;
 
-	/* Ok to be null */
-	_desc = iniparser_getstring(ini, k_desc, NULL);
-	if (_desc != NULL)
-		out->description = strdup(_desc);
-	_backend = iniparser_getstring(ini, k_backend, NULL);
-	if (_backend != NULL)
-		out->backend = strdup(_backend);
-	_priority = iniparser_getstring(ini, k_priority, NULL);
-	if (_priority != NULL)
-		out->priority = strdup(_priority);
 	ret = true;
+	goto end;
+
+fail:
+	if (out->name)
+		free(out->name);
+	if (out->description)
+		free(out->description);
+	if (out->backend)
+		free(out->backend);
+	if (out->type)
+		free(out->type);
+	if (out->priority)
+		free(out->priority);
+
 end:
 	if (k_desc)
 		free(k_desc);
