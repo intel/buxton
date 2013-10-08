@@ -19,8 +19,9 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdint.h>
-
 #include <iniparser.h>
+
+#include "../shared/util.h"
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 #include "../shared/log.h"
@@ -200,7 +201,7 @@ bool buxton_init_layers(void)
 		BuxtonLayer *layer;
 		char *section_name;
 
-		layer = malloc(sizeof(BuxtonLayer));
+		layer = malloc0(sizeof(BuxtonLayer));
 		if (!layer)
 			continue;
 
