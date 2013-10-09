@@ -75,13 +75,11 @@ static BuxtonData* get_value(BuxtonLayer *layer, const char *key)
 	return NULL;
 }
 
-_bx_export_ void buxton_module_destroy(BuxtonBackend *backend)
+_bx_export_ void buxton_module_destroy(void)
 {
 	const char *key;
 	Iterator iterator;
 	GDBM_FILE *db;
-	backend->set_value = NULL;
-	backend->get_value = NULL;
 
 	/* close all gdbm handles */
 	HASHMAP_FOREACH_KEY(db, key, _resources, iterator) {
