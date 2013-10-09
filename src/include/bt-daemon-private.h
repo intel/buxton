@@ -55,8 +55,8 @@ typedef struct BuxtonLayer {
 } BuxtonLayer;
 
 /* Module related code */
-typedef int (*module_set_value_func) (const char *resource, const char *key, BuxtonData *data);
-typedef BuxtonData* (*module_get_value_func) (const char *resource, const char *key);
+typedef int (*module_set_value_func) (BuxtonLayer *layer, const char *key, BuxtonData *data);
+typedef BuxtonData* (*module_get_value_func) (BuxtonLayer *layer, const char *key);
 typedef struct BuxtonBackend {
 	void *module;
 
@@ -72,7 +72,7 @@ typedef void (*module_destroy_func) (BuxtonBackend *backend);
 bool init_backend(BuxtonLayer *layer, BuxtonBackend *backend);
 
 /* Obtain the current backend for the given layer */
-BuxtonBackend *backend_for_layer(const char *layer);
+BuxtonBackend *backend_for_layer(BuxtonLayer *layer);
 
 /* Directly manipulate buxton without socket connection */
 _bx_export_ bool buxton_direct_open(BuxtonClient *client);

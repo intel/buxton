@@ -27,12 +27,12 @@
 
 static Hashmap *_resources;
 
-static int set_value(const char *resource, const char *key, BuxtonData *data)
+static int set_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 {
 	return false;
 }
 
-static BuxtonData* get_value(const char *resource, const char *key)
+static BuxtonData* get_value(BuxtonLayer *layer, const char *key)
 {
 	return NULL;
 }

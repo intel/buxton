@@ -86,7 +86,7 @@ bool buxton_client_get_value(BuxtonClient *client,
 }
 
 bool buxton_client_set_value(BuxtonClient *client,
-			      const char *layer,
+			      const char *layer_name,
 			      const char *key,
 			      BuxtonData *data)
 {
@@ -94,11 +94,16 @@ bool buxton_client_set_value(BuxtonClient *client,
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
+		BuxtonLayer *layer;
+		if ((layer = hashmap_get(_layers, layer_name)) == NULL) {
+			return false;
+		}
 		backend = backend_for_layer(layer);
 		if (!backend) {
 			/* Already logged */
 			return false;
 		}
+		layer->uid = geteuid();
 		return backend->set_value(layer, key, data);
 	}
 
@@ -106,25 +111,21 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return false;
 }
 
-BuxtonBackend* backend_for_layer(const char *layer_name)
+BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
 {
 	BuxtonBackend *backend;
-	BuxtonLayer *layer;
-
-	if ((layer = hashmap_get(_layers, layer_name)) == NULL)
-		return NULL;
 
 	if (!_databases)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
-	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer_name)) == NULL) {
+	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->name)) == NULL) {
 		/* attempt load of backend */
 		if (!init_backend(layer, backend)) {
-			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer_name);
+			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
 			return NULL;
 		}
-		hashmap_put(_databases, layer_name, backend);
+		hashmap_put(_databases, layer->name, backend);
 	}
-	return (BuxtonBackend*)hashmap_get(_databases, layer);
+	return (BuxtonBackend*)hashmap_get(_databases, layer->name);
 }
 
 bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
