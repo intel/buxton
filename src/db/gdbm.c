@@ -25,33 +25,79 @@
 
 static Hashmap *_resources = NULL;
 
-static int set_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
+/* Open or create databases on the fly */
+static GDBM_FILE* _db_for_resource(BuxtonLayer *layer) {
+	GDBM_FILE *db;
+	char *path;
+
+	if ((db == hashmap_get(_resources, layer->name)) == NULL) {
+		path = get_layer_path(layer);
+		if (!path)
+			return NULL;
+		if (!(db = gdbm_open(path, 0, GDBM_WRCREAT | GDBM_READER, 0666, NULL)))
+			goto end;
+		hashmap_put(_resources, layer->name, db);
+	}
+end:
+	if (path)
+		free(path);
+	return (GDBM_FILE*) hashmap_get(_resources, layer->name);
+}
+
+static int set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
 {
-	return false;
+	GDBM_FILE *db;
+	int ret = true;
+	
+	db = _db_for_resource(layer);
+	if (!db)
+		return false;
+
+	datum key = { key_name, strlen(key_name) + 1};
+	datum value;
+	switch (data->type) {
+		case STRING:
+			value.dsize = strlen(data->store.d_string) + 1 + sizeof(*data);
+			break;
+		default:
+			value.dsize = sizeof(*data);
+			break;
+	}
+	value.dptr = (char *)data;
+	ret = gdbm_store(*db, key, value, GDBM_INSERT | GDBM_REPLACE);
+
+	return ret;
 }
 
 static BuxtonData* get_value(BuxtonLayer *layer, const char *key)
 {
+	/* TODO: Add code for copying the BuxtonData* first */
 	return NULL;
 }
 
 _bx_export_ void buxton_module_destroy(BuxtonBackend *backend)
 {
+	const char *key;
+	Iterator iterator;
+	GDBM_FILE *db;
 	backend->set_value = NULL;
 	backend->get_value = NULL;
 
-	/* TODO: We'd close the GDBM here */
+	/* close all gdbm handles */
+	HASHMAP_FOREACH_KEY(db, key, _resources, iterator) {
+		gdbm_close(*db);
+	}
+	hashmap_free(_resources);
 	_resources = NULL;
 }
 
 _bx_export_ int buxton_module_init(BuxtonBackend *backend)
 {
-	/* TODO: Initialise database */
-
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
 
+	_resources = hashmap_new(string_hash_func, string_compare_func);
 	return 0;
 }
 
