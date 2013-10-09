@@ -67,6 +67,13 @@ CONFPATH="${confpath}"
 AC_SUBST(CONFPATH)
 AC_DEFINE_UNQUOTED([DEFAULT_CONFIGURATION_FILE], ["$CONFPATH"], [' '])
 
+AC_ARG_WITH([db-path], AS_HELP_STRING([--with-db-path=DBPATH],
+	[path to buxton db files]), [dbpath=${withval}],
+	[dbpath="${localstatedir}/buxton"])
+DB_PATH="${dbpath}"
+AC_SUBST(DB_PATH)
+AC_DEFINE_UNQUOTED([DB_PATH], ["$DB_PATH"], [' '])
+
 AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket
