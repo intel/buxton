@@ -49,6 +49,7 @@ typedef struct BuxtonLayer {
 	char *name;
 	BuxtonLayerType type;
 	BuxtonBackendType backend;
+	uid_t uid;
 	char *priority;
 	char *description;
 } BuxtonLayer;
@@ -75,6 +76,9 @@ BuxtonBackend *backend_for_layer(const char *layer);
 
 /* Directly manipulate buxton without socket connection */
 _bx_export_ bool buxton_direct_open(BuxtonClient *client);
+
+/* Utility function available only to backend modules */
+char* get_layer_path(BuxtonLayer *layer);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

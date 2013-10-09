@@ -9,7 +9,13 @@
  * of the License, or (at your option) any later version.
  */
 
+#define _GNU_SOURCE
+
+#include <stdio.h>
+
+#include "config.h"
 #include "../shared/util.h"
+#include "../include/bt-daemon-private.h"
 
 size_t page_size(void) {
         static __thread size_t pgsz = 0;
@@ -23,6 +29,32 @@ size_t page_size(void) {
 
         pgsz = (size_t) r;
         return pgsz;
+}
+
+char* get_layer_path(BuxtonLayer *layer)
+{
+	char *path = NULL;
+	int r;
+	char uid[15];
+
+	switch (layer->type) {
+		case LAYER_SYSTEM:
+			r = asprintf(&path, "%s/%s.db", DB_PATH, layer->name);
+			if (r == -1)
+				return NULL;
+			break;
+		case LAYER_USER:
+			/* uid must already be set in layer before calling */
+			sprintf(uid, "%d", (int)layer->uid);
+			r = asprintf(&path, "%s/user-%s.db", DB_PATH, uid);
+			if (r == -1)
+				return NULL;
+			break;
+		default:
+			break;
+	}
+
+	return path;
 }
 
 /*
