@@ -18,6 +18,8 @@ START_TEST(buxton_client_open_check)
 	BuxtonClient c;
 	fail_if(buxton_client_open(&c) == true,
 		"Connection opened without daemon.");
+	fail_unless(buxton_client_open(NULL) == false,
+		    "Connection opened passing with NULL as argument");
 }
 END_TEST
 
@@ -26,6 +28,8 @@ START_TEST(buxton_direct_open_check)
 	BuxtonClient c;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
+	fail_unless(buxton_direct_open(NULL) == false,
+		    "Direct open passing with NULL as argument");
 }
 END_TEST
 

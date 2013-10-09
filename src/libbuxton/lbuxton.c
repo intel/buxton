@@ -43,6 +43,10 @@ bool buxton_client_open(BuxtonClient *client)
 	struct sockaddr_un remote;
 	bool ret;
 
+	if (client == NULL) {
+		return false;
+	}
+
 	if (!_exit_handler_registered) {
 		_exit_handler_registered = true;
 		atexit(exit_handler);
@@ -72,6 +76,10 @@ end:
 
 bool buxton_direct_open(BuxtonClient *client)
 {
+	if (client == NULL) {
+		return false;
+	}
+
 	if (!_exit_handler_registered) {
 		_exit_handler_registered = true;
 		atexit(exit_handler);
@@ -184,6 +192,7 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 	cast = dlsym(handle, "buxton_module_init");
 	if ((error = dlerror()) != NULL || !cast) {
 		buxton_log("dlsym(): %s", error);
+		dlclose(handle);
 		return false;
 	}
 	memcpy(&i_func, &cast, sizeof(i_func));
@@ -192,11 +201,17 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 	cast = dlsym(handle, "buxton_module_destroy");
 	if ((error = dlerror()) != NULL || !cast) {
 		buxton_log("dlsym(): %s", error);
+		dlclose(handle);
 		return false;
 	}
 	memcpy(&d_func, &cast, sizeof(d_func));
 
 	i_func(backend);
+	if (backend == NULL) {
+		buxton_log("buxton_module_init returned NULL");
+		dlclose(handle);
+		return false;
+	}
 	backend->module = handle;
 	backend->destroy = d_func;
 
