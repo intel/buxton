@@ -32,11 +32,19 @@ static Hashmap *_layers = NULL;
 bool buxton_init_layers(void);
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 
+void exit_handler(void);
+static bool _exit_handler_registered = false;
+
 bool buxton_client_open(BuxtonClient *client)
 {
 	int bx_socket, r;
 	struct sockaddr_un remote;
 	bool ret;
+
+	if (!_exit_handler_registered) {
+		_exit_handler_registered = true;
+		atexit(exit_handler);
+	}
 
 	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		ret = false;
@@ -62,6 +70,11 @@ end:
 
 bool buxton_direct_open(BuxtonClient *client)
 {
+	if (!_exit_handler_registered) {
+		_exit_handler_registered = true;
+		atexit(exit_handler);
+	}
+
 	if (!_directPermitted)
 		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
 
@@ -84,7 +97,7 @@ bool buxton_client_get_value(BuxtonClient *client,
 }
 
 bool buxton_client_set_value(BuxtonClient *client,
-			      const char *layer,
+			      const char *layer_name,
 			      const char *key,
 			      BuxtonData *data)
 {
@@ -92,11 +105,16 @@ bool buxton_client_set_value(BuxtonClient *client,
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, client->pid) == client) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
+		BuxtonLayer *layer;
+		if ((layer = hashmap_get(_layers, layer_name)) == NULL) {
+			return false;
+		}
 		backend = backend_for_layer(layer);
 		if (!backend) {
 			/* Already logged */
 			return false;
 		}
+		layer->uid = geteuid();
 		return backend->set_value(layer, key, data);
 	}
 
@@ -104,31 +122,48 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return false;
 }
 
-BuxtonBackend* backend_for_layer(const char *layer)
+BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
 {
 	BuxtonBackend *backend;
 
 	if (!_databases)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
-	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer)) == NULL) {
+	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->name)) == NULL) {
 		/* attempt load of backend */
 		if (!init_backend(layer, backend)) {
-			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer);
+			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
 			return NULL;
 		}
-		hashmap_put(_databases, layer, backend);
+		hashmap_put(_databases, layer->name, backend);
 	}
-	return (BuxtonBackend*)hashmap_get(_databases, layer);
+	return (BuxtonBackend*)hashmap_get(_databases, layer->name);
 }
 
-bool init_backend(const char *name, BuxtonBackend* backend)
+void destroy_backend(BuxtonBackend *backend)
+{
+	backend->set_value = NULL;
+	backend->get_value = NULL;
+	backend->destroy();
+	dlclose(backend->module);
+
+	backend = NULL;
+}
+bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 {
 	void *handle, *cast;
 	char *path;
+	const char *name;
 	char *error;
 	int length;
 	module_init_func i_func;
 	module_destroy_func d_func;
+
+	if (layer->backend == BACKEND_GDBM)
+		name = "gdbm";
+	else if (layer->backend == BACKEND_MEMORY)
+		name = "memory";
+	else
+		return false;
 
 	length = strlen(name) + strlen(MODULE_DIRECTORY) + 5;
 	path = malloc(length);
@@ -165,10 +200,7 @@ bool init_backend(const char *name, BuxtonBackend* backend)
 
 	i_func(backend);
 	backend->module = handle;
-
-	/* TODO: Have this handled at global level and don't close in method */
-	d_func(backend);
-	dlclose(handle);
+	backend->destroy = d_func;
 
 	return true;
 }
@@ -260,15 +292,28 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 		goto end;
 
 	out->name = strdup(name);
-	out->type = strdup(_type);
+	if (strcmp(_type, "System") == 0)
+		out->type = LAYER_SYSTEM;
+	else if (strcmp(_type, "User") == 0)
+		out->type = LAYER_USER;
+	else {
+		buxton_log("Layer %s has unknown type: %s\n", name, _type);
+		goto end;
+	}
 
 	/* Ok to be null */
 	_desc = iniparser_getstring(ini, k_desc, NULL);
 	if (_desc != NULL)
 		out->description = strdup(_desc);
 	_backend = iniparser_getstring(ini, k_backend, NULL);
-	if (_backend != NULL)
-		out->backend = strdup(_backend);
+	if (_backend != NULL) {
+		if (strcmp(_backend, "gdbm") == 0)
+			out->backend = BACKEND_GDBM;
+		else if(strcmp(_backend, "memory") == 0)
+			out->backend = BACKEND_MEMORY;
+		else
+			out->backend = BACKEND_UNSET;
+	}
 	_priority = iniparser_getstring(ini, k_priority, NULL);
 	if (_priority != NULL)
 		out->priority = strdup(_priority);
@@ -284,6 +329,19 @@ end:
 		free(k_priority);
 
 	return ret;
+}
+
+void exit_handler(void)
+{
+	const char *key;
+	Iterator iterator;
+	BuxtonBackend *backend;
+
+	HASHMAP_FOREACH_KEY(backend, key, _databases, iterator) {
+		destroy_backend(backend);
+	}
+	hashmap_free(_databases);
+	hashmap_free(_layers);
 }
 
 /*

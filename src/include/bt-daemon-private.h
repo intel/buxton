@@ -10,12 +10,16 @@
  */
 
 #define _GNU_SOURCE
+#include "config.h"
 
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/poll.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "../shared/list.h"
 #include "bt-daemon.h"
@@ -33,36 +37,86 @@ typedef struct client_list_item {
 	struct ucred credentials;
 } client_list_item;
 
+typedef enum BuxtonBackendType {
+	BACKEND_UNSET = 0,
+	BACKEND_GDBM,
+	BACKEND_MEMORY,
+	BACKEND_MAXTYPES
+} BuxtonBackendType;
+
+typedef enum BuxtonLayerType {
+	LAYER_SYSTEM,
+	LAYER_USER,
+	LAYER_MAXTYPES
+} BuxtonLayerType;
+
 typedef struct BuxtonLayer {
 	char *name;
-	char *type;
-	char *backend;
+	BuxtonLayerType type;
+	BuxtonBackendType backend;
+	uid_t uid;
 	char *priority;
 	char *description;
 } BuxtonLayer;
 
 /* Module related code */
-typedef int (*module_value_func) (const char *resource, const char *key, BuxtonData *data);
+typedef int (*module_set_value_func) (BuxtonLayer *layer, const char *key, BuxtonData *data);
+typedef BuxtonData* (*module_get_value_func) (BuxtonLayer *layer, const char *key);
+
+typedef void (*module_destroy_func) (void);
 
 typedef struct BuxtonBackend {
 	void *module;
-
-	module_value_func set_value;
-	module_value_func get_value;
+	module_destroy_func destroy;
+	module_set_value_func set_value;
+	module_get_value_func get_value;
 
 } BuxtonBackend;
 
 typedef int (*module_init_func) (BuxtonBackend *backend);
-typedef void (*module_destroy_func) (BuxtonBackend *backend);
 
 /* Initialise a backend module */
-bool init_backend(const char *name, BuxtonBackend *backend);
+bool init_backend(BuxtonLayer *layer, BuxtonBackend *backend);
+
+/* Close down the backend */
+void destroy_backend(BuxtonBackend *backend);
 
 /* Obtain the current backend for the given layer */
-BuxtonBackend *backend_for_layer(const char *layer);
+BuxtonBackend *backend_for_layer(BuxtonLayer *layer);
 
 /* Directly manipulate buxton without socket connection */
 _bx_export_ bool buxton_direct_open(BuxtonClient *client);
+
+/* Utility function available only to backend modules */
+char* get_layer_path(BuxtonLayer *layer)
+{
+	char *path = 0;
+	int length;
+	char uid[15];
+
+	switch (layer->type) {
+		case LAYER_SYSTEM:
+			length = strlen(layer->name) + strlen(DB_PATH) + 5;
+			path = malloc(length);
+			if (!path)
+				return 0;
+			snprintf(path, length, "%s/%s.db", DB_PATH, layer->name);
+			break;
+		case LAYER_USER:
+			/* uid must already be set in layer before calling */
+			sprintf(uid, "%d", (int)layer->uid);
+			length = strlen(DB_PATH) + strlen(uid) + 10;
+			path = malloc(length);
+			if (!path)
+				return 0;
+			snprintf(path, length, "%s/user-%s.db", DB_PATH, uid);
+			break;
+		default:
+			break;
+	}
+			
+	return path;
+}
 
 #endif /* btdaemonh_private */
 

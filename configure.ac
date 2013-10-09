@@ -37,6 +37,11 @@ BUXTON_CONF="${sysconfdir}/buxton.conf"
 AC_SUBST(BUXTON_CONF)
 AC_DEFINE_UNQUOTED([DEFAULT_CONFIGURATION_FILE], ["$BUXTON_CONF"], [' '])
 
+# Default database location
+BUXTON_DB_PATH="${localstatedir}/buxton"
+AC_SUBST(BUXTON_DB_PATH)
+AC_DEFINE_UNQUOTED([DB_PATH], ["$BUXTON_DB_PATH"], [' '])
+
 # Options
 AC_ARG_WITH([systemdsystemunitdir], AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
 	[path to systemd system service directory]), [path_systemdsystemunit=${withval}],

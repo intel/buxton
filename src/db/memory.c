@@ -27,20 +27,18 @@
 
 static Hashmap *_resources;
 
-static int set_value(const char *resource, const char *key, BuxtonData *data)
+static int set_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 {
 	return false;
 }
 
-static int get_value(const char *resource, const char *key, BuxtonData *data)
+static BuxtonData* get_value(BuxtonLayer *layer, const char *key)
 {
-	return false;
+	return NULL;
 }
 
-_bx_export_ void buxton_module_destroy(BuxtonBackend *backend)
+_bx_export_ void buxton_module_destroy(void)
 {
-	backend->set_value = NULL;
-	backend->get_value = NULL;
 
 }
 
