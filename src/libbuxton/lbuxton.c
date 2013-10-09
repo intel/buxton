@@ -43,6 +43,10 @@ bool buxton_client_open(BuxtonClient *client)
 	struct sockaddr_un remote;
 	bool ret;
 
+	if (client == NULL) {
+		return false;
+	}
+
 	if (!_exit_handler_registered) {
 		_exit_handler_registered = true;
 		atexit(exit_handler);
@@ -72,6 +76,10 @@ end:
 
 bool buxton_direct_open(BuxtonClient *client)
 {
+	if (client == NULL) {
+		return false;
+	}
+
 	if (!_exit_handler_registered) {
 		_exit_handler_registered = true;
 		atexit(exit_handler);
