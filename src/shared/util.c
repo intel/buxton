@@ -37,6 +37,9 @@ char* get_layer_path(BuxtonLayer *layer)
 	int r;
 	char uid[15];
 
+	if (layer == NULL)
+		return NULL;
+
 	switch (layer->type) {
 		case LAYER_SYSTEM:
 			r = asprintf(&path, "%s/%s.db", DB_PATH, layer->name);
