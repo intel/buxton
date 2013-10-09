@@ -33,10 +33,23 @@ typedef struct client_list_item {
 	struct ucred credentials;
 } client_list_item;
 
+typedef enum BuxtonBackendType {
+	BACKEND_UNSET = 0,
+	BACKEND_GDBM,
+	BACKEND_MEMORY,
+	BACKEND_MAXTYPES
+} BuxtonBackendType;
+
+typedef enum BuxtonLayerType {
+	LAYER_SYSTEM,
+	LAYER_USER,
+	LAYER_MAXTYPES
+} BuxtonLayerType;
+
 typedef struct BuxtonLayer {
 	char *name;
-	char *type;
-	char *backend;
+	BuxtonLayerType type;
+	BuxtonBackendType backend;
 	char *priority;
 	char *description;
 } BuxtonLayer;
@@ -56,7 +69,7 @@ typedef int (*module_init_func) (BuxtonBackend *backend);
 typedef void (*module_destroy_func) (BuxtonBackend *backend);
 
 /* Initialise a backend module */
-bool init_backend(const char *name, BuxtonBackend *backend);
+bool init_backend(BuxtonLayer *layer, BuxtonBackend *backend);
 
 /* Obtain the current backend for the given layer */
 BuxtonBackend *backend_for_layer(const char *layer);

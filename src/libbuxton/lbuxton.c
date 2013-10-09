@@ -104,31 +104,43 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return false;
 }
 
-BuxtonBackend* backend_for_layer(const char *layer)
+BuxtonBackend* backend_for_layer(const char *layer_name)
 {
 	BuxtonBackend *backend;
+	BuxtonLayer *layer;
+
+	if ((layer = hashmap_get(_layers, layer)) == NULL)
+		return NULL;
 
 	if (!_databases)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
-	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer)) == NULL) {
+	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer_name)) == NULL) {
 		/* attempt load of backend */
 		if (!init_backend(layer, backend)) {
-			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer);
+			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer_name);
 			return NULL;
 		}
-		hashmap_put(_databases, layer, backend);
+		hashmap_put(_databases, layer_name, backend);
 	}
 	return (BuxtonBackend*)hashmap_get(_databases, layer);
 }
 
-bool init_backend(const char *name, BuxtonBackend* backend)
+bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 {
 	void *handle, *cast;
 	char *path;
+	const char *name;
 	char *error;
 	int length;
 	module_init_func i_func;
 	module_destroy_func d_func;
+
+	if (layer->backend == BACKEND_GDBM)
+		name = "gdbm";
+	else if (layer->backend == BACKEND_MEMORY)
+		name = "memory";
+	else
+		return false;
 
 	length = strlen(name) + strlen(MODULE_DIRECTORY) + 5;
 	path = malloc(length);
@@ -260,15 +272,28 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 		goto end;
 
 	out->name = strdup(name);
-	out->type = strdup(_type);
+	if (strcmp(_type, "System") == 0)
+		out->type = LAYER_SYSTEM;
+	else if (strcmp(_type, "User") == 0)
+		out->type = LAYER_USER;
+	else {
+		buxton_log("Layer %s has unknown type: %s\n", name, _type);
+		goto end;
+	}
 
 	/* Ok to be null */
 	_desc = iniparser_getstring(ini, k_desc, NULL);
 	if (_desc != NULL)
 		out->description = strdup(_desc);
 	_backend = iniparser_getstring(ini, k_backend, NULL);
-	if (_backend != NULL)
-		out->backend = strdup(_backend);
+	if (_backend != NULL) {
+		if (strcmp(_backend, "gdbm") == 0)
+			out->backend = BACKEND_GDBM;
+		else if(strcmp(_backend, "memory") == 0)
+			out->backend = BACKEND_MEMORY;
+		else
+			out->backend = BACKEND_UNSET;
+	}
 	_priority = iniparser_getstring(ini, k_priority, NULL);
 	if (_priority != NULL)
 		out->priority = strdup(_priority);
