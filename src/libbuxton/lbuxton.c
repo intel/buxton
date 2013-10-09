@@ -34,11 +34,19 @@ static Hashmap *_layers = NULL;
 bool buxton_init_layers(void);
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 
+void exit_handler(void);
+static bool _exit_handler_registered = false;
+
 bool buxton_client_open(BuxtonClient *client)
 {
 	int bx_socket, r;
 	struct sockaddr_un remote;
 	bool ret;
+
+	if (!_exit_handler_registered) {
+		_exit_handler_registered = true;
+		atexit(exit_handler);
+	}
 
 	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		ret = false;
@@ -64,6 +72,11 @@ end:
 
 bool buxton_direct_open(BuxtonClient *client)
 {
+	if (!_exit_handler_registered) {
+		_exit_handler_registered = true;
+		atexit(exit_handler);
+	}
+
 	if (!_directPermitted)
 		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
 
@@ -128,6 +141,15 @@ BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
 	return (BuxtonBackend*)hashmap_get(_databases, layer->name);
 }
 
+void destroy_backend(BuxtonBackend *backend)
+{
+	backend->set_value = NULL;
+	backend->get_value = NULL;
+	backend->destroy();
+	dlclose(backend->module);
+
+	backend = NULL;
+}
 bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 {
 	void *handle, *cast;
@@ -176,10 +198,7 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 
 	i_func(backend);
 	backend->module = handle;
-
-	/* TODO: Have this handled at global level and don't close in method */
-	d_func(backend);
-	dlclose(handle);
+	backend->destroy = d_func;
 
 	return true;
 }
@@ -325,6 +344,19 @@ end:
 		free(k_priority);
 
 	return ret;
+}
+
+void exit_handler(void)
+{
+	const char *key;
+	Iterator iterator;
+	BuxtonBackend *backend;
+
+	HASHMAP_FOREACH_KEY(backend, key, _databases, iterator) {
+		destroy_backend(backend);
+	}
+	hashmap_free(_databases);
+	hashmap_free(_layers);
 }
 
 /*
