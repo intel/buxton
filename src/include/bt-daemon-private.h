@@ -10,12 +10,16 @@
  */
 
 #define _GNU_SOURCE
+#include "config.h"
 
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/poll.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "../shared/list.h"
 #include "bt-daemon.h"
@@ -50,6 +54,7 @@ typedef struct BuxtonLayer {
 	char *name;
 	BuxtonLayerType type;
 	BuxtonBackendType backend;
+	uid_t uid;
 	char *priority;
 	char *description;
 } BuxtonLayer;
@@ -76,6 +81,37 @@ BuxtonBackend *backend_for_layer(const char *layer);
 
 /* Directly manipulate buxton without socket connection */
 _bx_export_ bool buxton_direct_open(BuxtonClient *client);
+
+/* Utility function available only to backend modules */
+char* get_layer_path(BuxtonLayer *layer)
+{
+	char *path = 0;
+	int length;
+	char uid[15];
+
+	switch (layer->type) {
+		case LAYER_SYSTEM:
+			length = strlen(layer->name) + strlen(DB_PATH) + 5;
+			path = malloc(length);
+			if (!path)
+				return 0;
+			snprintf(path, length, "%s/%s.db", DB_PATH, layer->name);
+			break;
+		case LAYER_USER:
+			/* uid must already be set in layer before calling */
+			sprintf(uid, "%d", (int)layer->uid);
+			length = strlen(DB_PATH) + strlen(uid) + 10;
+			path = malloc(length);
+			if (!path)
+				return 0;
+			snprintf(path, length, "%s/user-%s.db", DB_PATH, uid);
+			break;
+		default:
+			break;
+	}
+			
+	return path;
+}
 
 #endif /* btdaemonh_private */
 
