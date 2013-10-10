@@ -151,8 +151,12 @@ BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
 	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->name)) == NULL) {
 		/* attempt load of backend */
+		backend = malloc0(sizeof(BuxtonBackend));
+		if (!backend)
+			return NULL;
 		if (!init_backend(layer, backend)) {
 			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
+			free(backend);
 			return NULL;
 		}
 		hashmap_put(_databases, layer->name, backend);
@@ -169,7 +173,7 @@ void destroy_backend(BuxtonBackend *backend)
 	backend->get_value = NULL;
 	backend->destroy();
 	dlclose(backend->module);
-
+	free(backend);
 	backend = NULL;
 }
 bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
