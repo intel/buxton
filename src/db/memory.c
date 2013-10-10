@@ -9,7 +9,9 @@
  * of the License, or (at your option) any later version.
  */
 
-#define _GNU_SOURCE
+#ifdef HAVE_CONFIG_H
+    #include "config.h"
+#endif
 
 #include <assert.h>
 

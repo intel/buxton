@@ -9,6 +9,10 @@
  * of the License, or (at your option) any later version.
  */
 
+#ifdef HAVE_CONFIG_H
+    #include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 

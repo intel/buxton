@@ -21,6 +21,10 @@
   along with systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
 
+#ifdef HAVE_CONFIG_H
+    #include "config.h"
+#endif
+
 #include <alloca.h>
 #include <inttypes.h>
 #include <time.h>

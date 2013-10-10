@@ -22,6 +22,16 @@ AC_TYPE_SSIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 
+AH_VERBATIM([_GNU_SOURCE],
+[/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+	#define _GNU_SOURCE
+#endif])
+
+AH_TOP([#ifndef CONFIG_H_INCLUDED
+	#define CONFIG_H_INCLUDED 1])
+AH_BOTTOM([#endif])
+
 # PkgConfig tests
 PKG_CHECK_MODULES([CHECK], [check])
 PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])

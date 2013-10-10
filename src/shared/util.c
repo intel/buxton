@@ -9,12 +9,13 @@
  * of the License, or (at your option) any later version.
  */
 
-#define _GNU_SOURCE
+#ifdef HAVE_CONFIG_H
+    #include "config.h"
+#endif
 
 #include <stdio.h>
 #include <assert.h>
 
-#include "config.h"
 #include "../shared/util.h"
 #include "../include/bt-daemon-private.h"
 

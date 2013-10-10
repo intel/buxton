@@ -9,8 +9,10 @@
  * of the License, or (at your option) any later version.
  */
 
-#define _GNU_SOURCE
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+    #include "config.h"
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <dlfcn.h>
