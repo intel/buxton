@@ -72,10 +72,10 @@ static int set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
 	return ret;
 }
 
-static BuxtonData* get_value(BuxtonLayer *layer, const char *key)
+static int get_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 {
 	/* TODO: Add code for copying the BuxtonData* first */
-	return NULL;
+	return false;
 }
 
 _bx_export_ void buxton_module_destroy(void)

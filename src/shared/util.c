@@ -57,6 +57,34 @@ char* get_layer_path(BuxtonLayer *layer)
 	return path;
 }
 
+void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
+{
+	copy->type = original->type;
+	BuxtonDataStore store;
+	switch (original->type) {
+		case STRING:
+			store.d_string = strdup(original->store.d_string);
+			break;
+		case BOOLEAN:
+			store.d_boolean = original->store.d_boolean;
+			break;
+		case FLOAT:
+			store.d_float = original->store.d_float;
+			break;
+		case INT:
+			store.d_int = original->store.d_int;
+			break;
+		case DOUBLE:
+			store.d_double = original->store.d_double;
+			break;
+		case LONG:
+			store.d_long = original->store.d_long;
+			break;
+		default:
+			break;
+	}
+	copy->store = store;
+}
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
