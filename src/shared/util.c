@@ -12,23 +12,25 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
+#include <assert.h>
 
 #include "config.h"
 #include "../shared/util.h"
 #include "../include/bt-daemon-private.h"
 
-size_t page_size(void) {
-        static __thread size_t pgsz = 0;
-        long r;
+size_t page_size(void)
+{
+	static __thread size_t pgsz = 0;
+	long r;
 
-        if (_likely_(pgsz > 0))
-                return pgsz;
+	if (_likely_(pgsz > 0))
+		return pgsz;
 
-        r = sysconf(_SC_PAGESIZE);
-        assert(r > 0);
+	r = sysconf(_SC_PAGESIZE);
+	assert(r > 0);
 
-        pgsz = (size_t) r;
-        return pgsz;
+	pgsz = (size_t) r;
+	return pgsz;
 }
 
 char* get_layer_path(BuxtonLayer *layer)
@@ -36,6 +38,8 @@ char* get_layer_path(BuxtonLayer *layer)
 	char *path = NULL;
 	int r;
 	char uid[15];
+
+	assert(layer);
 
 	switch (layer->type) {
 		case LAYER_SYSTEM:
