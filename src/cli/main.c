@@ -50,7 +50,7 @@ static bool print_help(int argc, char **argv)
 	return true;
 }
 
-void print_usage(Command *command)
+static void print_usage(Command *command)
 {
 	printf("%s takes %d arguments - %s\n", command->name, command->arguments, command->usage);
 }
@@ -99,7 +99,7 @@ end:
 }
 
 /* Set an integer in Buxton */
-bool set_int(int argc, char **argv)
+static bool set_int(int argc, char **argv)
 {
 	char *layer, *key, *value;
 	BuxtonData set;
@@ -119,7 +119,7 @@ bool set_int(int argc, char **argv)
 }
 
 /* Get an integer from Buxton */
-bool get_int(int argc, char **argv)
+static bool get_int(int argc, char **argv)
 {
 	char *layer, *key;
 	BuxtonData get;
@@ -154,37 +154,24 @@ int main(int argc, char **argv)
 	/* Build a command list */
 	commands = hashmap_new(string_hash_func, string_compare_func);
 
-	c_get_string.name = "get-string";
-	c_get_string.description = "Get a string value by key";
-	c_get_string.method = &get_string;
-	c_get_string.arguments = 2;
-	c_get_string.usage = "[layer] [key]";
+	c_get_string = (Command) { "get-string", "Get a string value by key",
+				   2, "[layer] [key]", &get_string };
 	hashmap_put(commands, c_get_string.name, &c_get_string);
 
-	c_set_string.name = "set-string";
-	c_set_string.description = "Set a key with a string value";
-	c_set_string.method = &set_string;
-	c_set_string.arguments = 3;
-	c_set_string.usage = "[layer] [key] [value]";
+	c_set_string = (Command) { "set-string", "Set a key with a string value",
+				   3, "[layer] [key] [value]", &set_string };
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
-	c_set_int.name = "set-int";
-	c_set_int.description = "Set a key with an integer value";
-	c_set_int.method = &set_int;
-	c_set_int.arguments = 3;
-	c_set_int.usage = "[layer] [key] [value]";
+	c_set_int = (Command) { "set-int", "Set a key with an integer value",
+				3, "[layer] [key] [value]", &set_int };
 	hashmap_put(commands, c_set_int.name, &c_set_int);
 
-	c_get_int.name = "get-int";
-	c_get_int.description = "Get an integer value by key";
-	c_get_int.method = &get_int;
-	c_get_int.arguments = 2;
-	c_get_int.usage = "[layer] [key]";
+	c_get_int = (Command) { "get-int", "Get an integer value by key",
+				2, "[layer] [key]", &get_int };
 	hashmap_put(commands, c_get_int.name, &c_get_int);
 
-	c_help.name = "help";
-	c_help.description = "Print this help message";
-	c_help.method = &print_help;
+	c_help = (Command) { "help", "Print this help message",
+			     0, NULL, &print_help };
 	hashmap_put(commands, c_help.name, &c_help);
 
 	if (argc > 1 && strncmp(argv[1], "--direct", 8) == 0) {
