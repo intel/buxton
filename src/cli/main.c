@@ -21,6 +21,7 @@
 
 static Hashmap *commands;
 static BuxtonClient client;
+static unsigned int arg_n = 1;
 
 typedef bool (*command_method) (int argc, char **argv);
 
@@ -56,7 +57,17 @@ void print_usage(Command *command)
 /* Set a string in Buxton */
 bool set_string(int argc, char **argv)
 {
-	return true;
+	char *layer, *key, *value;
+	BuxtonData set;
+
+	layer = argv[arg_n + 1];
+	key = argv[arg_n + 2];
+	value = argv[arg_n + 3];
+
+	set.type = STRING;
+	set.store.d_string = value;
+
+	return buxton_client_set_value(&client, layer, key, &set);
 }
 
 /* Get a string from Buxton */
@@ -68,7 +79,6 @@ bool get_string(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	bool ret = false;
-	int arg_n = 1;
 	Command c_get_string, c_set_string;
 	Command c_help;
 	Command *command;
