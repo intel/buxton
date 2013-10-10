@@ -96,7 +96,7 @@ bool buxton_direct_open(BuxtonClient *client)
 }
 
 bool buxton_client_get_value(BuxtonClient *client,
-			      const char *layer,
+			      const char *layer_name,
 			      const char *key,
 			      BuxtonData *data)
 {
@@ -106,6 +106,23 @@ bool buxton_client_get_value(BuxtonClient *client,
 	assert(key);
 
 	/* TODO: Implement */
+	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
+		/* Handle direct manipulation */
+		BuxtonBackend *backend;
+		BuxtonLayer *layer;
+		if ((layer = hashmap_get(_layers, layer_name)) == NULL) {
+			return false;
+		}
+		backend = backend_for_layer(layer);
+		if (!backend) {
+			/* Already logged */
+			return false;
+		}
+		layer->uid = geteuid();
+		return backend->get_value(layer, key, data);
+	}
+
+	/* Normal interaction (wire-protocol) */
 	return false;
 }
 

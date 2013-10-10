@@ -80,14 +80,28 @@ static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 	return ret;
 }
 
-static bool get_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
+static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
 {
+	GDBM_FILE db;
 
 	assert(layer);
 	assert(key);
 
-	/* TODO: Add code for copying the BuxtonData* first */
-	return false;
+	db = _db_for_resource(layer);
+	if (!db)
+		return false;
+
+	datum key = { (char *)key_name, strlen(key_name) + 1};
+	datum value;
+
+	value = gdbm_fetch(db, key);
+	if (value.dsize < 0)
+		return false;
+
+	buxton_data_copy((BuxtonData*)value.dptr, data);
+	free(value.dptr);
+
+	return true;
 }
 
 _bx_export_ void buxton_module_destroy(void)
