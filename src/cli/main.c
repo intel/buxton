@@ -31,7 +31,7 @@ typedef struct Command {
 } Command;
 
 /* Print help message */
-bool print_help(int argc, char **argv)
+static bool print_help(int argc, char **argv)
 {
 	const char *key;
 	Iterator iterator;
@@ -47,13 +47,13 @@ bool print_help(int argc, char **argv)
 }
 
 /* Set a string in Buxton */
-bool set_string(int argc, char **argv)
+static bool set_string(int argc, char **argv)
 {
 	return true;
 }
 
 /* Get a string from Buxton */
-bool get_string(int argc, char **argv)
+static bool get_string(int argc, char **argv)
 {
 	return true;
 }
