@@ -40,7 +40,7 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 		path = get_layer_path(layer);
 		if (!path)
 			goto end;
-		db = gdbm_open(path, 0, GDBM_WRCREAT | GDBM_READER, 0666, NULL);
+		db = gdbm_open(path, 0, GDBM_WRCREAT, 0600, NULL);
 		if (!db)
 			goto end;
 		hashmap_put(_resources, layer->name, db);
