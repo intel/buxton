@@ -74,6 +74,13 @@ DB_PATH="${dbpath}"
 AC_SUBST(DB_PATH)
 AC_DEFINE_UNQUOTED([DB_PATH], ["$DB_PATH"], [' '])
 
+AC_ARG_WITH([socket-path], AS_HELP_STRING([--with-socket-path=SOCKETPATH],
+	[path to buxton socket file]), [socketpath=${withval}],
+	[socketpath="/run/buxton-0"])
+BUXTON_SOCKET="${socketpath}"
+AC_SUBST(BUXTON_SOCKET)
+AC_DEFINE_UNQUOTED([BUXTON_SOCKET], ["$BUXTON_SOCKET"], [' '])
+
 AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket

@@ -17,8 +17,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#define BUXTON_SOCKET "/run/buxton-0"
-
 #if (__GNUC__ >= 4)
 /* Export symbols */
 #    define _bx_export_ __attribute__ ((visibility("default")))

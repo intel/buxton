@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "../shared/util.h"
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
