@@ -55,7 +55,7 @@ typedef struct BuxtonLayer {
 } BuxtonLayer;
 
 /* Module related code */
-typedef int (*module_set_value_func) (BuxtonLayer *layer, const char *key, BuxtonData *data);
+typedef bool (*module_set_value_func) (BuxtonLayer *layer, const char *key_name, BuxtonData *data);
 typedef BuxtonData* (*module_get_value_func) (BuxtonLayer *layer, const char *key);
 
 typedef void (*module_destroy_func) (void);

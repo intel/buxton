@@ -51,10 +51,10 @@ end:
 	return (GDBM_FILE) hashmap_get(_resources, layer->name);
 }
 
-static int set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
+static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
 {
 	GDBM_FILE db;
-	int ret = true;
+	bool ret = true;
 
 	assert(layer);
 	assert(key_name);
@@ -104,7 +104,7 @@ _bx_export_ void buxton_module_destroy(void)
 	_resources = NULL;
 }
 
-_bx_export_ int buxton_module_init(BuxtonBackend *backend)
+_bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 {
 
 	assert(backend);
@@ -114,7 +114,10 @@ _bx_export_ int buxton_module_init(BuxtonBackend *backend)
 	backend->get_value = &get_value;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
-	return 0;
+	if (!_resources)
+		return false;
+
+	return true;
 }
 
 /*
