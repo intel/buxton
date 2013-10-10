@@ -55,16 +55,15 @@ typedef struct BuxtonLayer {
 } BuxtonLayer;
 
 /* Module related code */
-typedef bool (*module_set_value_func) (BuxtonLayer *layer, const char *key_name, BuxtonData *data);
-typedef BuxtonData* (*module_get_value_func) (BuxtonLayer *layer, const char *key);
+typedef bool (*module_value_func) (BuxtonLayer *layer, const char *key, BuxtonData *data);
 
 typedef void (*module_destroy_func) (void);
 
 typedef struct BuxtonBackend {
 	void *module;
 	module_destroy_func destroy;
-	module_set_value_func set_value;
-	module_get_value_func get_value;
+	module_value_func set_value;
+	module_value_func get_value;
 
 } BuxtonBackend;
 
@@ -84,6 +83,9 @@ _bx_export_ bool buxton_direct_open(BuxtonClient *client);
 
 /* Utility function available only to backend modules */
 char* get_layer_path(BuxtonLayer *layer);
+
+/* Utility function to deep copy a BuxtonData */
+void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
