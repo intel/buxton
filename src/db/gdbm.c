@@ -87,7 +87,7 @@ static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 	GDBM_FILE db;
 
 	assert(layer);
-	assert(key);
+	assert(key_name);
 
 	db = _db_for_resource(layer);
 	if (!db)
