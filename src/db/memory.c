@@ -60,7 +60,7 @@ _bx_export_ int buxton_module_init(BuxtonBackend *backend)
 
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
-	backend->set_value = &get_value;
+	backend->get_value = &get_value;
 
 	return 0;
 }
