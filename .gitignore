@@ -25,6 +25,8 @@ test-driver
 m4/*.m4
 .dirstamp
 *.trs
+/cscope.*
+/tags
 
 bt-daemon
 buxtonctl
