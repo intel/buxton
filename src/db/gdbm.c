@@ -54,7 +54,7 @@ end:
 static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
 {
 	GDBM_FILE db;
-	bool ret = true;
+	int ret;
 
 	assert(layer);
 	assert(key_name);
@@ -75,9 +75,11 @@ static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 			break;
 	}
 	value.dptr = (char *)data;
-	ret = gdbm_store(db, key, value, GDBM_INSERT | GDBM_REPLACE);
+	ret = gdbm_store(db, key, value, GDBM_REPLACE);
 
-	return ret;
+	if (ret == -1)
+		return false;
+	return true;
 }
 
 static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
