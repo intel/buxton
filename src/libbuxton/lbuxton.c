@@ -102,7 +102,7 @@ bool buxton_client_get_value(BuxtonClient *client,
 {
 
 	assert(client);
-	assert(layer);
+	assert(layer_name);
 	assert(key);
 
 	/* TODO: Implement */
