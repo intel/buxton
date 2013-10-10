@@ -11,6 +11,7 @@
 
 #define _GNU_SOURCE
 
+#include <assert.h>
 #include <gdbm.h>
 #include <stdlib.h>
 
@@ -27,9 +28,12 @@
 static Hashmap *_resources = NULL;
 
 /* Open or create databases on the fly */
-static GDBM_FILE _db_for_resource(BuxtonLayer *layer) {
+static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
+{
 	GDBM_FILE db;
 	char *path = NULL;
+
+	assert(layer);
 
 	db = hashmap_get(_resources, layer->name);
 	if (!db) {
@@ -51,6 +55,10 @@ static int set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
 {
 	GDBM_FILE db;
 	int ret = true;
+
+	assert(layer);
+	assert(key_name);
+	assert(data);
 
 	db = _db_for_resource(layer);
 	if (!db)
@@ -74,6 +82,10 @@ static int set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
 
 static BuxtonData* get_value(BuxtonLayer *layer, const char *key)
 {
+
+	assert(layer);
+	assert(key);
+
 	/* TODO: Add code for copying the BuxtonData* first */
 	return NULL;
 }
@@ -94,6 +106,9 @@ _bx_export_ void buxton_module_destroy(void)
 
 _bx_export_ int buxton_module_init(BuxtonBackend *backend)
 {
+
+	assert(backend);
+
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;

@@ -11,6 +11,7 @@
 
 #define _GNU_SOURCE
 #include "config.h"
+#include <assert.h>
 #include <stdio.h>
 #include <dlfcn.h>
 #include <stdlib.h>
@@ -43,6 +44,8 @@ bool buxton_client_open(BuxtonClient *client)
 	struct sockaddr_un remote;
 	bool ret;
 
+	assert(client);
+
 	if (!_exit_handler_registered) {
 		_exit_handler_registered = true;
 		atexit(exit_handler);
@@ -72,6 +75,9 @@ end:
 
 bool buxton_direct_open(BuxtonClient *client)
 {
+
+	assert(client);
+
 	if (!_exit_handler_registered) {
 		_exit_handler_registered = true;
 		atexit(exit_handler);
@@ -94,6 +100,11 @@ bool buxton_client_get_value(BuxtonClient *client,
 			      const char *key,
 			      BuxtonData *data)
 {
+
+	assert(client);
+	assert(layer);
+	assert(key);
+
 	/* TODO: Implement */
 	return false;
 }
@@ -103,6 +114,12 @@ bool buxton_client_set_value(BuxtonClient *client,
 			      const char *key,
 			      BuxtonData *data)
 {
+
+	assert(client);
+	assert(layer_name);
+	assert(key);
+	assert(data);
+
 	/* TODO: Implement */
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */
@@ -128,6 +145,8 @@ BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
 {
 	BuxtonBackend *backend;
 
+	assert(layer);
+
 	if (!_databases)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
 	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->name)) == NULL) {
@@ -143,6 +162,9 @@ BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
 
 void destroy_backend(BuxtonBackend *backend)
 {
+
+	assert(backend);
+
 	backend->set_value = NULL;
 	backend->get_value = NULL;
 	backend->destroy();
@@ -159,6 +181,9 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 	int r;
 	module_init_func i_func;
 	module_destroy_func d_func;
+
+	assert(layer);
+	assert(backend);
 
 	if (layer->backend == BACKEND_GDBM)
 		name = "gdbm";
@@ -270,6 +295,10 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	char *_backend = NULL;
 	char *_type = NULL;
 	char *_priority = NULL;
+
+	assert(ini);
+	assert(name);
+	assert(out);
 
 	r = asprintf(&k_desc, "%s:description", name);
 	if (r == -1)

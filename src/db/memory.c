@@ -11,6 +11,8 @@
 
 #define _GNU_SOURCE
 
+#include <assert.h>
+
 #include "../shared/hashmap.h"
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
@@ -29,11 +31,20 @@ static Hashmap *_resources;
 
 static int set_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 {
+
+	assert(layer);
+	assert(key);
+	assert(data);
+
 	return false;
 }
 
 static BuxtonData* get_value(BuxtonLayer *layer, const char *key)
 {
+
+	assert(layer);
+	assert(key);
+
 	return NULL;
 }
 
@@ -44,6 +55,9 @@ _bx_export_ void buxton_module_destroy(void)
 
 _bx_export_ int buxton_module_init(BuxtonBackend *backend)
 {
+
+	assert(backend);
+
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
 	backend->set_value = &get_value;
