@@ -27,6 +27,8 @@ typedef bool (*command_method) (int argc, char **argv);
 typedef struct Command {
 	const char     *name;
 	const char     *description;
+	unsigned int   arguments;
+	const char     *usage;
 	command_method method;
 } Command;
 
@@ -44,6 +46,11 @@ bool print_help(int argc, char **argv)
 	};
 
 	return true;
+}
+
+void print_usage(Command *command)
+{
+	printf("%s takes %d arguments - %s\n", command->name, command->arguments, command->usage);
 }
 
 /* Set a string in Buxton */
@@ -72,11 +79,15 @@ int main(int argc, char **argv)
 	c_get_string.name = "get-string";
 	c_get_string.description = "Get a string value by key";
 	c_get_string.method = &get_string;
+	c_get_string.arguments = 2;
+	c_get_string.usage = "[layer] [key]";
 	hashmap_put(commands, c_get_string.name, &c_get_string);
 
 	c_set_string.name = "set-string";
 	c_set_string.description = "Set a key with a string value";
 	c_set_string.method = &set_string;
+	c_set_string.arguments = 3;
+	c_set_string.usage = "[layer] [key] [value]";
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
 	c_help.name = "help";
@@ -114,6 +125,13 @@ int main(int argc, char **argv)
 		/* Ensure we cleanup and abort when using help */
 		command->method(argc, argv);
 		ret = true;
+		goto end;
+	}
+
+	if (arg_n + command->arguments + 1 != argc) {
+		print_usage(command);
+		print_help(argc, argv);
+		ret = false;
 		goto end;
 	}
 
