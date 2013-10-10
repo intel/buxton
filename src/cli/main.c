@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
@@ -97,10 +98,57 @@ end:
 	return ret;
 }
 
+/* Set an integer in Buxton */
+bool set_int(int argc, char **argv)
+{
+	char *layer, *key, *value;
+	char **ptr;
+	BuxtonData set;
+
+	layer = argv[arg_n + 1];
+	key = argv[arg_n + 2];
+	value = argv[arg_n + 3];
+
+	set.type = INT;
+	set.store.d_int = strtol(value, ptr, 10);
+	if (errno) {
+		printf("Invalid integer\n");
+		return false;
+	}
+
+	return buxton_client_set_value(&client, layer, key, &set);
+}
+
+/* Get an integer from Buxton */
+bool get_int(int argc, char **argv)
+{
+	char *layer, *key;
+	BuxtonData get;
+	bool ret;
+
+	layer = argv[arg_n + 1];
+	key = argv[arg_n + 2];
+
+	/* Revisit when we introduce Status enums */
+	buxton_client_get_value(&client, layer, key, &get);
+	if (get.type != INT) {
+		ret = false;
+		printf("Returned data was not an integer\n");
+		goto end;
+	}
+
+	ret = true;
+	printf("[%s] %s = %d\n", layer, key, get.store.d_int);
+end:
+	
+	return ret;
+}
+
 int main(int argc, char **argv)
 {
 	bool ret = false;
 	Command c_get_string, c_set_string;
+	Command c_get_int, c_set_int;
 	Command c_help;
 	Command *command;
 
@@ -121,6 +169,21 @@ int main(int argc, char **argv)
 	c_set_string.usage = "[layer] [key] [value]";
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
+	c_set_int.name = "set-int";
+	c_set_int.description = "Set a key with an integer value";
+	c_set_int.method = &set_int;
+	c_set_int.arguments = 3;
+	c_set_int.usage = "[layer] [key] [value]";
+	hashmap_put(commands, c_set_int.name, &c_set_int);
+
+	c_get_int.name = "get-int";
+	c_get_int.description = "Get an integer value by key";
+	c_get_int.method = &get_int;
+	c_get_int.arguments = 2;
+	c_get_int.usage = "[layer] [key]";
+	hashmap_put(commands, c_get_int.name, &c_get_int);
+
+	
 	c_help.name = "help";
 	c_help.description = "Print this help message";
 	c_help.method = &print_help;
