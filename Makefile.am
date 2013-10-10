@@ -155,4 +155,5 @@ check_shared_lib_LDADD = \
 check_DATA = \
 	test/test-pass.ini \
 	test/test-fail.ini \
+	test/test.conf \
 	${NULL}
