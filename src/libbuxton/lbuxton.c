@@ -171,6 +171,7 @@ void destroy_backend(BuxtonBackend *backend)
 	free(backend);
 	backend = NULL;
 }
+
 bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 {
 	void *handle, *cast;
