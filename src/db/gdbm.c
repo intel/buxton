@@ -34,6 +34,7 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 	char *path = NULL;
 
 	assert(layer);
+	assert(_resources);
 
 	db = hashmap_get(_resources, layer->name);
 	if (!db) {
