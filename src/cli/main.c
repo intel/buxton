@@ -73,7 +73,28 @@ bool set_string(int argc, char **argv)
 /* Get a string from Buxton */
 bool get_string(int argc, char **argv)
 {
-	return true;
+	char *layer, *key;
+	BuxtonData get;
+	bool ret;
+
+	layer = argv[arg_n + 1];
+	key = argv[arg_n + 2];
+
+	/* Revisit when we introduce Status enums */
+	buxton_client_get_value(&client, layer, key, &get);
+	if (get.type != STRING) {
+		ret = false;
+		printf("Returned data was not a string\n");
+		goto end;
+	}
+
+	ret = true;
+	printf("[%s] %s = %s\n", layer, key, get.store.d_string);
+end:
+	if (get.store.d_string)
+		free(get.store.d_string);
+	
+	return ret;
 }
 
 int main(int argc, char **argv)
