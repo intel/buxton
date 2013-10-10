@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
@@ -21,12 +22,15 @@
 
 static Hashmap *commands;
 static BuxtonClient client;
+static unsigned int arg_n = 1;
 
 typedef bool (*command_method) (int argc, char **argv);
 
 typedef struct Command {
 	const char     *name;
 	const char     *description;
+	unsigned int   arguments;
+	const char     *usage;
 	command_method method;
 } Command;
 
@@ -46,23 +50,105 @@ bool print_help(int argc, char **argv)
 	return true;
 }
 
+void print_usage(Command *command)
+{
+	printf("%s takes %d arguments - %s\n", command->name, command->arguments, command->usage);
+}
+
 /* Set a string in Buxton */
 bool set_string(int argc, char **argv)
 {
-	return true;
+	char *layer, *key, *value;
+	BuxtonData set;
+
+	layer = argv[arg_n + 1];
+	key = argv[arg_n + 2];
+	value = argv[arg_n + 3];
+
+	set.type = STRING;
+	set.store.d_string = value;
+
+	return buxton_client_set_value(&client, layer, key, &set);
 }
 
 /* Get a string from Buxton */
 bool get_string(int argc, char **argv)
 {
-	return true;
+	char *layer, *key;
+	BuxtonData get;
+	bool ret;
+
+	layer = argv[arg_n + 1];
+	key = argv[arg_n + 2];
+
+	/* Revisit when we introduce Status enums */
+	buxton_client_get_value(&client, layer, key, &get);
+	if (get.type != STRING) {
+		ret = false;
+		printf("Returned data was not a string\n");
+		goto end;
+	}
+
+	ret = true;
+	printf("[%s] %s = %s\n", layer, key, get.store.d_string);
+end:
+	if (get.store.d_string)
+		free(get.store.d_string);
+	
+	return ret;
+}
+
+/* Set an integer in Buxton */
+bool set_int(int argc, char **argv)
+{
+	char *layer, *key, *value;
+	char **ptr;
+	BuxtonData set;
+
+	layer = argv[arg_n + 1];
+	key = argv[arg_n + 2];
+	value = argv[arg_n + 3];
+
+	set.type = INT;
+	set.store.d_int = strtol(value, ptr, 10);
+	if (errno) {
+		printf("Invalid integer\n");
+		return false;
+	}
+
+	return buxton_client_set_value(&client, layer, key, &set);
+}
+
+/* Get an integer from Buxton */
+bool get_int(int argc, char **argv)
+{
+	char *layer, *key;
+	BuxtonData get;
+	bool ret;
+
+	layer = argv[arg_n + 1];
+	key = argv[arg_n + 2];
+
+	/* Revisit when we introduce Status enums */
+	buxton_client_get_value(&client, layer, key, &get);
+	if (get.type != INT) {
+		ret = false;
+		printf("Returned data was not an integer\n");
+		goto end;
+	}
+
+	ret = true;
+	printf("[%s] %s = %d\n", layer, key, get.store.d_int);
+end:
+	
+	return ret;
 }
 
 int main(int argc, char **argv)
 {
 	bool ret = false;
-	int arg_n = 1;
 	Command c_get_string, c_set_string;
+	Command c_get_int, c_set_int;
 	Command c_help;
 	Command *command;
 
@@ -72,13 +158,32 @@ int main(int argc, char **argv)
 	c_get_string.name = "get-string";
 	c_get_string.description = "Get a string value by key";
 	c_get_string.method = &get_string;
+	c_get_string.arguments = 2;
+	c_get_string.usage = "[layer] [key]";
 	hashmap_put(commands, c_get_string.name, &c_get_string);
 
 	c_set_string.name = "set-string";
 	c_set_string.description = "Set a key with a string value";
 	c_set_string.method = &set_string;
+	c_set_string.arguments = 3;
+	c_set_string.usage = "[layer] [key] [value]";
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
+	c_set_int.name = "set-int";
+	c_set_int.description = "Set a key with an integer value";
+	c_set_int.method = &set_int;
+	c_set_int.arguments = 3;
+	c_set_int.usage = "[layer] [key] [value]";
+	hashmap_put(commands, c_set_int.name, &c_set_int);
+
+	c_get_int.name = "get-int";
+	c_get_int.description = "Get an integer value by key";
+	c_get_int.method = &get_int;
+	c_get_int.arguments = 2;
+	c_get_int.usage = "[layer] [key]";
+	hashmap_put(commands, c_get_int.name, &c_get_int);
+
+	
 	c_help.name = "help";
 	c_help.description = "Print this help message";
 	c_help.method = &print_help;
@@ -114,6 +219,13 @@ int main(int argc, char **argv)
 		/* Ensure we cleanup and abort when using help */
 		command->method(argc, argv);
 		ret = true;
+		goto end;
+	}
+
+	if (arg_n + command->arguments + 1 != argc) {
+		print_usage(command);
+		print_help(argc, argv);
+		ret = false;
 		goto end;
 	}
 

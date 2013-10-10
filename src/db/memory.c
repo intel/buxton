@@ -32,7 +32,7 @@ static int set_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 	return false;
 }
 
-static BuxtonData* get_value(BuxtonLayer *layer, const char *key)
+static int get_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 {
 	return NULL;
 }
