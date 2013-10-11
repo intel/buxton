@@ -92,6 +92,13 @@ static bool set_value(BuxtonDataType type) {
 				return false;
 			}
 			break;
+		case DOUBLE:
+			set.store.d_double = strtod(value, NULL);
+			if (errno) {
+				printf("Invalid double precision value\n");
+				return false;
+			}
+			break;
 		case INT:
 			set.store.d_int = strtol(value, NULL, 10);
 			if (errno) {
@@ -138,6 +145,9 @@ static bool get_value(BuxtonDataType type) {
 		case FLOAT:
 			printf("[%s] %s = %f\n", layer, key, get.store.d_float);
 			break;
+		case DOUBLE:
+			printf("[%s] %s = %f\n", layer, key, get.store.d_double);
+			break;
 		case INT:
 			printf("[%s] %s = %d\n", layer, key, get.store.d_int);
 			break;
@@ -155,9 +165,10 @@ int main(int argc, char **argv)
 {
 	bool ret = false;
 	Command c_get_string, c_set_string;
-	Command c_get_int, c_set_int;
 	Command c_get_bool, c_set_bool;
 	Command c_get_float, c_set_float;
+	Command c_get_double, c_set_double;
+	Command c_get_int, c_set_int;
 	Command c_help;
 	Command *command;
 	arg_v = argv;
@@ -191,6 +202,15 @@ int main(int argc, char **argv)
 	c_set_float = (Command) { "set-float", "Set a key with a floating point value",
 				   3, "[layer] [key] [value]", &set_value, FLOAT };
 	hashmap_put(commands, c_set_float.name, &c_set_float);
+
+	/* Doubles */
+	c_get_double = (Command) { "get-double", "Get a double precision value by key",
+				   2, "[layer] [key]", &get_value, DOUBLE };
+	hashmap_put(commands, c_get_double.name, &c_get_double);
+
+	c_set_double = (Command) { "set-double", "Set a key with a double precision value",
+				   3, "[layer] [key] [value]", &set_value, DOUBLE };
+	hashmap_put(commands, c_set_double.name, &c_set_double);
 
 	/* Integers */
 	c_set_int = (Command) { "set-int", "Set a key with an integer value",
