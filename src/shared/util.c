@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <sys/inotify.h>
 
 #include "../shared/hashmap.h"
 #include "../shared/log.h"
@@ -220,6 +221,22 @@ bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType 
 
 	buxton_log("Access denied!\n");
 	return false;
+}
+
+int buxton_watch_smack_rules(void)
+{
+	int fd;
+
+	fd = inotify_init();
+	if (fd < 0) {
+		buxton_log("inotify_init(): %m\n");
+		return -1;
+	}
+	if (inotify_add_watch(fd, SMACK_LOAD_FILE, IN_CLOSE_WRITE) < 0) {
+		buxton_log("inotify_add_watch(): %m\n");
+		return -1;
+	}
+	return fd;
 }
 
 /*

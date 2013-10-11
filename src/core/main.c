@@ -77,6 +77,7 @@ static bool identify_socket(int fd, struct ucred *ucredr)
 int main(void)
 {
 	int fd;
+	int smackfd;
 	int client;
 	socklen_t addr_len;
 	struct sockaddr_un remote;
@@ -93,6 +94,9 @@ int main(void)
 	 * and update the cache when it changes
 	 */
 	if (!buxton_cache_smack_rules())
+		exit(1);
+	smackfd = buxton_watch_smack_rules();
+	if (smackfd < 0)
 		exit(1);
 
 	/* Store a list of connected clients */
@@ -157,7 +161,13 @@ int main(void)
 		}
 	}
 
-	buxton_log("%s: Started");
+	/* add Smack rule fd to pollfds */
+	pollfds[nfds].events = POLLIN | POLLPRI;
+	pollfds[nfds].fd = smackfd;
+	accepting[nfds] = 0;
+	nfds++;
+
+	buxton_log("%s: Started\n");
 
 	/* Enter loop to accept clients */
 	for (;;) {
@@ -177,6 +187,11 @@ int main(void)
 				continue;
 			}
 			if (pollfds[i].revents == 0) {
+				continue;
+			}
+			if (pollfds[i].fd == smackfd) {
+				if (!buxton_cache_smack_rules())
+					exit(1);
 				continue;
 			}
 			if (accepting[i] == 1) {

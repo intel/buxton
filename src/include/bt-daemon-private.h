@@ -105,6 +105,9 @@ int buxton_cache_smack_rules(void);
 /* Utility function to check access permissions from set of Smack rules */
 bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType request);
 
+/* Set up inotify to track the Smack rule file for changes */
+int buxton_watch_smack_rules(void);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

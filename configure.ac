@@ -38,6 +38,8 @@ PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
 
 # Checks for header files.
 AC_CHECK_HEADERS([gdbm.h], [], [AC_MSG_ERROR([Unable to find gdbm headers])])
+AC_CHECK_HEADERS(linux/inotify.h)
+AC_CHECK_FUNC(inotify_init)
 
 # Options
 AC_ARG_WITH([systemdsystemunitdir], AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
