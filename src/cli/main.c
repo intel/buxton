@@ -99,6 +99,13 @@ static bool set_value(BuxtonDataType type) {
 				return false;
 			}
 			break;
+		case LONG:
+			set.store.d_long = strtol(value, NULL, 10);
+			if (errno) {
+				printf("Invalid long integer value\n");
+				return false;
+			}
+			break;
 		case INT:
 			set.store.d_int = strtol(value, NULL, 10);
 			if (errno) {
@@ -148,6 +155,9 @@ static bool get_value(BuxtonDataType type) {
 		case DOUBLE:
 			printf("[%s] %s = %f\n", layer, key, get.store.d_double);
 			break;
+		case LONG:
+			printf("[%s] %s = %ld\n", layer, key, get.store.d_long);
+			break;
 		case INT:
 			printf("[%s] %s = %d\n", layer, key, get.store.d_int);
 			break;
@@ -169,6 +179,7 @@ int main(int argc, char **argv)
 	Command c_get_float, c_set_float;
 	Command c_get_double, c_set_double;
 	Command c_get_int, c_set_int;
+	Command c_get_long, c_set_long;
 	Command c_help;
 	Command *command;
 	arg_v = argv;
@@ -211,6 +222,15 @@ int main(int argc, char **argv)
 	c_set_double = (Command) { "set-double", "Set a key with a double precision value",
 				   3, "[layer] [key] [value]", &set_value, DOUBLE };
 	hashmap_put(commands, c_set_double.name, &c_set_double);
+
+	/* Longs */
+	c_get_long = (Command) { "get-long", "Get a long integer value by key",
+				   2, "[layer] [key]", &get_value, LONG };
+	hashmap_put(commands, c_get_long.name, &c_get_long);
+
+	c_set_long = (Command) { "set-long", "Set a key with a long integer value",
+				   3, "[layer] [key] [value]", &set_value, LONG };
+	hashmap_put(commands, c_set_long.name, &c_set_long);
 
 	/* Integers */
 	c_set_int = (Command) { "set-int", "Set a key with an integer value",
