@@ -129,12 +129,16 @@ static bool get_value(BuxtonDataType type) {
 	key = arg_v[arg_n + 2];
 
 	if (!buxton_client_get_value(&client, layer, key, &get)) {
-		printf("Key not found: %s\n", key);
+		printf("Requested key was not found in layer \'%s\': %s\n", layer, key);
 		return false;
 	}
 
 	if (get.type != type) {
-		printf("Key requested is of different type\n");
+		const char *type_req, *type_got;
+		type_req = buxton_type_as_string(type);
+		type_got = buxton_type_as_string(get.type);
+		printf("You requested a key with type \'%s\', but value is of type \'%s\'.\n\n", type_req, type_got);
+		print_help();
 		ret = false;
 		goto end;
 	}

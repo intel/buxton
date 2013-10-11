@@ -95,6 +95,26 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 	copy->type = original->type;
 	copy->store = store;
 }
+
+const char* buxton_type_as_string(BuxtonDataType type)
+{
+	switch (type) {
+		case STRING:
+			return "string";
+		case BOOLEAN:
+			return "boolean";
+		case FLOAT:
+			return "float";
+		case DOUBLE:
+			return "double";
+		case LONG:
+			return "long";
+		case INT:
+			return "int";
+		default:
+			return "[unknown]";
+	}
+}
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
