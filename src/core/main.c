@@ -92,8 +92,8 @@ int main(void)
 	/* TODO: add an inotify watch for this file,
 	 * and update the cache when it changes
 	 */
-	char *load_path = "/sys/fs/smackfs/load2";
-	buxton_cache_smack_rules(load_path);
+	if (!buxton_cache_smack_rules())
+		exit(1);
 
 	/* Store a list of connected clients */
 	LIST_HEAD(client_list_item, client_list);

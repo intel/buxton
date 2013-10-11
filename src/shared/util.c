@@ -21,6 +21,8 @@
 #include "../shared/util.h"
 #include "../include/bt-daemon-private.h"
 
+#define SMACK_LOAD_FILE "/sys/fs/smackfs/load2"
+
 static Hashmap *_smackrules = NULL;
 
 size_t page_size(void)
@@ -100,26 +102,34 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 	copy->store = store;
 }
 
-void buxton_cache_smack_rules(char *load_path)
+int buxton_cache_smack_rules(void)
 {
 	FILE *load_file = NULL;
 	char *rule_pair = NULL;
+	int ret = 0;
 
-	if (_smackrules == NULL) {
+	if (!_smackrules)
 		_smackrules = hashmap_new(string_hash_func, string_compare_func);
+	else
+		/* just remove the old content, but keep the hashmap */
+		hashmap_clear_free_free(_smackrules);
+
+	if (!_smackrules) {
+		buxton_log("Failed to allocate Smack access table: %m\n");
+		return -1;
 	}
 
-	load_file = fopen(load_path, "r");
+	load_file = fopen(SMACK_LOAD_FILE, "r");
 
-	if (load_file == NULL) {
-		buxton_log("Failed to load Smack rules\n");
-		return;
+	if (!load_file) {
+		buxton_log("fopen(): %m\n");
+		ret = -1;
+		goto end;
 	}
 
 	while (!feof(load_file)) {
 		int r;
 		int chars;
-		char *match;
 		BuxtonKeyAccessType *accesstype;
 
 		char subject[SMACK_LABEL_LEN] = { 0, };
@@ -130,31 +140,31 @@ void buxton_cache_smack_rules(char *load_path)
 		chars = fscanf(load_file, "%s %s %s\n", subject, object, access);
 		if (chars != 3) {
 			buxton_log("fscanf(): %m\n");
+			ret = -1;
 			goto end;
 		}
 
 		r = asprintf(&rule_pair, "%s %s", subject, object);
 		if (r == -1) {
 			buxton_log("asprintf(): %m\n");
+			ret = -1;
 			goto end;
 		}
 
 		accesstype = malloc0(sizeof(BuxtonKeyAccessType));
-		if (accesstype == NULL) {
+		if (!accesstype) {
+			buxton_log("malloc0(): %m\n");
+			ret = -1;
 			goto end;
 		}
 
 		*accesstype = ACCESS_NONE;
 
-		match = strchr(access, 'r');
-		if (match) {
+		if (strchr(access, 'r'))
 			*accesstype |= ACCESS_READ;
-		}
 
-		match = strchr(access, 'w');
-		if (match) {
+		if (strchr(access, 'w'))
 			*accesstype |= ACCESS_WRITE;
-		}
 
 		hashmap_put(_smackrules, rule_pair, accesstype);
 	}
@@ -163,10 +173,7 @@ end:
 	if (rule_pair)
 		free(rule_pair);
 
-	fclose(load_file);
-
-	/* need to implement a cleanup handler for the hashmap */
-	return;
+	return ret;
 }
 
 bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType request)
@@ -175,27 +182,36 @@ bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType 
 	int r;
 	BuxtonKeyAccessType *access;
 
+	assert(subject);
+	assert(object);
+	assert((request == ACCESS_READ) || (request == ACCESS_WRITE));
+	assert(_smackrules);
+
 	buxton_log("Subject: %s\n", subject);
 	buxton_log("Object: %s\n", object);
 
 	r = asprintf(&key, "%s %s", subject, object);
 	if (r == -1) {
-		return false;
+		buxton_log("asprintf(): %m\n");
+		exit(1);
 	}
 
 	buxton_log("Key: %s\n", key);
 
-	if ((access = hashmap_get(_smackrules, key)) == NULL) {
+	access = hashmap_get(_smackrules, key);
+	if (!access) {
+		/* corruption */
 		buxton_log("Value of key '%s' is NULL\n", key);
 		free(key);
-		return false;
+		exit(1);
 	}
 
 	free(key);
 
-	if (access) {
+	/* After debugging, change this code to: */
+	/* return ((*access) & request); */
+	if (access)
 		buxton_log("Value: %x\n", *access);
-	}
 
 	if ((*access) & request) {
 		buxton_log("Access granted!\n");
