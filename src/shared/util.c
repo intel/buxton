@@ -16,8 +16,12 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "../shared/hashmap.h"
+#include "../shared/log.h"
 #include "../shared/util.h"
 #include "../include/bt-daemon-private.h"
+
+static Hashmap *_smackrules = NULL;
 
 size_t page_size(void)
 {
@@ -95,6 +99,76 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 	copy->type = original->type;
 	copy->store = store;
 }
+
+void buxton_cache_smack_rules(char *load_path)
+{
+	FILE *load_file = NULL;
+	char *rule_pair = NULL;
+
+	if (_smackrules == NULL) {
+		_smackrules = hashmap_new(string_hash_func, string_compare_func);
+	}
+
+	load_file = fopen(load_path, "r");
+
+	if (load_file == NULL) {
+		buxton_log("Failed to load Smack rules\n");
+		return;
+	}
+
+	while (!feof(load_file)) {
+		int r;
+		int chars;
+		char *match;
+		BuxtonKeyAccessType *accesstype;
+
+		char subject[SMACK_LABEL_LEN] = { 0, };
+		char object[SMACK_LABEL_LEN] = { 0, };
+		char access[ACC_LEN] = { 0, };
+
+		/* read contents from load2 */
+		chars = fscanf(load_file, "%s %s %s\n", subject, object, access);
+		if (chars != 3) {
+			buxton_log("fscanf(): %m\n");
+			goto end;
+		}
+
+		r = asprintf(&rule_pair, "%s %s", subject, object);
+		if (r == -1) {
+			buxton_log("asprintf(): %m\n");
+			goto end;
+		}
+
+		accesstype = malloc0(sizeof(BuxtonKeyAccessType));
+		if (accesstype == NULL) {
+			goto end;
+		}
+
+		*accesstype = ACCESS_NONE;
+
+		match = strchr(access, 'r');
+		if (match) {
+			*accesstype |= ACCESS_READ;
+		}
+
+		match = strchr(access, 'w');
+		if (match) {
+			*accesstype |= ACCESS_WRITE;
+		}
+
+		hashmap_put(_smackrules, rule_pair, accesstype);
+	}
+
+end:
+	if (rule_pair)
+		free(rule_pair);
+
+	fclose(load_file);
+
+	/* need to implement a cleanup handler for the hashmap */
+	return;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
