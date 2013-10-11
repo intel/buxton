@@ -26,6 +26,9 @@
 
 #define TIMEOUT 5000
 
+#define SMACK_LABEL_LEN 255
+#define ACC_LEN 5
+
 typedef struct client_list_item {
 	LIST_FIELDS(struct client_list_item, item);
 
@@ -95,6 +98,9 @@ char* get_layer_path(BuxtonLayer *layer);
 
 /* Utility function to deep copy a BuxtonData */
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
+
+/* Utility function to load Smack rules from the smackfs file LOAD_PATH */
+void buxton_cache_smack_rules(char *load_path);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

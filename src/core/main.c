@@ -89,6 +89,12 @@ int main(void)
 	int credentials = 1;
 	bool manual_start = false;
 
+	/* TODO: add an inotify watch for this file,
+	 * and update the cache when it changes
+	 */
+	char *load_path = "/sys/fs/smackfs/load2";
+	buxton_cache_smack_rules(load_path);
+
 	/* Store a list of connected clients */
 	LIST_HEAD(client_list_item, client_list);
 	LIST_HEAD_INIT(client_list_item, client_list);
