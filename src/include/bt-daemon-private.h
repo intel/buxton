@@ -47,6 +47,13 @@ typedef enum BuxtonLayerType {
 	LAYER_MAXTYPES
 } BuxtonLayerType;
 
+typedef enum BuxtonKeyAccessType {
+	ACCESS_NONE = 0,
+	ACCESS_READ = 1 << 0,
+	ACCESS_WRITE = 1 << 1,
+	ACCESS_MAXACCESSTYPES = 1 << 2
+} BuxtonKeyAccessType;
+
 typedef struct BuxtonLayer {
 	char *name;
 	BuxtonLayerType type;
