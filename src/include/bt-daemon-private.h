@@ -100,7 +100,7 @@ char* get_layer_path(BuxtonLayer *layer);
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
 
 /* Utility function to load Smack rules from the kernel */
-int buxton_cache_smack_rules(void);
+bool buxton_cache_smack_rules(void);
 
 /* Utility function to check access permissions from set of Smack rules */
 bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType request);

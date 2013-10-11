@@ -90,9 +90,6 @@ int main(void)
 	int credentials = 1;
 	bool manual_start = false;
 
-	/* TODO: add an inotify watch for this file,
-	 * and update the cache when it changes
-	 */
 	if (!buxton_cache_smack_rules())
 		exit(1);
 	smackfd = buxton_watch_smack_rules();

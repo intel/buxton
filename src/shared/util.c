@@ -103,11 +103,11 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 	copy->store = store;
 }
 
-int buxton_cache_smack_rules(void)
+bool buxton_cache_smack_rules(void)
 {
 	FILE *load_file = NULL;
 	char *rule_pair = NULL;
-	int ret = 0;
+	int ret = true;
 
 	if (!_smackrules)
 		_smackrules = hashmap_new(string_hash_func, string_compare_func);
@@ -117,14 +117,14 @@ int buxton_cache_smack_rules(void)
 
 	if (!_smackrules) {
 		buxton_log("Failed to allocate Smack access table: %m\n");
-		return -1;
+		return false;
 	}
 
 	load_file = fopen(SMACK_LOAD_FILE, "r");
 
 	if (!load_file) {
 		buxton_log("fopen(): %m\n");
-		ret = -1;
+		ret = false;
 		goto end;
 	}
 
@@ -141,21 +141,21 @@ int buxton_cache_smack_rules(void)
 		chars = fscanf(load_file, "%s %s %s\n", subject, object, access);
 		if (chars != 3) {
 			buxton_log("fscanf(): %m\n");
-			ret = -1;
+			ret = false;
 			goto end;
 		}
 
 		r = asprintf(&rule_pair, "%s %s", subject, object);
 		if (r == -1) {
 			buxton_log("asprintf(): %m\n");
-			ret = -1;
+			ret = false;
 			goto end;
 		}
 
 		accesstype = malloc0(sizeof(BuxtonKeyAccessType));
 		if (!accesstype) {
 			buxton_log("malloc0(): %m\n");
-			ret = -1;
+			ret = false;
 			goto end;
 		}
 
