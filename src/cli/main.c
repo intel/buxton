@@ -85,10 +85,17 @@ static bool set_value(BuxtonDataType type) {
 				return false;
 			}
 			break;
+		case FLOAT:
+			set.store.d_float = strtof(value, NULL);
+			if (errno) {
+				printf("Invalid floating point value\n");
+				return false;
+			}
+			break;
 		case INT:
 			set.store.d_int = strtol(value, NULL, 10);
 			if (errno) {
-				printf("Invalid integer");
+				printf("Invalid integer\n");
 				return false;
 			}
 			break;
@@ -128,6 +135,9 @@ static bool get_value(BuxtonDataType type) {
 			else
 				printf("[%s] %s = false\n", layer, key);
 			break;
+		case FLOAT:
+			printf("[%s] %s = %f\n", layer, key, get.store.d_float);
+			break;
 		case INT:
 			printf("[%s] %s = %d\n", layer, key, get.store.d_int);
 			break;
@@ -147,6 +157,7 @@ int main(int argc, char **argv)
 	Command c_get_string, c_set_string;
 	Command c_get_int, c_set_int;
 	Command c_get_bool, c_set_bool;
+	Command c_get_float, c_set_float;
 	Command c_help;
 	Command *command;
 	arg_v = argv;
@@ -171,6 +182,15 @@ int main(int argc, char **argv)
 	c_set_bool = (Command) { "set-bool", "Set a key with a boolean value",
 				   3, "[layer] [key] [value]", &set_value, BOOLEAN };
 	hashmap_put(commands, c_set_bool.name, &c_set_bool);
+
+	/* Floats */
+	c_get_float = (Command) { "get-float", "Get a float point value by key",
+				   2, "[layer] [key]", &get_value, FLOAT };
+	hashmap_put(commands, c_get_float.name, &c_get_float);
+
+	c_set_float = (Command) { "set-float", "Set a key with a floating point value",
+				   3, "[layer] [key] [value]", &set_value, FLOAT };
+	hashmap_put(commands, c_set_float.name, &c_set_float);
 
 	/* Integers */
 	c_set_int = (Command) { "set-int", "Set a key with an integer value",
