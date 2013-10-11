@@ -1,11 +1,5 @@
 - make install: create some default data path
 
-- cache smack rules in a hash table (hashed over
-  "subjectlabel<space>objectlabel") and use inotify() to reload
-  access rules from /sys/fs/smackfs/load2
-
-    Owner: Patrick
-
 - complete gdbm backend to be integrated with layers
 
     Owner: Michael Ikey Doherty
