@@ -42,6 +42,21 @@ START_TEST(buxton_client_set_value_check)
 }
 END_TEST
 
+START_TEST(buxton_memory_backend_check)
+{
+	BuxtonClient c;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	BuxtonData data, result;
+	data.type = STRING;
+	data.store.d_string = "bxt_test_value";
+	fail_if(buxton_client_set_value(&c, "temp", "bxt_mem_test", &data) == false,
+		"Setting value in buxton memory backend directly failed.");
+	fail_if(buxton_client_get_value(&c, "temp", "bxt_mem_test", &data) == false,
+		"Retrieving value from buxton memory backend failed.");
+}
+END_TEST
+
 Suite *
 buxton_suite(void)
 {
@@ -55,6 +70,8 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_direct_open_check);
 
 	tcase_add_test(tc, buxton_client_set_value_check);
+
+	tcase_add_test(tc, buxton_memory_backend_check);
 
 	suite_add_tcase(s, tc);
 

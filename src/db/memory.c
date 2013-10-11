@@ -31,28 +31,69 @@
 
 static Hashmap *_resources;
 
+/* Return existing hashmap or create new hashmap on the fly */
+static Hashmap* _db_for_resource(BuxtonLayer *layer)
+{
+	Hashmap *db;
+
+	assert(layer);
+	assert(_resources);
+
+	db = hashmap_get(_resources, layer->name);
+	if (!db) {
+		db = hashmap_new(string_hash_func, string_compare_func);
+		hashmap_put(_resources, layer->name, db);
+	}
+
+	return (Hashmap*) hashmap_get(_resources, layer->name);
+}
+
 static bool set_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 {
-
+	Hashmap *db;
 	assert(layer);
 	assert(key);
 	assert(data);
 
-	return false;
+	db = _db_for_resource(layer);
+	if (!db)
+		return false;
+
+	hashmap_put(db, key, data);
+	return true;
 }
 
 static bool get_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 {
+	Hashmap *db;
+	BuxtonData *stored;
 
 	assert(layer);
 	assert(key);
 
-	return false;
+	db = _db_for_resource(layer);
+	if (!db)
+		return false;
+
+	stored = (Hashmap*)hashmap_get(db, key);
+	if (!stored)
+		return false;
+	data = stored;
+	return true;
 }
 
 _bx_export_ void buxton_module_destroy(void)
 {
+	const char *key;
+	Iterator iterator;
+	Hashmap *map;
 
+	/* free all hashmaps */
+	HASHMAP_FOREACH_KEY(map, key, _resources, iterator) {
+		hashmap_free(map);
+		map = NULL;
+	}
+	hashmap_free(_resources);
 }
 
 _bx_export_ int buxton_module_init(BuxtonBackend *backend)
@@ -60,11 +101,11 @@ _bx_export_ int buxton_module_init(BuxtonBackend *backend)
 
 	assert(backend);
 
-	_resources = NULL;
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
 
+	_resources = hashmap_new(string_hash_func, string_compare_func);
 	return 0;
 }
 
