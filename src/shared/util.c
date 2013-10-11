@@ -109,8 +109,8 @@ bool buxton_cache_smack_rules(void)
 	char *rule_pair = NULL;
 	int ret = true;
 
-//	if (_smackrules)
-//		hashmap_free_free_free(_smackrules);
+	if (_smackrules)
+		hashmap_free(_smackrules);
 
 	_smackrules = hashmap_new(string_hash_func, string_compare_func);
 

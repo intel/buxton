@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
 				char discard[256];
 				if (!buxton_cache_smack_rules())
 					exit(1);
+				buxton_log("Reloaded Smack access rules\n");
 				/* discard inotify data itself */
 				while (read(smackfd, &discard, 256) == 256);
 				continue;
