@@ -24,8 +24,6 @@
 #include "../shared/list.h"
 #include "bt-daemon.h"
 
-#define TIMEOUT 5000
-
 #define SMACK_LABEL_LEN 255
 #define ACC_LEN 5
 

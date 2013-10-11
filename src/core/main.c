@@ -168,15 +168,13 @@ int main(int argc, char *argv[])
 
 	/* Enter loop to accept clients */
 	for (;;) {
-		ret = poll(pollfds, nfds, TIMEOUT);
+		ret = poll(pollfds, nfds, -1);
 		if (ret < 0) {
 			buxton_log("poll(): %m\n");
 			break;
 		}
-		if (ret == 0) {
-			buxton_log("poll(): timed out, trying again\n");
+		if (ret == 0)
 			continue;
-		}
 
 		for (nfds_t i=0; i<nfds; i++) {
 			if (pollfds[i].fd == -1) {
