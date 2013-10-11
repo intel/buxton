@@ -151,13 +151,18 @@ int main(void)
 		}
 	}
 
+	buxton_log("%s: Started");
 
 	/* Enter loop to accept clients */
 	for (;;) {
 		ret = poll(pollfds, nfds, TIMEOUT);
-		if (ret < 1) {
+		if (ret < 0) {
 			buxton_log("poll(): %m\n");
 			break;
+		}
+		if (ret == 0) {
+			buxton_log("poll(): timed out, trying again\n");
+			continue;
 		}
 
 		for (nfds_t i=0; i<nfds; i++) {
@@ -195,10 +200,23 @@ int main(void)
 				LIST_PREPEND(client_list_item, item, client_list, new_client);
 
 				buxton_log("New connection from UID %ld, PID %ld\n", cr.uid, cr.pid);
+
+				/* poll for data on this new client as well */
+				pollfds[nfds].fd = client;
+				pollfds[nfds].events = POLLIN | POLLPRI;
+				accepting[nfds] = 0;
+				nfds++;
+
+				/* check if this is optimal or not */
+				continue;
 			}
+
+			/* handle data on any connection */
+			buxton_log("Data on fd %d\n", i);
 		}
 	}
 
+	buxton_log("%s: Closing all connections");
 
 	if (manual_start)
 		unlink(BUXTON_SOCKET);
