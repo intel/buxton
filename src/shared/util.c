@@ -170,9 +170,6 @@ bool buxton_cache_smack_rules(void)
 	}
 
 end:
-	if (rule_pair)
-		free(rule_pair);
-
 	fclose(load_file);
 
 	return ret;
