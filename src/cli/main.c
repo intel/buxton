@@ -22,6 +22,7 @@
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 #include "../shared/hashmap.h"
+#include "../shared/util.h"
 
 static Hashmap *commands;
 static BuxtonClient client;
@@ -74,6 +75,16 @@ static bool set_value(BuxtonDataType type) {
 		case STRING:
 			set.store.d_string = value;
 			break;
+		case BOOLEAN:
+			if (streq(value, "true"))
+				set.store.d_boolean = true;
+			else if (streq(value, "false"))
+				set.store.d_boolean = false;
+			else {
+				printf("Accepted values are [true] [false]. Not updating\n");
+				return false;
+			}
+			break;
 		case INT:
 			set.store.d_int = strtol(value, NULL, 10);
 			if (errno) {
@@ -111,6 +122,12 @@ static bool get_value(BuxtonDataType type) {
 		case STRING:
 			printf("[%s] %s = %s\n", layer, key, get.store.d_string);
 			break;
+		case BOOLEAN:
+			if (get.store.d_boolean == true)
+				printf("[%s] %s = true\n", layer, key);
+			else
+				printf("[%s] %s = false\n", layer, key);
+			break;
 		case INT:
 			printf("[%s] %s = %d\n", layer, key, get.store.d_int);
 			break;
@@ -129,6 +146,7 @@ int main(int argc, char **argv)
 	bool ret = false;
 	Command c_get_string, c_set_string;
 	Command c_get_int, c_set_int;
+	Command c_get_bool, c_set_bool;
 	Command c_help;
 	Command *command;
 	arg_v = argv;
@@ -136,6 +154,7 @@ int main(int argc, char **argv)
 	/* Build a command list */
 	commands = hashmap_new(string_hash_func, string_compare_func);
 
+	/* Strings */
 	c_get_string = (Command) { "get-string", "Get a string value by key",
 				   2, "[layer] [key]", &get_value, STRING };
 	hashmap_put(commands, c_get_string.name, &c_get_string);
@@ -144,6 +163,16 @@ int main(int argc, char **argv)
 				   3, "[layer] [key] [value]", &set_value, STRING };
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
+	/* Booleans */
+	c_get_bool = (Command) { "get-bool", "Get a boolean value by key",
+				   2, "[layer] [key]", &get_value, BOOLEAN };
+	hashmap_put(commands, c_get_bool.name, &c_get_bool);
+
+	c_set_bool = (Command) { "set-bool", "Set a key with a boolean value",
+				   3, "[layer] [key] [value]", &set_value, BOOLEAN };
+	hashmap_put(commands, c_set_bool.name, &c_set_bool);
+
+	/* Integers */
 	c_set_int = (Command) { "set-int", "Set a key with an integer value",
 				3, "[layer] [key] [value]", &set_value, INT };
 	hashmap_put(commands, c_set_int.name, &c_set_int);
@@ -152,6 +181,7 @@ int main(int argc, char **argv)
 				2, "[layer] [key]", &get_value, INT };
 	hashmap_put(commands, c_get_int.name, &c_get_int);
 
+	/* Help */
 	c_help = (Command) { "help", "Print this help message",
 			     0, NULL, NULL, 0 };
 	hashmap_put(commands, c_help.name, &c_help);
