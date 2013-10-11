@@ -22,6 +22,11 @@ systemdsystemunit-install-hook:
 
 install-data-hook: systemdsystemunit-install-hook
 
+systemdsystemunit-uninstall-hook:
+	rm -f $(DESTDIR)$(systemdsystemunitdir)/sockets.target.wants/buxton.socket
+
+uninstall-hook: systemdsystemunit-uninstall-hook
+
 distclean-local:
 	rm -f log-check-stderr-file
 
