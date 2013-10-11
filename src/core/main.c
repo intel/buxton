@@ -74,7 +74,7 @@ static bool identify_socket(int fd, struct ucred *ucredr)
 	return true;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	int fd;
 	int smackfd;
@@ -164,7 +164,7 @@ int main(void)
 	accepting[nfds] = 0;
 	nfds++;
 
-	buxton_log("%s: Started\n");
+	buxton_log("%s: Started\n", argv[0]);
 
 	/* Enter loop to accept clients */
 	for (;;) {
@@ -187,8 +187,11 @@ int main(void)
 				continue;
 			}
 			if (pollfds[i].fd == smackfd) {
+				char discard[256];
 				if (!buxton_cache_smack_rules())
 					exit(1);
+				/* discard inotify data itself */
+				while (read(smackfd, &discard, 256) == 256);
 				continue;
 			}
 			if (accepting[i] == 1) {
