@@ -102,6 +102,9 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
 /* Utility function to load Smack rules from the smackfs file LOAD_PATH */
 void buxton_cache_smack_rules(char *load_path);
 
+/* Utility function to check access permissions from set of Smack rules */
+bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType request);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

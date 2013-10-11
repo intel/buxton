@@ -169,6 +169,43 @@ end:
 	return;
 }
 
+bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType request)
+{
+	char *key;
+	int r;
+	BuxtonKeyAccessType *access;
+
+	buxton_log("Subject: %s\n", subject);
+	buxton_log("Object: %s\n", object);
+
+	r = asprintf(&key, "%s %s", subject, object);
+	if (r == -1) {
+		return false;
+	}
+
+	buxton_log("Key: %s\n", key);
+
+	if ((access = hashmap_get(_smackrules, key)) == NULL) {
+		buxton_log("Value of key '%s' is NULL\n", key);
+		free(key);
+		return false;
+	}
+
+	free(key);
+
+	if (access) {
+		buxton_log("Value: %x\n", *access);
+	}
+
+	if ((*access) & request) {
+		buxton_log("Access granted!\n");
+		return true;
+	}
+
+	buxton_log("Access denied!\n");
+	return false;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
