@@ -22,12 +22,14 @@
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 #include "../shared/hashmap.h"
+#include "../shared/util.h"
 
 static Hashmap *commands;
 static BuxtonClient client;
 static unsigned int arg_n = 1;
+static char **arg_v;
 
-typedef bool (*command_method) (int argc, char **argv);
+typedef bool (*command_method) (BuxtonDataType type);
 
 typedef struct Command {
 	const char     *name;
@@ -35,10 +37,11 @@ typedef struct Command {
 	unsigned int   arguments;
 	const char     *usage;
 	command_method method;
+	BuxtonDataType type;
 } Command;
 
 /* Print help message */
-static bool print_help(int argc, char **argv)
+static bool print_help(void)
 {
 	const char *key;
 	Iterator iterator;
@@ -58,90 +61,116 @@ static void print_usage(Command *command)
 	printf("%s takes %d arguments - %s\n", command->name, command->arguments, command->usage);
 }
 
-/* Set a string in Buxton */
-static bool set_string(int argc, char **argv)
-{
+/* Set a value in Buxton */
+static bool set_value(BuxtonDataType type) {
 	char *layer, *key, *value;
 	BuxtonData set;
 
-	layer = argv[arg_n + 1];
-	key = argv[arg_n + 2];
-	value = argv[arg_n + 3];
+	layer = arg_v[arg_n + 1];
+	key = arg_v[arg_n + 2];
+	value = arg_v[arg_n + 3];
 
-	set.type = STRING;
-	set.store.d_string = value;
-
+	set.type = type;
+	switch (set.type) {
+		case STRING:
+			set.store.d_string = value;
+			break;
+		case BOOLEAN:
+			if (streq(value, "true"))
+				set.store.d_boolean = true;
+			else if (streq(value, "false"))
+				set.store.d_boolean = false;
+			else {
+				printf("Accepted values are [true] [false]. Not updating\n");
+				return false;
+			}
+			break;
+		case FLOAT:
+			set.store.d_float = strtof(value, NULL);
+			if (errno) {
+				printf("Invalid floating point value\n");
+				return false;
+			}
+			break;
+		case DOUBLE:
+			set.store.d_double = strtod(value, NULL);
+			if (errno) {
+				printf("Invalid double precision value\n");
+				return false;
+			}
+			break;
+		case LONG:
+			set.store.d_long = strtol(value, NULL, 10);
+			if (errno) {
+				printf("Invalid long integer value\n");
+				return false;
+			}
+			break;
+		case INT:
+			set.store.d_int = strtol(value, NULL, 10);
+			if (errno) {
+				printf("Invalid integer\n");
+				return false;
+			}
+			break;
+		default:
+			break;
+	}
 	return buxton_client_set_value(&client, layer, key, &set);
 }
 
-/* Get a string from Buxton */
-static bool get_string(int argc, char **argv)
-{
+/* Get a value from Buxton */
+static bool get_value(BuxtonDataType type) {
 	char *layer, *key;
 	BuxtonData get;
 	bool ret;
 
-	layer = argv[arg_n + 1];
-	key = argv[arg_n + 2];
+	layer = arg_v[arg_n + 1];
+	key = arg_v[arg_n + 2];
 
-	/* Revisit when we introduce Status enums */
-	buxton_client_get_value(&client, layer, key, &get);
-	if (get.type != STRING) {
-		ret = false;
-		printf("Returned data was not a string\n");
-		goto end;
-	}
-
-	ret = true;
-	printf("[%s] %s = %s\n", layer, key, get.store.d_string);
-end:
-	if (get.store.d_string)
-		free(get.store.d_string);
-
-	return ret;
-}
-
-/* Set an integer in Buxton */
-static bool set_int(int argc, char **argv)
-{
-	char *layer, *key, *value;
-	BuxtonData set;
-
-	layer = argv[arg_n + 1];
-	key = argv[arg_n + 2];
-	value = argv[arg_n + 3];
-
-	set.type = INT;
-	set.store.d_int = strtol(value, NULL, 10);
-	if (errno) {
-		printf("Invalid integer\n");
+	if (!buxton_client_get_value(&client, layer, key, &get)) {
+		printf("Requested key was not found in layer \'%s\': %s\n", layer, key);
 		return false;
 	}
 
-	return buxton_client_set_value(&client, layer, key, &set);
-}
-
-/* Get an integer from Buxton */
-static bool get_int(int argc, char **argv)
-{
-	char *layer, *key;
-	BuxtonData get;
-	bool ret;
-
-	layer = argv[arg_n + 1];
-	key = argv[arg_n + 2];
-
-	/* Revisit when we introduce Status enums */
-	buxton_client_get_value(&client, layer, key, &get);
-	if (get.type != INT) {
+	if (get.type != type) {
+		const char *type_req, *type_got;
+		type_req = buxton_type_as_string(type);
+		type_got = buxton_type_as_string(get.type);
+		printf("You requested a key with type \'%s\', but value is of type \'%s\'.\n\n", type_req, type_got);
+		print_help();
 		ret = false;
-		printf("Returned data was not an integer\n");
 		goto end;
 	}
 
-	ret = true;
-	printf("[%s] %s = %d\n", layer, key, get.store.d_int);
+	switch (get.type) {
+		case STRING:
+			printf("[%s] %s = %s\n", layer, key, get.store.d_string);
+			break;
+		case BOOLEAN:
+			if (get.store.d_boolean == true)
+				printf("[%s] %s = true\n", layer, key);
+			else
+				printf("[%s] %s = false\n", layer, key);
+			break;
+		case FLOAT:
+			printf("[%s] %s = %f\n", layer, key, get.store.d_float);
+			break;
+		case DOUBLE:
+			printf("[%s] %s = %f\n", layer, key, get.store.d_double);
+			break;
+		case LONG:
+			printf("[%s] %s = %ld\n", layer, key, get.store.d_long);
+			break;
+		case INT:
+			printf("[%s] %s = %d\n", layer, key, get.store.d_int);
+			break;
+		default:
+			break;
+	}
 end:
+	if (get.store.d_string)
+		free(get.store.d_string);
 
 	return ret;
 }
@@ -150,31 +179,75 @@ int main(int argc, char **argv)
 {
 	bool ret = false;
 	Command c_get_string, c_set_string;
+	Command c_get_bool, c_set_bool;
+	Command c_get_float, c_set_float;
+	Command c_get_double, c_set_double;
 	Command c_get_int, c_set_int;
+	Command c_get_long, c_set_long;
 	Command c_help;
 	Command *command;
+	arg_v = argv;
 
 	/* Build a command list */
 	commands = hashmap_new(string_hash_func, string_compare_func);
 
+	/* Strings */
 	c_get_string = (Command) { "get-string", "Get a string value by key",
-				   2, "[layer] [key]", &get_string };
+				   2, "[layer] [key]", &get_value, STRING };
 	hashmap_put(commands, c_get_string.name, &c_get_string);
 
 	c_set_string = (Command) { "set-string", "Set a key with a string value",
-				   3, "[layer] [key] [value]", &set_string };
+				   3, "[layer] [key] [value]", &set_value, STRING };
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
+	/* Booleans */
+	c_get_bool = (Command) { "get-bool", "Get a boolean value by key",
+				   2, "[layer] [key]", &get_value, BOOLEAN };
+	hashmap_put(commands, c_get_bool.name, &c_get_bool);
+
+	c_set_bool = (Command) { "set-bool", "Set a key with a boolean value",
+				   3, "[layer] [key] [value]", &set_value, BOOLEAN };
+	hashmap_put(commands, c_set_bool.name, &c_set_bool);
+
+	/* Floats */
+	c_get_float = (Command) { "get-float", "Get a float point value by key",
+				   2, "[layer] [key]", &get_value, FLOAT };
+	hashmap_put(commands, c_get_float.name, &c_get_float);
+
+	c_set_float = (Command) { "set-float", "Set a key with a floating point value",
+				   3, "[layer] [key] [value]", &set_value, FLOAT };
+	hashmap_put(commands, c_set_float.name, &c_set_float);
+
+	/* Doubles */
+	c_get_double = (Command) { "get-double", "Get a double precision value by key",
+				   2, "[layer] [key]", &get_value, DOUBLE };
+	hashmap_put(commands, c_get_double.name, &c_get_double);
+
+	c_set_double = (Command) { "set-double", "Set a key with a double precision value",
+				   3, "[layer] [key] [value]", &set_value, DOUBLE };
+	hashmap_put(commands, c_set_double.name, &c_set_double);
+
+	/* Longs */
+	c_get_long = (Command) { "get-long", "Get a long integer value by key",
+				   2, "[layer] [key]", &get_value, LONG };
+	hashmap_put(commands, c_get_long.name, &c_get_long);
+
+	c_set_long = (Command) { "set-long", "Set a key with a long integer value",
+				   3, "[layer] [key] [value]", &set_value, LONG };
+	hashmap_put(commands, c_set_long.name, &c_set_long);
+
+	/* Integers */
 	c_set_int = (Command) { "set-int", "Set a key with an integer value",
-				3, "[layer] [key] [value]", &set_int };
+				3, "[layer] [key] [value]", &set_value, INT };
 	hashmap_put(commands, c_set_int.name, &c_set_int);
 
 	c_get_int = (Command) { "get-int", "Get an integer value by key",
-				2, "[layer] [key]", &get_int };
+				2, "[layer] [key]", &get_value, INT };
 	hashmap_put(commands, c_get_int.name, &c_get_int);
 
+	/* Help */
 	c_help = (Command) { "help", "Print this help message",
-			     0, NULL, &print_help };
+			     0, NULL, NULL, 0 };
 	hashmap_put(commands, c_help.name, &c_help);
 
 	if (argc > 1 && strncmp(argv[1], "--direct", 8) == 0) {
@@ -188,7 +261,7 @@ int main(int argc, char **argv)
 
 	if (argc < 3) {
 		/* Todo: print usage if a valid command name was given */
-		print_help(argc, argv);
+		print_help();
 		goto end;
 	}
 
@@ -205,14 +278,14 @@ int main(int argc, char **argv)
 
 	if (strncmp(command->name, "help", 4) == 0) {
 		/* Ensure we cleanup and abort when using help */
-		command->method(argc, argv);
+		command->method(0);
 		ret = true;
 		goto end;
 	}
 
 	if (arg_n + command->arguments + 1 != argc) {
 		print_usage(command);
-		print_help(argc, argv);
+		print_help();
 		ret = false;
 		goto end;
 	}
@@ -232,7 +305,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Connected to buxton_client, execute method */
-	ret = command->method(argc, argv);
+	ret = command->method(command->type);
 
 end:
 	hashmap_free(commands);
