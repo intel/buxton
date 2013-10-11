@@ -109,11 +109,10 @@ bool buxton_cache_smack_rules(void)
 	char *rule_pair = NULL;
 	int ret = true;
 
-	if (!_smackrules)
-		_smackrules = hashmap_new(string_hash_func, string_compare_func);
-	else
-		/* just remove the old content, but keep the hashmap */
-		hashmap_clear_free_free(_smackrules);
+//	if (_smackrules)
+//		hashmap_free_free_free(_smackrules);
+
+	_smackrules = hashmap_new(string_hash_func, string_compare_func);
 
 	if (!_smackrules) {
 		buxton_log("Failed to allocate Smack access table: %m\n");
@@ -173,6 +172,8 @@ bool buxton_cache_smack_rules(void)
 end:
 	if (rule_pair)
 		free(rule_pair);
+
+	fclose(load_file);
 
 	return ret;
 }
