@@ -37,8 +37,10 @@ TESTS = check_buxton check_shared_lib
 dist_sysconf_DATA = \
 	data/buxton.conf
 
+sbin_PROGRAMS = \
+	bt-daemon
+
 bin_PROGRAMS = \
-	bt-daemon \
 	buxtonctl
 
 bt_daemon_SOURCES = \
