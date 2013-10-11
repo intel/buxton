@@ -170,7 +170,8 @@ bool buxton_cache_smack_rules(void)
 	}
 
 end:
-	fclose(load_file);
+	if (load_file)
+		fclose(load_file);
 
 	return ret;
 }
