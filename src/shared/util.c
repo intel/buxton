@@ -187,8 +187,8 @@ bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType 
 	assert((request == ACCESS_READ) || (request == ACCESS_WRITE));
 	assert(_smackrules);
 
-	buxton_log("Subject: %s\n", subject);
-	buxton_log("Object: %s\n", object);
+	buxton_debug("Subject: %s\n", subject);
+	buxton_debug("Object: %s\n", object);
 
 	r = asprintf(&key, "%s %s", subject, object);
 	if (r == -1) {
@@ -196,7 +196,7 @@ bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType 
 		exit(1);
 	}
 
-	buxton_log("Key: %s\n", key);
+	buxton_debug("Key: %s\n", key);
 
 	access = hashmap_get(_smackrules, key);
 	if (!access) {
@@ -211,14 +211,14 @@ bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType 
 	/* After debugging, change this code to: */
 	/* return ((*access) & request); */
 	if (access)
-		buxton_log("Value: %x\n", *access);
+		buxton_debug("Value: %x\n", *access);
 
 	if ((*access) & request) {
-		buxton_log("Access granted!\n");
+		buxton_debug("Access granted!\n");
 		return true;
 	}
 
-	buxton_log("Access denied!\n");
+	buxton_debug("Access denied!\n");
 	return false;
 }
 
