@@ -93,6 +93,11 @@ BUXTON_SOCKET="${socketpath}"
 AC_SUBST(BUXTON_SOCKET)
 AC_DEFINE_UNQUOTED([BUXTON_SOCKET], ["$BUXTON_SOCKET"], [' '])
 
+AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [enable debug mode]))
+AS_IF([test "x$enable_debug" = "xyes"],
+	[AC_DEFINE([DEBUG], [1], [Debugging mode enabled])],
+	[])
+
 AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket
