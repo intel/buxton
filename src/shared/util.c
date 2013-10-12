@@ -226,7 +226,7 @@ int buxton_watch_smack_rules(void)
 {
 	int fd;
 
-	fd = inotify_init();
+	fd = inotify_init1(IN_NONBLOCK);
 	if (fd < 0) {
 		buxton_log("inotify_init(): %m\n");
 		return -1;
