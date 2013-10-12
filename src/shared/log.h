@@ -16,9 +16,9 @@
 #endif
 
 #ifdef DEBUG
-#define buxton_debug() buxton_log()
+#define buxton_debug(...) buxton_log(__VA_ARGS__)
 #else
-#define buxton_debug do {} while(0);
+#define buxton_debug(...) do {} while(0);
 #endif /* DEBUG */
 
 void buxton_log(const char* fmt, ...);
