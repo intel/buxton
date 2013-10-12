@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <attr/xattr.h>
 
 #include "config.h"
 #include "../shared/util.h"
@@ -236,6 +237,8 @@ int main(int argc, char *argv[])
 
 			if (accepting[i] == 1) {
 				addr_len = sizeof(remote);
+				int slabel_len;
+				char *slabel = NULL;
 
 				if ((client = accept(pollfds[i].fd,
 				    (struct sockaddr *)&remote, &addr_len)) == -1) {
@@ -253,6 +256,20 @@ int main(int argc, char *argv[])
 
 				new_client->fd = client;
 				new_client->credentials = (struct ucred) {0, 0, 0};
+				slabel_len = fgetxattr(client, "security.SMACK64", slabel, 0);
+				if (slabel_len <= 0) {
+					buxton_log("fgetxattr(): no security.SMACK64 label\n");
+				} else {
+					slabel = malloc0(sizeof(char)*(slabel_len+1));
+					slabel_len = fgetxattr(client, "security.SMACK64", slabel, SMACK_LABEL_LEN);
+					if (!slabel_len) {
+						buxton_log("fgetxattr(): %m\n");
+					} else {
+						buxton_log("fgetxattr(): label=\"%s\"\n", slabel);
+						new_client->smack_label = strdup(slabel);
+					}
+				}
+
 				LIST_PREPEND(client_list_item, item, client_list, new_client);
 
 				setsockopt(new_client->fd, SOL_SOCKET, SO_PASSCRED, &credentials, sizeof(credentials));
