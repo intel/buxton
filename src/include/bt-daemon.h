@@ -42,8 +42,9 @@ typedef enum BuxtonDataType {
 	LONG,
 } BuxtonDataType;
 
+#define BUXTON_MAX_STRING_DATA_LEN 255
 typedef union BuxtonDataStore {
-	char *d_string;
+	char d_string[BUXTON_MAX_STRING_DATA_LEN];
 	bool d_boolean;
 	float d_float;
 	int d_int;

@@ -90,10 +90,12 @@ char* get_layer_path(BuxtonLayer *layer)
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 {
 	BuxtonDataStore store;
+	int len = 0;
 
 	switch (original->type) {
 		case STRING:
-			store.d_string = strdup(original->store.d_string);
+			len = strlen(original->store.d_string)+1;
+			snprintf(store.d_string, len, "%s",original->store.d_string);
 			break;
 		case BOOLEAN:
 			store.d_boolean = original->store.d_boolean;
