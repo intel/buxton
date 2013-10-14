@@ -72,3 +72,4 @@ _malloc_  _alloc_(1, 2) static inline void *malloc_multiply(size_t a, size_t b) 
 
         return malloc(a * b);
 }
+void* greedy_realloc(void **p, size_t *allocated, size_t need);

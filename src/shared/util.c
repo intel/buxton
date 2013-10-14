@@ -41,6 +41,24 @@ size_t page_size(void)
 	return pgsz;
 }
 
+void* greedy_realloc(void **p, size_t *allocated, size_t need)
+{
+	size_t a;
+	void *q;
+
+	if (*allocated >= need)
+		return *p;
+
+	a = MAX(64u, need * 2);
+	q = realloc(*p, a);
+	if (!q)
+		return NULL;
+
+	*p = q;
+	*allocated = a;
+	return q;
+}
+
 char* get_layer_path(BuxtonLayer *layer)
 {
 	char *path = NULL;

@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "../shared/util.h"
@@ -24,10 +25,34 @@
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 
+static size_t nfds_alloc = 0;
+static size_t accepting_alloc = 0;
+static nfds_t nfds = 0;
+static bool *accepting;
+static struct pollfd *pollfds;
+
+static void add_pollfd(int fd, short events, bool a)
+{
+	if (!greedy_realloc((void **) &pollfds, &nfds_alloc,
+	    (size_t)((nfds + 1) * (sizeof(struct pollfd))))) {
+		buxton_log("realloc(): %m\n");
+		exit(EXIT_FAILURE);
+	}
+	if (!greedy_realloc((void **) &accepting, &accepting_alloc,
+	    (size_t)((nfds + 1) * (sizeof(accepting))))) {
+		buxton_log("realloc(): %m\n");
+		exit(EXIT_FAILURE);
+	}
+	pollfds[nfds].fd = fd;
+	pollfds[nfds].events = events;
+	accepting[nfds] = a;
+	nfds++;
+}
+
 static bool identify_socket(int fd, struct ucred *ucredr)
 {
 	/* Identity handling */
- 	int nr, data;
+	int nr, data;
 	struct msghdr msgh;
 	struct iovec iov;
 	__attribute__((unused)) struct ucred *ucredp;
@@ -82,9 +107,6 @@ int main(int argc, char *argv[])
 	socklen_t addr_len;
 	struct sockaddr_un remote;
 	int descriptors;
-	int accepting[32];
-	struct pollfd pollfds[32];
-	nfds_t nfds = 0;
 	int ret;
 
 	int credentials = 1;
@@ -131,38 +153,21 @@ int main(int argc, char *argv[])
 			buxton_log("listen(): %m\n");
 			exit(1);
 		}
-		descriptors = 1;
-		pollfds[0].events = POLLIN | POLLPRI;
-		pollfds[0].fd = fd;
-		accepting[0] = 1;
-		nfds = 1;
+		add_pollfd(fd, POLLIN | POLLPRI, true);
 	} else {
 		/* systemd socket activation */
-
 		for (fd = SD_LISTEN_FDS_START + 0; fd < SD_LISTEN_FDS_START + descriptors; fd++) {
-			pollfds[nfds].fd = fd;
-			if (sd_is_fifo(fd, NULL)) {
-				pollfds[nfds].events = POLLIN;
-				buxton_debug("Activated via FIFO\n");
-				accepting[nfds] = 0;
-			} else if(sd_is_socket_unix(fd, SOCK_STREAM, -1, BUXTON_SOCKET, 0)) {
-				pollfds[nfds].events = POLLIN | POLLPRI;
-				buxton_debug("Activated via UNIX Socket\n");
-				accepting[nfds] = 1;
-			} else if (sd_is_socket(fd, AF_UNSPEC, 0, -1)) {
-				pollfds[nfds].events = POLLIN | POLLPRI;
-				buxton_debug("Activated via socket\n");
-				accepting[nfds] = 1;
-			}
-			nfds++;
+			if (sd_is_fifo(fd, NULL))
+				add_pollfd(fd, POLLIN, false);
+			else if (sd_is_socket_unix(fd, SOCK_STREAM, -1, BUXTON_SOCKET, 0))
+				add_pollfd(fd, POLLIN | POLLPRI, true);
+			else if (sd_is_socket(fd, AF_UNSPEC, 0, -1))
+				add_pollfd(fd, POLLIN | POLLPRI, true);
 		}
 	}
 
 	/* add Smack rule fd to pollfds */
-	pollfds[nfds].events = POLLIN | POLLPRI;
-	pollfds[nfds].fd = smackfd;
-	accepting[nfds] = 0;
-	nfds++;
+	add_pollfd(smackfd, POLLIN | POLLPRI, false);
 
 	buxton_log("%s: Started\n", argv[0]);
 
@@ -225,10 +230,7 @@ int main(int argc, char *argv[])
 				buxton_debug("New connection from UID %ld, PID %ld\n", cr.uid, cr.pid);
 
 				/* poll for data on this new client as well */
-				pollfds[nfds].fd = client;
-				pollfds[nfds].events = POLLIN | POLLPRI;
-				accepting[nfds] = 0;
-				nfds++;
+				add_pollfd(client, POLLIN | POLLPRI, false);
 
 				/* check if this is optimal or not */
 				continue;
@@ -243,7 +245,7 @@ int main(int argc, char *argv[])
 
 	if (manual_start)
 		unlink(BUXTON_SOCKET);
-	for (int i=0; i<descriptors; i++) {
+	for (int i = 0; i < nfds; i++) {
 		close(pollfds[i].fd);
 	}
 	for (client_list_item *i = client_list; i;) {
