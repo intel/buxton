@@ -75,7 +75,7 @@ static bool get_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 	if (!db)
 		return false;
 
-	stored = (Hashmap*)hashmap_get(db, key);
+	stored = (BuxtonData*)hashmap_get(db, key);
 	if (!stored)
 		return false;
 	data = stored;
