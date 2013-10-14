@@ -67,7 +67,7 @@ AM_CONDITIONAL([USE_LOCAL_INIPARSER], [test x$use_local_iniparser = x"true"])
 
 AC_ARG_WITH([module-dir], AS_HELP_STRING([--with-module-dir=MODULEDIR],
 	[path to buxton modules]), [moduledir=${withval}],
-	[moduledir="${libdir}/buxton/modules"])
+	[moduledir="${libdir}/buxton"])
 MODULEDIR="${moduledir}"
 AC_SUBST(MODULEDIR)
 AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
