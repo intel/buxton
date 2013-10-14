@@ -63,6 +63,9 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client, const char *layer
 
 _bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
 
+/* Utility methods */
+const char* buxton_type_as_string(BuxtonDataType type);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
