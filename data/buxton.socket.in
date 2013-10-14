@@ -2,7 +2,7 @@
 Description=Buxton Configuration Service
 
 [Socket]
-ListenStream=/run/buxton-0
+ListenStream=@BUXTON_SOCKET@
 
 [Install]
 WantedBy=sockets.target
