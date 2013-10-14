@@ -65,6 +65,7 @@ static void print_usage(Command *command)
 static bool set_value(BuxtonDataType type) {
 	char *layer, *key, *value;
 	BuxtonData set;
+	int ret, len = 0;
 
 	layer = arg_v[arg_n + 1];
 	key = arg_v[arg_n + 2];
@@ -73,7 +74,15 @@ static bool set_value(BuxtonDataType type) {
 	set.type = type;
 	switch (set.type) {
 		case STRING:
-			set.store.d_string = value;
+			len = strlen(value) + 1;
+			ret = snprintf(set.store.d_string,len,"%s",value);
+                        if (ret >= len) {
+				printf("Key value was truncated\n");
+				return false;
+			} else if (ret <= 0) {
+				buxton_log("set_value():snprintf(): %m\n");
+				return false;
+			}
 			break;
 		case BOOLEAN:
 			if (streq(value, "true"))
@@ -169,8 +178,6 @@ static bool get_value(BuxtonDataType type) {
 			break;
 	}
 end:
-	if (get.store.d_string)
-		free(get.store.d_string);
 
 	return ret;
 }
