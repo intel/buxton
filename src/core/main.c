@@ -196,22 +196,25 @@ int main(int argc, char *argv[])
 			if (accepting[i] == 1) {
 				addr_len = sizeof(remote);
 				struct ucred cr;
-				if ((client = accept(pollfds[i].fd, (struct sockaddr *)&remote, &addr_len)) == -1)
-				{
+				if ((client = accept(pollfds[i].fd,
+				    (struct sockaddr *)&remote, &addr_len)) == -1) {
+					/* Pretty serious problem */
 					buxton_log("accept(): %m\n");
+					break;
 				}
 
 				/* Ensure credentials are passed back from clients */
 				setsockopt(client, SOL_SOCKET, SO_PASSCRED, &credentials, sizeof(credentials));
 				if (!identify_socket(client, &cr)) {
-					buxton_log("Untrusted socket\n");
+					buxton_debug("Untrusted socket\n");
 					close(client);
+					/* reject connection but continue */
 					continue;
 				}
 
 				client_list_item *new_client = malloc0(sizeof(client_list_item));
 				if (!new_client)
-					return EXIT_FAILURE;
+					exit(EXIT_FAILURE);
 
 				LIST_INIT(client_list_item, item, new_client);
 
@@ -219,7 +222,7 @@ int main(int argc, char *argv[])
 				new_client->credentials = cr;
 				LIST_PREPEND(client_list_item, item, client_list, new_client);
 
-				buxton_log("New connection from UID %ld, PID %ld\n", cr.uid, cr.pid);
+				buxton_debug("New connection from UID %ld, PID %ld\n", cr.uid, cr.pid);
 
 				/* poll for data on this new client as well */
 				pollfds[nfds].fd = client;
@@ -232,7 +235,7 @@ int main(int argc, char *argv[])
 			}
 
 			/* handle data on any connection */
-			buxton_log("Data on fd %d\n", i);
+			buxton_debug("Data on fd %d\n", i);
 		}
 	}
 
