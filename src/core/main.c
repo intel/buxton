@@ -143,15 +143,15 @@ int main(int argc, char *argv[])
 			pollfds[nfds].fd = fd;
 			if (sd_is_fifo(fd, NULL)) {
 				pollfds[nfds].events = POLLIN;
-				buxton_log("Activated via FIFO\n");
+				buxton_debug("Activated via FIFO\n");
 				accepting[nfds] = 0;
 			} else if(sd_is_socket_unix(fd, SOCK_STREAM, -1, BUXTON_SOCKET, 0)) {
 				pollfds[nfds].events = POLLIN | POLLPRI;
-				buxton_log("Activated via UNIX Socket\n");
+				buxton_debug("Activated via UNIX Socket\n");
 				accepting[nfds] = 1;
 			} else if (sd_is_socket(fd, AF_UNSPEC, 0, -1)) {
 				pollfds[nfds].events = POLLIN | POLLPRI;
-				buxton_log("Activated via socket\n");
+				buxton_debug("Activated via socket\n");
 				accepting[nfds] = 1;
 			}
 			nfds++;
