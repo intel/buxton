@@ -271,8 +271,8 @@ int main(int argc, char *argv[])
 				if (pollfds[i].fd == new_client->fd)
 					break;
 
-			/* client closed the connection? */
-			if (recv(new_client->fd, discard, sizeof(discard), MSG_PEEK | MSG_DONTWAIT) == 0) {
+			/* client closed the connection, or some error occurred? */
+			if (recv(new_client->fd, discard, sizeof(discard), MSG_PEEK | MSG_DONTWAIT) <= 0) {
 				del_pollfd(i);
 				close(new_client->fd);
 				buxton_debug("Closed connection from fd %d\n", new_client->fd);
