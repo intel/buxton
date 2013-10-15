@@ -27,7 +27,6 @@ m4/*.m4
 *.trs
 /cscope.*
 /tags
-
 bt-daemon
 buxtonctl
 check_buxton
@@ -36,3 +35,4 @@ data/buxton.socket
 check_shared_lib
 log-check-stderr-file
 test/*.ini
+src/shared/constants.c

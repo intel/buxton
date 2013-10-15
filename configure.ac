@@ -70,28 +70,28 @@ AC_ARG_WITH([module-dir], AS_HELP_STRING([--with-module-dir=MODULEDIR],
 	[moduledir="${libdir}/buxton"])
 MODULEDIR="${moduledir}"
 AC_SUBST(MODULEDIR)
-AC_DEFINE_UNQUOTED([MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
+AC_DEFINE_UNQUOTED([_MODULE_DIRECTORY], ["$MODULEDIR"], [' '])
 
 AC_ARG_WITH([config-path], AS_HELP_STRING([--with-config-path=CONFPATH],
 	[path to buxton configuration file]), [confpath=${withval}],
 	[confpath="${sysconfdir}/buxton.conf"])
 CONFPATH="${confpath}"
 AC_SUBST(CONFPATH)
-AC_DEFINE_UNQUOTED([DEFAULT_CONFIGURATION_FILE], ["$CONFPATH"], [' '])
+AC_DEFINE_UNQUOTED([_DEFAULT_CONFIGURATION_FILE], ["$CONFPATH"], [' '])
 
 AC_ARG_WITH([db-path], AS_HELP_STRING([--with-db-path=DBPATH],
 	[path to buxton db files]), [dbpath=${withval}],
 	[dbpath="${localstatedir}/buxton"])
 DB_PATH="${dbpath}"
 AC_SUBST(DB_PATH)
-AC_DEFINE_UNQUOTED([DB_PATH], ["$DB_PATH"], [' '])
+AC_DEFINE_UNQUOTED([_DB_PATH], ["$DB_PATH"], [' '])
 
 AC_ARG_WITH([socket-path], AS_HELP_STRING([--with-socket-path=SOCKETPATH],
 	[path to buxton socket file]), [socketpath=${withval}],
 	[socketpath="/run/buxton-0"])
 BUXTON_SOCKET="${socketpath}"
 AC_SUBST(BUXTON_SOCKET)
-AC_DEFINE_UNQUOTED([BUXTON_SOCKET], ["$BUXTON_SOCKET"], [' '])
+AC_DEFINE_UNQUOTED([_BUXTON_SOCKET], ["$BUXTON_SOCKET"], [' '])
 
 AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [enable debug mode]))
 AS_IF([test "x$enable_debug" = "xyes"],
@@ -103,6 +103,7 @@ data/buxton.service
 data/buxton.socket
 test/test-pass.ini
 test/test-fail.ini
+src/shared/constants.c
 ])
 AC_OUTPUT
 

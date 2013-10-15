@@ -39,6 +39,10 @@ TESTS = check_buxton check_shared_lib
 
 # set flags
 
+EXTRA_DIST = \
+	src/shared/constants.h \
+	test/test.conf
+
 dist_sysconf_DATA = \
 	data/buxton.conf
 
@@ -49,6 +53,7 @@ bin_PROGRAMS = \
 	buxtonctl
 
 bt_daemon_SOURCES = \
+	src/shared/constants.c \
 	src/core/main.c
 
 bt_daemon_LDADD = \
@@ -56,6 +61,7 @@ bt_daemon_LDADD = \
 	libbuxton-shared.la
 
 buxtonctl_SOURCES = \
+	src/shared/constants.c \
 	src/cli/main.c
 
 buxtonctl_LDADD = \
@@ -143,18 +149,23 @@ check_PROGRAMS = \
 	check_shared_lib
 
 check_buxton_SOURCES = \
+	src/shared/constants.c \
         test/check_buxton.c
 check_buxton_CFLAGS = \
-	@CHECK_CFLAGS@
+	@CHECK_CFLAGS@ \
+	-DMAKE_CHECK
 check_buxton_LDADD = \
 	@CHECK_LIBS@ \
 	libbuxton.la
 
 check_shared_lib_SOURCES = \
+	src/shared/constants.c \
         test/check_shared_lib.c
 check_shared_lib_CFLAGS = \
 	@CHECK_CFLAGS@ \
-	@INIPARSER_CFLAGS@
+	@INIPARSER_CFLAGS@ \
+	-DMAKE_CHECK
+
 check_shared_lib_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \

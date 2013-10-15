@@ -264,10 +264,8 @@ bool buxton_init_layers(void)
 {
 	bool ret = false;
 	dictionary *ini;
-	char *path;
+	const char *path = DEFAULT_CONFIGURATION_FILE;
 	int nlayers = 0;
-
-	path = DEFAULT_CONFIGURATION_FILE;
 
 	ini = iniparser_load(path);
 	if (ini == NULL) {
