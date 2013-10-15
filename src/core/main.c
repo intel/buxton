@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			if (accepting[i] == 1) {
+			if (accepting[i] == true) {
 				int fd;
 				struct ucred cr;
 
