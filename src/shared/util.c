@@ -22,8 +22,6 @@
 #include "../shared/util.h"
 #include "../include/bt-daemon-private.h"
 
-#define SMACK_LOAD_FILE "/sys/fs/smackfs/load2"
-
 static Hashmap *_smackrules = NULL;
 
 size_t page_size(void)

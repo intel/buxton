@@ -41,6 +41,7 @@ TESTS = check_buxton check_shared_lib
 
 EXTRA_DIST = \
 	src/shared/constants.h \
+	test/test.load2 \
 	test/test.conf
 
 dist_sysconf_DATA = \
