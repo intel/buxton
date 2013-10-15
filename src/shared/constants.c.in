@@ -15,7 +15,7 @@
 
 
 #ifdef MAKE_CHECK
-const char* MODULE_DIRECTORY = "@top_builddir@/.libs";
+const char* MODULE_DIRECTORY = "@abs_top_builddir@/.libs";
 const char* DEFAULT_CONFIGURATION_FILE = "@abs_top_srcdir@/test/test.conf";
 const char* DB_PATH = "/tmp";
 const char* BUXTON_SOCKET = "/tmp/buxton-socket";
