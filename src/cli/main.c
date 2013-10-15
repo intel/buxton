@@ -123,14 +123,15 @@ static bool set_value(BuxtonDataType type) {
 static bool get_value(BuxtonDataType type) {
 	char *layer, *key;
 	BuxtonData get;
-	bool ret;
+	bool ret = true;
 
 	layer = arg_v[arg_n + 1];
 	key = arg_v[arg_n + 2];
 
 	if (!buxton_client_get_value(&client, layer, key, &get)) {
 		printf("Requested key was not found in layer \'%s\': %s\n", layer, key);
-		return false;
+		ret = false;
+		goto end;
 	}
 
 	if (get.type != type) {
@@ -166,6 +167,8 @@ static bool get_value(BuxtonDataType type) {
 			printf("[%s] %s = %d\n", layer, key, get.store.d_int);
 			break;
 		default:
+			printf("unknown type\n");
+			ret = false;
 			break;
 	}
 end:
