@@ -30,8 +30,7 @@
 typedef struct client_list_item {
 	LIST_FIELDS(struct client_list_item, item);
 
-	int client_socket;
-
+	int fd;
 	struct ucred credentials;
 } client_list_item;
 

@@ -33,6 +33,8 @@ static struct pollfd *pollfds;
 
 static void add_pollfd(int fd, short events, bool a)
 {
+	assert(fd >= 0);
+
 	if (!greedy_realloc((void **) &pollfds, &nfds_alloc,
 	    (size_t)((nfds + 1) * (sizeof(struct pollfd))))) {
 		buxton_log("realloc(): %m\n");
@@ -47,6 +49,26 @@ static void add_pollfd(int fd, short events, bool a)
 	pollfds[nfds].events = events;
 	accepting[nfds] = a;
 	nfds++;
+
+	buxton_debug("Added fd %d to our poll list (accepting=%d)\n", fd, a);
+}
+
+static void del_pollfd(int i)
+{
+	assert(i <= nfds);
+	assert(i >= 0);
+
+	buxton_debug("Removing fd %d from our list\n", pollfds[i].fd);
+
+	if (i != (nfds - 1)) {
+		memmove(&pollfds + ((i + 1) * sizeof(struct pollfd)),
+			&pollfds + ((i) * sizeof(struct pollfd)),
+			(nfds - i - 1) * sizeof(struct pollfd));
+		memmove(&accepting + ((i + 1) * sizeof(accepting)),
+			&accepting + ((i) * sizeof(accepting)),
+			(nfds - i - 1) * sizeof(accepting));
+	}
+	nfds--;
 }
 
 static bool identify_socket(int fd, struct ucred *ucredr)
@@ -78,7 +100,7 @@ static bool identify_socket(int fd, struct ucred *ucredr)
 	msgh.msg_name = NULL;
 	msgh.msg_namelen = 0;
 
-	nr = recvmsg(fd, &msgh, 0);
+	nr = recvmsg(fd, &msgh, MSG_PEEK | MSG_DONTWAIT);
 	if (nr == -1)
 		return false;
 
@@ -157,12 +179,16 @@ int main(int argc, char *argv[])
 	} else {
 		/* systemd socket activation */
 		for (fd = SD_LISTEN_FDS_START + 0; fd < SD_LISTEN_FDS_START + descriptors; fd++) {
-			if (sd_is_fifo(fd, NULL))
+			if (sd_is_fifo(fd, NULL)) {
 				add_pollfd(fd, POLLIN, false);
-			else if (sd_is_socket_unix(fd, SOCK_STREAM, -1, BUXTON_SOCKET, 0))
+				buxton_debug("Added fd %d type FIFO\n", fd);
+			} else if (sd_is_socket_unix(fd, SOCK_STREAM, -1, BUXTON_SOCKET, 0)) {
 				add_pollfd(fd, POLLIN | POLLPRI, true);
-			else if (sd_is_socket(fd, AF_UNSPEC, 0, -1))
+				buxton_debug("Added fd %d type UNIX\n", fd);
+			} else if (sd_is_socket(fd, AF_UNSPEC, 0, -1)) {
 				add_pollfd(fd, POLLIN | POLLPRI, true);
+				buxton_debug("Added fd %d type SOCKET\n", fd);
+			}
 		}
 	}
 
@@ -174,6 +200,7 @@ int main(int argc, char *argv[])
 	/* Enter loop to accept clients */
 	for (;;) {
 		ret = poll(pollfds, nfds, -1);
+
 		if (ret < 0) {
 			buxton_log("poll(): %m\n");
 			break;
@@ -182,15 +209,22 @@ int main(int argc, char *argv[])
 			continue;
 
 		for (nfds_t i=0; i<nfds; i++) {
+			struct ucred cr;
+			client_list_item *new_client = NULL;
+			char discard[256];
+			ssize_t l;
+
+			if (pollfds[i].revents == 0)
+				continue;
+
 			if (pollfds[i].fd == -1) {
 				/* TODO: Remove client from list  */
+				buxton_debug("Removing / Closing client for fd %d\n", pollfds[i].fd);
+				del_pollfd(i);
 				continue;
 			}
-			if (pollfds[i].revents == 0) {
-				continue;
-			}
+
 			if (pollfds[i].fd == smackfd) {
-				char discard[256];
 				if (!buxton_cache_smack_rules())
 					exit(1);
 				buxton_log("Reloaded Smack access rules\n");
@@ -198,36 +232,29 @@ int main(int argc, char *argv[])
 				while (read(smackfd, &discard, 256) == 256);
 				continue;
 			}
+
 			if (accepting[i] == 1) {
 				addr_len = sizeof(remote);
-				struct ucred cr;
+
 				if ((client = accept(pollfds[i].fd,
 				    (struct sockaddr *)&remote, &addr_len)) == -1) {
-					/* Pretty serious problem */
 					buxton_log("accept(): %m\n");
 					break;
 				}
 
-				/* Ensure credentials are passed back from clients */
-				setsockopt(client, SOL_SOCKET, SO_PASSCRED, &credentials, sizeof(credentials));
-				if (!identify_socket(client, &cr)) {
-					buxton_debug("Untrusted socket\n");
-					close(client);
-					/* reject connection but continue */
-					continue;
-				}
+				buxton_debug("New client fd %d connected through fd %d\n", client, pollfds[i].fd);
 
-				client_list_item *new_client = malloc0(sizeof(client_list_item));
+				new_client = malloc0(sizeof(client_list_item));
 				if (!new_client)
 					exit(EXIT_FAILURE);
 
 				LIST_INIT(client_list_item, item, new_client);
 
-				new_client->client_socket = client;
-				new_client->credentials = cr;
+				new_client->fd = client;
+				new_client->credentials = (struct ucred) {0, 0, 0};
 				LIST_PREPEND(client_list_item, item, client_list, new_client);
 
-				buxton_debug("New connection from UID %ld, PID %ld\n", cr.uid, cr.pid);
+				setsockopt(new_client->fd, SOL_SOCKET, SO_PASSCRED, &credentials, sizeof(credentials));
 
 				/* poll for data on this new client as well */
 				add_pollfd(client, POLLIN | POLLPRI, false);
@@ -236,8 +263,37 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
+			assert(accepting[i] == 0);
+			assert(pollfds[i].fd != smackfd);
+
 			/* handle data on any connection */
-			buxton_debug("Data on fd %d\n", i);
+			LIST_FOREACH(item, new_client, client_list)
+				if (pollfds[i].fd == new_client->fd)
+					break;
+
+			/* client closed the connection? */
+			if (recv(new_client->fd, discard, sizeof(discard), MSG_PEEK | MSG_DONTWAIT) == 0) {
+				del_pollfd(i);
+				close(new_client->fd);
+				buxton_debug("Closed connection from fd %d\n", new_client->fd);
+				LIST_REMOVE(client_list_item, item, client_list, new_client);
+				continue;
+			}
+
+			/* Ensure credentials are passed back from clients */
+			if (!identify_socket(new_client->fd, &cr)) {
+				del_pollfd(i);
+				close(new_client->fd);
+				buxton_debug("Closed untrusted connection from fd %d\n", new_client->fd);
+				LIST_REMOVE(client_list_item, item, client_list, new_client);
+				continue;
+			}
+
+			buxton_debug("New packet from UID %ld, PID %ld\n", cr.uid, cr.pid);
+
+			/* we don't know what to do with the data yet */
+			while ((l = read(pollfds[i].fd, &discard, 256) == 256))
+				buxton_debug("Discarded %d bytes on fd %d\n", l, pollfds[i].fd);
 		}
 	}
 
