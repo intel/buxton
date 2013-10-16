@@ -237,8 +237,6 @@ int main(int argc, char *argv[])
 
 			if (accepting[i] == 1) {
 				addr_len = sizeof(remote);
-				int slabel_len;
-				char *slabel = NULL;
 
 				if ((client = accept(pollfds[i].fd,
 				    (struct sockaddr *)&remote, &addr_len)) == -1) {
@@ -256,20 +254,6 @@ int main(int argc, char *argv[])
 
 				new_client->fd = client;
 				new_client->credentials = (struct ucred) {0, 0, 0};
-				slabel_len = fgetxattr(client, "security.SMACK64", slabel, 0);
-				if (slabel_len <= 0) {
-					buxton_log("fgetxattr(): no security.SMACK64 label\n");
-				} else {
-					slabel = malloc0(sizeof(char)*(slabel_len+1));
-					slabel_len = fgetxattr(client, "security.SMACK64", slabel, SMACK_LABEL_LEN);
-					if (!slabel_len) {
-						buxton_log("fgetxattr(): %m\n");
-					} else {
-						buxton_log("fgetxattr(): label=\"%s\"\n", slabel);
-						new_client->smack_label = strdup(slabel);
-					}
-				}
-
 				LIST_PREPEND(client_list_item, item, client_list, new_client);
 
 				setsockopt(new_client->fd, SOL_SOCKET, SO_PASSCRED, &credentials, sizeof(credentials));
@@ -295,21 +279,50 @@ int main(int argc, char *argv[])
 			if (recv(new_client->fd, discard, sizeof(discard), MSG_PEEK | MSG_DONTWAIT) <= 0) {
 				del_pollfd(i);
 				close(new_client->fd);
+				free(new_client->smack_label);
 				buxton_debug("Closed connection from fd %d\n", new_client->fd);
 				LIST_REMOVE(client_list_item, item, client_list, new_client);
 				continue;
 			}
 
-			/* Ensure credentials are passed back from clients */
-			if (!identify_socket(new_client->fd, &cr)) {
-				del_pollfd(i);
-				close(new_client->fd);
-				buxton_debug("Closed untrusted connection from fd %d\n", new_client->fd);
-				LIST_REMOVE(client_list_item, item, client_list, new_client);
-				continue;
+			/* need to authenticate the client? */
+			if ((new_client->credentials.uid == 0) || (new_client->credentials.pid == 0)) {
+				int slabel_len;
+				char *slabel = NULL;
+
+				if (!identify_socket(new_client->fd, &cr)) {
+					del_pollfd(i);
+					close(new_client->fd);
+					free(new_client->smack_label);
+					buxton_debug("Closed untrusted connection from fd %d\n", new_client->fd);
+					LIST_REMOVE(client_list_item, item, client_list, new_client);
+					continue;
+				}
+
+				memcpy(&new_client->credentials, &cr, sizeof(struct ucred));
+
+				slabel_len = fgetxattr(new_client->fd, SMACK_ATTR_NAME, slabel, 0);
+				if (slabel_len <= 0) {
+					buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
+					exit(EXIT_FAILURE);
+				}
+
+				slabel = malloc0(slabel_len + 1);
+				if (!slabel) {
+					buxton_log("malloc0(): %m\n");
+					exit(EXIT_FAILURE);
+				}
+				slabel_len = fgetxattr(new_client->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
+				if (!slabel_len) {
+					buxton_log("fgetxattr(): %m\n");
+					exit(EXIT_FAILURE);
+				}
+
+				buxton_debug("fgetxattr(): label=\"%s\"\n", slabel);
+				new_client->smack_label = strdup(slabel);
 			}
 
-			buxton_debug("New packet from UID %ld, PID %ld\n", cr.uid, cr.pid);
+			buxton_debug("New packet from UID %ld, PID %ld\n", new_client->credentials.uid, new_client->credentials.pid);
 
 			/* we don't know what to do with the data yet */
 			while ((l = read(pollfds[i].fd, &discard, 256) == 256))

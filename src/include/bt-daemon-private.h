@@ -25,6 +25,7 @@
 #include "bt-daemon.h"
 
 #define SMACK_LABEL_LEN 255
+#define SMACK_ATTR_NAME "security.SMACK64"
 #define ACC_LEN 5
 
 typedef struct client_list_item {
