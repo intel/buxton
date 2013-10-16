@@ -146,7 +146,8 @@ memory_la_LDFLAGS = \
 
 check_PROGRAMS = \
 	check_buxton \
-	check_shared_lib
+	check_shared_lib \
+	check_daemon
 
 check_buxton_SOURCES = \
 	src/shared/constants.c \
@@ -165,11 +166,24 @@ check_shared_lib_CFLAGS = \
 	@CHECK_CFLAGS@ \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK
-
 check_shared_lib_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
 	libbuxton-shared.la
+
+check_daemon_SOURCES = \
+	src/shared/constants.c \
+        test/check_daemon.c
+check_daemon_CFLAGS = \
+	@CHECK_CFLAGS@ \
+	@INIPARSER_CFLAGS@ \
+	-DMAKE_CHECK
+check_daemon_LDADD = \
+	@CHECK_LIBS@ \
+	@INIPARSER_LIBS@ \
+	libbuxton-shared.la
+
+
 check_DATA = \
 	test/test-pass.ini \
 	test/test-fail.ini \
