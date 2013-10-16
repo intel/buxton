@@ -135,10 +135,10 @@ int main(int argc, char *argv[])
 	bool manual_start = false;
 
 	if (!buxton_cache_smack_rules())
-		exit(1);
+		exit(EXIT_FAILURE);
 	smackfd = buxton_watch_smack_rules();
 	if (smackfd < 0)
-		exit(1);
+		exit(EXIT_FAILURE);
 
 	/* Store a list of connected clients */
 	LIST_HEAD(client_list_item, client_list);
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 	descriptors = sd_listen_fds(0);
 	if (descriptors < 0) {
 		buxton_log("sd_listen_fds: %m\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	} else if (descriptors == 0) {
 		/* Manual invocation */
 		manual_start = true;
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 		fd = socket(AF_UNIX, SOCK_STREAM, 0);
 		if (fd < 0) {
 			buxton_log("socket(): %m\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		memset(&sa, 0, sizeof(sa));
@@ -168,12 +168,12 @@ int main(int argc, char *argv[])
 
 		if (bind(fd, &sa.sa, sizeof(sa)) < 0) {
 			buxton_log("bind(): %m\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		if (listen(fd, SOMAXCONN) < 0) {
 			buxton_log("listen(): %m\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		add_pollfd(fd, POLLIN | POLLPRI, true);
 	} else {
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 
 			if (pollfds[i].fd == smackfd) {
 				if (!buxton_cache_smack_rules())
-					exit(1);
+					exit(EXIT_FAILURE);
 				buxton_log("Reloaded Smack access rules\n");
 				/* discard inotify data itself */
 				while (read(smackfd, &discard, 256) == 256);
