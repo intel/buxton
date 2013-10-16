@@ -172,7 +172,7 @@ static bool get_value(BuxtonDataType type) {
 			break;
 	}
 end:
-	if (get.store.d_string)
+	if (ret && get.type == STRING)
 		free(get.store.d_string);
 
 	return ret;
