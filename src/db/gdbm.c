@@ -87,13 +87,14 @@ static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
 {
 	GDBM_FILE db;
+	bool ret = false;
 
 	assert(layer);
 	assert(key_name);
 
 	db = _db_for_resource(layer);
 	if (!db)
-		return false;
+		goto end;
 
 	datum key = { (char *)key_name, strlen(key_name) + 1};
 	datum value;
@@ -101,16 +102,20 @@ static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 
 	value = gdbm_fetch(db, key);
 	if (value.dsize < 0 || value.dptr == 0)
-		return false;
+		goto end;
 
 	data_store = (uint8_t*)value.dptr;
 	if (!buxton_deserialize(data_store, data))
-		return false;
+		goto end;
 
-	free(value.dptr);
+	ret = true;
+
+end:
+	if (value.dptr)
+		free(value.dptr);
 	data_store = NULL;
 
-	return true;
+	return ret;
 }
 
 _bx_export_ void buxton_module_destroy(void)
