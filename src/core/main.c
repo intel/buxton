@@ -127,7 +127,6 @@ int main(int argc, char *argv[])
 {
 	int fd;
 	int smackfd;
-	int client;
 	socklen_t addr_len;
 	struct sockaddr_un remote;
 	int descriptors;
@@ -236,15 +235,17 @@ int main(int argc, char *argv[])
 			}
 
 			if (accepting[i] == 1) {
+				int fd;
+
 				addr_len = sizeof(remote);
 
-				if ((client = accept(pollfds[i].fd,
+				if ((fd = accept(pollfds[i].fd,
 				    (struct sockaddr *)&remote, &addr_len)) == -1) {
 					buxton_log("accept(): %m\n");
 					break;
 				}
 
-				buxton_debug("New client fd %d connected through fd %d\n", client, pollfds[i].fd);
+				buxton_debug("New client fd %d connected through fd %d\n", fd, pollfds[i].fd);
 
 				new_client = malloc0(sizeof(client_list_item));
 				if (!new_client)
@@ -252,14 +253,14 @@ int main(int argc, char *argv[])
 
 				LIST_INIT(client_list_item, item, new_client);
 
-				new_client->fd = client;
+				new_client->fd = fd;
 				new_client->credentials = (struct ucred) {0, 0, 0};
 				LIST_PREPEND(client_list_item, item, client_list, new_client);
 
 				setsockopt(new_client->fd, SOL_SOCKET, SO_PASSCRED, &credentials, sizeof(credentials));
 
 				/* poll for data on this new client as well */
-				add_pollfd(client, POLLIN | POLLPRI, false);
+				add_pollfd(new_client->fd, POLLIN | POLLPRI, false);
 
 				/* check if this is optimal or not */
 				break;
