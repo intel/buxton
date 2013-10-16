@@ -47,6 +47,7 @@ static void add_pollfd(int fd, short events, bool a)
 	}
 	pollfds[nfds].fd = fd;
 	pollfds[nfds].events = events;
+	pollfds[nfds].revents = 0;
 	accepting[nfds] = a;
 	nfds++;
 
@@ -260,7 +261,7 @@ int main(int argc, char *argv[])
 				add_pollfd(client, POLLIN | POLLPRI, false);
 
 				/* check if this is optimal or not */
-				continue;
+				break;
 			}
 
 			assert(accepting[i] == 0);
