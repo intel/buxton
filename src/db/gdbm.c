@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <gdbm.h>
 #include <stdlib.h>
+#include <malloc.h>
 
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
@@ -69,17 +70,15 @@ static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 
 	datum key = { (char *)key_name, strlen(key_name) + 1};
 	datum value;
-	switch (data->type) {
-		case STRING:
-			value.dsize = strlen(data->store.d_string) + 1 + sizeof(*data);
-			break;
-		default:
-			value.dsize = sizeof(*data);
-			break;
-	}
-	value.dptr = (char *)data;
+	uint8_t *data_store = NULL;
+	if (!buxton_serialize(data, &data_store))
+		return false;
+
+	value.dptr = (char*)data_store;
+	value.dsize = malloc_usable_size(data_store);
 	ret = gdbm_store(db, key, value, GDBM_REPLACE);
 
+	free(data_store);
 	if (ret == -1)
 		return false;
 	return true;
@@ -98,13 +97,18 @@ static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 
 	datum key = { (char *)key_name, strlen(key_name) + 1};
 	datum value;
+	uint8_t *data_store = NULL;
 
 	value = gdbm_fetch(db, key);
 	if (value.dsize < 0 || value.dptr == 0)
 		return false;
 
-	buxton_data_copy((BuxtonData*)value.dptr, data);
+	data_store = (uint8_t*)value.dptr;
+	if (!buxton_deserialize(data_store, data))
+		return false;
+
 	free(value.dptr);
+	data_store = NULL;
 
 	return true;
 }
