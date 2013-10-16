@@ -234,7 +234,6 @@ int main(int argc, char *argv[])
 
 			if (accepting[i] == true) {
 				int fd;
-				struct ucred cr;
 
 				addr_len = sizeof(remote);
 
@@ -255,8 +254,6 @@ int main(int argc, char *argv[])
 				cl->fd = fd;
 				cl->cred = (struct ucred) {0, 0, 0};
 				LIST_PREPEND(client_list_item, item, client_list, cl);
-
-				setsockopt(cl->fd, SOL_SOCKET, SO_PASSCRED, &cr, sizeof(struct ucred));
 
 				/* poll for data on this new client as well */
 				add_pollfd(cl->fd, POLLIN | POLLPRI, false);
@@ -291,6 +288,7 @@ int main(int argc, char *argv[])
 				char *slabel = NULL;
 				struct ucred cr;
 
+				setsockopt(cl->fd, SOL_SOCKET, SO_PASSCRED, &cr, sizeof(struct ucred));
 				if (!identify_socket(cl->fd, &cr)) {
 					del_pollfd(i);
 					close(cl->fd);
