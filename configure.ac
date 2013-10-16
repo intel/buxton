@@ -93,6 +93,13 @@ BUXTON_SOCKET="${socketpath}"
 AC_SUBST(BUXTON_SOCKET)
 AC_DEFINE_UNQUOTED([_BUXTON_SOCKET], ["$BUXTON_SOCKET"], [' '])
 
+AC_ARG_WITH([smack-load-file], AS_HELP_STRING([--with-smack-load-file=SMACKLOADFILE],
+	[path to smack load2 file]), [smack_load_file=${withval}],
+	[smack_load_file="/sys/fs/smackfs/load2"])
+SMACK_LOAD_FILE="${smack_load_file}"
+AC_SUBST(SMACK_LOAD_FILE)
+AC_DEFINE_UNQUOTED([_SMACK_LOAD_FILE], ["$SMACK_LOAD_FILE"], [' '])
+
 AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [enable debug mode]))
 AS_IF([test "x$enable_debug" = "xyes"],
 	[AC_DEFINE([DEBUG], [1], [Debugging mode enabled])],

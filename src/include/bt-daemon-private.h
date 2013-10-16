@@ -32,6 +32,8 @@ typedef struct client_list_item {
 
 	int fd;
 	struct ucred credentials;
+
+	char *smack_label;
 } client_list_item;
 
 typedef enum BuxtonBackendType {

@@ -1,0 +1,9 @@
+_ base/sample/key rw
+_ system/sample/key rw
+_ user/sample/key r
+system base/sample/key r
+system system/sample/key rw
+system user/sample/key r
+user base/sample/key r
+user system/sample/key r
+user user/sample/key rw
