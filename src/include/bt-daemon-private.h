@@ -30,10 +30,8 @@
 
 typedef struct client_list_item {
 	LIST_FIELDS(struct client_list_item, item);
-
 	int fd;
-	struct ucred credentials;
-
+	struct ucred cred;
 	char *smack_label;
 } client_list_item;
 

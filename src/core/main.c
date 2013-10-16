@@ -132,7 +132,6 @@ int main(int argc, char *argv[])
 	int descriptors;
 	int ret;
 
-	int credentials = 1;
 	bool manual_start = false;
 
 	if (!buxton_cache_smack_rules())
@@ -210,8 +209,7 @@ int main(int argc, char *argv[])
 			continue;
 
 		for (nfds_t i=0; i<nfds; i++) {
-			struct ucred cr;
-			client_list_item *new_client = NULL;
+			client_list_item *cl = NULL;
 			char discard[256];
 			ssize_t l;
 
@@ -236,6 +234,7 @@ int main(int argc, char *argv[])
 
 			if (accepting[i] == 1) {
 				int fd;
+				struct ucred cr;
 
 				addr_len = sizeof(remote);
 
@@ -247,20 +246,20 @@ int main(int argc, char *argv[])
 
 				buxton_debug("New client fd %d connected through fd %d\n", fd, pollfds[i].fd);
 
-				new_client = malloc0(sizeof(client_list_item));
-				if (!new_client)
+				cl = malloc0(sizeof(client_list_item));
+				if (!cl)
 					exit(EXIT_FAILURE);
 
-				LIST_INIT(client_list_item, item, new_client);
+				LIST_INIT(client_list_item, item, cl);
 
-				new_client->fd = fd;
-				new_client->credentials = (struct ucred) {0, 0, 0};
-				LIST_PREPEND(client_list_item, item, client_list, new_client);
+				cl->fd = fd;
+				cl->cred = (struct ucred) {0, 0, 0};
+				LIST_PREPEND(client_list_item, item, client_list, cl);
 
-				setsockopt(new_client->fd, SOL_SOCKET, SO_PASSCRED, &credentials, sizeof(credentials));
+				setsockopt(cl->fd, SOL_SOCKET, SO_PASSCRED, &cr, sizeof(struct ucred));
 
 				/* poll for data on this new client as well */
-				add_pollfd(new_client->fd, POLLIN | POLLPRI, false);
+				add_pollfd(cl->fd, POLLIN | POLLPRI, false);
 
 				/* check if this is optimal or not */
 				break;
@@ -270,39 +269,39 @@ int main(int argc, char *argv[])
 			assert(pollfds[i].fd != smackfd);
 
 			/* handle data on any connection */
-			LIST_FOREACH(item, new_client, client_list)
-				if (pollfds[i].fd == new_client->fd)
+			LIST_FOREACH(item, cl, client_list)
+				if (pollfds[i].fd == cl->fd)
 					break;
 
-			assert(new_client);
+			assert(cl);
 
 			/* client closed the connection, or some error occurred? */
-			if (recv(new_client->fd, discard, sizeof(discard), MSG_PEEK | MSG_DONTWAIT) <= 0) {
+			if (recv(cl->fd, discard, sizeof(discard), MSG_PEEK | MSG_DONTWAIT) <= 0) {
 				del_pollfd(i);
-				close(new_client->fd);
-				free(new_client->smack_label);
-				buxton_debug("Closed connection from fd %d\n", new_client->fd);
-				LIST_REMOVE(client_list_item, item, client_list, new_client);
+				close(cl->fd);
+				free(cl->smack_label);
+				buxton_debug("Closed connection from fd %d\n", cl->fd);
+				LIST_REMOVE(client_list_item, item, client_list, cl);
 				continue;
 			}
 
 			/* need to authenticate the client? */
-			if ((new_client->credentials.uid == 0) || (new_client->credentials.pid == 0)) {
+			if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
 				int slabel_len;
 				char *slabel = NULL;
+				struct ucred cr;
 
-				if (!identify_socket(new_client->fd, &cr)) {
+				if (!identify_socket(cl->fd, &cr)) {
 					del_pollfd(i);
-					close(new_client->fd);
-					free(new_client->smack_label);
-					buxton_debug("Closed untrusted connection from fd %d\n", new_client->fd);
-					LIST_REMOVE(client_list_item, item, client_list, new_client);
+					close(cl->fd);
+					free(cl->smack_label);
+					buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
+					LIST_REMOVE(client_list_item, item, client_list, cl);
 					continue;
 				}
+				memcpy(&cl->cred, &cr, sizeof(struct ucred));
 
-				memcpy(&new_client->credentials, &cr, sizeof(struct ucred));
-
-				slabel_len = fgetxattr(new_client->fd, SMACK_ATTR_NAME, slabel, 0);
+				slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, 0);
 				if (slabel_len <= 0) {
 					buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
 					exit(EXIT_FAILURE);
@@ -313,17 +312,17 @@ int main(int argc, char *argv[])
 					buxton_log("malloc0(): %m\n");
 					exit(EXIT_FAILURE);
 				}
-				slabel_len = fgetxattr(new_client->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
+				slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
 				if (!slabel_len) {
 					buxton_log("fgetxattr(): %m\n");
 					exit(EXIT_FAILURE);
 				}
 
 				buxton_debug("fgetxattr(): label=\"%s\"\n", slabel);
-				new_client->smack_label = strdup(slabel);
+				cl->smack_label = strdup(slabel);
 			}
 
-			buxton_debug("New packet from UID %ld, PID %ld\n", new_client->credentials.uid, new_client->credentials.pid);
+			buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
 
 			/* we don't know what to do with the data yet */
 			while ((l = read(pollfds[i].fd, &discard, 256) == 256))
