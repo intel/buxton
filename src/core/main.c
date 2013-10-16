@@ -61,11 +61,11 @@ static void del_pollfd(int i)
 	buxton_debug("Removing fd %d from our list\n", pollfds[i].fd);
 
 	if (i != (nfds - 1)) {
-		memmove(&pollfds + ((i + 1) * sizeof(struct pollfd)),
-			&pollfds + ((i) * sizeof(struct pollfd)),
+		memmove(&pollfds + ((i) * sizeof(struct pollfd)),
+			&pollfds + ((i + 1) * sizeof(struct pollfd)),
 			(nfds - i - 1) * sizeof(struct pollfd));
-		memmove(&accepting + ((i + 1) * sizeof(accepting)),
-			&accepting + ((i) * sizeof(accepting)),
+		memmove(&accepting + ((i) * sizeof(accepting)),
+			&accepting + ((i + 1) * sizeof(accepting)),
 			(nfds - i - 1) * sizeof(accepting));
 	}
 	nfds--;
@@ -270,6 +270,8 @@ int main(int argc, char *argv[])
 			LIST_FOREACH(item, new_client, client_list)
 				if (pollfds[i].fd == new_client->fd)
 					break;
+
+			assert(new_client);
 
 			/* client closed the connection, or some error occurred? */
 			if (recv(new_client->fd, discard, sizeof(discard), MSG_PEEK | MSG_DONTWAIT) <= 0) {
