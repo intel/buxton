@@ -36,3 +36,4 @@ check_shared_lib
 log-check-stderr-file
 test/*.ini
 src/shared/constants.c
+check_daemon
