@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/poll.h>
+#include <stdint.h>
 
 #include "../shared/list.h"
 #include "bt-daemon.h"
@@ -27,6 +28,7 @@
 #define SMACK_LABEL_LEN 255
 #define SMACK_ATTR_NAME "security.SMACK64"
 #define ACC_LEN 5
+#define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) + (sizeof(int)*2)
 
 typedef struct client_list_item {
 	LIST_FIELDS(struct client_list_item, item);
@@ -96,6 +98,12 @@ char* get_layer_path(BuxtonLayer *layer);
 
 /* Utility function to deep copy a BuxtonData */
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
+
+/* Serialize the contents of source into dest */
+bool buxton_serialize(BuxtonData *source, uint8_t** dest);
+
+/* Deserialize source into a BuxtonData pointer */
+bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
 
 /* Utility function to load Smack rules from the kernel */
 bool buxton_cache_smack_rules(void);
