@@ -86,16 +86,17 @@ START_TEST(daemon_start_check)
 			"couldn't read from parent: %m");
 
 		//FIXME: path is wrong for makedistcheck
-		snprintf(path, PATH_MAX, "%s/bt-daemon", get_current_dir_name());
+		snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
 		fprintf(stderr, "path is %s\n", path);
 
 		fail_if(write(socks[0], (void*)magic, 1) < 0,
 			"can't write to parent: %m");
-		if (execl(path, "bt-daemon", (const char*)NULL) < 0) {
+		if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
 			fail("couldn't exec: %m");
 		}
 		fail("should never reach here");
 	}
+	unlink(BUXTON_SOCKET);
 }
 END_TEST
 

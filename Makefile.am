@@ -35,7 +35,7 @@ LIBBUXTON_CURRENT=0
 LIBBUXTON_REVISION=1
 LIBBUXTON_AGE=0
 
-TESTS = check_buxton check_shared_lib
+TESTS = check_buxton check_shared_lib check_daemon
 
 # set flags
 
@@ -148,6 +148,7 @@ memory_la_LDFLAGS = \
 check_PROGRAMS = \
 	check_buxton \
 	check_shared_lib \
+	check_bt_daemon \
 	check_daemon
 
 check_buxton_SOURCES = \
@@ -172,6 +173,19 @@ check_shared_lib_LDADD = \
 	@INIPARSER_LIBS@ \
 	libbuxton-shared.la
 
+check_bt_daemon_SOURCES = \
+	src/shared/constants.c \
+	src/core/main.c
+check_bt_daemon_CFLAGS = \
+	@CHECK_CFLAGS@ \
+	$(AM_CFLAGS) \
+	@INIPARSER_CFLAGS@ \
+	-DMAKE_CHECK
+check_bt_daemon_LDADD = \
+	@CHECK_LIBS@ \
+	$(SYSTEMD_LIBS) \
+	libbuxton-shared.la
+
 check_daemon_SOURCES = \
 	src/shared/constants.c \
         test/check_daemon.c
@@ -189,4 +203,5 @@ check_DATA = \
 	test/test-pass.ini \
 	test/test-fail.ini \
 	test/test.conf \
+	test/test.load2 \
 	${NULL}
