@@ -86,7 +86,7 @@ static void* allocate_tile(struct pool **first_pool, void **first_tile, size_t t
                 size = PAGE_ALIGN(ALIGN(sizeof(struct pool)) + n*tile_size);
                 n = (size - ALIGN(sizeof(struct pool))) / tile_size;
 
-                p = malloc(size);
+                p = malloc0(size);
                 if (!p)
                         return NULL;
 
