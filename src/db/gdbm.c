@@ -103,6 +103,7 @@ static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 	if (value.dsize < 0 || value.dptr == 0)
 		goto end;
 
+	memset(&value, 0, sizeof(datum));
 	data_store = (uint8_t*)value.dptr;
 	if (!buxton_deserialize(data_store, data))
 		goto end;
