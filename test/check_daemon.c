@@ -51,7 +51,7 @@ START_TEST(daemon_start_check)
 	sigemptyset(&sigset);
 	sigaddset(&sigset, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &sigset, NULL);
-	
+
 	fail_if(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, socks),
 		"socketpair: %m");
 	pid = fork();
@@ -62,7 +62,7 @@ START_TEST(daemon_start_check)
 
 		close(socks[0]);
 		daemon_pid = pid;
-		
+
 		fail_if(write(socks[1], (void*)magic, 1) < 0,
 			"can't write to child: %m");
 		fail_if(read(socks[1], (void*)buf, 1) < 0,
@@ -84,7 +84,7 @@ START_TEST(daemon_start_check)
 
 		fail_if(read(socks[0], (void*)buf, 1) < 0,
 			"couldn't read from parent: %m");
-		
+
 		//FIXME: path is wrong for makedistcheck
 		snprintf(path, PATH_MAX, "%s/bt-daemon", get_current_dir_name());
 		fprintf(stderr, "path is %s\n", path);
