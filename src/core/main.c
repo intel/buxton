@@ -73,7 +73,7 @@ static void del_pollfd(int i)
 	nfds--;
 }
 
-static bool identify_socket(int fd, struct ucred *ucredr)
+static bool identify_client(client_list_item *cl)
 {
 	/* Identity handling */
 	int nr, data;
@@ -81,11 +81,15 @@ static bool identify_socket(int fd, struct ucred *ucredr)
 	struct iovec iov;
 	__attribute__((unused)) struct ucred *ucredp;
 	struct cmsghdr *cmhp;
+        socklen_t len = sizeof(struct ucred);
+	int on = 1;
 
 	union {
 		struct cmsghdr cmh;
 		char control[CMSG_SPACE(sizeof(struct ucred))];
 	} control_un;
+
+	setsockopt(cl->fd, SOL_SOCKET, SO_PASSCRED, &on, sizeof(on));
 
 	control_un.cmh.cmsg_len = CMSG_LEN(sizeof(struct ucred));
 	control_un.cmh.cmsg_level = SOL_SOCKET;
@@ -102,7 +106,7 @@ static bool identify_socket(int fd, struct ucred *ucredr)
 	msgh.msg_name = NULL;
 	msgh.msg_namelen = 0;
 
-	nr = recvmsg(fd, &msgh, MSG_PEEK | MSG_DONTWAIT);
+	nr = recvmsg(cl->fd, &msgh, MSG_PEEK | MSG_DONTWAIT);
 	if (nr == -1)
 		return false;
 
@@ -116,8 +120,7 @@ static bool identify_socket(int fd, struct ucred *ucredr)
 
 	ucredp = (struct ucred *) CMSG_DATA(cmhp);
 
-        socklen_t len = sizeof(struct ucred);
-	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, ucredr, &len) == -1)
+	if (getsockopt(cl->fd, SOL_SOCKET, SO_PEERCRED, &cl->cred, &len) == -1)
 		return false;
 
 	return true;
@@ -286,10 +289,8 @@ int main(int argc, char *argv[])
 			if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
 				int slabel_len;
 				char *slabel = NULL;
-				struct ucred cr;
 
-				setsockopt(cl->fd, SOL_SOCKET, SO_PASSCRED, &cr, sizeof(struct ucred));
-				if (!identify_socket(cl->fd, &cr)) {
+				if (!identify_client(cl)) {
 					del_pollfd(i);
 					close(cl->fd);
 					free(cl->smack_label);
@@ -297,7 +298,6 @@ int main(int argc, char *argv[])
 					LIST_REMOVE(client_list_item, item, client_list, cl);
 					continue;
 				}
-				memcpy(&cl->cred, &cr, sizeof(struct ucred));
 
 				slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, 0);
 				if (slabel_len <= 0) {
