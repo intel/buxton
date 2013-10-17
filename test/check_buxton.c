@@ -42,6 +42,23 @@ START_TEST(buxton_client_set_value_check)
 }
 END_TEST
 
+START_TEST(buxton_client_get_value_check)
+{
+	BuxtonClient c;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	BuxtonData result;
+	fail_if(buxton_client_get_value(&c, "test-gdbm", "bxt_test", &result) == false,
+		"Retrieving value from buxton gdbm backend failed.");
+	fail_if(result.type != STRING,
+		"Buxton gdbm backend returned incorrect result type.");
+	fail_if(strcmp(result.store.d_string, "bxt_test_value") != 0,
+		"Buxton gdbm returned a different value to that set.");
+	if (result.store.d_string)
+		free(result.store.d_string);
+}
+END_TEST
+
 START_TEST(buxton_memory_backend_check)
 {
 	BuxtonClient c;
@@ -70,6 +87,8 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_direct_open_check);
 
 	tcase_add_test(tc, buxton_client_set_value_check);
+
+	tcase_add_test(tc, buxton_client_get_value_check);
 
 	tcase_add_test(tc, buxton_memory_backend_check);
 

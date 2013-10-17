@@ -2,3 +2,7 @@
 
 - obtain smack label by using smack_new_label_from_socket (sys/smack.h)
   store this in client_list_item after identifying the socket
+
+- add more serialization helpers (network ordering and packet padding)
+
+- begin implementing wire-protocol
