@@ -9,6 +9,11 @@
  * of the License, or (at your option) any later version.
  */
 
+/**
+ * \file core/main.c Buxton daemon
+ *
+ * This file provides the buxton daemon
+ */
 #ifdef HAVE_CONFIG_H
     #include "config.h"
 #endif
@@ -126,6 +131,12 @@ static bool identify_client(client_list_item *cl)
 	return true;
 }
 
+/**
+ * Entry point into bt-daemon
+ * @param argc Number of arguments passed
+ * @param argv An array of string arguments
+ * @returns EXIT_SUCCESS if the operation succeeded, otherwise EXIT_FAILURE
+ */
 int main(int argc, char *argv[])
 {
 	int fd;
