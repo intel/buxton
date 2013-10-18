@@ -286,6 +286,7 @@ int main(int argc, char *argv[])
 				free(cl->smack_label);
 				buxton_debug("Closed connection from fd %d\n", cl->fd);
 				LIST_REMOVE(client_list_item, item, client_list, cl);
+				free(cl);
 				continue;
 			}
 
