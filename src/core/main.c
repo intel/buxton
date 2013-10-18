@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 
 		memset(&sa, 0, sizeof(sa));
 		sa.un.sun_family = AF_UNIX;
-		strncpy(sa.un.sun_path, BUXTON_SOCKET, sizeof(sa.un.sun_path));
+		strncpy(sa.un.sun_path, BUXTON_SOCKET, sizeof(sa.un.sun_path) - 1);
 
 		unlink(sa.un.sun_path);
 
