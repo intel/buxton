@@ -13,6 +13,13 @@
     #include "config.h"
 #endif
 
+/**
+ * \file cli/main.c Buxton command line interface
+ *
+ * Provides a CLI to Buxton through which a variety of operations can be
+ * carried out
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,15 +36,23 @@ static BuxtonClient client;
 static unsigned int arg_n = 1;
 static char **arg_v;
 
+/**
+ * Store a command reference in Buxton CLI
+ * @param type Type of data to operate on
+ * @return a boolean value, indicating success of the operation
+ */
 typedef bool (*command_method) (BuxtonDataType type);
 
+/**
+ * Defines a command within the buxtonctl cli
+ */
 typedef struct Command {
-	const char     *name;
-	const char     *description;
-	unsigned int   arguments;
-	const char     *usage;
-	command_method method;
-	BuxtonDataType type;
+	const char     *name; /**<name of the command*/
+	const char     *description; /**<one line description of the command*/
+	unsigned int   arguments; /**<required number of arguments */
+	const char     *usage; /**<correct usage of the command */
+	command_method method; /**<pointer to a method */
+	BuxtonDataType type; /**<type of data to operate on */
 } Command;
 
 /* Print help message */
@@ -178,6 +193,12 @@ end:
 	return ret;
 }
 
+/**
+ * Entry point into buxtonctl
+ * @param argc Number of arguments passed
+ * @param argv An array of string arguments
+ * @returns EXIT_SUCCESS if the operation succeeded, otherwise EXIT_FAILURE
+ */
 int main(int argc, char **argv)
 {
 	bool ret = false;

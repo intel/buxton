@@ -9,6 +9,9 @@
  * of the License, or (at your option) any later version.
  */
 
+/**
+ * \file lbuxton.c Buxton library implementation
+ */
 #ifdef HAVE_CONFIG_H
     #include "config.h"
 #endif
@@ -34,9 +37,23 @@ static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
 static Hashmap *_layers = NULL;
 
+/**
+ * Initialize layers using the configuration file
+ * @return a boolean value, indicating success of the operation
+ */
 bool buxton_init_layers(void);
+/**
+ * Parse a given layer using the buxton configuration file
+ * @param ini the configuration dictionary
+ * @param name the layer to query
+ * @param out The new BuxtonLayer to store
+ * @return a boolean value, indicating success of the operation
+ */
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 
+/**
+ * Runs on exit to ensure all resources are correctly disposed of
+ */
 void exit_handler(void);
 static bool _exit_handler_registered = false;
 
