@@ -169,10 +169,14 @@ int main(int argc, char *argv[])
 		sa.un.sun_family = AF_UNIX;
 		strncpy(sa.un.sun_path, BUXTON_SOCKET, sizeof(sa.un.sun_path));
 
+		unlink(sa.un.sun_path);
+
 		if (bind(fd, &sa.sa, sizeof(sa)) < 0) {
 			buxton_log("bind(): %m\n");
 			exit(EXIT_FAILURE);
 		}
+
+		chmod(sa.un.sun_path, 0666);
 
 		if (listen(fd, SOMAXCONN) < 0) {
 			buxton_log("listen(): %m\n");
