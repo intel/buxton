@@ -116,7 +116,7 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client, const char *layer
  * @param data An empty BuxtonData, where data is stored
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
+_bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
 
 /**
  * Get the string representation of a BuxtonDataType

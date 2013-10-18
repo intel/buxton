@@ -42,13 +42,13 @@ START_TEST(buxton_client_set_value_check)
 }
 END_TEST
 
-START_TEST(buxton_client_get_value_check)
+START_TEST(buxton_client_get_value_for_layer_check)
 {
 	BuxtonClient c;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	BuxtonData result;
-	fail_if(buxton_client_get_value(&c, "test-gdbm", "bxt_test", &result) == false,
+	fail_if(buxton_client_get_value_for_layer(&c, "test-gdbm", "bxt_test", &result) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
@@ -69,7 +69,7 @@ START_TEST(buxton_memory_backend_check)
 	data.store.d_string = "bxt_test_value";
 	fail_if(buxton_client_set_value(&c, "temp", "bxt_mem_test", &data) == false,
 		"Setting value in buxton memory backend directly failed.");
-	fail_if(buxton_client_get_value(&c, "temp", "bxt_mem_test", &data) == false,
+	fail_if(buxton_client_get_value_for_layer(&c, "temp", "bxt_mem_test", &data) == false,
 		"Retrieving value from buxton memory backend failed.");
 }
 END_TEST
@@ -88,7 +88,7 @@ buxton_suite(void)
 
 	tcase_add_test(tc, buxton_client_set_value_check);
 
-	tcase_add_test(tc, buxton_client_get_value_check);
+	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
 
 	tcase_add_test(tc, buxton_memory_backend_check);
 

@@ -143,7 +143,7 @@ static bool get_value(BuxtonDataType type) {
 	layer = arg_v[arg_n + 1];
 	key = arg_v[arg_n + 2];
 
-	if (!buxton_client_get_value(&client, layer, key, &get)) {
+	if (!buxton_client_get_value_for_layer(&client, layer, key, &get)) {
 		printf("Requested key was not found in layer \'%s\': %s\n", layer, key);
 		ret = false;
 		goto end;

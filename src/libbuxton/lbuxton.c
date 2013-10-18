@@ -114,7 +114,7 @@ bool buxton_direct_open(BuxtonClient *client)
 	return true;
 }
 
-bool buxton_client_get_value(BuxtonClient *client,
+bool buxton_client_get_value_for_layer(BuxtonClient *client,
 			      const char *layer_name,
 			      const char *key,
 			      BuxtonData *data)
