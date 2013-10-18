@@ -17,6 +17,9 @@
  * \mainpage Buxton
  * \link bt-daemon.h Public API
  * \endlink - API listing for libbuxton
+ * \n
+ * \link bt-daemon-private.h Internal API
+ * \endlink - Private + internal Buxton API
  * \copyright Copyright (C) 2013 Intel corporation
  * \par License
  * GNU Lesser General Public License 2.1
