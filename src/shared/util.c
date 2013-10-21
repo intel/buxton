@@ -236,6 +236,235 @@ end:
 	return ret;
 }
 
+bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
+			      unsigned int n_params, ...)
+{
+	va_list args;
+	int i = 0;
+	uint8_t *data;
+	bool ret = false;
+	unsigned int offset = 0;
+	unsigned int size = 0;
+	ssize_t curSize = 0;
+	uint16_t control, msg;
+
+	/* Empty message not permitted */
+	if (n_params == 0)
+		return false;
+
+	data = malloc(sizeof(uint32_t) + sizeof(unsigned int));
+	if (!data)
+		goto end;
+
+	control = BUXTON_CONTROL_CODE;
+	memcpy(data, &control, sizeof(uint16_t));
+	offset += sizeof(uint16_t);
+
+	msg = (uint16_t)message;
+	memcpy(data+offset, &msg, sizeof(uint16_t));
+	offset += sizeof(uint16_t);
+
+	/* Now write the length */
+	memcpy(data+offset, &n_params, sizeof(unsigned int));
+	offset += sizeof(unsigned int);
+
+	size = offset;
+
+	/* Deal with parameters */
+	va_start(args, n_params);
+	BuxtonData *param;
+	unsigned int p_length = 0;
+	for (i=0; i<n_params; i++) {
+		/* Every parameter must be a BuxtonData. */
+		param = va_arg(args, BuxtonData*);
+		if (param->type == STRING)
+			p_length = strlen(param->store.d_string)+1;
+		else
+			p_length = sizeof(param->store);
+
+		/* Need to allocate enough room to hold this data */
+		size += sizeof(BuxtonDataType) + sizeof(unsigned int);
+		size += p_length;
+
+		if (!(data = greedy_realloc((void**)&data, &curSize, size)))
+			goto end;
+
+		/* Begin copying */
+		memcpy(data+offset, &(param->type), sizeof(BuxtonDataType));
+		offset += sizeof(BuxtonDataType);
+
+		/* Length of following data */
+		memcpy(data+offset, &p_length, sizeof(unsigned int));
+		offset += sizeof(unsigned int);
+
+		switch (param->type) {
+			case STRING:
+				memcpy(data+offset, param->store.d_string, p_length);
+				break;
+			case BOOLEAN:
+				memcpy(data+offset, &(param->store.d_boolean), p_length);
+				break;
+			case FLOAT:
+				memcpy(data+offset, &(param->store.d_float), p_length);
+				break;
+			case INT:
+				memcpy(data+offset, &(param->store.d_int), p_length);
+				break;
+			case DOUBLE:
+				memcpy(data+offset, &(param->store.d_double), p_length);
+				break;
+			case LONG:
+				memcpy(data+offset, &(param->store.d_long), p_length);
+			default:
+				goto fail;
+		}
+		offset += p_length;
+		p_length = 0;
+	}
+
+	ret = true;
+	*dest = data;
+fail:
+	/* Clean up */
+	if (!ret && data)
+		free(data);
+	va_end(args);
+end:
+	return ret;
+}
+
+int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
+			       BuxtonData** list)
+{
+	int size = 0;
+	int offset = 0;
+	int ret = -1;
+	int min_length = BUXTON_CONTROL_LENGTH;
+	void *copy_control = NULL;
+	void *copy_message = NULL;
+	void *copy_params = NULL;
+	uint16_t control, message;
+	unsigned int n_params, c_param;
+	/* For each parameter */
+	ssize_t p_size = 0;
+	ssize_t c_size = 0;
+	void *p_content = NULL;
+	BuxtonDataType c_type;
+	unsigned int c_length;
+	BuxtonData *k_list = NULL;
+	BuxtonData *c_data;
+
+	size = malloc_usable_size(data);
+	if (size < min_length)
+		goto end;
+
+	/* Copy the control code */
+	copy_control = malloc(sizeof(uint16_t));
+	if (!copy_control)
+		goto end;
+	memcpy(copy_control, data, sizeof(uint16_t));
+	offset += sizeof(uint16_t);
+	control = *(uint16_t*)copy_control;
+
+	/* Check this is a valid buxton message */
+	if (control != BUXTON_CONTROL_CODE)
+		goto end;
+
+	/* Obtain the control message */
+	copy_message = malloc(sizeof(uint16_t));
+	if (!copy_message)
+		goto end;
+	memcpy(copy_message, data+offset, sizeof(uint16_t));
+	offset += sizeof(uint16_t);
+	message = *(BuxtonControlMessage*)copy_message;
+	/* Ensure control message is in valid range */
+	if (message > BUXTON_CONTROL_MAX)
+		goto end;
+
+	/* Obtain number of parameters */
+	copy_params = malloc(sizeof(unsigned int));
+	if (!copy_params)
+		goto end;
+	memcpy(copy_params, data+offset, sizeof(unsigned int));
+	offset += sizeof(unsigned int);
+	n_params = *(unsigned int*)copy_params;
+
+	k_list = malloc(sizeof(BuxtonData)*n_params);
+
+	for (c_param = 0; c_param < n_params; c_param++) {
+		/* Now unpack type + length */
+		memcpy(&c_type, data+offset, sizeof(BuxtonDataType));
+		offset += sizeof(BuxtonDataType);
+
+		/* Length */
+		memcpy(&c_length, data+offset, sizeof(unsigned int));
+		offset += sizeof(unsigned int);
+
+		if (!p_content)
+			p_content = malloc(c_length);
+		else
+			p_content = greedy_realloc((void**)&p_content, &p_size, c_length);
+
+		/* If it still doesn't exist, bail */
+		if (!p_content)
+			goto end;
+		memcpy(p_content, data+offset, c_length);
+
+		if (!c_data)
+			c_data = malloc(c_length);
+		else
+			c_data = greedy_realloc((void**)&c_data, &c_size, c_length);
+		if (!c_data)
+			goto end;
+
+		switch (c_type) {
+			case STRING:
+				c_data->store.d_string = strdup((char*)p_content);
+				if (!c_data->store.d_string)
+					goto end;
+				break;
+			case BOOLEAN:
+				c_data->store.d_boolean = *(bool*)p_content;
+				break;
+			case FLOAT:
+				c_data->store.d_float = *(float*)p_content;
+				break;
+			case INT:
+				c_data->store.d_int = *(int*)p_content;
+				break;
+			case DOUBLE:
+				c_data->store.d_double = *(double*)p_content;
+				break;
+			case LONG:
+				c_data->store.d_long = *(long*)p_content;
+				break;
+			default:
+				goto end;
+		}
+		c_data->type = c_type;
+		k_list[c_param] = *c_data;
+		c_data = NULL;
+		offset += c_length;
+	}
+	*r_message = message;
+	*list = k_list;
+	ret = n_params;
+end:
+
+	if (copy_control)
+		free(copy_control);
+	if (copy_message)
+		free(copy_message);
+	if (copy_params)
+		free(copy_params);
+	if (p_content)
+		free(p_content);
+	if (c_data)
+		free(c_data);
+
+	return ret;
+}
+
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 {
 	BuxtonDataStore store;
