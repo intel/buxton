@@ -38,6 +38,7 @@
 static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
 static Hashmap *_layers = NULL;
+static Hashmap *_backends = NULL;
 
 /**
  * Initialize layers using the configuration file
@@ -198,10 +199,7 @@ BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
 	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->name)) == NULL) {
 		/* attempt load of backend */
-		backend = malloc0(sizeof(BuxtonBackend));
-		if (!backend)
-			return NULL;
-		if (!init_backend(layer, backend)) {
+		if (!init_backend(layer, &backend)) {
 			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
 			free(backend);
 			return NULL;
@@ -224,15 +222,17 @@ void destroy_backend(BuxtonBackend *backend)
 	backend = NULL;
 }
 
-bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
+bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 {
 	void *handle, *cast;
 	char *path;
 	const char *name;
 	char *error;
 	int r;
+	bool rb;
 	module_init_func i_func;
 	module_destroy_func d_func;
+	BuxtonBackend *backend_tmp;
 
 	assert(layer);
 	assert(backend);
@@ -243,6 +243,18 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 		name = "memory";
 	else
 		return false;
+
+	backend_tmp = hashmap_get(_backends, name);
+
+	if (backend_tmp) {
+		*backend = backend_tmp;
+		return true;
+	}
+
+	backend_tmp = malloc0(sizeof(BuxtonBackend));
+	if (!backend_tmp)
+		return false;
+
 
 	r = asprintf(&path, "%s/%s.so", MODULE_DIRECTORY, name);
 	if (r == -1)
@@ -275,14 +287,31 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend* backend)
 	}
 	memcpy(&d_func, &cast, sizeof(d_func));
 
-	i_func(backend);
-	if (backend == NULL) {
-		buxton_log("buxton_module_init returned NULL");
+	rb = i_func(backend_tmp);
+	if (!rb) {
+		buxton_log("buxton_module_init failed\n");
 		dlclose(handle);
 		return false;
 	}
-	backend->module = handle;
-	backend->destroy = d_func;
+
+	if (!_backends) {
+		_backends = hashmap_new(trivial_hash_func, trivial_compare_func);
+		if (!_backends) {
+			dlclose(handle);
+			return false;
+		}
+	}
+
+	r = hashmap_put(_backends, name, backend_tmp);
+	if (r != 1) {
+		dlclose(handle);
+		return false;
+	}
+
+	backend_tmp->module = handle;
+	backend_tmp->destroy = d_func;
+
+	*backend = backend_tmp;
 
 	return true;
 }

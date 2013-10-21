@@ -143,7 +143,7 @@ typedef int (*module_init_func) (BuxtonBackend *backend);
  * @param backend An empty struct with which to initialise the module
  * @return a boolean value, indicating success of the operation
  */
-bool init_backend(BuxtonLayer *layer, BuxtonBackend *backend);
+bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend);
 
 /**
  * Shut down a backend and its resources
