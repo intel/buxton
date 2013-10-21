@@ -272,7 +272,7 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 	dlerror();
 	cast = dlsym(handle, "buxton_module_init");
 	if ((error = dlerror()) != NULL || !cast) {
-		buxton_log("dlsym(): %s", error);
+		buxton_log("dlsym(): %s\n", error);
 		dlclose(handle);
 		return false;
 	}
@@ -281,7 +281,7 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 
 	cast = dlsym(handle, "buxton_module_destroy");
 	if ((error = dlerror()) != NULL || !cast) {
-		buxton_log("dlsym(): %s", error);
+		buxton_log("dlsym(): %s\n", error);
 		dlclose(handle);
 		return false;
 	}
