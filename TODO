@@ -6,6 +6,3 @@
 - add more serialization helpers (network ordering and packet padding)
 
 - begin implementing wire-protocol
-
-- change get_value to no longer use a layer arg, figure out layer based
-  on priority instead (William)
