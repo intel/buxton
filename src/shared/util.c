@@ -286,9 +286,9 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		size += sizeof(BuxtonDataType) + sizeof(unsigned int);
 		size += p_length;
 
-		if (!(data = greedy_realloc((void**)&data, &curSize, size)))
-			goto end;
-
+		if (curSize < size) {
+			if (!(data = greedy_realloc((void**)&data, &curSize, size)))
+				goto end;
 		/* Begin copying */
 		memcpy(data+offset, &(param->type), sizeof(BuxtonDataType));
 		offset += sizeof(BuxtonDataType);
@@ -353,7 +353,8 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	void *p_content = NULL;
 	BuxtonDataType c_type;
 	unsigned int c_length;
-	BuxtonData *k_list;
+	BuxtonData *k_list = NULL;
+	BuxtonData *c_data = NULL;
 
 	size = malloc_usable_size(data);
 	if (size < min_length)
@@ -392,7 +393,6 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 
 	k_list = malloc(sizeof(BuxtonData)*n_params);
 
-	BuxtonData *c_data;
 	for (c_param = 0; c_param < n_params; c_param++) {
 		/* Deal with current parameter */
 		if (!p_type)
@@ -455,6 +455,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 			default:
 				goto end;
 		}
+		c_data->type = c_type;
 		k_list[c_param] = *c_data;
 		offset += c_length;
 	}
