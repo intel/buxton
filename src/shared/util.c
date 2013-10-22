@@ -354,7 +354,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	BuxtonDataType c_type;
 	unsigned int c_length;
 	BuxtonData *k_list = NULL;
-	BuxtonData *c_data;
+	BuxtonData *c_data = NULL;
 
 	size = malloc_usable_size(data);
 	if (size < min_length)
@@ -413,9 +413,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 		memcpy(p_content, data+offset, c_length);
 
 		if (!c_data)
-			c_data = malloc(c_length);
-		else
-			c_data = greedy_realloc((void**)&c_data, &c_size, c_length);
+			c_data = malloc(sizeof(BuxtonData));
 		if (!c_data)
 			goto end;
 
