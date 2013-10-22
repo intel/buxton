@@ -94,9 +94,10 @@ _bx_export_ void buxton_module_destroy(void)
 		map = NULL;
 	}
 	hashmap_free(_resources);
+	_resources = NULL;
 }
 
-_bx_export_ int buxton_module_init(BuxtonBackend *backend)
+_bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 {
 
 	assert(backend);
@@ -106,7 +107,9 @@ _bx_export_ int buxton_module_init(BuxtonBackend *backend)
 	backend->get_value = &get_value;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
-	return 0;
+	if (!_resources)
+		return false;
+	return true;
 }
 
 /*
