@@ -220,14 +220,14 @@ bool buxton_serialize(BuxtonData *source, uint8_t** dest);
 bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
 
 /**
- * Serialize an internal buxton message for wire communicatoin
- * @param data Pointer to store serialized message in
+ * Serialize an internal buxton message for wire communication
+ * @param dest Pointer to store serialized message in
  * @param message The type of message to be serialized
  * @param n_params Number of parameters in va_args list
  * @param ... Variable argument list of BuxtonData pointers
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_serialize_message(uint8_t **data, BuxtonControlMessage message,
+bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			      unsigned int n_params, ...);
 
 /**
