@@ -286,8 +286,10 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		size += sizeof(BuxtonDataType) + sizeof(unsigned int);
 		size += p_length;
 
-		if (!(data = greedy_realloc((void**)&data, &curSize, size)))
-			goto end;
+		if (curSize < size) {
+			if (!(data = greedy_realloc((void**)&data, &curSize, size)))
+				goto end;
+		}
 
 		/* Begin copying */
 		memcpy(data+offset, &(param->type), sizeof(BuxtonDataType));
