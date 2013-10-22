@@ -98,7 +98,7 @@ typedef struct BuxtonLayer {
 	BuxtonLayerType type; /**<Type of layer */
 	BuxtonBackendType backend; /**<Backend for this layer */
 	uid_t uid; /**<User ID for layers of type LAYER_USER */
-	char *priority; /**<Priority of this layer */
+	int priority; /**<Priority of this layer */
 	char *description; /**<Description of this layer */
 } BuxtonLayer;
 

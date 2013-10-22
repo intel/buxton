@@ -379,7 +379,7 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	char *_desc = NULL;
 	char *_backend = NULL;
 	char *_type = NULL;
-	char *_priority = NULL;
+	int _priority;
 
 	assert(ini);
 	assert(name);
@@ -403,10 +403,10 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 
 	_type = iniparser_getstring(ini, k_type, NULL);
 	_backend = iniparser_getstring(ini, k_backend, NULL);
-	_priority = iniparser_getstring(ini, k_priority, NULL);
+	_priority = iniparser_getint(ini, k_priority, -1);
 	_desc = iniparser_getstring(ini, k_desc, NULL);
 
-	if (!_type || !name || !_backend || !_priority)
+	if (!_type || !name || !_backend || _priority < 0)
 		goto end;
 
 	out->name = strdup(name);
@@ -429,12 +429,10 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	else
 		goto fail;
 
-	out->priority = strdup(_backend);
-	if (!out->priority)
-		goto fail;
-
 	if (_desc != NULL)
 		out->description = strdup(_desc);
+
+	out->priority = _priority;
 
 	ret = true;
 	goto end;
@@ -444,8 +442,6 @@ fail:
 		free(out->name);
 	if (out->description)
 		free(out->description);
-	if (out->priority)
-		free(out->priority);
 
 end:
 	if (k_desc)
