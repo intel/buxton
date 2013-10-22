@@ -45,14 +45,38 @@ END_TEST
 START_TEST(buxton_client_get_value_for_layer_check)
 {
 	BuxtonClient c;
+	BuxtonData result;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
-	BuxtonData result;
 	fail_if(buxton_client_get_value_for_layer(&c, "test-gdbm", "bxt_test", &result) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
 	fail_if(strcmp(result.store.d_string, "bxt_test_value") != 0,
+		"Buxton gdbm returned a different value to that set.");
+	if (result.store.d_string)
+		free(result.store.d_string);
+}
+END_TEST
+
+START_TEST(buxton_client_get_value_check)
+{
+	BuxtonClient c;
+	BuxtonData data, result;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+
+	data.type = STRING;
+	data.store.d_string = "bxt_test_value2";
+	fail_if(result.store.d_string == NULL,
+		"Failed to allocate test string.");
+	fail_if(buxton_client_set_value(&c, "test-gdbm-user", "bxt_test", &data) == false,
+		"Failed to set second value.");
+	fail_if(buxton_client_get_value(&c, "bxt_test", &result) == false,
+		"Retrieving value from buxton gdbm backend failed.");
+	fail_if(result.type != STRING,
+		"Buxton gdbm backend returned incorrect result type.");
+	fail_if(strcmp(result.store.d_string, "bxt_test_value2") != 0,
 		"Buxton gdbm returned a different value to that set.");
 	if (result.store.d_string)
 		free(result.store.d_string);
@@ -89,6 +113,8 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_client_set_value_check);
 
 	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
+
+	tcase_add_test(tc, buxton_client_get_value_check);
 
 	tcase_add_test(tc, buxton_memory_backend_check);
 

@@ -126,6 +126,52 @@ bool buxton_direct_open(BuxtonClient *client)
 	return true;
 }
 
+bool buxton_client_get_value(BuxtonClient *client,
+			      const char *key,
+			      BuxtonData *data)
+{
+
+	assert(client);
+	assert(key);
+
+	/*
+	 * Only for testing, delete after non direct client support
+	 * enabled
+	 */
+	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
+		/* Handle direct manipulation */
+		BuxtonLayer *l;
+		BuxtonLayer *layer = NULL;
+		Iterator i;
+		BuxtonData d;
+		int priority = 0;
+		int r;
+
+		HASHMAP_FOREACH(l, _layers, i) {
+			r = buxton_client_get_value_for_layer(client,
+							      l->name,
+							      key,
+							      &d);
+			if (r) {
+				if (priority < l->priority) {
+					priority = l->priority;
+					layer = l;
+				}
+			}
+		}
+		if (layer) {
+			return buxton_client_get_value_for_layer(client,
+								 layer->name,
+								 key,
+								 data);
+		}
+		return false;
+	}
+
+	/* Normal interaction (wire-protocol) */
+	return false;
+}
+
 bool buxton_client_get_value_for_layer(BuxtonClient *client,
 			      const char *layer_name,
 			      const char *key,

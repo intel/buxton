@@ -111,6 +111,15 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client, const char *layer
 /**
  * Retrieve a value from Buxton
  * @param client An open client connection
+ * @param key The key to retrieve
+ * @param data An empty BuxtonData, where data is stored
+ * @return A boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *key, BuxtonData *data);
+
+/**
+ * Retrieve a value from Buxton
+ * @param client An open client connection
  * @param layer The layer where the key is set
  * @param key The key to retrieve
  * @param data An empty BuxtonData, where data is stored
