@@ -255,7 +255,6 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 	if (!backend_tmp)
 		return false;
 
-
 	r = asprintf(&path, "%s/%s.so", MODULE_DIRECTORY, name);
 	if (r == -1)
 		return false;
