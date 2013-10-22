@@ -458,13 +458,13 @@ end:
 
 void exit_handler(void)
 {
-	const char *key;
 	Iterator iterator;
 	BuxtonBackend *backend;
 
-	HASHMAP_FOREACH_KEY(backend, key, _databases, iterator) {
+	HASHMAP_FOREACH(backend, _backends, iterator) {
 		destroy_backend(backend);
 	}
+	hashmap_free(_backends);
 	hashmap_free(_databases);
 	hashmap_free(_layers);
 }
