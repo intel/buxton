@@ -133,9 +133,9 @@ typedef struct BuxtonBackend {
 /**
  * Module initialisation function
  * @param backend The backend to initialise
- * @return An integer value, representing the success of the operation
+ * @return A boolean value, representing the success of the operation
  */
-typedef int (*module_init_func) (BuxtonBackend *backend);
+typedef bool (*module_init_func) (BuxtonBackend *backend);
 
 /**
  * Initialise a backend with the given layer
