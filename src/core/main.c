@@ -252,6 +252,7 @@ int main(int argc, char *argv[])
 
 			if (accepting[i] == true) {
 				int fd;
+				int on = 1;
 
 				addr_len = sizeof(remote);
 
@@ -275,6 +276,10 @@ int main(int argc, char *argv[])
 
 				/* poll for data on this new client as well */
 				add_pollfd(cl->fd, POLLIN | POLLPRI, false);
+
+				/* Mark our packets as high prio */
+				if (setsockopt(cl->fd, SOL_SOCKET, SO_PRIORITY, &on, sizeof(on)) == -1)
+					buxton_log("setsockopt(SO_PRIORITY): %m\n");
 
 				/* check if this is optimal or not */
 				break;
