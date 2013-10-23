@@ -106,27 +106,6 @@ typedef struct BuxtonBackend {
 typedef bool (*module_init_func) (BuxtonBackend *backend);
 
 /**
- * Initialise a backend with the given layer
- * @param layer The Buxtonlayer being queried or manipulated
- * @param backend An empty struct with which to initialise the module
- * @return a boolean value, indicating success of the operation
- */
-bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend);
-
-/**
- * Shut down a backend and its resources
- * @param backend The backend to destroy
- */
-void destroy_backend(BuxtonBackend *backend);
-
-/**
- * Get the backend for the given layer
- * @param layer The layer in question
- * @return A BuxtonBackend if the layer exists, or NULL
- */
-BuxtonBackend *backend_for_layer(BuxtonLayer *layer);
-
-/**
  * Open a direct connection to Buxton
  *
  * This function can only be used internally by Buxton.
