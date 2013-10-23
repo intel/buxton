@@ -74,7 +74,7 @@ char* get_layer_path(BuxtonLayer *layer)
 		case LAYER_USER:
 			/* uid must already be set in layer before calling */
 			sprintf(uid, "%d", (int)layer->uid);
-			r = asprintf(&path, "%s/user-%s.db", DB_PATH, uid);
+			r = asprintf(&path, "%s/%s-%s.db", DB_PATH, layer->name, uid);
 			if (r == -1)
 				return NULL;
 			break;
