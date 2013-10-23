@@ -9,15 +9,22 @@
  * of the License, or (at your option) any later version.
  */
 
+#ifdef HAVE_CONFIG_H
+    #include "config.h"
+#endif
+
 #include <check.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <iniparser.h>
+#include "../src/shared/constants.h"
+#include "../src/shared/backend.h"
 #include "../src/shared/log.h"
 #include "../src/shared/hashmap.h"
 #include "../src/shared/smack.h"
+#include "../src/shared/util.h"
 
 START_TEST(log_write_check)
 {
@@ -115,6 +122,47 @@ START_TEST(smack_access_check)
 }
 END_TEST
 
+START_TEST(get_layer_path_check)
+{
+	BuxtonLayer layer;
+	char *path;
+	char *real_path;
+	int r;
+
+	memset(&layer, 0, sizeof(BuxtonLayer));
+	layer.name = "path-test";
+	layer.type = LAYER_SYSTEM;
+	r = asprintf(&real_path, "%s/%s", DB_PATH, "path-test.db");
+	fail_if(r == -1, "Failed to set real path for system layer");
+
+	path = get_layer_path(&layer);
+	fail_if(path == NULL, "Failed to get path for system layer");
+	fail_if(strcmp(path, real_path) != 0,
+		"Failed to set correct system path");
+
+	if (path)
+		free(path);
+	if (real_path)
+		free(real_path);
+
+	layer.name = "user-path-test";
+	layer.type = LAYER_USER;
+	layer.uid = 1000;
+	r = asprintf(&real_path, "%s/%s", DB_PATH, "user-path-test-1000.db");
+	fail_if(r == -1, "Failed to set real path for user layer");
+
+	path = get_layer_path(&layer);
+	fail_if(path == NULL, "Failed to get path for user layer");
+	fail_if(strcmp(path, real_path) != 0,
+		"Failed to set correct user path");
+
+	if (path)
+		free(path);
+	if (real_path)
+		free(real_path);
+}
+END_TEST
+
 Suite *
 shared_lib_suite(void)
 {
@@ -136,6 +184,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("smack_access_functions");
 	tcase_add_test(tc, smack_access_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("get_layer_path_functions");
+	tcase_add_test(tc, get_layer_path_check);
 	suite_add_tcase(s, tc);
 
 	return s;
