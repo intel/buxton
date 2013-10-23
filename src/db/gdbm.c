@@ -22,6 +22,7 @@
 #include "../include/bt-daemon.h"
 #include "../shared/bt-daemon-private.h"
 #include "../shared/hashmap.h"
+#include "../shared/util.h"
 
 /**
  * GDBM Database Module

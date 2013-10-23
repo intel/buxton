@@ -106,20 +106,6 @@ typedef struct BuxtonBackend {
 typedef bool (*module_init_func) (BuxtonBackend *backend);
 
 /**
- * Retrieve the filesystem path for the given layer
- * @param layer The layer in question
- * @return a string containing the filesystem path
- */
-char* get_layer_path(BuxtonLayer *layer);
-
-/**
- * Perform a deep copy of one BuxtonData to another
- * @param original The data being copied
- * @param copy Pointer where original should be copied to
- */
-void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
-
-/**
  * Serialize data internally for backend consumption
  * @param source Data to be serialized
  * @param dest Pointer to store serialized data in

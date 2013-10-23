@@ -47,6 +47,7 @@
 #include "macro.h"
 #include "constants.h"
 #include "../include/bt-daemon.h"
+#include "bt-daemon-private.h"
 
 size_t page_size(void);
 #define PAGE_ALIGN(l) ALIGN_TO((l), page_size())
@@ -82,3 +83,17 @@ void* greedy_realloc(void **p, size_t *allocated, size_t need);
  * @return A string representation of the BuxtonDataType
  */
 const char* buxton_type_as_string(BuxtonDataType type);
+
+/**
+ * Retrieve the filesystem path for the given layer
+ * @param layer The layer in question
+ * @return a string containing the filesystem path
+ */
+char* get_layer_path(BuxtonLayer *layer);
+
+/**
+ * Perform a deep copy of one BuxtonData to another
+ * @param original The data being copied
+ * @param copy Pointer where original should be copied to
+ */
+void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
