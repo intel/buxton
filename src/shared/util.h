@@ -46,6 +46,7 @@
 
 #include "macro.h"
 #include "constants.h"
+#include "../include/bt-daemon.h"
 
 size_t page_size(void);
 #define PAGE_ALIGN(l) ALIGN_TO((l), page_size())
@@ -74,3 +75,10 @@ _malloc_  _alloc_(1, 2) static inline void *malloc_multiply(size_t a, size_t b) 
         return malloc(a * b);
 }
 void* greedy_realloc(void **p, size_t *allocated, size_t need);
+
+/**
+ * Get the string representation of a BuxtonDataType
+ * @param type The BuxtonDataType to query
+ * @return A string representation of the BuxtonDataType
+ */
+const char* buxton_type_as_string(BuxtonDataType type);

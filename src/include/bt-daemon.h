@@ -128,13 +128,6 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *key, 
 _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
 
 /**
- * Get the string representation of a BuxtonDataType
- * @param type The BuxtonDataType to query
- * @return A string representation of the BuxtonDataType
- */
-const char* buxton_type_as_string(BuxtonDataType type);
-
-/**
  * Open a direct connection to Buxton
  *
  * @param client The client struct will be used throughout the life of Buxton operations
