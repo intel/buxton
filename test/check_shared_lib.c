@@ -17,6 +17,7 @@
 #include <iniparser.h>
 #include "../src/shared/log.h"
 #include "../src/shared/hashmap.h"
+#include "../src/shared/smack.h"
 
 START_TEST(log_write_check)
 {
@@ -98,6 +99,22 @@ START_TEST(hashmap_check)
 }
 END_TEST
 
+START_TEST(smack_access_check)
+{
+	bool ret;
+	ret = buxton_cache_smack_rules();
+	fail_if(!ret, "Failed to cache Smack rules");
+
+	char *subject = "system";
+	char *object = "base/sample/key";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(!ret, "Read access was denied, but should have been granted");
+
+	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
+	fail_if(ret, "Write access was granted, but should have been denied");
+}
+END_TEST
+
 Suite *
 shared_lib_suite(void)
 {
@@ -115,6 +132,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("smack_access_functions");
+	tcase_add_test(tc, smack_access_check);
 	suite_add_tcase(s, tc);
 
 	return s;
