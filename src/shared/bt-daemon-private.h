@@ -27,8 +27,8 @@
 #include <sys/poll.h>
 #include <stdint.h>
 
-#include "../shared/list.h"
-#include "bt-daemon.h"
+#include "list.h"
+#include "../include/bt-daemon.h"
 
 /**
  * Minimum size of serialized BuxtonData

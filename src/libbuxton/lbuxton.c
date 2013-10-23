@@ -31,7 +31,7 @@
 
 #include "../shared/util.h"
 #include "../include/bt-daemon.h"
-#include "../include/bt-daemon-private.h"
+#include "../shared/bt-daemon-private.h"
 #include "../shared/log.h"
 #include "../shared/hashmap.h"
 
