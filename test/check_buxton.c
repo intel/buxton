@@ -68,7 +68,7 @@ START_TEST(buxton_client_get_value_check)
 
 	data.type = STRING;
 	data.store.d_string = "bxt_test_value2";
-	fail_if(result.store.d_string == NULL,
+	fail_if(data.store.d_string == NULL,
 		"Failed to allocate test string.");
 	fail_if(buxton_client_set_value(&c, "test-gdbm-user", "bxt_test", &data) == false,
 		"Failed to set second value.");
