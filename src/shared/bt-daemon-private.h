@@ -36,16 +36,6 @@
 #define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) + (sizeof(int)*2)
 
 /**
- * Daemon's list of clients
- */
-typedef struct client_list_item {
-	LIST_FIELDS(struct client_list_item, item); /**<List type */
-	int fd; /**<File descriptor of connected client */
-	struct ucred cred; /**<Credentials of connected client */
-	char *smack_label; /**<Smack label of connected client */
-} client_list_item;
-
-/**
  * Possible backends for Buxton
  */
 typedef enum BuxtonBackendType {

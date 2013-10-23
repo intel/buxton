@@ -38,6 +38,13 @@ static nfds_t nfds = 0;
 static bool *accepting;
 static struct pollfd *pollfds;
 
+typedef struct client_list_item {
+	LIST_FIELDS(struct client_list_item, item); /**<List type */
+	int fd; /**<File descriptor of connected client */
+	struct ucred cred; /**<Credentials of connected client */
+	char *smack_label; /**<Smack label of connected client */
+} client_list_item;
+
 static void add_pollfd(int fd, short events, bool a)
 {
 	assert(fd >= 0);
