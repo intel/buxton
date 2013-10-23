@@ -47,6 +47,7 @@
 #include "macro.h"
 #include "constants.h"
 #include "../include/bt-daemon.h"
+#include "backend.h"
 #include "bt-daemon-private.h"
 
 size_t page_size(void);

@@ -18,9 +18,13 @@
     #include "config.h"
 #endif
 
+#include <poll.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <systemd/sd-daemon.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <attr/xattr.h>
@@ -28,6 +32,7 @@
 #include "config.h"
 #include "../shared/util.h"
 #include "../shared/log.h"
+#include "../shared/list.h"
 #include "../shared/smack.h"
 #include "../include/bt-daemon.h"
 #include "../shared/bt-daemon-private.h"

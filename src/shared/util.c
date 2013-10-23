@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
+#include <string.h>
 #include "../shared/hashmap.h"
 #include "../shared/log.h"
 #include "../shared/util.h"

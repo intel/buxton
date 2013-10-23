@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <gdbm.h>
 #include <stdlib.h>
+#include <string.h>
 #include <malloc.h>
 
 #include "../shared/log.h"

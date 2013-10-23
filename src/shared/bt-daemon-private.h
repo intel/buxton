@@ -20,90 +20,14 @@
     #include "config.h"
 #endif
 
-#include <assert.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/poll.h>
 #include <stdint.h>
 
-#include "list.h"
 #include "../include/bt-daemon.h"
 
 /**
  * Minimum size of serialized BuxtonData
  */
 #define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) + (sizeof(int)*2)
-
-/**
- * Possible backends for Buxton
- */
-typedef enum BuxtonBackendType {
-	BACKEND_UNSET = 0, /**<No backend set */
-	BACKEND_GDBM, /**<GDBM backend */
-	BACKEND_MEMORY, /**<Memory backend */
-	BACKEND_MAXTYPES
-} BuxtonBackendType;
-
-/**
- * Buxton layer type
- */
-typedef enum BuxtonLayerType {
-	LAYER_SYSTEM, /**<A system layer*/
-	LAYER_USER, /**<A user layer */
-	LAYER_MAXTYPES
-} BuxtonLayerType;
-
-/**
- * Represents a layer within Buxton
- *
- * Keys can be stored in various layers within Buxton, using a variety
- * of backend and configurations. This is all handled transparently and
- * through a consistent API
- */
-typedef struct BuxtonLayer {
-	char *name; /**<Name of the layer*/
-	BuxtonLayerType type; /**<Type of layer */
-	BuxtonBackendType backend; /**<Backend for this layer */
-	uid_t uid; /**<User ID for layers of type LAYER_USER */
-	int priority; /**<Priority of this layer */
-	char *description; /**<Description of this layer */
-} BuxtonLayer;
-
-/* Module related code */
-/**
- * Backend manipulation function
- * @param layer The layer to manipulate or query
- * @param key The key to manipulate or query
- * @param data Set or get data, dependant on operation
- * @return a boolean value, indicating success of the operation
- */
-typedef bool (*module_value_func) (BuxtonLayer *layer, const char *key, BuxtonData *data);
-
-/**
- * Destroy (or shutdown) a backend module
- */
-typedef void (*module_destroy_func) (void);
-
-/**
- * A data-backend for Buxton
- *
- * Backends are controlled by Buxton for storing and retrieving data
- */
-typedef struct BuxtonBackend {
-	void *module; /**<Private handle to the module */
-	module_destroy_func destroy; /**<Destroy method */
-	module_value_func set_value; /**<Set value function */
-	module_value_func get_value; /**<Get value function */
-
-} BuxtonBackend;
-
-/**
- * Module initialisation function
- * @param backend The backend to initialise
- * @return A boolean value, representing the success of the operation
- */
-typedef bool (*module_init_func) (BuxtonBackend *backend);
 
 /**
  * Serialize data internally for backend consumption
