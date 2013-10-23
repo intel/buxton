@@ -134,6 +134,14 @@ _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client, const c
  */
 const char* buxton_type_as_string(BuxtonDataType type);
 
+/**
+ * Open a direct connection to Buxton
+ *
+ * @param client The client struct will be used throughout the life of Buxton operations
+ * @return a boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_direct_open(BuxtonClient *client);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

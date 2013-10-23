@@ -106,15 +106,6 @@ typedef struct BuxtonBackend {
 typedef bool (*module_init_func) (BuxtonBackend *backend);
 
 /**
- * Open a direct connection to Buxton
- *
- * This function can only be used internally by Buxton.
- * @param client The client struct will be used throughout the life of Buxton operations
- * @return a boolean value, indicating success of the operation
- */
-_bx_export_ bool buxton_direct_open(BuxtonClient *client);
-
-/**
  * Retrieve the filesystem path for the given layer
  * @param layer The layer in question
  * @return a string containing the filesystem path
