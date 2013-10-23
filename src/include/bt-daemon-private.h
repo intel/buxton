@@ -30,6 +30,8 @@
 #include "../shared/list.h"
 #include "bt-daemon.h"
 
+typedef enum BuxtonControlMessage BuxtonControlMessage;
+
 /**
  * Maximum length for a Smack label
  */
@@ -42,6 +44,16 @@
  * Length of ACC
  */
 #define ACC_LEN 5
+/**
+ * Magic for Buxton messages
+ */
+#define BUXTON_CONTROL_CODE 0x672
+/**
+ * Minimum length of valid control message
+ */
+#define BUXTON_CONTROL_LENGTH sizeof(uint32_t) \
+			      + sizeof(BuxtonControlMessage) \
+			      + (sizeof(int)*3);
 /**
  * Minimum size of serialized BuxtonData
  */
@@ -101,6 +113,16 @@ typedef struct BuxtonLayer {
 	int priority; /**<Priority of this layer */
 	char *description; /**<Description of this layer */
 } BuxtonLayer;
+
+/**
+ * A control message for the wire protocol
+ */
+enum BuxtonControlMessage{
+	BUXTON_CONTROL_SET, /**<Set a value within Buxton */
+	BUXTON_CONTROL_GET, /**<Retrieve a value from Buxton */
+	BUXTON_CONTROL_STATUS, /**<Status code follows */
+	BUXTON_CONTROL_MAX
+};
 
 /* Module related code */
 /**
@@ -196,6 +218,27 @@ bool buxton_serialize(BuxtonData *source, uint8_t** dest);
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
+
+/**
+ * Serialize an internal buxton message for wire communication
+ * @param dest Pointer to store serialized message in
+ * @param message The type of message to be serialized
+ * @param n_params Number of parameters in va_args list
+ * @param ... Variable argument list of BuxtonData pointers
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
+			      unsigned int n_params, ...);
+
+/**
+ * Deserialize the given data into an array of BuxtonData structs
+ * @param data The source data to be deserialized
+ * @param message An empty pointer that will be set to the message type
+ * @param list A pointer that will be filled out as an array of BuxtonData structs
+ * @return the length of the array, or a negative value if deserialization failed
+ */
+int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
+			       BuxtonData **list);
 
 /**
  * Load Smack rules from the kernel
