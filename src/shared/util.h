@@ -47,7 +47,6 @@
 #include "constants.h"
 #include "../include/bt-daemon.h"
 #include "backend.h"
-#include "bt-daemon-private.h"
 
 size_t page_size(void);
 #define PAGE_ALIGN(l) ALIGN_TO((l), page_size())

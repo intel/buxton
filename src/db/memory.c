@@ -18,7 +18,6 @@
 #include "../shared/hashmap.h"
 #include "../shared/log.h"
 #include "../include/bt-daemon.h"
-#include "../shared/bt-daemon-private.h"
 #include "../shared/backend.h"
 
 /**

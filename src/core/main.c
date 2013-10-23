@@ -35,7 +35,6 @@
 #include "../shared/list.h"
 #include "../shared/smack.h"
 #include "../include/bt-daemon.h"
-#include "../shared/bt-daemon-private.h"
 
 static size_t nfds_alloc = 0;
 static size_t accepting_alloc = 0;
