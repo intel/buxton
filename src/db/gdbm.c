@@ -45,8 +45,10 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 		if (!path)
 			goto end;
 		db = gdbm_open(path, 0, GDBM_WRCREAT, 0600, NULL);
-		if (!db)
+		if (!db) {
+			buxton_log("Couldn't create db for path: %s\n", path);
 			goto end;
+		}
 		hashmap_put(_resources, layer->name, db);
 	}
 end:
@@ -95,11 +97,11 @@ static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 	assert(layer);
 	assert(key_name);
 
+	memset(&value, 0, sizeof(datum));
 	db = _db_for_resource(layer);
 	if (!db)
 		goto end;
 
-	memset(&value, 0, sizeof(datum));
 	value = gdbm_fetch(db, key);
 	if (value.dsize < 0 || value.dptr == 0)
 		goto end;
