@@ -83,6 +83,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/hashmap.h \
 	src/shared/macro.h \
 	src/shared/util.h \
+	src/shared/serialize.c \
+	src/shared/serialize.h \
 	src/shared/smack.c \
 	src/shared/smack.h \
 	${NULL}

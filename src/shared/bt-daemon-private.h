@@ -20,31 +20,6 @@
     #include "config.h"
 #endif
 
-#include <stdint.h>
-
-#include "../include/bt-daemon.h"
-
-/**
- * Minimum size of serialized BuxtonData
- */
-#define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) + (sizeof(int)*2)
-
-/**
- * Serialize data internally for backend consumption
- * @param source Data to be serialized
- * @param dest Pointer to store serialized data in
- * @return a boolean value, indicating success of the operation
- */
-bool buxton_serialize(BuxtonData *source, uint8_t** dest);
-
-/**
- * Deserialize internal data for client consumption
- * @param source Serialized data pointer
- * @param dest A pointer where the deserialize data will be stored
- * @return a boolean value, indicating success of the operation
- */
-bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
-
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
