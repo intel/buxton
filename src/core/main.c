@@ -28,6 +28,7 @@
 #include "config.h"
 #include "../shared/util.h"
 #include "../shared/log.h"
+#include "../shared/smack.h"
 #include "../include/bt-daemon.h"
 #include "../include/bt-daemon-private.h"
 

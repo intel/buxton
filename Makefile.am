@@ -82,6 +82,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/hashmap.h \
 	src/shared/macro.h \
 	src/shared/util.h \
+	src/shared/smack.c \
+	src/shared/smack.h \
 	${NULL}
 
 if USE_LOCAL_INIPARSER

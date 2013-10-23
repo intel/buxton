@@ -31,18 +31,6 @@
 #include "bt-daemon.h"
 
 /**
- * Maximum length for a Smack label
- */
-#define SMACK_LABEL_LEN 255
-/**
- * Smack label xattr key
- */
-#define SMACK_ATTR_NAME "security.SMACK64"
-/**
- * Length of ACC
- */
-#define ACC_LEN 5
-/**
  * Minimum size of serialized BuxtonData
  */
 #define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) + (sizeof(int)*2)
@@ -75,16 +63,6 @@ typedef enum BuxtonLayerType {
 	LAYER_USER, /**<A user layer */
 	LAYER_MAXTYPES
 } BuxtonLayerType;
-
-/**
- * Represents client access to a given resource
- */
-typedef enum BuxtonKeyAccessType {
-	ACCESS_NONE = 0, /**<No access permitted */
-	ACCESS_READ = 1 << 0, /**<Read access permitted */
-	ACCESS_WRITE = 1 << 1, /**<Write access permitted */
-	ACCESS_MAXACCESSTYPES = 1 << 2
-} BuxtonKeyAccessType;
 
 /**
  * Represents a layer within Buxton
@@ -196,28 +174,6 @@ bool buxton_serialize(BuxtonData *source, uint8_t** dest);
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
-
-/**
- * Load Smack rules from the kernel
- * @return a boolean value, indicating success of the operation
- */
-bool buxton_cache_smack_rules(void);
-
-/**
- * Check whether the smack access matches the buxton client access
- * @param subject Smack subject label
- * @param object Smack object label
- * @param request The buxton access type being queried
- * @return true if the smack access matches the given request, otherwise false
- */
-bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType request);
-
-/* Set up inotify to track the Smack rule file for changes */
-/**
- * Set up inotify to track Smack rule file for changes
- * @return an exit code for the operation
- */
-int buxton_watch_smack_rules(void);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
