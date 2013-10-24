@@ -89,9 +89,12 @@ START_TEST(hashmap_check)
 {
 	Hashmap *map;
 	char *value;
+	int r;
 
 	map = hashmap_new(string_hash_func, string_compare_func);
-	hashmap_put(map, "test", "passed");
+	fail_if(map == NULL, "Failed to allocated hashmap");
+	r = hashmap_put(map, "test", "passed");
+	fail_if(r < 0, "Failed to add element to hashmap");
 
 	value = hashmap_get(map, "test");
 
