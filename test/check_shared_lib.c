@@ -209,7 +209,7 @@ START_TEST(buxton_db_serialize_check)
 		free(packed);
 
 	dsource.type = INT;
-	dsource.store.d_int = true;
+	dsource.store.d_int = INT_MAX;
 	fail_if(buxton_serialize(&dsource, &packed) == false,
 		"Failed to serialize int data");
 	fail_if(buxton_deserialize(packed, &dtarget) == false,
@@ -266,20 +266,118 @@ START_TEST(buxton_message_serialize_check)
 	dsource.store.d_string = "test-key";
 	csource = BUXTON_CONTROL_GET;
 	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
-		"Failed to serialize data");
+		"Failed to serialize string data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
-		"Failed to deserialize data");
-	fail_if(ctarget != csource, "Failed to get correct control message");
+		"Failed to deserialize string data");
+	fail_if(ctarget != csource, "Failed to get correct control message for string");
 	fail_if(dsource.type != dtarget[0].type,
-		"Source and destination type differ");
+		"Source and destination type differ for string");
 	fail_if(strcmp(dsource.store.d_string, dtarget[0].store.d_string) != 0,
-		"Source and destination data differ");
+		"Source and destination string data differ");
 	if (packed)
 		free(packed);
-	if (dtarget[0].store.d_string) {
-		free(dtarget[0].store.d_string);
+	if (dtarget) {
+		if (dtarget[0].store.d_string) {
+			free(dtarget[0].store.d_string);
+		}
 		free(dtarget);
 	}
+
+	dsource.type = BOOLEAN;
+	dsource.store.d_boolean = true;
+	csource = BUXTON_CONTROL_GET;
+	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
+		"Failed to serialize boolean data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+		"Failed to deserialize boolean data");
+	fail_if(ctarget != csource, "Failed to get correct control message for boolean");
+	fail_if(dsource.type != dtarget[0].type,
+		"Source and destination type differ for boolean");
+	fail_if(dsource.store.d_boolean != dtarget[0].store.d_boolean,
+		"Source and destination boolean data differ");
+	if (packed)
+		free(packed);
+	if (dtarget) {
+		free(dtarget);
+	}
+
+	dsource.type = FLOAT;
+	dsource.store.d_float = 3.14;
+	csource = BUXTON_CONTROL_GET;
+	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
+		"Failed to serialize float data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+		"Failed to deserialize float data");
+	fail_if(ctarget != csource, "Failed to get correct control message for float");
+	fail_if(dsource.type != dtarget[0].type,
+		"Source and destination type differ for float");
+	fail_if(dsource.store.d_float != dtarget[0].store.d_float,
+		"Source and destination float data differ");
+	if (packed)
+		free(packed);
+	if (dtarget) {
+		free(dtarget);
+	}
+
+	dsource.type = INT;
+	dsource.store.d_int = INT_MAX;
+	csource = BUXTON_CONTROL_GET;
+	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
+		"Failed to serialize int data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+		"Failed to deserialize int data");
+	fail_if(ctarget != csource, "Failed to get correct control message for int");
+	fail_if(dsource.type != dtarget[0].type,
+		"Source and destination type differ for int");
+	fail_if(dsource.store.d_int != dtarget[0].store.d_int,
+		"Source and destination int data differ");
+	if (packed)
+		free(packed);
+	if (dtarget) {
+		free(dtarget);
+	}
+
+	dsource.type = DOUBLE;
+	dsource.store.d_double = 3.1415;
+	csource = BUXTON_CONTROL_GET;
+	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
+		"Failed to serialize double data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+		"Failed to deserialize double data");
+	fail_if(ctarget != csource, "Failed to get correct control message for double");
+	fail_if(dsource.type != dtarget[0].type,
+		"Source and destination type differ for double");
+	fail_if(dsource.store.d_double != dtarget[0].store.d_double,
+		"Source and destination double data differ");
+	if (packed)
+		free(packed);
+	if (dtarget) {
+		free(dtarget);
+	}
+
+	dsource.type = LONG;
+	dsource.store.d_long = LONG_MAX;
+	csource = BUXTON_CONTROL_GET;
+	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
+		"Failed to serialize long data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+		"Failed to deserialize long data");
+	fail_if(ctarget != csource, "Failed to get correct control message for long");
+	fail_if(dsource.type != dtarget[0].type,
+		"Source and destination type differ for long");
+	fail_if(dsource.store.d_long != dtarget[0].store.d_long,
+		"Source and destination long data differ");
+	if (packed)
+		free(packed);
+	if (dtarget) {
+		free(dtarget);
+	}
+
+	dsource.type = STRING;
+	dsource.store.d_string = "test-key";
+	csource = BUXTON_CONTROL_GET;
+	fail_if(buxton_serialize_message(&packed, csource, 2, &dsource) == true,
+		"Serialized with incorrect parameter count");
 }
 END_TEST
 
