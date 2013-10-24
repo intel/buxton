@@ -60,6 +60,7 @@ typedef enum BuxtonDataType {
 	INT, /**<Represents type of an integer value */
 	DOUBLE, /**<Represents type of a double value */
 	LONG, /**<Represents type of a long value */
+	BUXTON_TYPE_MAX
 } BuxtonDataType;
 
 /**
