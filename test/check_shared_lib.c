@@ -175,6 +175,96 @@ START_TEST(get_layer_path_check)
 }
 END_TEST
 
+START_TEST(buxton_data_copy_check)
+{
+	BuxtonData original, copy;
+
+	original.type = STRING;
+	original.store.d_string = "test-data-copy";
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy string type");
+	fail_if((strcmp(original.store.d_string, copy.store.d_string) != 0),
+		"Failed to copy string data");
+	if(copy.store.d_string)
+		free(copy.store.d_string);
+
+	original.type = BOOLEAN;
+	original.store.d_boolean = true;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy boolean type");
+	fail_if(original.store.d_boolean != copy.store.d_boolean,
+		"Failed to copy boolean data");
+
+	original.type = FLOAT;
+	original.store.d_float = 3.14;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy float type");
+	fail_if(original.store.d_float != copy.store.d_float,
+		"Failed to copy float data");
+
+	original.type = INT;
+	original.store.d_int = INT_MAX;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy int type");
+	fail_if(original.store.d_int != copy.store.d_int,
+		"Failed to copy int data");
+
+	original.type = DOUBLE;
+	original.store.d_double = 3.1415;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy double type");
+	fail_if(original.store.d_double != copy.store.d_double,
+		"Failed to copy double data");
+
+	original.type = LONG;
+	original.store.d_long = LONG_MAX;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy long type");
+	fail_if(original.store.d_long != copy.store.d_long,
+		"Failed to copy long data");
+
+	original.type = -1;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type || copy.store.d_string, "Copied invalid data");
+}
+END_TEST
+
+START_TEST(buxton_type_as_string_check)
+{
+	BuxtonDataType type;
+
+	type = STRING;
+	fail_if(strcmp(buxton_type_as_string(type), "string") != 0,
+		"Failed to get string of STRING type");
+
+	type = BOOLEAN;
+	fail_if(strcmp(buxton_type_as_string(type), "boolean") != 0,
+		"Failed to get string of BOOLEAN type");
+
+	type = FLOAT;
+	fail_if(strcmp(buxton_type_as_string(type), "float") != 0,
+		"Failed to get string of FLOAT type");
+
+	type = DOUBLE;
+	fail_if(strcmp(buxton_type_as_string(type), "double") != 0,
+		"Failed to get string of DOUBLE type");
+
+	type = LONG;
+	fail_if(strcmp(buxton_type_as_string(type), "long") != 0,
+		"Failed to get string of LONG type");
+
+	type = INT;
+	fail_if(strcmp(buxton_type_as_string(type), "int") != 0,
+		"Failed to get string of INT type");
+}
+END_TEST
+
 START_TEST(buxton_db_serialize_check)
 {
 	BuxtonData dsource, dtarget;
@@ -416,8 +506,10 @@ shared_lib_suite(void)
 	tcase_add_test(tc, smack_access_check);
 	suite_add_tcase(s, tc);
 
-	tc = tcase_create("get_layer_path_functions");
+	tc = tcase_create("util_functions");
 	tcase_add_test(tc, get_layer_path_check);
+	tcase_add_test(tc, buxton_data_copy_check);
+	tcase_add_test(tc, buxton_type_as_string_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("buxton_serialize_functions");
