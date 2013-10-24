@@ -22,6 +22,7 @@
 #include "bt-daemon.h"
 #include "serialize.h"
 #include "util.h"
+#include "log.h"
 
 bool buxton_serialize(BuxtonData *source, uint8_t **target)
 {
@@ -273,10 +274,9 @@ end:
 	return ret;
 }
 
-int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
+int buxton_deserialize_message(uint8_t *data, int size, BuxtonControlMessage *r_message,
 			       BuxtonData** list)
 {
-	int size = 0;
 	int offset = 0;
 	int ret = -1;
 	int min_length = BUXTON_CONTROL_LENGTH;
@@ -293,7 +293,6 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	BuxtonData *k_list = NULL;
 	BuxtonData *c_data = NULL;
 
-	size = malloc_usable_size(data);
 	if (size < min_length)
 		goto end;
 
