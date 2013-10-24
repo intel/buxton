@@ -166,6 +166,11 @@ START_TEST(get_layer_path_check)
 		free(path);
 	if (real_path)
 		free(real_path);
+
+	layer.name = "bad-type-test";
+	layer.type = -1;
+	fail_if(get_layer_path(&layer) != NULL,
+		"Invalid layer type didn't return failure");
 }
 END_TEST
 
