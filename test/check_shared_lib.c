@@ -378,6 +378,18 @@ START_TEST(buxton_message_serialize_check)
 	csource = BUXTON_CONTROL_GET;
 	fail_if(buxton_serialize_message(&packed, csource, 2, &dsource) == true,
 		"Serialized with incorrect parameter count");
+
+	dsource.type = -1;
+	dsource.store.d_string = "test-key";
+	csource = BUXTON_CONTROL_GET;
+	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == true,
+		"Serialized with bad data type");
+
+	dsource.type = STRING;
+	dsource.store.d_string = "test-key";
+	csource = -1;
+	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == true,
+		"Serialized with bad message type");
 }
 END_TEST
 

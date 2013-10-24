@@ -182,6 +182,9 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	if (n_params <= 0)
 		return false;
 
+	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
+		return false;
+
 	data = malloc(sizeof(uint32_t) + sizeof(unsigned int));
 	if (!data)
 		goto end;
