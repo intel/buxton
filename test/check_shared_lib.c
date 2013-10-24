@@ -57,6 +57,7 @@ START_TEST(log_write_check)
 	fclose(stderr);
 	fclose(read_test);
 	stderr = fdopen(dup_stderr, "w");
+	free(log_read);
 }
 END_TEST
 
