@@ -104,6 +104,9 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	BuxtonDataType type;
 	bool ret = false;
 
+	assert(source);
+	assert(target);
+
 	len = malloc_usable_size(source);
 
 	if (len < BXT_MINIMUM_SIZE)
@@ -172,6 +175,8 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	unsigned int size = 0;
 	size_t curSize = 0;
 	uint16_t control, msg;
+
+	assert(dest);
 
 	/* Empty message not permitted */
 	if (n_params <= 0)
@@ -279,6 +284,10 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	unsigned int c_length;
 	BuxtonData *k_list = NULL;
 	BuxtonData *c_data = NULL;
+
+	assert(data);
+	assert(r_message);
+	assert(list);
 
 	size = malloc_usable_size(data);
 	if (size < min_length)
