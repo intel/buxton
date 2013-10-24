@@ -81,6 +81,7 @@ bool buxton_serialize(BuxtonData *source, uint8_t **target)
 			break;
 		case LONG:
 			memcpy(data+offset, &(source->store.d_long), length);
+			break;
 		default:
 			goto end;
 	}
