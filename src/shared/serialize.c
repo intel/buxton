@@ -97,8 +97,6 @@ end:
 
 bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 {
-	void *copy_type = NULL;
-	void *copy_length = NULL;
 	void *copy_data = NULL;
 	unsigned int offset = 0;
 	unsigned int length = 0;
@@ -112,19 +110,11 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 		return false;
 
 	/* firstly, retrieve the BuxtonDataType */
-	copy_type = malloc(sizeof(BuxtonDataType));
-	if (!copy_type)
-		goto end;
-	memcpy(copy_type, source, sizeof(BuxtonDataType));
-	type = *(BuxtonDataType*)copy_type;
+	memcpy(&type, source, sizeof(BuxtonDataType));
 	offset += sizeof(BuxtonDataType);
 
 	/* Now retrieve the length */
-	copy_length = malloc(sizeof(unsigned int));
-	if (!copy_length)
-		goto end;
-	memcpy(copy_length, source+offset, sizeof(unsigned int));
-	length = *(unsigned int*)copy_length;
+	memcpy(&length, source+offset, sizeof(unsigned int));
 	offset += sizeof(unsigned int);
 
 	/* Retrieve the remainder of the data */
@@ -165,10 +155,6 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 
 end:
 	/* Cleanup */
-	if (copy_type)
-		free(copy_type);
-	if (copy_length)
-		free(copy_length);
 	if (copy_data)
 		free(copy_data);
 
