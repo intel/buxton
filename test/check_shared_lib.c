@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iniparser.h>
+#include <limits.h>
 
 #include "backend.h"
 #include "constants.h"
@@ -182,17 +183,74 @@ START_TEST(buxton_db_serialize_check)
 	dsource.type = STRING;
 	dsource.store.d_string = "test-string";
 	fail_if(buxton_serialize(&dsource, &packed) == false,
-		"Failed to serialize data");
+		"Failed to serialize string data");
 	fail_if(buxton_deserialize(packed, &dtarget) == false,
-		"Failed to deserialize data");
+		"Failed to deserialize string data");
 	fail_if(dsource.type != dtarget.type,
-		"Source and destination type differ");
+		"Source and destination type differ for string");
 	fail_if(strcmp(dsource.store.d_string, dtarget.store.d_string) != 0,
-		"Source and destination data differ");
+		"Source and destination string data differ");
 	if (packed)
 		free(packed);
 	if (dtarget.store.d_string)
 		free(dtarget.store.d_string);
+
+	dsource.type = FLOAT;
+	dsource.store.d_float = 3.14;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize float data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize float data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for float");
+	fail_if(dsource.store.d_float != dtarget.store.d_float,
+		"Source and destination float data differ");
+	if (packed)
+		free(packed);
+
+	dsource.type = INT;
+	dsource.store.d_int = true;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize int data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize int data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for int");
+	fail_if(dsource.store.d_int != dtarget.store.d_int,
+		"Source and destination int data differ");
+	if (packed)
+		free(packed);
+
+	dsource.type = DOUBLE;
+	dsource.store.d_double = 3.1415;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize double data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize double data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for double");
+	fail_if(dsource.store.d_double != dtarget.store.d_double,
+		"Source and destination double data differ");
+	if (packed)
+		free(packed);
+
+	dsource.type = LONG;
+	dsource.store.d_long = LONG_MAX;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize long data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize long data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for long");
+	fail_if(dsource.store.d_long != dtarget.store.d_long,
+		"Source and destination long data differ");
+	if (packed)
+		free(packed);
+
+	dsource.type = -1;
+	dsource.store.d_boolean = true;
+	fail_if(buxton_serialize(&dsource, &packed) == true,
+		"Able to serialize invalid type data");
 }
 END_TEST
 

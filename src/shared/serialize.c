@@ -31,8 +31,8 @@ bool buxton_serialize(BuxtonData *source, uint8_t **target)
 	uint8_t *data = NULL;
 	bool ret = false;
 
-	if (!source)
-		goto end;
+	assert(source);
+	assert(target);
 
 	/* DataType + length field */
 	size = sizeof(BuxtonDataType) + sizeof(unsigned int);
