@@ -88,6 +88,9 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 {
 	BuxtonDataStore store;
 
+	assert(original);
+	assert(copy);
+
 	switch (original->type) {
 		case STRING:
 			store.d_string = strdup(original->store.d_string);
@@ -108,14 +111,19 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 			store.d_long = original->store.d_long;
 			break;
 		default:
-			break;
+			goto fail;
 	}
 
 	if (original->type == STRING && !store.d_string)
-		return;
+		goto fail;
 
 	copy->type = original->type;
 	copy->store = store;
+
+	return;
+
+fail:
+	memset(copy, 0, sizeof(BuxtonData));
 }
 
 const char* buxton_type_as_string(BuxtonDataType type)
