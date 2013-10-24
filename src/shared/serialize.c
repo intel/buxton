@@ -249,6 +249,7 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 				break;
 			case LONG:
 				memcpy(data+offset, &(param->store.d_long), p_length);
+				break;
 			default:
 				goto fail;
 		}
