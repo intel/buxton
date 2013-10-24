@@ -207,6 +207,8 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	for (i=0; i<n_params; i++) {
 		/* Every parameter must be a BuxtonData. */
 		param = va_arg(args, BuxtonData*);
+		if (!param)
+			goto fail;
 		if (param->type == STRING)
 			p_length = strlen(param->store.d_string)+1;
 		else
