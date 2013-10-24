@@ -164,6 +164,28 @@ START_TEST(get_layer_path_check)
 }
 END_TEST
 
+START_TEST(buxton_db_serialize_check)
+{
+	BuxtonData dsource, dtarget;
+	uint8_t *packed;
+
+	dsource.type = STRING;
+	dsource.store.d_string = "test-string";
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ");
+	fail_if(strcmp(dsource.store.d_string, dtarget.store.d_string) != 0,
+		"Source and destination data differ");
+	if (packed)
+		free(packed);
+	if (dtarget.store.d_string)
+		free(dtarget.store.d_string);
+}
+END_TEST
+
 Suite *
 shared_lib_suite(void)
 {
@@ -189,6 +211,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("get_layer_path_functions");
 	tcase_add_test(tc, get_layer_path_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("buxton_serialize_functions");
+	tcase_add_test(tc, buxton_db_serialize_check);
 	suite_add_tcase(s, tc);
 
 	return s;
