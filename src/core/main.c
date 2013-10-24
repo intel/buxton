@@ -35,6 +35,7 @@
 #include "list.h"
 #include "smack.h"
 #include "bt-daemon.h"
+#include "serialize.h"
 
 static size_t nfds_alloc = 0;
 static size_t accepting_alloc = 0;
@@ -157,6 +158,11 @@ int main(int argc, char *argv[])
 	struct sockaddr_un remote;
 	int descriptors;
 	int ret;
+
+	BuxtonData* c_list = NULL;
+	BuxtonControlMessage c_msg;
+	int c_n;
+	int c_count;
 
 	bool manual_start = false;
 
@@ -355,9 +361,22 @@ int main(int argc, char *argv[])
 
 			buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
 
-			/* we don't know what to do with the data yet */
-			while ((l = read(pollfds[i].fd, &discard, 256) == 256))
-				buxton_debug("Discarded %d bytes on fd %d\n", l, pollfds[i].fd);
+			/* check for valid buxton messages */
+			while ((l = read(pollfds[i].fd, &discard, 256)) > 0) {
+				c_n = 0;
+
+				if ((c_count = buxton_deserialize_message(discard, l, &c_msg, &c_list)) < 0) {
+					buxton_debug("Unable to parse message\n");
+					continue;
+				}
+				/* Deal with the message and then clean up */
+				while (c_n < c_count) {
+					if (c_list[c_n].type == STRING)
+						free(c_list[c_n].store.d_string);
+					c_n++;
+				}
+				free(c_list);
+			}
 		}
 	}
 

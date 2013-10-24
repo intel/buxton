@@ -35,6 +35,8 @@
 #include "bt-daemon.h"
 #include "log.h"
 #include "hashmap.h"
+#include "serialize.h"
+#include "malloc.h"
 
 static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
@@ -327,8 +329,12 @@ bool buxton_client_set_value(BuxtonClient *client,
 	assert(layer_name);
 	assert(key);
 	assert(data);
+	BuxtonData d_layer, d_key;
+	BuxtonControlMessage control;
+	uint8_t *msg = NULL;
+	int size;
+	ssize_t written;
 
-	/* TODO: Implement */
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
@@ -344,8 +350,24 @@ bool buxton_client_set_value(BuxtonClient *client,
 		layer->uid = geteuid();
 		return backend->set_value(layer, key, data);
 	}
-
 	/* Normal interaction (wire-protocol) */
+	control = BUXTON_CONTROL_SET;
+	d_layer.type = STRING;
+	d_layer.store.d_string = layer_name;
+	d_key.type = STRING;
+	d_key.store.d_string = key;
+
+	if (!buxton_serialize_message(&msg, control, 3, &d_layer, &d_key, data)) {
+		buxton_log("Failed to serialize message");
+		goto end;
+	}
+
+	size = malloc_usable_size(msg);
+	written = write(client->fd, msg, size);
+end:
+	if (msg)
+		free(msg);
+
 	return false;
 }
 
