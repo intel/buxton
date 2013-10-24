@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "serialize.h"
-#include "../include/bt-daemon.h"
+#include "bt-daemon.h"
 
 bool buxton_serialize(BuxtonData *source, uint8_t **target)
 {

@@ -30,11 +30,11 @@
 #include <attr/xattr.h>
 
 #include "config.h"
-#include "../shared/util.h"
-#include "../shared/log.h"
-#include "../shared/list.h"
-#include "../shared/smack.h"
-#include "../include/bt-daemon.h"
+#include "util.h"
+#include "log.h"
+#include "list.h"
+#include "smack.h"
+#include "bt-daemon.h"
 
 static size_t nfds_alloc = 0;
 static size_t accepting_alloc = 0;

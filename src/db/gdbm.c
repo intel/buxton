@@ -19,11 +19,11 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "../shared/log.h"
-#include "../include/bt-daemon.h"
-#include "../shared/hashmap.h"
-#include "../shared/serialize.h"
-#include "../shared/util.h"
+#include "log.h"
+#include "bt-daemon.h"
+#include "hashmap.h"
+#include "serialize.h"
+#include "util.h"
 
 /**
  * GDBM Database Module

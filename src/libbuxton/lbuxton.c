@@ -31,10 +31,10 @@
 #include <stdint.h>
 #include <iniparser.h>
 
-#include "../shared/util.h"
-#include "../include/bt-daemon.h"
-#include "../shared/log.h"
-#include "../shared/hashmap.h"
+#include "util.h"
+#include "bt-daemon.h"
+#include "log.h"
+#include "hashmap.h"
 
 static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;

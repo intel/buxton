@@ -11,7 +11,7 @@
 
 #include <check.h>
 #include <stdlib.h>
-#include "../src/include/bt-daemon.h"
+#include "bt-daemon.h"
 
 START_TEST(buxton_client_open_check)
 {

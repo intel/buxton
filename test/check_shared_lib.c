@@ -19,12 +19,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iniparser.h>
-#include "../src/shared/constants.h"
-#include "../src/shared/backend.h"
-#include "../src/shared/log.h"
-#include "../src/shared/hashmap.h"
-#include "../src/shared/smack.h"
-#include "../src/shared/util.h"
+#include "constants.h"
+#include "backend.h"
+#include "log.h"
+#include "hashmap.h"
+#include "smack.h"
+#include "util.h"
 
 START_TEST(log_write_check)
 {

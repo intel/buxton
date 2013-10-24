@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-#include "../include/bt-daemon.h"
+#include "bt-daemon.h"
 
 /**
  * Minimum size of serialized BuxtonData

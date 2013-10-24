@@ -3,6 +3,11 @@ AM_CFLAGS = -std=gnu99 -fstack-protector -Wall -pedantic \
         -Wstrict-prototypes -Wundef -fno-common \
         -Werror-implicit-function-declaration \
         -Wformat -Wformat-security -Werror=format-security
+
+AM_CPPFLAGS = \
+	-I $(top_srcdir)/src/include \
+	-I $(top_srcdir)/src/shared
+
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AUTOMAKE_OPTIONS = color-tests parallel-tests
 SUBDIRS = .

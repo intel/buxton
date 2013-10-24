@@ -20,7 +20,7 @@
     #include "config.h"
 #endif
 
-#include "../include/bt-daemon.h"
+#include "bt-daemon.h"
 
 /**
  * Possible backends for Buxton

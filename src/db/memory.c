@@ -15,10 +15,10 @@
 
 #include <assert.h>
 
-#include "../shared/hashmap.h"
-#include "../shared/log.h"
-#include "../include/bt-daemon.h"
-#include "../shared/backend.h"
+#include "hashmap.h"
+#include "log.h"
+#include "bt-daemon.h"
+#include "backend.h"
 
 /**
  * Memory Database Module

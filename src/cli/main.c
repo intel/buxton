@@ -25,10 +25,10 @@
 #include <string.h>
 #include <errno.h>
 
-#include "../shared/log.h"
-#include "../include/bt-daemon.h"
-#include "../shared/hashmap.h"
-#include "../shared/util.h"
+#include "log.h"
+#include "bt-daemon.h"
+#include "hashmap.h"
+#include "util.h"
 
 static Hashmap *commands;
 static BuxtonClient client;

@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
-#include "../shared/hashmap.h"
-#include "../shared/log.h"
-#include "../shared/util.h"
+#include "hashmap.h"
+#include "log.h"
+#include "util.h"
 
 size_t page_size(void)
 {
