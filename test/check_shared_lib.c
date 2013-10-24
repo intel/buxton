@@ -19,10 +19,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iniparser.h>
-#include "constants.h"
+
 #include "backend.h"
-#include "log.h"
+#include "constants.h"
 #include "hashmap.h"
+#include "log.h"
+#include "serialize.h"
 #include "smack.h"
 #include "util.h"
 
@@ -186,6 +188,35 @@ START_TEST(buxton_db_serialize_check)
 }
 END_TEST
 
+START_TEST(buxton_message_serialize_check)
+{
+	BuxtonControlMessage csource;
+	BuxtonControlMessage ctarget;
+	BuxtonData dsource;
+	BuxtonData *dtarget;
+	uint8_t *packed;
+
+	dsource.type = STRING;
+	dsource.store.d_string = "test-key";
+	csource = BUXTON_CONTROL_GET;
+	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
+		"Failed to serialize data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+		"Failed to deserialize data");
+	fail_if(ctarget != csource, "Failed to get correct control message");
+	fail_if(dsource.type != dtarget[0].type,
+		"Source and destination type differ");
+	fail_if(strcmp(dsource.store.d_string, dtarget[0].store.d_string) != 0,
+		"Source and destination data differ");
+	if (packed)
+		free(packed);
+	if (dtarget[0].store.d_string) {
+		free(dtarget[0].store.d_string);
+		free(dtarget);
+	}
+}
+END_TEST
+
 Suite *
 shared_lib_suite(void)
 {
@@ -215,6 +246,7 @@ shared_lib_suite(void)
 
 	tc = tcase_create("buxton_serialize_functions");
 	tcase_add_test(tc, buxton_db_serialize_check);
+	tcase_add_test(tc, buxton_message_serialize_check);
 	suite_add_tcase(s, tc);
 
 	return s;
