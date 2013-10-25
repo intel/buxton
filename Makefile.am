@@ -91,6 +91,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/serialize.h \
 	src/shared/smack.c \
 	src/shared/smack.h \
+	src/shared/protocol.c \
+	src/shared/protocol.h \
 	${NULL}
 
 if USE_LOCAL_INIPARSER
