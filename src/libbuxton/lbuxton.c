@@ -127,7 +127,7 @@ bool buxton_direct_open(BuxtonClient *client)
 	return true;
 }
 
-bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
+static bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 {
 	void *handle, *cast;
 	char *path;
@@ -220,7 +220,7 @@ bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 	return true;
 }
 
-BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
+static BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
 {
 	BuxtonBackend *backend;
 
@@ -349,7 +349,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return false;
 }
 
-void destroy_backend(BuxtonBackend *backend)
+static void destroy_backend(BuxtonBackend *backend)
 {
 
 	assert(backend);
