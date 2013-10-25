@@ -20,7 +20,7 @@
 #include "protocol.h"
 #include "log.h"
 
-void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client)
+void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int size)
 {
 	BuxtonControlMessage msg;
 	BuxtonStatus response;
@@ -32,7 +32,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client)
 	uint8_t *response_store;
 
 
-	if (!buxton_deserialize_message((uint8_t*)client->data, &msg, &list)) {
+	if (!buxton_deserialize_message((uint8_t*)client->data, &msg, size, &list)) {
 		buxton_debug("Failed to deserialize message\n");
 		goto end;
 	}

@@ -82,11 +82,12 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
  * Deserialize the given data into an array of BuxtonData structs
  * @param data The source data to be deserialized
  * @param message An empty pointer that will be set to the message type
+ * @param size The size of the data being deserialized
  * @param list A pointer that will be filled out as an array of BuxtonData structs
  * @return the length of the array, or a negative value if deserialization failed
  */
 int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
-			       BuxtonData **list);
+			       int size, BuxtonData **list);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
