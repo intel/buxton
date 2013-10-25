@@ -53,6 +53,7 @@ typedef struct BuxtonDaemon {
 	nfds_t nfds;
 	bool *accepting;
 	struct pollfd *pollfds;
+	client_list_item *client_list;
 } BuxtonDaemon;
 
 static BuxtonDaemon self;
@@ -179,8 +180,7 @@ int main(int argc, char *argv[])
 	self.nfds = 0;
 
 	/* Store a list of connected clients */
-	LIST_HEAD(client_list_item, client_list);
-	LIST_HEAD_INIT(client_list_item, client_list);
+	LIST_HEAD_INIT(client_list_item, self.client_list);
 
 	descriptors = sd_listen_fds(0);
 	if (descriptors < 0) {
@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
 
 				cl->fd = fd;
 				cl->cred = (struct ucred) {0, 0, 0};
-				LIST_PREPEND(client_list_item, item, client_list, cl);
+				LIST_PREPEND(client_list_item, item, self.client_list, cl);
 
 				/* poll for data on this new client as well */
 				add_pollfd(cl->fd, POLLIN | POLLPRI, false);
@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
 			assert(self.pollfds[i].fd != smackfd);
 
 			/* handle data on any connection */
-			LIST_FOREACH(item, cl, client_list)
+			LIST_FOREACH(item, cl, self.client_list)
 				if (self.pollfds[i].fd == cl->fd)
 					break;
 
@@ -325,7 +325,7 @@ int main(int argc, char *argv[])
 				close(cl->fd);
 				free(cl->smack_label);
 				buxton_debug("Closed connection from fd %d\n", cl->fd);
-				LIST_REMOVE(client_list_item, item, client_list, cl);
+				LIST_REMOVE(client_list_item, item, self.client_list, cl);
 				free(cl);
 				continue;
 			}
@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
 					close(cl->fd);
 					free(cl->smack_label);
 					buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
-					LIST_REMOVE(client_list_item, item, client_list, cl);
+					LIST_REMOVE(client_list_item, item, self.client_list, cl);
 					continue;
 				}
 
@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
 	for (int i = 0; i < self.nfds; i++) {
 		close(self.pollfds[i].fd);
 	}
-	for (client_list_item *i = client_list; i;) {
+	for (client_list_item *i = self.client_list; i;) {
 		client_list_item *j = i->item_next;
 		free(i);
 		i = j;
