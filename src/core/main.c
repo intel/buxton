@@ -35,28 +35,8 @@
 #include "list.h"
 #include "smack.h"
 #include "bt-daemon.h"
+#include "protocol.h"
 
-
-typedef struct client_list_item {
-	LIST_FIELDS(struct client_list_item, item); /**<List type */
-	int fd; /**<File descriptor of connected client */
-	struct ucred cred; /**<Credentials of connected client */
-	char *smack_label; /**<Smack label of connected client */
-	char data[256]; /**<Data buffer for the client */
-} client_list_item;
-
-/**
- * Global store of bt-daemon state
- */
-typedef struct BuxtonDaemon {
-	size_t nfds_alloc;
-	size_t accepting_alloc;
-	nfds_t nfds;
-	bool *accepting;
-	struct pollfd *pollfds;
-	client_list_item *client_list;
-	BuxtonClient buxton;
-} BuxtonDaemon;
 
 static BuxtonDaemon self;
 
@@ -209,9 +189,23 @@ static void handle_client(client_list_item *cl, int i)
 	}
 	buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
 
-	/* we don't know what to do with the data yet */
-	while ((l = read(self.pollfds[i].fd, &cl->data, 256) == 256))
-		buxton_debug("Discarded %d bytes on fd %d\n", l, self.pollfds[i].fd);
+	/* Hand off any read data */
+	while ((l = read(self.pollfds[i].fd, &cl->data, 256)) > 0)
+		bt_daemon_handle_message(&self, cl);
+}
+
+static BuxtonData* get_value(client_list_item *client, BuxtonData *list, BuxtonStatus *status)
+{
+	/* TODO: Implement */
+	*status = BUXTON_STATUS_FAILED;
+	return NULL;
+}
+
+static BuxtonData*  set_value(client_list_item *client, BuxtonData *list, BuxtonStatus *status)
+{
+	/* TODO: Implement */
+	*status = BUXTON_STATUS_FAILED;
+	return NULL;
 }
 
 /**
@@ -241,6 +235,8 @@ int main(int argc, char *argv[])
 	self.accepting_alloc = 0;
 	self.nfds = 0;
 	self.buxton.direct = true;
+	self.set_value = &set_value;
+	self.get_value = &get_value;
 	if (!buxton_direct_open(&self.buxton))
 		exit(EXIT_FAILURE);
 
