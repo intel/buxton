@@ -139,20 +139,20 @@ gdbm_la_LDFLAGS = \
 	-avoid-version
 
 gdbm_la_LIBADD = \
+	libbuxton-shared.la \
 	-lgdbm
 
-# Use private hashmap build to prevent symbol mangling and
-# memory corruption issues
 memory_la_SOURCES = \
-	src/db/memory.c \
-	src/shared/hashmap.h \
-	src/shared/hashmap.c
+	src/db/memory.c
 
 memory_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-fvisibility=hidden \
 	-module \
 	-avoid-version
+
+memory_la_LIBADD = \
+	libbuxton-shared.la
 
 check_PROGRAMS = \
 	check_buxton \
