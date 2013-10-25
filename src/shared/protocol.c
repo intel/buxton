@@ -95,7 +95,26 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	assert(msg);
 	assert(list);
 
-	return -1;
+	char response[256];
+	int l;
+	BuxtonData *r_list = NULL;
+	BuxtonControlMessage r_msg;
+	uint8_t *data = NULL;;
+	int count = -1;
+
+	while ((l = read(client->fd, &response, 256)) > 0) {
+		if ((count = buxton_deserialize_message(response, &r_msg, l, &r_list)) < 0)
+			goto end;
+		if (r_msg != BUXTON_CONTROL_STATUS && r_list[0].type != INT) {
+			buxton_log("Critical error: Invalid response\n");
+			goto end;
+		}
+		break;
+	}
+	*msg = r_msg;
+	*list = r_list;
+end:
+	return count;
 }
 
 bool buxton_wire_set_value(BuxtonClient *client, char *layer, char *key,
@@ -107,6 +126,7 @@ bool buxton_wire_set_value(BuxtonClient *client, char *layer, char *key,
 	assert(value);
 
 	bool ret = false;
+	int count;
 	uint16_t *send = NULL;
 	int send_len = 0;
 	BuxtonControlMessage r_msg;
@@ -127,7 +147,9 @@ bool buxton_wire_set_value(BuxtonClient *client, char *layer, char *key,
 	write(client->fd, send, send_len);
 
 	/* Gain response */
-	ret = buxton_wire_get_response(client, &r_msg, &r_list) == 0 ? true: false;
+	count = buxton_wire_get_response(client, &r_msg, &r_list);;
+	if (count > 0 && r_list[0].store.d_int == BUXTON_STATUS_OK)
+		ret = true;
 end:
 	if (send)
 		free(send);
