@@ -105,7 +105,7 @@ static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 		goto end;
 
 	value = gdbm_fetch(db, key);
-	if (value.dsize < 0 || value.dptr == 0)
+	if (value.dsize < 0 || value.dptr == NULL)
 		goto end;
 
 	data_store = (uint8_t*)value.dptr;
