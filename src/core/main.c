@@ -36,11 +36,6 @@
 #include "smack.h"
 #include "bt-daemon.h"
 
-static size_t nfds_alloc = 0;
-static size_t accepting_alloc = 0;
-static nfds_t nfds = 0;
-static bool *accepting;
-static struct pollfd *pollfds;
 
 typedef struct client_list_item {
 	LIST_FIELDS(struct client_list_item, item); /**<List type */
@@ -49,45 +44,58 @@ typedef struct client_list_item {
 	char *smack_label; /**<Smack label of connected client */
 } client_list_item;
 
+/**
+ * Global store of bt-daemon state
+ */
+typedef struct BuxtonDaemon {
+	size_t nfds_alloc;
+	size_t accepting_alloc;
+	nfds_t nfds;
+	bool *accepting;
+	struct pollfd *pollfds;
+} BuxtonDaemon;
+
+static BuxtonDaemon self;
+
 static void add_pollfd(int fd, short events, bool a)
 {
 	assert(fd >= 0);
 
-	if (!greedy_realloc((void **) &pollfds, &nfds_alloc,
-	    (size_t)((nfds + 1) * (sizeof(struct pollfd))))) {
+	if (!greedy_realloc((void **) &self.pollfds, &self.nfds_alloc,
+	    (size_t)((self.nfds + 1) * (sizeof(struct pollfd))))) {
 		buxton_log("realloc(): %m\n");
 		exit(EXIT_FAILURE);
 	}
-	if (!greedy_realloc((void **) &accepting, &accepting_alloc,
-	    (size_t)((nfds + 1) * (sizeof(accepting))))) {
+	if (!greedy_realloc((void **) &self.accepting, &self.accepting_alloc,
+	    (size_t)((self.nfds + 1) * (sizeof(self.accepting))))) {
 		buxton_log("realloc(): %m\n");
 		exit(EXIT_FAILURE);
 	}
-	pollfds[nfds].fd = fd;
-	pollfds[nfds].events = events;
-	pollfds[nfds].revents = 0;
-	accepting[nfds] = a;
-	nfds++;
+	self.pollfds[self.nfds].fd = fd;
+	self.pollfds[self.nfds].events = events;
+	self.pollfds[self.nfds].revents = 0;
+	self.accepting[self.nfds] = a;
+	self.nfds++;
 
 	buxton_debug("Added fd %d to our poll list (accepting=%d)\n", fd, a);
 }
 
 static void del_pollfd(int i)
 {
-	assert(i <= nfds);
+	assert(i <= self.nfds);
 	assert(i >= 0);
 
-	buxton_debug("Removing fd %d from our list\n", pollfds[i].fd);
+	buxton_debug("Removing fd %d from our list\n", self.pollfds[i].fd);
 
-	if (i != (nfds - 1)) {
-		memmove(&pollfds[i],
-			&pollfds[i + 1],
-			(nfds - i - 1) * sizeof(struct pollfd));
-		memmove(&accepting[i],
-			&accepting[i + 1],
-			(nfds - i - 1) * sizeof(accepting));
+	if (i != (self.nfds - 1)) {
+		memmove(&self.pollfds[i],
+			&self.pollfds[i + 1],
+			(self.nfds - i - 1) * sizeof(struct pollfd));
+		memmove(&self.accepting[i],
+			&self.accepting[i + 1],
+			(self.nfds - i - 1) * sizeof(self.accepting));
 	}
-	nfds--;
+	self.nfds--;
 }
 
 static bool identify_client(client_list_item *cl)
@@ -166,6 +174,10 @@ int main(int argc, char *argv[])
 	if (smackfd < 0)
 		exit(EXIT_FAILURE);
 
+	self.nfds_alloc = 0;
+	self.accepting_alloc = 0;
+	self.nfds = 0;
+
 	/* Store a list of connected clients */
 	LIST_HEAD(client_list_item, client_list);
 	LIST_HEAD_INIT(client_list_item, client_list);
@@ -229,7 +241,7 @@ int main(int argc, char *argv[])
 
 	/* Enter loop to accept clients */
 	for (;;) {
-		ret = poll(pollfds, nfds, -1);
+		ret = poll(self.pollfds, self.nfds, -1);
 
 		if (ret < 0) {
 			buxton_log("poll(): %m\n");
@@ -238,22 +250,22 @@ int main(int argc, char *argv[])
 		if (ret == 0)
 			continue;
 
-		for (nfds_t i=0; i<nfds; i++) {
+		for (nfds_t i=0; i<self.nfds; i++) {
 			client_list_item *cl = NULL;
 			char discard[256];
 			ssize_t l;
 
-			if (pollfds[i].revents == 0)
+			if (self.pollfds[i].revents == 0)
 				continue;
 
-			if (pollfds[i].fd == -1) {
+			if (self.pollfds[i].fd == -1) {
 				/* TODO: Remove client from list  */
-				buxton_debug("Removing / Closing client for fd %d\n", pollfds[i].fd);
+				buxton_debug("Removing / Closing client for fd %d\n", self.pollfds[i].fd);
 				del_pollfd(i);
 				continue;
 			}
 
-			if (pollfds[i].fd == smackfd) {
+			if (self.pollfds[i].fd == smackfd) {
 				if (!buxton_cache_smack_rules())
 					exit(EXIT_FAILURE);
 				buxton_log("Reloaded Smack access rules\n");
@@ -262,19 +274,19 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			if (accepting[i] == true) {
+			if (self.accepting[i] == true) {
 				int fd;
 				int on = 1;
 
 				addr_len = sizeof(remote);
 
-				if ((fd = accept(pollfds[i].fd,
+				if ((fd = accept(self.pollfds[i].fd,
 				    (struct sockaddr *)&remote, &addr_len)) == -1) {
 					buxton_log("accept(): %m\n");
 					break;
 				}
 
-				buxton_debug("New client fd %d connected through fd %d\n", fd, pollfds[i].fd);
+				buxton_debug("New client fd %d connected through fd %d\n", fd, self.pollfds[i].fd);
 
 				cl = malloc0(sizeof(client_list_item));
 				if (!cl)
@@ -297,12 +309,12 @@ int main(int argc, char *argv[])
 				break;
 			}
 
-			assert(accepting[i] == 0);
-			assert(pollfds[i].fd != smackfd);
+			assert(self.accepting[i] == 0);
+			assert(self.pollfds[i].fd != smackfd);
 
 			/* handle data on any connection */
 			LIST_FOREACH(item, cl, client_list)
-				if (pollfds[i].fd == cl->fd)
+				if (self.pollfds[i].fd == cl->fd)
 					break;
 
 			assert(cl);
@@ -356,8 +368,8 @@ int main(int argc, char *argv[])
 			buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
 
 			/* we don't know what to do with the data yet */
-			while ((l = read(pollfds[i].fd, &discard, 256) == 256))
-				buxton_debug("Discarded %d bytes on fd %d\n", l, pollfds[i].fd);
+			while ((l = read(self.pollfds[i].fd, &discard, 256) == 256))
+				buxton_debug("Discarded %d bytes on fd %d\n", l, self.pollfds[i].fd);
 		}
 	}
 
@@ -365,8 +377,8 @@ int main(int argc, char *argv[])
 
 	if (manual_start)
 		unlink(BUXTON_SOCKET);
-	for (int i = 0; i < nfds; i++) {
-		close(pollfds[i].fd);
+	for (int i = 0; i < self.nfds; i++) {
+		close(self.pollfds[i].fd);
 	}
 	for (client_list_item *i = client_list; i;) {
 		client_list_item *j = i->item_next;
