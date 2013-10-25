@@ -24,6 +24,7 @@
 #include <sys/poll.h>
 #include "list.h"
 #include "bt-daemon.h"
+#include "serialize.h"
 
 typedef struct client_list_item {
 	LIST_FIELDS(struct client_list_item, item); /**<List type */
@@ -66,6 +67,25 @@ typedef struct BuxtonDaemon {
  */
 void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client);
 
+/**
+ * Wait for and parse a response from bt-daemon
+ * @param client A Buxton Client
+ * @param msg Pointer to BuxtonControlMessage
+ * @param list Pointer to empty BuxtonData list (NULL)
+ * @return the number of parameters returned, or -1
+ */
+int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
+			      BuxtonData **list);
+/**
+ * Send a SET message over the wire protocol, return the response
+ * @param client Client connection
+ * @param layer Layer name
+ * @param key Key name
+ * @param value A BuxtonData storing the new value
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_set_value(BuxtonClient *client, char *layer, char *key,
+			   BuxtonData *value);
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

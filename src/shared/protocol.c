@@ -15,9 +15,9 @@
 
 #include <stdlib.h>
 #include <malloc.h>
+#include <assert.h>
 
 #include "protocol.h"
-#include "serialize.h"
 #include "log.h"
 
 void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client)
@@ -86,6 +86,55 @@ end:
 		}
 		free(list);
 	}
+}
+
+int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
+			      BuxtonData **list)
+{
+	assert(client);
+	assert(msg);
+	assert(list);
+
+	return -1;
+}
+
+bool buxton_wire_set_value(BuxtonClient *client, char *layer, char *key,
+			   BuxtonData *value)
+{
+	assert(client);
+	assert(layer);
+	assert(key);
+	assert(value);
+
+	bool ret = false;
+	uint16_t *send = NULL;
+	int send_len = 0;
+	BuxtonControlMessage r_msg;
+	BuxtonData *r_list = NULL;
+	BuxtonData d_layer, d_key;
+
+	d_layer.type = STRING;
+	d_layer.store.d_string = layer;
+	d_key.type = STRING;
+	d_key.store.d_string = key;
+
+	/* Attempt to serialize our send message */
+	if (!buxton_serialize_message(&send, BUXTON_CONTROL_SET, 3,
+		&d_layer, &d_key, value))
+		goto end;
+	/* Now write it off */
+	send_len = malloc_usable_size(send);
+	write(client->fd, send, send_len);
+
+	/* Gain response */
+	ret = buxton_wire_get_response(client, &r_msg, &r_list) == 0 ? true: false;
+end:
+	if (send)
+		free(send);
+	if (r_list)
+		free(r_list);
+
+	return ret;
 }
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

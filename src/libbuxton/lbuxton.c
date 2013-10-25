@@ -35,6 +35,7 @@
 #include "bt-daemon.h"
 #include "log.h"
 #include "hashmap.h"
+#include "protocol.h"
 
 static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
@@ -337,7 +338,6 @@ bool buxton_client_set_value(BuxtonClient *client,
 	assert(key);
 	assert(data);
 
-	/* TODO: Implement */
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
@@ -355,7 +355,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 	}
 
 	/* Normal interaction (wire-protocol) */
-	return false;
+	return buxton_wire_set_value(client, layer_name, key, data);
 }
 
 void destroy_backend(BuxtonBackend *backend)
