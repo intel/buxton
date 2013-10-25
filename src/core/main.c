@@ -191,7 +191,7 @@ static void handle_client(client_list_item *cl, int i)
 
 	/* Hand off any read data */
 	while ((l = read(self.pollfds[i].fd, &cl->data, 256)) > 0)
-		bt_daemon_handle_message(&self, cl);
+		bt_daemon_handle_message(&self, cl, l);
 }
 
 static BuxtonData* get_value(client_list_item *client, BuxtonData *list, BuxtonStatus *status)
