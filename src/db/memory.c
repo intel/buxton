@@ -19,6 +19,7 @@
 #include "log.h"
 #include "bt-daemon.h"
 #include "backend.h"
+#include "util.h"
 
 /**
  * Memory Database Module
