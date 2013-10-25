@@ -64,6 +64,7 @@ bt_daemon_SOURCES = \
 
 bt_daemon_LDADD = \
 	$(SYSTEMD_LIBS) \
+	libbuxton.la \
 	libbuxton-shared.la
 
 buxtonctl_SOURCES = \

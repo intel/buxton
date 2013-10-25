@@ -55,6 +55,7 @@ typedef struct BuxtonDaemon {
 	bool *accepting;
 	struct pollfd *pollfds;
 	client_list_item *client_list;
+	BuxtonClient buxton;
 } BuxtonDaemon;
 
 static BuxtonDaemon self;
@@ -239,6 +240,9 @@ int main(int argc, char *argv[])
 	self.nfds_alloc = 0;
 	self.accepting_alloc = 0;
 	self.nfds = 0;
+	self.buxton.direct = true;
+	if (!buxton_direct_open(&self.buxton))
+		exit(EXIT_FAILURE);
 
 	/* Store a list of connected clients */
 	LIST_HEAD_INIT(client_list_item, self.client_list);
