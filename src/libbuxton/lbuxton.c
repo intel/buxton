@@ -35,6 +35,7 @@
 #include "bt-daemon.h"
 #include "log.h"
 #include "hashmap.h"
+#include "protocol.h"
 
 static Hashmap *_databases = NULL;
 static Hashmap *_directPermitted = NULL;
@@ -85,13 +86,10 @@ bool buxton_client_open(BuxtonClient *client)
 	client->fd = bx_socket;
 	if ( r == -1) {
 		ret = false;
-		goto close;
+		close(client->fd);
 	}
 
 	ret = true;
-close:
-	/* Will be moved to a buxton_client_close method */
-	close(client->fd);
 end:
 	return ret;
 }
@@ -125,6 +123,18 @@ bool buxton_direct_open(BuxtonClient *client)
 	client->pid = getpid();
 	hashmap_put(_directPermitted, &(client->pid), client);
 	return true;
+}
+
+void buxton_client_close(BuxtonClient *client)
+{
+	assert(client);
+
+	if (_directPermitted && (hashmap_get(_directPermitted, &(client->pid)) != NULL))
+		hashmap_remove(_directPermitted, &(client->pid));
+	else
+		close(client->fd);
+	client->direct = 0;
+	client->fd = -1;
 }
 
 bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
@@ -328,7 +338,6 @@ bool buxton_client_set_value(BuxtonClient *client,
 	assert(key);
 	assert(data);
 
-	/* TODO: Implement */
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
@@ -346,7 +355,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 	}
 
 	/* Normal interaction (wire-protocol) */
-	return false;
+	return buxton_wire_set_value(client, layer_name, key, data);
 }
 
 void destroy_backend(BuxtonBackend *backend)

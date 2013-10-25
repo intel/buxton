@@ -331,6 +331,7 @@ int main(int argc, char **argv)
 	ret = command->method(command->type);
 
 end:
+	buxton_client_close(&client);
 	hashmap_free(commands);
 	if (ret)
 		return EXIT_SUCCESS;
