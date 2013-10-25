@@ -42,6 +42,7 @@ typedef struct client_list_item {
 	int fd; /**<File descriptor of connected client */
 	struct ucred cred; /**<Credentials of connected client */
 	char *smack_label; /**<Smack label of connected client */
+	char data[256]; /**<Data buffer for the client */
 } client_list_item;
 
 /**
@@ -153,6 +154,66 @@ static bool identify_client(client_list_item *cl)
 }
 
 /**
+ * Handle a client connection
+ * @param cl The currently activate client
+ * @param i The currently active file descriptor
+ */
+static void handle_client(client_list_item *cl, int i)
+{
+	ssize_t l;
+	int slabel_len;
+	char *slabel = NULL;
+
+	/* client closed the connection, or some error occurred? */
+	if (recv(cl->fd, cl->data, sizeof(cl->data), MSG_PEEK | MSG_DONTWAIT) <= 0) {
+		del_pollfd(i);
+		close(cl->fd);
+		free(cl->smack_label);
+		buxton_debug("Closed connection from fd %d\n", cl->fd);
+		LIST_REMOVE(client_list_item, item, self.client_list, cl);
+		free(cl);
+		return;
+	}
+
+	/* need to authenticate the client? */
+	if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
+		if (!identify_client(cl)) {
+			del_pollfd(i);
+			close(cl->fd);
+			free(cl->smack_label);
+			buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
+			LIST_REMOVE(client_list_item, item, self.client_list, cl);
+			return;
+		}
+
+		slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, 0);
+		if (slabel_len <= 0) {
+			buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
+			exit(EXIT_FAILURE);
+		}
+
+		slabel = malloc0(slabel_len + 1);
+		if (!slabel) {
+			buxton_log("malloc0(): %m\n");
+			exit(EXIT_FAILURE);
+		}
+		slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
+		if (!slabel_len) {
+			buxton_log("fgetxattr(): %m\n");
+			exit(EXIT_FAILURE);
+		}
+
+		buxton_debug("fgetxattr(): label=\"%s\"\n", slabel);
+		cl->smack_label = strdup(slabel);
+	}
+	buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
+
+	/* we don't know what to do with the data yet */
+	while ((l = read(self.pollfds[i].fd, &cl->data, 256) == 256))
+		buxton_debug("Discarded %d bytes on fd %d\n", l, self.pollfds[i].fd);
+}
+
+/**
  * Entry point into bt-daemon
  * @param argc Number of arguments passed
  * @param argv An array of string arguments
@@ -253,7 +314,6 @@ int main(int argc, char *argv[])
 		for (nfds_t i=0; i<self.nfds; i++) {
 			client_list_item *cl = NULL;
 			char discard[256];
-			ssize_t l;
 
 			if (self.pollfds[i].revents == 0)
 				continue;
@@ -318,58 +378,7 @@ int main(int argc, char *argv[])
 					break;
 
 			assert(cl);
-
-			/* client closed the connection, or some error occurred? */
-			if (recv(cl->fd, discard, sizeof(discard), MSG_PEEK | MSG_DONTWAIT) <= 0) {
-				del_pollfd(i);
-				close(cl->fd);
-				free(cl->smack_label);
-				buxton_debug("Closed connection from fd %d\n", cl->fd);
-				LIST_REMOVE(client_list_item, item, self.client_list, cl);
-				free(cl);
-				continue;
-			}
-
-			/* need to authenticate the client? */
-			if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
-				int slabel_len;
-				char *slabel = NULL;
-
-				if (!identify_client(cl)) {
-					del_pollfd(i);
-					close(cl->fd);
-					free(cl->smack_label);
-					buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
-					LIST_REMOVE(client_list_item, item, self.client_list, cl);
-					continue;
-				}
-
-				slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, 0);
-				if (slabel_len <= 0) {
-					buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
-					exit(EXIT_FAILURE);
-				}
-
-				slabel = malloc0(slabel_len + 1);
-				if (!slabel) {
-					buxton_log("malloc0(): %m\n");
-					exit(EXIT_FAILURE);
-				}
-				slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
-				if (!slabel_len) {
-					buxton_log("fgetxattr(): %m\n");
-					exit(EXIT_FAILURE);
-				}
-
-				buxton_debug("fgetxattr(): label=\"%s\"\n", slabel);
-				cl->smack_label = strdup(slabel);
-			}
-
-			buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
-
-			/* we don't know what to do with the data yet */
-			while ((l = read(self.pollfds[i].fd, &discard, 256) == 256))
-				buxton_debug("Discarded %d bytes on fd %d\n", l, self.pollfds[i].fd);
+			handle_client(cl, i);
 		}
 	}
 
