@@ -86,7 +86,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
  * @param value A BuxtonData storing the new value
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_wire_set_value(BuxtonClient *client, char *layer, char *key,
+bool buxton_wire_set_value(BuxtonClient *client, const char *layer_name, const char *key,
 			   BuxtonData *value);
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
