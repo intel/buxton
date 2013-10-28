@@ -117,26 +117,26 @@ end:
 	return count;
 }
 
-bool buxton_wire_set_value(BuxtonClient *client, char *layer, char *key,
+bool buxton_wire_set_value(BuxtonClient *client, const char *layer_name, const char *key,
 			   BuxtonData *value)
 {
 	assert(client);
-	assert(layer);
+	assert(layer_name);
 	assert(key);
 	assert(value);
 
 	bool ret = false;
 	int count;
-	uint16_t *send = NULL;
+	uint8_t *send = NULL;
 	int send_len = 0;
 	BuxtonControlMessage r_msg;
 	BuxtonData *r_list = NULL;
 	BuxtonData d_layer, d_key;
 
 	d_layer.type = STRING;
-	d_layer.store.d_string = layer;
+	d_layer.store.d_string = (char *)layer_name;
 	d_key.type = STRING;
-	d_key.store.d_string = key;
+	d_key.store.d_string = (char *)key;
 
 	/* Attempt to serialize our send message */
 	if (!buxton_serialize_message(&send, BUXTON_CONTROL_SET, 3,
