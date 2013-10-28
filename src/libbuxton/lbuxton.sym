@@ -1,6 +1,7 @@
 BUXTON_1 {
         global:
                 buxton_client_open;
+                buxton_client_close;
                 buxton_client_set_value;
                 buxton_client_get_value;
                 buxton_client_get_value_for_layer;

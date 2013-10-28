@@ -394,6 +394,7 @@ int main(int argc, char *argv[])
 		free(i);
 		i = j;
 	}
+	buxton_client_close(&self.buxton);
 	return EXIT_SUCCESS;
 }
 
