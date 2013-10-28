@@ -18,6 +18,7 @@
     #include "config.h"
 #endif
 
+#include <errno.h>
 #include <poll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -255,6 +256,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	} else if (descriptors == 0) {
 		/* Manual invocation */
+		int r;
 		manual_start = true;
 		union {
 			struct sockaddr sa;
@@ -271,7 +273,10 @@ int main(int argc, char *argv[])
 		sa.un.sun_family = AF_UNIX;
 		strncpy(sa.un.sun_path, BUXTON_SOCKET, sizeof(sa.un.sun_path) - 1);
 
-		unlink(sa.un.sun_path);
+		r = unlink(sa.un.sun_path);
+		if (r == -1 && errno != ENOENT) {
+			exit(EXIT_FAILURE);
+		}
 
 		if (bind(fd, &sa.sa, sizeof(sa)) < 0) {
 			buxton_log("bind(): %m\n");
