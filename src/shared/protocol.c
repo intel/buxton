@@ -95,15 +95,16 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	assert(msg);
 	assert(list);
 
-	char response[256];
+	uint8_t response[256];
 	int l;
 	BuxtonData *r_list = NULL;
 	BuxtonControlMessage r_msg;
-	uint8_t *data = NULL;;
+	__attribute__((unused)) uint8_t *data = NULL;
 	int count = -1;
 
 	while ((l = read(client->fd, &response, 256)) > 0) {
-		if ((count = buxton_deserialize_message(response, &r_msg, l, &r_list)) < 0)
+		count = buxton_deserialize_message(response, &r_msg, l, &r_list);
+		if (count < 0)
 			goto end;
 		if (r_msg != BUXTON_CONTROL_STATUS && r_list[0].type != INT) {
 			buxton_log("Critical error: Invalid response\n");
