@@ -190,6 +190,12 @@ static void handle_client(client_list_item *cl, int i)
 	buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
 
 	/* Hand off any read data */
+	/*
+	 * TODO: Need to handle partial messages, read total message
+	 * size of the data, keep reading until we get that amount.
+	 * Probably need a timer to stop waiting and just move to the
+	 * next client at some point as well.
+	 */
 	while ((l = read(self.pollfds[i].fd, &cl->data, 256)) > 0)
 		bt_daemon_handle_message(&self, cl, l);
 }
@@ -373,6 +379,7 @@ int main(int argc, char *argv[])
 			assert(self.pollfds[i].fd != smackfd);
 
 			/* handle data on any connection */
+			/* TODO: Replace with hash table lookup */
 			LIST_FOREACH(item, cl, self.client_list)
 				if (self.pollfds[i].fd == cl->fd)
 					break;
