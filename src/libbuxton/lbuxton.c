@@ -87,6 +87,7 @@ bool buxton_client_open(BuxtonClient *client)
 	if ( r == -1) {
 		ret = false;
 		close(client->fd);
+		goto end;
 	}
 
 	ret = true;
