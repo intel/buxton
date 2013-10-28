@@ -109,17 +109,8 @@ void buxton_client_close(BuxtonClient *client)
 
 bool buxton_direct_open(BuxtonClient *client)
 {
-	int r;
-	struct stat st;
 
 	assert(client);
-
-	/*
-	 * Don't run direct connect if the buxton socket exists but be
-	 * nice and fall back to a socket connection */
-	r = stat(BUXTON_SOCKET, &st);
-	if (r != -1)
-		return buxton_client_open(client);
 
 	if (!_exit_handler_registered) {
 		_exit_handler_registered = true;
