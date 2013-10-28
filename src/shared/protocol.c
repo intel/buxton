@@ -80,7 +80,7 @@ end:
 	if (data && data->type == STRING)
 		free(data->store.d_string);
 	if (list) {
-		for (i=0; i<p_count; i++) {
+		for (i=0; i < p_count; i++) {
 			if (list[i].type == STRING)
 				free(list[i].store.d_string);
 		}
