@@ -97,6 +97,12 @@ typedef struct BuxtonData {
 _bx_export_ bool buxton_client_open(BuxtonClient *client);
 
 /**
+ * Close the connection to Buxton
+ * @param client A BuxtonClient
+ */
+_bx_export_ void buxton_client_close(BuxtonClient *client);
+
+/**
  * Set a value within Buxton
  * @param client An open client connection
  * @param layer The layer to manipulate

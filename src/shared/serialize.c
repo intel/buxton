@@ -272,9 +272,8 @@ end:
 }
 
 int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
-			       BuxtonData** list)
+			       int size, BuxtonData** list)
 {
-	int size = 0;
 	int offset = 0;
 	int ret = -1;
 	int min_length = BUXTON_CONTROL_LENGTH;
@@ -295,7 +294,6 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	assert(r_message);
 	assert(list);
 
-	size = malloc_usable_size(data);
 	if (size < min_length)
 		goto end;
 

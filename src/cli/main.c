@@ -332,6 +332,7 @@ int main(int argc, char **argv)
 
 end:
 	hashmap_free(commands);
+	buxton_client_close(&client);
 	if (ret)
 		return EXIT_SUCCESS;
 	return EXIT_FAILURE;
