@@ -196,6 +196,7 @@ check_bt_daemon_CFLAGS = \
 check_bt_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	$(SYSTEMD_LIBS) \
+	libbuxton.la \
 	libbuxton-shared.la
 
 check_daemon_SOURCES = \
