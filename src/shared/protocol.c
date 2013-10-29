@@ -45,10 +45,10 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int 
 	/* use internal function from bt-daemon */
 	switch (msg) {
 		case BUXTON_CONTROL_SET:
-			data = self->set_value(client, list, &response);
+			data = self->set_value(client, list, p_count, &response);
 			break;
 		case BUXTON_CONTROL_GET:
-			data = self->get_value(client, list, &response);
+			data = self->get_value(client, list, p_count, &response);
 			break;
 		default:
 			goto end;

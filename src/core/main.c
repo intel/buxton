@@ -242,14 +242,14 @@ cleanup:
 	cl->offset = 0;
 }
 
-static BuxtonData* get_value(client_list_item *client, BuxtonData *list, BuxtonStatus *status)
+static BuxtonData* get_value(client_list_item *client, BuxtonData *list, int n_params, BuxtonStatus *status)
 {
 	/* TODO: Implement */
 	*status = BUXTON_STATUS_FAILED;
 	return NULL;
 }
 
-static BuxtonData*  set_value(client_list_item *client, BuxtonData *list, BuxtonStatus *status)
+static BuxtonData*  set_value(client_list_item *client, BuxtonData *list, int n_params, BuxtonStatus *status)
 {
 	/* TODO: Implement */
 	*status = BUXTON_STATUS_FAILED;

@@ -46,6 +46,7 @@ typedef enum BuxtonStatus {
 
 typedef BuxtonData* (*daemon_value_func) (client_list_item *client,
 					   BuxtonData *list,
+					   int n_params,
 					   BuxtonStatus *status);
 
 /**
