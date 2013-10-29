@@ -14,6 +14,7 @@
 #endif
 
 #include <check.h>
+#include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -357,7 +358,7 @@ START_TEST(buxton_message_serialize_check)
 	csource = BUXTON_CONTROL_GET;
 	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
 		"Failed to serialize string data");
-	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+	fail_if(buxton_deserialize_message(packed, &ctarget, malloc_usable_size(packed), &dtarget) != 1,
 		"Failed to deserialize string data");
 	fail_if(ctarget != csource, "Failed to get correct control message for string");
 	fail_if(dsource.type != dtarget[0].type,
@@ -378,7 +379,7 @@ START_TEST(buxton_message_serialize_check)
 	csource = BUXTON_CONTROL_GET;
 	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
 		"Failed to serialize boolean data");
-	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+	fail_if(buxton_deserialize_message(packed, &ctarget, malloc_usable_size(packed), &dtarget) != 1,
 		"Failed to deserialize boolean data");
 	fail_if(ctarget != csource, "Failed to get correct control message for boolean");
 	fail_if(dsource.type != dtarget[0].type,
@@ -396,7 +397,7 @@ START_TEST(buxton_message_serialize_check)
 	csource = BUXTON_CONTROL_GET;
 	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
 		"Failed to serialize float data");
-	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+	fail_if(buxton_deserialize_message(packed, &ctarget, malloc_usable_size(packed), &dtarget) != 1,
 		"Failed to deserialize float data");
 	fail_if(ctarget != csource, "Failed to get correct control message for float");
 	fail_if(dsource.type != dtarget[0].type,
@@ -414,7 +415,7 @@ START_TEST(buxton_message_serialize_check)
 	csource = BUXTON_CONTROL_GET;
 	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
 		"Failed to serialize int data");
-	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+	fail_if(buxton_deserialize_message(packed, &ctarget, malloc_usable_size(packed), &dtarget) != 1,
 		"Failed to deserialize int data");
 	fail_if(ctarget != csource, "Failed to get correct control message for int");
 	fail_if(dsource.type != dtarget[0].type,
@@ -432,7 +433,7 @@ START_TEST(buxton_message_serialize_check)
 	csource = BUXTON_CONTROL_GET;
 	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
 		"Failed to serialize double data");
-	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+	fail_if(buxton_deserialize_message(packed, &ctarget, malloc_usable_size(packed), &dtarget) != 1,
 		"Failed to deserialize double data");
 	fail_if(ctarget != csource, "Failed to get correct control message for double");
 	fail_if(dsource.type != dtarget[0].type,
@@ -450,7 +451,7 @@ START_TEST(buxton_message_serialize_check)
 	csource = BUXTON_CONTROL_GET;
 	fail_if(buxton_serialize_message(&packed, csource, 1, &dsource) == false,
 		"Failed to serialize long data");
-	fail_if(buxton_deserialize_message(packed, &ctarget, &dtarget) != 1,
+	fail_if(buxton_deserialize_message(packed, &ctarget, malloc_usable_size(packed), &dtarget) != 1,
 		"Failed to deserialize long data");
 	fail_if(ctarget != csource, "Failed to get correct control message for long");
 	fail_if(dsource.type != dtarget[0].type,
