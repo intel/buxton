@@ -117,14 +117,16 @@ END_TEST
 START_TEST(smack_access_check)
 {
 	bool ret;
+	BuxtonSmackLabel subject;
+	BuxtonSmackLabel object;
+
 	ret = buxton_cache_smack_rules();
 	fail_if(!ret, "Failed to cache Smack rules");
 
-	BuxtonSmackLabel subject = "system";
-	BuxtonSmackLabel object = "base/sample/key";
+	subject = "system";
+	object = "base/sample/key";
 	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
 	fail_if(!ret, "Read access was denied, but should have been granted");
-
 	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
 	fail_if(ret, "Write access was granted, but should have been denied");
 
