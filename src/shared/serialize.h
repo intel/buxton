@@ -58,6 +58,11 @@ typedef enum BuxtonControlMessage{
 	+ (sizeof(int)*3)
 
 /**
+ * Maximum length of valid control message
+ */
+#define BUXTON_CONTROL_LENGTH_MAX 4096
+
+/**
  * Serialize data internally for backend consumption
  * @param source Data to be serialized
  * @param dest Pointer to store serialized data in
