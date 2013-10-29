@@ -25,12 +25,13 @@
 #include "list.h"
 #include "bt-daemon.h"
 #include "serialize.h"
+#include "smack.h"
 
 typedef struct client_list_item {
 	LIST_FIELDS(struct client_list_item, item); /**<List type */
 	int fd; /**<File descriptor of connected client */
 	struct ucred cred; /**<Credentials of connected client */
-	char *smack_label; /**<Smack label of connected client */
+	BuxtonSmackLabel smack_label; /**<Smack label of connected client */
 	uint8_t *data; /**<Data buffer for the client */
 	size_t offset; /**<Current position to write to data buffer */
 	size_t size; /**<Size of the data buffer */

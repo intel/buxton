@@ -120,8 +120,8 @@ START_TEST(smack_access_check)
 	ret = buxton_cache_smack_rules();
 	fail_if(!ret, "Failed to cache Smack rules");
 
-	char *subject = "system";
-	char *object = "base/sample/key";
+	BuxtonSmackLabel subject = "system";
+	BuxtonSmackLabel object = "base/sample/key";
 	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
 	fail_if(!ret, "Read access was denied, but should have been granted");
 

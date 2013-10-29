@@ -97,7 +97,7 @@ end:
 	return ret;
 }
 
-bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType request)
+bool buxton_check_smack_access(BuxtonSmackLabel subject, BuxtonSmackLabel object, BuxtonKeyAccessType request)
 {
 	char *key;
 	int r;

@@ -31,6 +31,11 @@
 #define ACC_LEN 5
 
 /**
+ * Represents the Smack label for a client or key
+ */
+typedef char * BuxtonSmackLabel;
+
+/**
  * Represents client access to a given resource
  */
 typedef enum BuxtonKeyAccessType {
@@ -53,7 +58,7 @@ bool buxton_cache_smack_rules(void);
  * @param request The buxton access type being queried
  * @return true if the smack access matches the given request, otherwise false
  */
-bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType request);
+bool buxton_check_smack_access(BuxtonSmackLabel subject, BuxtonSmackLabel object, BuxtonKeyAccessType request);
 
 /**
  * Set up inotify to track Smack rule file for changes
