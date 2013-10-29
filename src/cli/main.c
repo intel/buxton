@@ -83,6 +83,7 @@ static bool set_value(BuxtonDataType type) {
 	layer = arg_v[arg_n + 1];
 	key = arg_v[arg_n + 2];
 	value = arg_v[arg_n + 3];
+	bool ret = false;
 
 	set.type = type;
 	switch (set.type) {
@@ -130,8 +131,12 @@ static bool set_value(BuxtonDataType type) {
 		default:
 			break;
 	}
-	return buxton_client_set_value(&client, layer, key, &set);
+	ret = buxton_client_set_value(&client, layer, key, &set);
+	if (!ret)
+		printf("Failed to update key \'%s\' in layer '%s'\n", key, layer);
+	return ret;
 }
+
 
 /* Get a value from Buxton */
 static bool get_value(BuxtonDataType type) {
