@@ -42,113 +42,6 @@
 static BuxtonDaemon self;
 
 /**
- * Handle a client connection
- * @param cl The currently activate client
- * @param i The currently active file descriptor
- */
-static void handle_client(client_list_item *cl, int i)
-{
-	ssize_t l;
-	int slabel_len;
-	BuxtonSmackLabel slabel = NULL;
-
-	if (!cl->data) {
-		cl->data = malloc(BUXTON_CONTROL_LENGTH);
-		cl->offset = 0;
-		cl->size = BUXTON_CONTROL_LENGTH;
-	}
-	if (!cl->data)
-		return;
-	/* client closed the connection, or some error occurred? */
-	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
-		del_pollfd(&self, i);
-		close(cl->fd);
-		free(cl->smack_label);
-		buxton_debug("Closed connection from fd %d\n", cl->fd);
-		LIST_REMOVE(client_list_item, item, self.client_list, cl);
-		free(cl);
-		return;
-	}
-
-	/* need to authenticate the client? */
-	if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
-		if (!identify_client(cl)) {
-			del_pollfd(&self, i);
-			close(cl->fd);
-			free(cl->smack_label);
-			buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
-			LIST_REMOVE(client_list_item, item, self.client_list, cl);
-			return;
-		}
-
-		slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, 0);
-		if (slabel_len <= 0) {
-			buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
-			exit(EXIT_FAILURE);
-		}
-
-		slabel = malloc0(slabel_len + 1);
-		if (!slabel) {
-			buxton_log("malloc0(): %m\n");
-			exit(EXIT_FAILURE);
-		}
-		slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
-		if (!slabel_len) {
-			buxton_log("fgetxattr(): %m\n");
-			exit(EXIT_FAILURE);
-		}
-
-		buxton_debug("fgetxattr(): label=\"%s\"\n", slabel);
-		cl->smack_label = strdup(slabel);
-	}
-	buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
-
-	/* Hand off any read data */
-	/*
-	 * TODO: Need to handle partial messages, read total message
-	 * size of the data, keep reading until we get that amount.
-	 * Probably need a timer to stop waiting and just move to the
-	 * next client at some point as well.
-	 */
-	while ((l = read(self.pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset)) > 0) {
-		cl->offset += l;
-		if (cl->offset < BUXTON_CONTROL_LENGTH) {
-			continue;
-		}
-		if (cl->size == BUXTON_CONTROL_LENGTH) {
-			cl->size = buxton_get_message_size(cl->data, cl->offset);
-			if (cl->size == 0 || cl->size > BUXTON_CONTROL_LENGTH_MAX)
-				goto cleanup;
-		}
-		if (cl->size != BUXTON_CONTROL_LENGTH) {
-			cl->data = realloc(cl->data, cl->size);
-			if (!cl->data)
-				goto cleanup;
-		}
-		if (cl->size != cl->offset)
-			continue;
-		bt_daemon_handle_message(&self, cl, l);
-
-		/* reset in case there are more messages */
-		cl->data = realloc(cl->data, BUXTON_CONTROL_LENGTH);
-		if (!cl->data)
-			goto cleanup;
-		cl->size = BUXTON_CONTROL_LENGTH;
-		cl->offset = 0;
-	}
-
-	/* Not done with this message so don't cleanup */
-	if (l == 0 && cl->offset < cl->size)
-		return;
-cleanup:
-	if (cl->data)
-		free(cl->data);
-	cl->data = NULL;
-	cl->size = BUXTON_CONTROL_LENGTH;
-	cl->offset = 0;
-}
-
-/**
  * Entry point into bt-daemon
  * @param argc Number of arguments passed
  * @param argv An array of string arguments
@@ -323,7 +216,7 @@ int main(int argc, char *argv[])
 					break;
 
 			assert(cl);
-			handle_client(cl, i);
+			handle_client(&self, cl, i);
 		}
 	}
 

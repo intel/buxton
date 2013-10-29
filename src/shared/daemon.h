@@ -72,6 +72,14 @@ void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a);
  */
 void del_pollfd(BuxtonDaemon *self, int i);
 
+/**
+ * Handle a client connection
+ * @param self bt-daemon instance being run
+ * @param cl The currently activate client
+ * @param i The currently active file descriptor
+ */
+void handle_client(BuxtonDaemon *self, client_list_item *cl, int i);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
