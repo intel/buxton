@@ -249,10 +249,32 @@ static BuxtonData* get_value(client_list_item *client, BuxtonData *list, int n_p
 	return NULL;
 }
 
+/* TODO: Add Smack support */
 static BuxtonData*  set_value(client_list_item *client, BuxtonData *list, int n_params, BuxtonStatus *status)
 {
-	/* TODO: Implement */
+	BuxtonData layer, key, value;
 	*status = BUXTON_STATUS_FAILED;
+
+	/* Require layer, key and value */
+	if (n_params != 3)
+		return NULL;
+
+	layer = list[0];
+	key = list[1];
+	value = list[2];
+
+	/* We only accept strings for layer and key names */
+	if (layer.type != STRING && key.type != STRING)
+		return NULL;
+
+	/* Use internal library to set value */
+	if (!buxton_client_set_value(&self.buxton, layer.store.d_string, key.store.d_string, &value)) {
+		*status = BUXTON_STATUS_FAILED;
+		return NULL;
+	}
+
+	*status = BUXTON_STATUS_OK;
+	buxton_debug("Setting value of [%s][%s]\n", layer.store.d_string, key.store.d_string);
 	return NULL;
 }
 
