@@ -485,6 +485,28 @@ START_TEST(buxton_message_serialize_check)
 }
 END_TEST
 
+START_TEST(buxton_get_message_size_check)
+{
+	BuxtonControlMessage csource;
+	BuxtonData dsource;
+	uint8_t *packed;
+	size_t ret;
+
+	dsource.type = STRING;
+	dsource.store.d_string = "test-key";
+	csource = BUXTON_CONTROL_GET;
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	fail_if(ret == 0, "Failed to serialize string data for size");
+	fail_if(ret != buxton_get_message_size(packed, ret),
+		"Failed to get correct message size");
+	fail_if(buxton_get_message_size(packed, BUXTON_CONTROL_LENGTH - 1) != 0,
+		"Got size even though message smaller than the minimum");
+
+	if (packed)
+		free(packed);
+}
+END_TEST
+
 Suite *
 shared_lib_suite(void)
 {
@@ -517,6 +539,7 @@ shared_lib_suite(void)
 	tc = tcase_create("buxton_serialize_functions");
 	tcase_add_test(tc, buxton_db_serialize_check);
 	tcase_add_test(tc, buxton_message_serialize_check);
+	tcase_add_test(tc, buxton_get_message_size_check);
 	suite_add_tcase(s, tc);
 
 	return s;

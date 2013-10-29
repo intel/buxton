@@ -416,6 +416,20 @@ end:
 	return ret;
 }
 
+size_t buxton_get_message_size(uint8_t *data, int size)
+{
+	size_t r_size;
+
+	assert(data);
+
+	if (size < BUXTON_CONTROL_LENGTH)
+		return 0;
+
+	memcpy(&r_size, data+BUXTON_LENGTH_OFFSET, sizeof(size_t));
+
+	return r_size;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

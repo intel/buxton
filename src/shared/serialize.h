@@ -95,6 +95,14 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
 			       int size, BuxtonData **list);
 
+/**
+ * Get size of a buxton message data stream
+ * @param data The source data stream
+ * @param size The size of the data stream (from read)
+ * @return size_t The length of the complete message or 0
+ */
+size_t buxton_get_message_size(uint8_t *data, int size);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
