@@ -127,6 +127,51 @@ START_TEST(smack_access_check)
 
 	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
 	fail_if(ret, "Write access was granted, but should have been denied");
+
+	subject = "*";
+	object = "foo";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(ret, "Read access granted for * subject");
+	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
+	fail_if(ret, "Write access granted for * subject");
+
+	subject = "foo";
+	object = "@";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(!ret, "Read access denied for @ object");
+	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
+	fail_if(!ret, "Write access denied for @ object");
+
+	subject = "@";
+	object = "foo";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(!ret, "Read access denied for @ subject");
+	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
+	fail_if(!ret, "Write access denied for @ subject");
+
+	subject = "foo";
+	object = "*";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(!ret, "Read access denied for * object");
+	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
+	fail_if(!ret, "Write access denied for * object");
+
+	subject = "foo";
+	object = "foo";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(!ret, "Read access denied for matching subject/object");
+	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
+	fail_if(!ret, "Write access denied for matching subject/object");
+
+	subject = "foo";
+	object = "_";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(!ret, "Read access denied for _ object");
+
+	subject = "^";
+	object = "foo";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(!ret, "Read access denied for ^ subject");
 }
 END_TEST
 
