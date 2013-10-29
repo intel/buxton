@@ -276,14 +276,20 @@ static BuxtonData* get_value(client_list_item *client, BuxtonData *list, int n_p
 	if (n_params == 2) {
 		/* Layer + key */
 		if (!buxton_client_get_value_for_layer(&self.buxton, layer.store.d_string, key.store.d_string, ret))
-			goto end;
+			goto fail;
 	} else {
 		/* Key only */
 		if (!buxton_client_get_value(&self.buxton, key.store.d_string, ret))
-			goto end;
+			goto fail;
 	}
 	*status = BUXTON_STATUS_OK;
+	goto end;
+fail:
+	if (ret)
+		free(ret);
+	ret = NULL;
 end:
+
 	return ret;
 }
 
