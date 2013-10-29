@@ -130,6 +130,13 @@ START_TEST(smack_access_check)
 	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
 	fail_if(ret, "Write access was granted, but should have been denied");
 
+	subject = "system";
+	object = "system/sample/key";
+	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
+	fail_if(!ret, "Read access was denied");
+	ret = buxton_check_smack_access(subject, object, ACCESS_WRITE);
+	fail_if(!ret, "Write access was denied");
+
 	subject = "*";
 	object = "foo";
 	ret = buxton_check_smack_access(subject, object, ACCESS_READ);
