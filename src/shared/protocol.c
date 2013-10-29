@@ -19,6 +19,7 @@
 
 #include "protocol.h"
 #include "log.h"
+#include "util.h"
 
 void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int size)
 {
@@ -161,6 +162,65 @@ end:
 
 	return ret;
 }
+
+bool buxton_wire_get_value(BuxtonClient *client, const char *layer_name, const char *key,
+			   BuxtonData *value)
+{
+	assert(client);
+	assert(key);
+	assert(value);
+
+	bool ret = false;
+	int count, i;
+	uint8_t *send = NULL;
+	int send_len = 0;
+	BuxtonControlMessage r_msg;
+	BuxtonData *r_list = NULL;
+	BuxtonData d_layer, d_key;
+
+	/* Optional layer */
+	if (layer_name != NULL) {
+		d_layer.type = STRING;
+		d_layer.store.d_string = (char *)layer_name;
+	}
+	d_key.type = STRING;
+	d_key.store.d_string = (char *)key;
+
+	/* Attempt to serialize our send message */
+	if (layer_name != NULL)
+		send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, 2,
+						    &d_layer, &d_key);
+	else
+		send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, 1, &d_key);
+
+	if (send_len == 0)
+		goto end;
+	/* Now write it off */
+	write(client->fd, send, send_len);
+
+	/* Gain response */
+	count = buxton_wire_get_response(client, &r_msg, &r_list);
+	if (count == 2 && r_list[0].store.d_int == BUXTON_STATUS_OK)
+		ret = true;
+	else
+		goto end;
+
+	/* Now copy the data over for the user */
+	buxton_data_copy(&r_list[1], value);
+
+end:
+	if (send)
+		free(send);
+	if (r_list) {
+		for (i=0; i < count; i++) {
+			if (r_list[i].type == STRING)
+				free(r_list[i].store.d_string);
+		}
+		free(r_list);
+	}
+	return ret;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

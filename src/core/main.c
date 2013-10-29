@@ -242,11 +242,49 @@ cleanup:
 	cl->offset = 0;
 }
 
+/* TODO: Add smack support */
 static BuxtonData* get_value(client_list_item *client, BuxtonData *list, int n_params, BuxtonStatus *status)
 {
-	/* TODO: Implement */
+	BuxtonData layer, key;
 	*status = BUXTON_STATUS_FAILED;
-	return NULL;
+	BuxtonData* ret = NULL;
+
+	if (n_params < 1)
+		goto end;
+
+	/* Optional layer */
+	if (n_params == 2) {
+		layer = list[0];
+		if (layer.type != STRING)
+			goto end;
+		key = list[1];
+	} else  if (n_params == 2) {
+		key = list[0];
+	} else {
+		goto end;
+	}
+
+	/* We only accept strings for layer and key names */
+	if (key.type != STRING)
+		goto end;
+
+	ret = malloc(sizeof(BuxtonData));
+	if (!ret)
+		goto end;
+
+	/* Attempt to retrieve key */
+	if (n_params == 2) {
+		/* Layer + key */
+		if (!buxton_client_get_value_for_layer(&self.buxton, layer.store.d_string, key.store.d_string, ret))
+			goto end;
+	} else {
+		/* Key only */
+		if (!buxton_client_get_value(&self.buxton, key.store.d_string, ret))
+			goto end;
+	}
+	*status = BUXTON_STATUS_OK;
+end:
+	return ret;
 }
 
 /* TODO: Add Smack support */
