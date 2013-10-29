@@ -204,7 +204,7 @@ static void handle_client(client_list_item *cl, int i)
 	 * Probably need a timer to stop waiting and just move to the
 	 * next client at some point as well.
 	 */
-	while ((l = read(self.pollfds[i].fd, &(cl->data) + cl->offset, cl->size - cl->offset)) > 0) {
+	while ((l = read(self.pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset)) > 0) {
 		cl->offset += l;
 		if (cl->offset < BUXTON_CONTROL_LENGTH) {
 			continue;
