@@ -146,8 +146,15 @@ static void handle_client(client_list_item *cl, int i)
 	int slabel_len;
 	char *slabel = NULL;
 
+	if (!cl->data) {
+		cl->data = malloc(BUXTON_CONTROL_LENGTH);
+		cl->offset = 0;
+		cl->size = BUXTON_CONTROL_LENGTH;
+	}
+	if (!cl->data)
+		return;
 	/* client closed the connection, or some error occurred? */
-	if (recv(cl->fd, cl->data, sizeof(cl->data), MSG_PEEK | MSG_DONTWAIT) <= 0) {
+	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
 		del_pollfd(i);
 		close(cl->fd);
 		free(cl->smack_label);
@@ -197,13 +204,6 @@ static void handle_client(client_list_item *cl, int i)
 	 * Probably need a timer to stop waiting and just move to the
 	 * next client at some point as well.
 	 */
-	if (!cl->data) {
-		cl->data = malloc(BUXTON_CONTROL_LENGTH);
-		cl->offset = 0;
-		cl->size = BUXTON_CONTROL_LENGTH;
-	}
-	if (!cl->data)
-		return;
 	while ((l = read(self.pollfds[i].fd, &(cl->data) + cl->offset, cl->size - cl->offset)) > 0) {
 		cl->offset += l;
 		if (cl->offset < BUXTON_CONTROL_LENGTH) {
