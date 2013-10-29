@@ -31,7 +31,9 @@ typedef struct client_list_item {
 	int fd; /**<File descriptor of connected client */
 	struct ucred cred; /**<Credentials of connected client */
 	char *smack_label; /**<Smack label of connected client */
-	char data[256]; /**<Data buffer for the client */
+	uint8_t *data; /**<Data buffer for the client */
+	size_t offset; /**<Current position to write to data buffer */
+	size_t size; /**<Size of the data buffer */
 } client_list_item;
 
 /**

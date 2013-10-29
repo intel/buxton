@@ -197,8 +197,49 @@ static void handle_client(client_list_item *cl, int i)
 	 * Probably need a timer to stop waiting and just move to the
 	 * next client at some point as well.
 	 */
-	while ((l = read(self.pollfds[i].fd, &cl->data, 256)) > 0)
+	if (!cl->data) {
+		cl->data = malloc(BUXTON_CONTROL_LENGTH);
+		cl->offset = 0;
+		cl->size = BUXTON_CONTROL_LENGTH;
+	}
+	if (!cl->data)
+		return;
+	while ((l = read(self.pollfds[i].fd, &(cl->data) + cl->offset, cl->size - cl->offset)) > 0) {
+		cl->offset += l;
+		if (cl->offset < BUXTON_CONTROL_LENGTH) {
+			continue;
+		}
+		if (cl->size == BUXTON_CONTROL_LENGTH) {
+			cl->size = buxton_get_message_size(cl->data, cl->offset);
+			if (cl->size == 0 || cl->size > BUXTON_CONTROL_LENGTH_MAX)
+				goto cleanup;
+		}
+		if (cl->size != BUXTON_CONTROL_LENGTH) {
+			cl->data = realloc(cl->data, cl->size);
+			if (!cl->data)
+				goto cleanup;
+		}
+		if (cl->size != cl->offset)
+			continue;
 		bt_daemon_handle_message(&self, cl, l);
+
+		/* reset in case there are more messages */
+		cl->data = realloc(cl->data, BUXTON_CONTROL_LENGTH);
+		if (!cl->data)
+			goto cleanup;
+		cl->size = BUXTON_CONTROL_LENGTH;
+		cl->offset = 0;
+	}
+
+	/* Not done with this message so don't cleanup */
+	if (l == 0 && cl->offset < cl->size)
+		return;
+cleanup:
+	if (cl->data)
+		free(cl->data);
+	cl->data = NULL;
+	cl->size = BUXTON_CONTROL_LENGTH;
+	cl->offset = 0;
 }
 
 static BuxtonData* get_value(client_list_item *client, BuxtonData *list, BuxtonStatus *status)
