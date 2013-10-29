@@ -144,7 +144,7 @@ static void handle_client(client_list_item *cl, int i)
 {
 	ssize_t l;
 	int slabel_len;
-	char *slabel = NULL;
+	BuxtonSmackLabel slabel = NULL;
 
 	if (!cl->data) {
 		cl->data = malloc(BUXTON_CONTROL_LENGTH);
