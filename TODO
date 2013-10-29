@@ -1,8 +1,14 @@
 - make install: create some default data path
 
-- obtain smack label by using smack_new_label_from_socket (sys/smack.h)
-  store this in client_list_item after identifying the socket
+- integrate smack access control in get_value and set_value functions
+  of bt-daemon (main.c)
 
-- add more serialization helpers (network ordering and packet padding)
+- don't hang for clients in bt-daemon, possible solution is to set
+  socket timeout when we have a partial message, then remove timeout
+  once a complete message is recieved.
 
-- begin implementing wire-protocol
+- test multi-part messaging in the client-side of the library, mirroring
+  changes made to bt-daemon's protocol handling
+
+- add checks for data consistency, and determine if gdbm needs to be
+  "reorganised" to ensure minimal I/O bottlenecking

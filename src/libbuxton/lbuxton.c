@@ -285,7 +285,7 @@ bool buxton_client_get_value(BuxtonClient *client,
 	}
 
 	/* Normal interaction (wire-protocol) */
-	return false;
+	return buxton_wire_get_value(client, NULL, key, data);
 }
 
 bool buxton_client_get_value_for_layer(BuxtonClient *client,
@@ -316,7 +316,7 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 	}
 
 	/* Normal interaction (wire-protocol) */
-	return false;
+	return buxton_wire_get_value(client, layer_name, key, data);
 }
 
 bool buxton_client_set_value(BuxtonClient *client,
