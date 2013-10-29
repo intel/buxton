@@ -258,7 +258,7 @@ static BuxtonData* get_value(client_list_item *client, BuxtonData *list, int n_p
 		if (layer.type != STRING)
 			goto end;
 		key = list[1];
-	} else  if (n_params == 2) {
+	} else  if (n_params == 1) {
 		key = list[0];
 	} else {
 		goto end;
