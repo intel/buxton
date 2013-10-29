@@ -102,6 +102,59 @@ end:
 	return ret;
 }
 
+bool identify_client(client_list_item *cl)
+{
+	/* Identity handling */
+	int nr, data;
+	struct msghdr msgh;
+	struct iovec iov;
+	__attribute__((unused)) struct ucred *ucredp;
+	struct cmsghdr *cmhp;
+        socklen_t len = sizeof(struct ucred);
+	int on = 1;
+
+	union {
+		struct cmsghdr cmh;
+		char control[CMSG_SPACE(sizeof(struct ucred))];
+	} control_un;
+
+	setsockopt(cl->fd, SOL_SOCKET, SO_PASSCRED, &on, sizeof(on));
+
+	control_un.cmh.cmsg_len = CMSG_LEN(sizeof(struct ucred));
+	control_un.cmh.cmsg_level = SOL_SOCKET;
+	control_un.cmh.cmsg_type = SCM_CREDENTIALS;
+
+	msgh.msg_control = control_un.control;
+	msgh.msg_controllen = sizeof(control_un.control);
+
+	msgh.msg_iov = &iov;
+	msgh.msg_iovlen = 1;
+	iov.iov_base = &data;
+	iov.iov_len = sizeof(int);
+
+	msgh.msg_name = NULL;
+	msgh.msg_namelen = 0;
+
+	nr = recvmsg(cl->fd, &msgh, MSG_PEEK | MSG_DONTWAIT);
+	if (nr == -1)
+		return false;
+
+	cmhp = CMSG_FIRSTHDR(&msgh);
+
+	if (cmhp == NULL || cmhp->cmsg_len != CMSG_LEN(sizeof(struct ucred)))
+		return false;
+
+	if (cmhp->cmsg_level != SOL_SOCKET || cmhp->cmsg_type != SCM_CREDENTIALS)
+		return false;
+
+	ucredp = (struct ucred *) CMSG_DATA(cmhp);
+
+	if (getsockopt(cl->fd, SOL_SOCKET, SO_PEERCRED, &cl->cred, &len) == -1)
+		return false;
+
+	return true;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

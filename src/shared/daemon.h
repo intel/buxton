@@ -47,6 +47,13 @@ BuxtonData* set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 BuxtonData* get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 			     int n_params, BuxtonStatus *status);
 
+/**
+ * Verify credentials for the client socket
+ * @param cl Client to check the credentials of
+ * @return bool indicating credentials where found or not
+ */
+bool identify_client(client_list_item *cl);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
