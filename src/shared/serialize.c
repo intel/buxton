@@ -164,15 +164,15 @@ end:
 	return ret;
 }
 
-bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
+size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			      unsigned int n_params, ...)
 {
 	va_list args;
 	int i = 0;
 	uint8_t *data;
-	bool ret = false;
-	unsigned int offset = 0;
-	unsigned int size = 0;
+	size_t ret = 0;
+	size_t offset = 0;
+	size_t size = 0;
 	size_t curSize = 0;
 	uint16_t control, msg;
 
@@ -180,12 +180,12 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 	/* Empty message not permitted */
 	if (n_params <= 0)
-		return false;
+		return ret;
 
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
-		return false;
+		return ret;
 
-	data = malloc(sizeof(uint32_t) + sizeof(unsigned int));
+	data = malloc(sizeof(uint32_t) + sizeof(size_t) + sizeof(unsigned int));
 	if (!data)
 		goto end;
 
@@ -197,7 +197,10 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	memcpy(data+offset, &msg, sizeof(uint16_t));
 	offset += sizeof(uint16_t);
 
-	/* Now write the length */
+	/* Save room for final size */
+	offset += sizeof(size_t);
+
+	/* Now write the parameter count */
 	memcpy(data+offset, &n_params, sizeof(unsigned int));
 	offset += sizeof(unsigned int);
 
@@ -260,11 +263,13 @@ bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		p_length = 0;
 	}
 
-	ret = true;
+	memcpy(data+BUXTON_LENGTH_OFFSET, &offset, sizeof(size_t));
+
+	ret = offset;
 	*dest = data;
 fail:
 	/* Clean up */
-	if (!ret && data)
+	if (ret == 0 && data)
 		free(data);
 	va_end(args);
 end:
@@ -319,6 +324,9 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	/* Ensure control message is in valid range */
 	if (message >= BUXTON_CONTROL_MAX)
 		goto end;
+
+	/* Skip size since our caller got this already */
+	offset += sizeof(size_t);
 
 	/* Obtain number of parameters */
 	copy_params = malloc(sizeof(unsigned int));

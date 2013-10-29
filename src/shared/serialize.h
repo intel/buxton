@@ -30,6 +30,11 @@
 #define BUXTON_CONTROL_CODE 0x672
 
 /**
+ * Location of size in serialized message data
+ */
+#define BUXTON_LENGTH_OFFSET sizeof(uint32_t)
+
+/**
  * Minimum size of serialized BuxtonData
  */
 #define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) + (sizeof(int)*2)
@@ -48,8 +53,9 @@ typedef enum BuxtonControlMessage{
  * Minimum length of valid control message
  */
 #define BUXTON_CONTROL_LENGTH sizeof(uint32_t) \
-	+ sizeof(BuxtonControlMessage)	       \
-	+ (sizeof(int)*3);
+	+ sizeof(size_t)		       \
+	+ sizeof(unsigned int)		       \
+	+ (sizeof(int)*3)
 
 /**
  * Serialize data internally for backend consumption
@@ -73,9 +79,9 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
  * @param message The type of message to be serialized
  * @param n_params Number of parameters in va_args list
  * @param ... Variable argument list of BuxtonData pointers
- * @return a boolean value, indicating success of the operation
+ * @return a size_t, 0 indicates failure otherwise size of dest
  */
-bool buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
+size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			      unsigned int n_params, ...);
 
 /**

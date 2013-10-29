@@ -58,6 +58,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int 
 	response_data.store.d_int = response;
 
 	/* Prepare a data response */
+	/* TODO: When do we care about the else case here? Cleanup? */
 	if (data) {
 		/* Returning data from inside buxton */
 		if (!buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 2, &response_data, data)) {
@@ -141,11 +142,11 @@ bool buxton_wire_set_value(BuxtonClient *client, const char *layer_name, const c
 	d_key.store.d_string = (char *)key;
 
 	/* Attempt to serialize our send message */
-	if (!buxton_serialize_message(&send, BUXTON_CONTROL_SET, 3,
-		&d_layer, &d_key, value))
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, 3,
+					    &d_layer, &d_key, value);
+	if (send_len == 0)
 		goto end;
 	/* Now write it off */
-	send_len = malloc_usable_size(send);
 	write(client->fd, send, send_len);
 
 	/* Gain response */
