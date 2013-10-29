@@ -427,6 +427,9 @@ size_t buxton_get_message_size(uint8_t *data, int size)
 
 	memcpy(&r_size, data+BUXTON_LENGTH_OFFSET, sizeof(size_t));
 
+	if (r_size < BUXTON_CONTROL_LENGTH)
+		return 0;
+
 	return r_size;
 }
 
