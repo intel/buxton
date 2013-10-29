@@ -20,13 +20,17 @@
     #include "config.h"
 #endif
 
-#include <sys/socket.h>
 #include <sys/poll.h>
-#include "list.h"
+#include <sys/socket.h>
+
 #include "bt-daemon.h"
+#include "list.h"
 #include "serialize.h"
 #include "smack.h"
 
+/**
+ * List for daemon's clients
+ */
 typedef struct client_list_item {
 	LIST_FIELDS(struct client_list_item, item); /**<List type */
 	int fd; /**<File descriptor of connected client */
@@ -45,15 +49,21 @@ typedef enum BuxtonStatus {
 	BUXTON_STATUS_FAILED /**<Operation failed */
 } BuxtonStatus;
 
-typedef BuxtonData* (*daemon_value_func) (client_list_item *client,
-					   BuxtonData *list,
-					   int n_params,
-					   BuxtonStatus *status);
+typedef struct BuxtonDaemon BuxtonDaemon;
+
+/**
+ * Prototype for get and set value functions
+ */
+typedef BuxtonData* (*daemon_value_func) (struct BuxtonDaemon *self,
+					  client_list_item *client,
+					  BuxtonData *list,
+					  int n_params,
+					  BuxtonStatus *status);
 
 /**
  * Global store of bt-daemon state
  */
-typedef struct BuxtonDaemon {
+struct BuxtonDaemon {
 	size_t nfds_alloc;
 	size_t accepting_alloc;
 	nfds_t nfds;
@@ -63,7 +73,7 @@ typedef struct BuxtonDaemon {
 	BuxtonClient buxton;
 	daemon_value_func set_value;
 	daemon_value_func get_value;
-} BuxtonDaemon;
+};
 
 /**
  * Handle a message within bt-daemon
