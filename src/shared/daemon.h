@@ -54,6 +54,24 @@ BuxtonData* get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
  */
 bool identify_client(client_list_item *cl);
 
+/**
+ * Add a fd to daemon's poll list
+ * @param self bt-daemon instance being run
+ * @param fd File descriptor to add to the poll list
+ * @param events Priority mask for events
+ * @param a Accepting status of the fd
+ * @return None
+ */
+void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a);
+
+/**
+ * Add a fd to daemon's poll list
+ * @param self bt-daemon instance being run
+ * @param i File descriptor to remove from poll list
+ * @return None
+ */
+void del_pollfd(BuxtonDaemon *self, int i);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

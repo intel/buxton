@@ -13,12 +13,15 @@
     #include "config.h"
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "bt-daemon.h"
 #include "daemon.h"
 #include "log.h"
 #include "protocol.h"
+#include "util.h"
 
 /* TODO: Add Smack support */
 BuxtonData* set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
@@ -153,6 +156,49 @@ bool identify_client(client_list_item *cl)
 		return false;
 
 	return true;
+}
+
+void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a)
+{
+	assert(self);
+	assert(fd >= 0);
+
+	if (!greedy_realloc((void **) &(self->pollfds), &(self->nfds_alloc),
+	    (size_t)((self->nfds + 1) * (sizeof(struct pollfd))))) {
+		buxton_log("realloc(): %m\n");
+		exit(EXIT_FAILURE);
+	}
+	if (!greedy_realloc((void **) &(self->accepting), &(self->accepting_alloc),
+	    (size_t)((self->nfds + 1) * (sizeof(self->accepting))))) {
+		buxton_log("realloc(): %m\n");
+		exit(EXIT_FAILURE);
+	}
+	self->pollfds[self->nfds].fd = fd;
+	self->pollfds[self->nfds].events = events;
+	self->pollfds[self->nfds].revents = 0;
+	self->accepting[self->nfds] = a;
+	self->nfds++;
+
+	buxton_debug("Added fd %d to our poll list (accepting=%d)\n", fd, a);
+}
+
+void del_pollfd(BuxtonDaemon *self, int i)
+{
+	assert(self);
+	assert(i <= self->nfds);
+	assert(i >= 0);
+
+	buxton_debug("Removing fd %d from our list\n", self->pollfds[i].fd);
+
+	if (i != (self->nfds - 1)) {
+		memmove(&(self->pollfds[i]),
+			&(self->pollfds[i + 1]),
+			(self->nfds - i - 1) * sizeof(struct pollfd));
+		memmove(&(self->accepting[i]),
+			&(self->accepting[i + 1]),
+			(self->nfds - i - 1) * sizeof(self->accepting));
+	}
+	self->nfds--;
 }
 
 /*

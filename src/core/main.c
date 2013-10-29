@@ -41,47 +41,6 @@
 
 static BuxtonDaemon self;
 
-static void add_pollfd(int fd, short events, bool a)
-{
-	assert(fd >= 0);
-
-	if (!greedy_realloc((void **) &self.pollfds, &self.nfds_alloc,
-	    (size_t)((self.nfds + 1) * (sizeof(struct pollfd))))) {
-		buxton_log("realloc(): %m\n");
-		exit(EXIT_FAILURE);
-	}
-	if (!greedy_realloc((void **) &self.accepting, &self.accepting_alloc,
-	    (size_t)((self.nfds + 1) * (sizeof(self.accepting))))) {
-		buxton_log("realloc(): %m\n");
-		exit(EXIT_FAILURE);
-	}
-	self.pollfds[self.nfds].fd = fd;
-	self.pollfds[self.nfds].events = events;
-	self.pollfds[self.nfds].revents = 0;
-	self.accepting[self.nfds] = a;
-	self.nfds++;
-
-	buxton_debug("Added fd %d to our poll list (accepting=%d)\n", fd, a);
-}
-
-static void del_pollfd(int i)
-{
-	assert(i <= self.nfds);
-	assert(i >= 0);
-
-	buxton_debug("Removing fd %d from our list\n", self.pollfds[i].fd);
-
-	if (i != (self.nfds - 1)) {
-		memmove(&self.pollfds[i],
-			&self.pollfds[i + 1],
-			(self.nfds - i - 1) * sizeof(struct pollfd));
-		memmove(&self.accepting[i],
-			&self.accepting[i + 1],
-			(self.nfds - i - 1) * sizeof(self.accepting));
-	}
-	self.nfds--;
-}
-
 /**
  * Handle a client connection
  * @param cl The currently activate client
@@ -102,7 +61,7 @@ static void handle_client(client_list_item *cl, int i)
 		return;
 	/* client closed the connection, or some error occurred? */
 	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
-		del_pollfd(i);
+		del_pollfd(&self, i);
 		close(cl->fd);
 		free(cl->smack_label);
 		buxton_debug("Closed connection from fd %d\n", cl->fd);
@@ -114,7 +73,7 @@ static void handle_client(client_list_item *cl, int i)
 	/* need to authenticate the client? */
 	if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
 		if (!identify_client(cl)) {
-			del_pollfd(i);
+			del_pollfd(&self, i);
 			close(cl->fd);
 			free(cl->smack_label);
 			buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
@@ -263,25 +222,25 @@ int main(int argc, char *argv[])
 			buxton_log("listen(): %m\n");
 			exit(EXIT_FAILURE);
 		}
-		add_pollfd(fd, POLLIN | POLLPRI, true);
+		add_pollfd(&self, fd, POLLIN | POLLPRI, true);
 	} else {
 		/* systemd socket activation */
 		for (fd = SD_LISTEN_FDS_START + 0; fd < SD_LISTEN_FDS_START + descriptors; fd++) {
 			if (sd_is_fifo(fd, NULL)) {
-				add_pollfd(fd, POLLIN, false);
+				add_pollfd(&self, fd, POLLIN, false);
 				buxton_debug("Added fd %d type FIFO\n", fd);
 			} else if (sd_is_socket_unix(fd, SOCK_STREAM, -1, BUXTON_SOCKET, 0)) {
-				add_pollfd(fd, POLLIN | POLLPRI, true);
+				add_pollfd(&self, fd, POLLIN | POLLPRI, true);
 				buxton_debug("Added fd %d type UNIX\n", fd);
 			} else if (sd_is_socket(fd, AF_UNSPEC, 0, -1)) {
-				add_pollfd(fd, POLLIN | POLLPRI, true);
+				add_pollfd(&self, fd, POLLIN | POLLPRI, true);
 				buxton_debug("Added fd %d type SOCKET\n", fd);
 			}
 		}
 	}
 
 	/* add Smack rule fd to pollfds */
-	add_pollfd(smackfd, POLLIN | POLLPRI, false);
+	add_pollfd(&self, smackfd, POLLIN | POLLPRI, false);
 
 	buxton_log("%s: Started\n", argv[0]);
 
@@ -306,7 +265,7 @@ int main(int argc, char *argv[])
 			if (self.pollfds[i].fd == -1) {
 				/* TODO: Remove client from list  */
 				buxton_debug("Removing / Closing client for fd %d\n", self.pollfds[i].fd);
-				del_pollfd(i);
+				del_pollfd(&self, i);
 				continue;
 			}
 
@@ -344,7 +303,7 @@ int main(int argc, char *argv[])
 				LIST_PREPEND(client_list_item, item, self.client_list, cl);
 
 				/* poll for data on this new client as well */
-				add_pollfd(cl->fd, POLLIN | POLLPRI, false);
+				add_pollfd(&self, cl->fd, POLLIN | POLLPRI, false);
 
 				/* Mark our packets as high prio */
 				if (setsockopt(cl->fd, SOL_SOCKET, SO_PRIORITY, &on, sizeof(on)) == -1)
