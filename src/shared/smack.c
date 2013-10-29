@@ -111,6 +111,27 @@ bool buxton_check_smack_access(char *subject, char *object, BuxtonKeyAccessType 
 	buxton_debug("Subject: %s\n", subject);
 	buxton_debug("Object: %s\n", object);
 
+	/* check the builtin Smack rules first */
+	if (streq(subject, "*"))
+		return false;
+
+	if (streq(object, "@") || streq(subject, "@"))
+		return true;
+
+	if (streq(object, "*"))
+		return true;
+
+	if (streq(subject, object))
+		return true;
+
+	if (request == ACCESS_READ) {
+		if (streq(object, "_"))
+			return true;
+		if (streq(subject, "^"))
+			return true;
+	}
+
+	/* finally, check the loaded rules */
 	r = asprintf(&key, "%s %s", subject, object);
 	if (r == -1) {
 		buxton_log("asprintf(): %m\n");
