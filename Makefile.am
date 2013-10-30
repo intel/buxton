@@ -6,7 +6,12 @@ AM_CFLAGS = -std=gnu99 -fstack-protector -Wall -pedantic \
 
 AM_CPPFLAGS = \
 	-I $(top_srcdir)/src/include \
-	-I $(top_srcdir)/src/shared
+	-I $(top_srcdir)/src/shared \
+	-D_MODULE_DIRECTORY=\"$(MODULEDIR)\" \
+	-D_DEFAULT_CONFIGURATION_FILE=\"$(CONFPATH)\" \
+	-D_DB_PATH=\"$(DB_PATH)\" \
+	-D_BUXTON_SOCKET=\"$(BUXTON_SOCKET)\" \
+	-D_SMACK_LOAD_FILE=\"$(SMACK_LOAD_FILE)\"
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AUTOMAKE_OPTIONS = color-tests parallel-tests
