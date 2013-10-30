@@ -50,6 +50,7 @@ TESTS = check_buxton check_shared_lib check_daemon
 # set flags
 
 EXTRA_DIST = \
+	src/libbuxton/lbuxton.sym \
 	src/shared/constants.h \
 	test/test.load2 \
 	test/test.conf
