@@ -30,11 +30,12 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int 
 	int p_count, i;
 	int response_len;
 	BuxtonData response_data;
-	uint8_t *response_store;
+	uint8_t *response_store = NULL;
 
 
 	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size, &list);
 	if (p_count < 0) {
+		/* Todo: terminate the client due to invalid message */
 		buxton_debug("Failed to deserialize message\n");
 		goto end;
 	}
