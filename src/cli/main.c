@@ -38,9 +38,10 @@ static char **arg_v;
 /**
  * Store a command reference in Buxton CLI
  * @param type Type of data to operate on
+ * @param params number of parameters
  * @return a boolean value, indicating success of the operation
  */
-typedef bool (*command_method) (BuxtonDataType type);
+typedef bool (*command_method) (BuxtonDataType type, int params);
 
 /**
  * Defines a command within the buxtonctl cli
@@ -48,7 +49,8 @@ typedef bool (*command_method) (BuxtonDataType type);
 typedef struct Command {
 	const char     *name; /**<name of the command*/
 	const char     *description; /**<one line description of the command*/
-	unsigned int   arguments; /**<required number of arguments */
+	unsigned int   min_arguments; /**minimum number of arguments */
+	unsigned int   max_arguments; /**<maximum number of arguments */
 	const char     *usage; /**<correct usage of the command */
 	command_method method; /**<pointer to a method */
 	BuxtonDataType type; /**<type of data to operate on */
@@ -72,11 +74,14 @@ static bool print_help(void)
 
 static void print_usage(Command *command)
 {
-	printf("%s takes %d arguments - %s\n", command->name, command->arguments, command->usage);
+	if (command->min_arguments == command->max_arguments)
+		printf("%s takes %d arguments - %s\n", command->name, command->min_arguments, command->usage);
+	else
+		printf("%d takes at least %d arguments - %s\n", command->name, command->min_arguments, command->usage);
 }
 
 /* Set a value in Buxton */
-static bool set_value(BuxtonDataType type) {
+static bool set_value(BuxtonDataType type, int params) {
 	char *layer, *key, *value;
 	BuxtonData set;
 
@@ -139,7 +144,7 @@ static bool set_value(BuxtonDataType type) {
 
 
 /* Get a value from Buxton */
-static bool get_value(BuxtonDataType type) {
+static bool get_value(BuxtonDataType type, int params) {
 	char *layer, *key;
 	BuxtonData get;
 	bool ret = true;
@@ -214,6 +219,7 @@ int main(int argc, char **argv)
 	Command c_get_long, c_set_long;
 	Command c_help;
 	Command *command;
+	int params;
 	arg_v = argv;
 
 	/* Build a command list */
@@ -221,56 +227,56 @@ int main(int argc, char **argv)
 
 	/* Strings */
 	c_get_string = (Command) { "get-string", "Get a string value by key",
-				   2, "[layer] [key]", &get_value, STRING };
+				   1, 2, "[layer] [key]", &get_value, STRING };
 	hashmap_put(commands, c_get_string.name, &c_get_string);
 
 	c_set_string = (Command) { "set-string", "Set a key with a string value",
-				   3, "[layer] [key] [value]", &set_value, STRING };
+				   3, 3, "[layer] [key] [value]", &set_value, STRING };
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
 	/* Booleans */
 	c_get_bool = (Command) { "get-bool", "Get a boolean value by key",
-				   2, "[layer] [key]", &get_value, BOOLEAN };
+				   1, 2, "[layer] [key]", &get_value, BOOLEAN };
 	hashmap_put(commands, c_get_bool.name, &c_get_bool);
 
 	c_set_bool = (Command) { "set-bool", "Set a key with a boolean value",
-				   3, "[layer] [key] [value]", &set_value, BOOLEAN };
+				   3, 3, "[layer] [key] [value]", &set_value, BOOLEAN };
 	hashmap_put(commands, c_set_bool.name, &c_set_bool);
 
 	/* Floats */
 	c_get_float = (Command) { "get-float", "Get a float point value by key",
-				   2, "[layer] [key]", &get_value, FLOAT };
+				   1, 2, "[layer] [key]", &get_value, FLOAT };
 	hashmap_put(commands, c_get_float.name, &c_get_float);
 
 	c_set_float = (Command) { "set-float", "Set a key with a floating point value",
-				   3, "[layer] [key] [value]", &set_value, FLOAT };
+				   3, 3, "[layer] [key] [value]", &set_value, FLOAT };
 	hashmap_put(commands, c_set_float.name, &c_set_float);
 
 	/* Doubles */
 	c_get_double = (Command) { "get-double", "Get a double precision value by key",
-				   2, "[layer] [key]", &get_value, DOUBLE };
+				   1, 2, "[layer] [key]", &get_value, DOUBLE };
 	hashmap_put(commands, c_get_double.name, &c_get_double);
 
 	c_set_double = (Command) { "set-double", "Set a key with a double precision value",
-				   3, "[layer] [key] [value]", &set_value, DOUBLE };
+				   3 , 3, "[layer] [key] [value]", &set_value, DOUBLE };
 	hashmap_put(commands, c_set_double.name, &c_set_double);
 
 	/* Longs */
 	c_get_long = (Command) { "get-long", "Get a long integer value by key",
-				   2, "[layer] [key]", &get_value, LONG };
+				   1, 2, "[layer] [key]", &get_value, LONG };
 	hashmap_put(commands, c_get_long.name, &c_get_long);
 
 	c_set_long = (Command) { "set-long", "Set a key with a long integer value",
-				   3, "[layer] [key] [value]", &set_value, LONG };
+				   3, 3, "[layer] [key] [value]", &set_value, LONG };
 	hashmap_put(commands, c_set_long.name, &c_set_long);
 
 	/* Integers */
 	c_set_int = (Command) { "set-int", "Set a key with an integer value",
-				3, "[layer] [key] [value]", &set_value, INT };
+				3, 3, "[layer] [key] [value]", &set_value, INT };
 	hashmap_put(commands, c_set_int.name, &c_set_int);
 
 	c_get_int = (Command) { "get-int", "Get an integer value by key",
-				2, "[layer] [key]", &get_value, INT };
+				1, 2, "[layer] [key]", &get_value, INT };
 	hashmap_put(commands, c_get_int.name, &c_get_int);
 
 	/* Help */
@@ -293,6 +299,8 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
+	params = argc-arg_n-1;
+
 	if ((command = hashmap_get(commands, argv[arg_n])) == NULL) {
 		printf("Unknown command: %s\n", argv[arg_n]);
 		goto end;
@@ -306,12 +314,13 @@ int main(int argc, char **argv)
 
 	if (strncmp(command->name, "help", 4) == 0) {
 		/* Ensure we cleanup and abort when using help */
-		command->method(0);
+		command->method(0,params);
 		ret = true;
 		goto end;
 	}
 
-	if (arg_n + command->arguments + 1 != argc) {
+	if (argc < arg_n + command->min_arguments + 1 ||
+	    argc > arg_n + command->max_arguments + 1) {
 		print_usage(command);
 		print_help();
 		ret = false;
@@ -333,7 +342,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Connected to buxton_client, execute method */
-	ret = command->method(command->type);
+	ret = command->method(command->type, params);
 
 end:
 	hashmap_free(commands);
