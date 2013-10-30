@@ -148,14 +148,29 @@ static bool get_value(BuxtonDataType type, int params) {
 	char *layer, *key;
 	BuxtonData get;
 	bool ret = true;
+	char *prefix;
 
-	layer = arg_v[arg_n + 1];
-	key = arg_v[arg_n + 2];
+	if (params == 2) {
+		layer = arg_v[arg_n + 1];
+		key = arg_v[arg_n+2];
+		asprintf(&prefix, "[%s] ", layer);
+	} else {
+		key = arg_v[arg_n + 1];
+		asprintf(&prefix, " ");
+	}
 
-	if (!buxton_client_get_value_for_layer(&client, layer, key, &get)) {
-		printf("Requested key was not found in layer \'%s\': %s\n", layer, key);
-		ret = false;
-		goto end;
+	if (params == 2) {
+		if (!buxton_client_get_value_for_layer(&client, layer, key, &get)) {
+			printf("Requested key was not found in layer \'%s\': %s\n", layer, key);
+			ret = false;
+			goto end;
+		}
+	} else {
+		if (!buxton_client_get_value(&client, key, &get)) {
+			printf("Requested key was not found: %s\n", key);
+			ret = false;
+			goto end;
+		}
 	}
 
 	if (get.type != type) {
@@ -170,25 +185,25 @@ static bool get_value(BuxtonDataType type, int params) {
 
 	switch (get.type) {
 		case STRING:
-			printf("[%s] %s = %s\n", layer, key, get.store.d_string);
+			printf("%s%s = %s\n", prefix, key, get.store.d_string);
 			break;
 		case BOOLEAN:
 			if (get.store.d_boolean == true)
-				printf("[%s] %s = true\n", layer, key);
+				printf("%s%s = true\n", prefix, key);
 			else
-				printf("[%s] %s = false\n", layer, key);
+				printf("%s%s = false\n", prefix, key);
 			break;
 		case FLOAT:
-			printf("[%s] %s = %f\n", layer, key, get.store.d_float);
+			printf("%s%s = %f\n", prefix, key, get.store.d_float);
 			break;
 		case DOUBLE:
-			printf("[%s] %s = %f\n", layer, key, get.store.d_double);
+			printf("%s%s = %f\n", prefix, key, get.store.d_double);
 			break;
 		case LONG:
-			printf("[%s] %s = %ld\n", layer, key, get.store.d_long);
+			printf("%s%s = %ld\n", prefix, key, get.store.d_long);
 			break;
 		case INT:
-			printf("[%s] %s = %d\n", layer, key, get.store.d_int);
+			printf("%s%s = %d\n", prefix, key, get.store.d_int);
 			break;
 		default:
 			printf("unknown type\n");
@@ -196,6 +211,7 @@ static bool get_value(BuxtonDataType type, int params) {
 			break;
 	}
 end:
+	free(prefix);
 	if (ret && get.type == STRING)
 		free(get.store.d_string);
 
