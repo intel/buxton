@@ -77,7 +77,7 @@ static void print_usage(Command *command)
 	if (command->min_arguments == command->max_arguments)
 		printf("%s takes %d arguments - %s\n", command->name, command->min_arguments, command->usage);
 	else
-		printf("%d takes at least %d arguments - %s\n", command->name, command->min_arguments, command->usage);
+		printf("%s takes at least %d arguments - %s\n", command->name, command->min_arguments, command->usage);
 }
 
 /* Set a value in Buxton */
@@ -297,7 +297,7 @@ int main(int argc, char **argv)
 
 	/* Help */
 	c_help = (Command) { "help", "Print this help message",
-			     0, NULL, NULL, 0 };
+			     0, 0, NULL, NULL, 0 };
 	hashmap_put(commands, c_help.name, &c_help);
 
 	if (argc > 1 && strncmp(argv[1], "--direct", 8) == 0) {
