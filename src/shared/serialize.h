@@ -53,10 +53,7 @@ typedef enum BuxtonControlMessage{
  * Minimum length of valid control message
  */
 #define BUXTON_CONTROL_LENGTH sizeof(uint32_t) \
-	+ sizeof(size_t)		       \
-	+ sizeof(uint32_t)		       \
-	+ sizeof(int)
-
+	+ sizeof(size_t)
 /**
  * Maximum length of valid control message
  */
