@@ -50,14 +50,14 @@ typedef enum BuxtonControlMessage{
 } BuxtonControlMessage;
 
 /**
- * Minimum length of valid control message
+ * Length of valid message header
  */
-#define BUXTON_CONTROL_LENGTH sizeof(uint32_t) \
+#define BUXTON_MESSAGE_HEADER_LENGTH sizeof(uint32_t) \
 	+ sizeof(size_t)
 /**
  * Maximum length of valid control message
  */
-#define BUXTON_CONTROL_LENGTH_MAX 4096
+#define BUXTON_MESSAGE_MAX_LENGTH 4096
 
 /**
  * Serialize data internally for backend consumption

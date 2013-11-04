@@ -281,7 +281,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 {
 	int offset = 0;
 	int ret = -1;
-	int min_length = BUXTON_CONTROL_LENGTH;
+	int min_length = BUXTON_MESSAGE_HEADER_LENGTH;
 	void *copy_control = NULL;
 	void *copy_message = NULL;
 	void *copy_params = NULL;
@@ -422,12 +422,12 @@ size_t buxton_get_message_size(uint8_t *data, int size)
 
 	assert(data);
 
-	if (size < BUXTON_CONTROL_LENGTH)
+	if (size < BUXTON_MESSAGE_HEADER_LENGTH)
 		return 0;
 
 	memcpy(&r_size, data+BUXTON_LENGTH_OFFSET, sizeof(size_t));
 
-	if (r_size < BUXTON_CONTROL_LENGTH)
+	if (r_size < BUXTON_MESSAGE_HEADER_LENGTH)
 		return 0;
 
 	return r_size;

@@ -553,7 +553,7 @@ START_TEST(buxton_get_message_size_check)
 	fail_if(ret == 0, "Failed to serialize string data for size");
 	fail_if(ret != buxton_get_message_size(packed, ret),
 		"Failed to get correct message size");
-	fail_if(buxton_get_message_size(packed, BUXTON_CONTROL_LENGTH - 1) != 0,
+	fail_if(buxton_get_message_size(packed, BUXTON_MESSAGE_HEADER_LENGTH - 1) != 0,
 		"Got size even though message smaller than the minimum");
 
 	if (packed)

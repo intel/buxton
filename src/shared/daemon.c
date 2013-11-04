@@ -215,9 +215,9 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 	BuxtonSmackLabel slabel = NULL;
 
 	if (!cl->data) {
-		cl->data = malloc(BUXTON_CONTROL_LENGTH);
+		cl->data = malloc(BUXTON_MESSAGE_HEADER_LENGTH);
 		cl->offset = 0;
-		cl->size = BUXTON_CONTROL_LENGTH;
+		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	}
 	if (!cl->data)
 		return;
@@ -274,15 +274,15 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 	 */
 	while ((l = read(self->pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset)) > 0) {
 		cl->offset += l;
-		if (cl->offset < BUXTON_CONTROL_LENGTH) {
+		if (cl->offset < BUXTON_MESSAGE_HEADER_LENGTH) {
 			continue;
 		}
-		if (cl->size == BUXTON_CONTROL_LENGTH) {
+		if (cl->size == BUXTON_MESSAGE_HEADER_LENGTH) {
 			cl->size = buxton_get_message_size(cl->data, cl->offset);
-			if (cl->size == 0 || cl->size > BUXTON_CONTROL_LENGTH_MAX)
+			if (cl->size == 0 || cl->size > BUXTON_MESSAGE_MAX_LENGTH)
 				goto cleanup;
 		}
-		if (cl->size != BUXTON_CONTROL_LENGTH) {
+		if (cl->size != BUXTON_MESSAGE_HEADER_LENGTH) {
 			cl->data = realloc(cl->data, cl->size);
 			if (!cl->data)
 				goto cleanup;
@@ -292,10 +292,10 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 		bt_daemon_handle_message(self, cl, l);
 
 		/* reset in case there are more messages */
-		cl->data = realloc(cl->data, BUXTON_CONTROL_LENGTH);
+		cl->data = realloc(cl->data, BUXTON_MESSAGE_HEADER_LENGTH);
 		if (!cl->data)
 			goto cleanup;
-		cl->size = BUXTON_CONTROL_LENGTH;
+		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 		cl->offset = 0;
 	}
 
@@ -306,7 +306,7 @@ cleanup:
 	if (cl->data)
 		free(cl->data);
 	cl->data = NULL;
-	cl->size = BUXTON_CONTROL_LENGTH;
+	cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	cl->offset = 0;
 }
 
