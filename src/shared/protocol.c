@@ -32,6 +32,8 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int 
 	BuxtonData response_data;
 	uint8_t *response_store = NULL;
 
+	assert(self);
+	assert(client);
 
 	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size, &list);
 	if (p_count < 0) {
