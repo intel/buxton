@@ -22,6 +22,15 @@ AC_TYPE_SSIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 
+AC_MSG_CHECKING([[whether preprocessor supports #pragma once]])
+AC_PREPROC_IFELSE(
+        [AC_LANG_PROGRAM([[#pragma once]])],
+        [
+                AC_MSG_RESULT([yes])
+                AC_DEFINE([HAVE_PRAGMA_ONCE], [1], [Preprocessor support for #pragma once])
+        ],
+        [AC_MSG_RESULT([no])])
+
 AH_VERBATIM([_GNU_SOURCE],
 [/* Enable GNU extensions on systems that have them.  */
 #ifndef _GNU_SOURCE
