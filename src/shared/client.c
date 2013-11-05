@@ -1,0 +1,176 @@
+/*
+ * This file is part of buxton.
+ *
+ * Copyright (C) 2013 Intel Corporation
+ *
+ * buxton is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1
+ * of the License, or (at your option) any later version.
+ */
+
+#ifdef HAVE_CONFIG_H
+    #include "config.h"
+#endif
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "bt-daemon.h"
+#include "client.h"
+#include "hashmap.h"
+#include "util.h"
+
+bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char
+ *one, char *two, char *three)
+{
+	char *layer, *key, *value;
+	BuxtonData set;
+
+	layer = one;
+	key = two;
+	value = three;
+
+	bool ret = false;
+
+	set.type = type;
+	switch (set.type) {
+		case STRING:
+			set.store.d_string = value;
+			break;
+		case BOOLEAN:
+			if (streq(value, "true"))
+				set.store.d_boolean = true;
+			else if (streq(value, "false"))
+				set.store.d_boolean = false;
+			else {
+				printf("Accepted values are [true] [false]. Not updating\n");
+				return false;
+			}
+			break;
+		case FLOAT:
+			set.store.d_float = strtof(value, NULL);
+			if (errno) {
+				printf("Invalid floating point value\n");
+				return false;
+			}
+			break;
+		case DOUBLE:
+			set.store.d_double = strtod(value, NULL);
+			if (errno) {
+				printf("Invalid double precision value\n");
+				return false;
+			}
+			break;
+		case LONG:
+			set.store.d_long = strtol(value, NULL, 10);
+			if (errno) {
+				printf("Invalid long integer value\n");
+				return false;
+			}
+			break;
+		case INT:
+			set.store.d_int = strtol(value, NULL, 10);
+			if (errno) {
+				printf("Invalid integer\n");
+				return false;
+			}
+			break;
+		default:
+			break;
+	}
+	ret = buxton_client_set_value(self, layer, key, &set);
+	if (!ret)
+		printf("Failed to update key \'%s\' in layer '%s'\n", key, layer);
+	return ret;
+}
+
+bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char
+ *one, char *two, __attribute__((unused)) char *three)
+{
+	char *layer, *key;
+	BuxtonData get;
+	bool ret = true;
+	char *prefix;
+
+	if (two != NULL) {
+		layer = one;
+		key = two;
+		asprintf(&prefix, "[%s] ", layer);
+	} else {
+		key = one;
+		asprintf(&prefix, " ");
+	}
+
+	if (two != NULL) {
+		if (!buxton_client_get_value_for_layer(self, layer, key, &get)) {
+			printf("Requested key was not found in layer \'%s\': %s\n", layer, key);
+			ret = false;
+			goto end;
+		}
+	} else {
+		if (!buxton_client_get_value(self, key, &get)) {
+			printf("Requested key was not found: %s\n", key);
+			ret = false;
+			goto end;
+		}
+	}
+
+	if (get.type != type) {
+		const char *type_req, *type_got;
+		type_req = buxton_type_as_string(type);
+		type_got = buxton_type_as_string(get.type);
+		printf("You requested a key with type \'%s\', but value is of type \'%s\'.\n\n", type_req, type_got);
+		ret = false;
+		goto end;
+	}
+
+	switch (get.type) {
+		case STRING:
+			printf("%s%s = %s\n", prefix, key, get.store.d_string);
+			break;
+		case BOOLEAN:
+			if (get.store.d_boolean == true)
+				printf("%s%s = true\n", prefix, key);
+			else
+				printf("%s%s = false\n", prefix, key);
+			break;
+		case FLOAT:
+			printf("%s%s = %f\n", prefix, key, get.store.d_float);
+			break;
+		case DOUBLE:
+			printf("%s%s = %f\n", prefix, key, get.store.d_double);
+			break;
+		case LONG:
+			printf("%s%s = %ld\n", prefix, key, get.store.d_long);
+			break;
+		case INT:
+			printf("%s%s = %d\n", prefix, key, get.store.d_int);
+			break;
+		default:
+			printf("unknown type\n");
+			ret = false;
+			break;
+	}
+end:
+	free(prefix);
+	if (ret && get.type == STRING)
+		free(get.store.d_string);
+
+	return ret;
+}
+
+/*
+ * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ *
+ * Local variables:
+ * c-basic-offset: 8
+ * tab-width: 8
+ * indent-tabs-mode: t
+ * End:
+ *
+ * vi: set shiftwidth=8 tabstop=8 noexpandtab:
+ * :indentSize=8:tabSize=8:noTabs=false:
+ */

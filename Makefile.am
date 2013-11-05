@@ -102,6 +102,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/protocol.h \
 	src/shared/daemon.c \
 	src/shared/daemon.h \
+	src/shared/client.c \
+	src/shared/client.h \
 	${NULL}
 
 if USE_LOCAL_INIPARSER
