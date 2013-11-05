@@ -82,7 +82,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	} else if (descriptors == 0) {
 		/* Manual invocation */
-		int r;
 		manual_start = true;
 		union {
 			struct sockaddr sa;
@@ -99,8 +98,8 @@ int main(int argc, char *argv[])
 		sa.un.sun_family = AF_UNIX;
 		strncpy(sa.un.sun_path, BUXTON_SOCKET, sizeof(sa.un.sun_path) - 1);
 
-		r = unlink(sa.un.sun_path);
-		if (r == -1 && errno != ENOENT) {
+		ret = unlink(sa.un.sun_path);
+		if (ret == -1 && errno != ENOENT) {
 			exit(EXIT_FAILURE);
 		}
 
