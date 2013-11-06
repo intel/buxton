@@ -15,12 +15,34 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 
+# Checks for libraries.
+AC_CHECK_LIB([dl], [dlopen])
+AC_CHECK_LIB([gdbm], [gdbm_open])
+
 # Checks for typedefs, structures, and compiler characteristics.
+AC_C_INLINE
+AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
+AC_TYPE_UID_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_UINT8_T
 
 # Checks for library functions.
+AC_FUNC_FORK
 AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_STRTOD
+AC_CHECK_FUNCS([atexit])
+AC_CHECK_FUNCS([memmove])
+AC_CHECK_FUNCS([memset])
+AC_CHECK_FUNCS([socket])
+AC_CHECK_FUNCS([strchr])
+AC_CHECK_FUNCS([strdup])
+AC_CHECK_FUNCS([strndup])
+AC_CHECK_FUNCS([strtol])
 
 AC_MSG_CHECKING([[whether preprocessor supports #pragma once]])
 AC_PREPROC_IFELSE(
@@ -46,8 +68,22 @@ PKG_CHECK_MODULES([CHECK], [check])
 PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
 
 # Checks for header files.
+AC_FUNC_ALLOCA
+AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([gdbm.h], [], [AC_MSG_ERROR([Unable to find gdbm headers])])
-AC_CHECK_HEADERS(linux/inotify.h)
+AC_CHECK_HEADERS([inttypes.h])
+AC_CHECK_HEADERS([limits.h])
+AC_CHECK_HEADERS([locale.h])
+AC_CHECK_HEADERS([malloc.h])
+AC_CHECK_HEADERS([stddef.h])
+AC_CHECK_HEADERS([stdint.h])
+AC_CHECK_HEADERS([stdlib.h])
+AC_CHECK_HEADERS([string.h])
+AC_CHECK_HEADERS([sys/param.h])
+AC_CHECK_HEADERS([sys/socket.h])
+AC_CHECK_HEADERS([sys/time.h])
+AC_CHECK_HEADERS([unistd.h])
+AC_CHECK_HEADERS([linux/inotify.h])
 AC_CHECK_FUNC(inotify_init)
 
 # Options
