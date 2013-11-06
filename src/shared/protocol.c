@@ -154,7 +154,7 @@ bool buxton_wire_set_value(BuxtonClient *client, const char *layer_name, const c
 	write(client->fd, send, send_len);
 
 	/* Gain response */
-	count = buxton_wire_get_response(client, &r_msg, &r_list);;
+	count = buxton_wire_get_response(client, &r_msg, &r_list);
 	if (count > 0 && r_list[0].store.d_int == BUXTON_STATUS_OK)
 		ret = true;
 end:
