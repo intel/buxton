@@ -31,7 +31,6 @@
 #include <attr/xattr.h>
 
 #include "bt-daemon.h"
-#include "config.h"
 #include "daemon.h"
 #include "list.h"
 #include "log.h"
