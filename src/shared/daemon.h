@@ -32,7 +32,7 @@
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Always NULL currently, may be changed in the future
  */
-BuxtonData* set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
+BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 			     int n_params, BuxtonStatus *status);
 
 /**
@@ -44,7 +44,7 @@ BuxtonData* set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
-BuxtonData* get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
+BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 			     int n_params, BuxtonStatus *status);
 
 /**

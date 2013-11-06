@@ -15,18 +15,18 @@
 
 
 #ifdef MAKE_CHECK
-const char* MODULE_DIRECTORY = "@abs_top_builddir@/.libs";
-const char* DEFAULT_CONFIGURATION_FILE = "@abs_top_srcdir@/test/test.conf";
-const char* DB_PATH = "/tmp";
-const char* BUXTON_SOCKET = "/tmp/buxton-socket";
-const char* SMACK_LOAD_FILE = "@abs_top_srcdir@/test/test.load2";
+const char *MODULE_DIRECTORY = "@abs_top_builddir@/.libs";
+const char *DEFAULT_CONFIGURATION_FILE = "@abs_top_srcdir@/test/test.conf";
+const char *DB_PATH = "/tmp";
+const char *BUXTON_SOCKET = "/tmp/buxton-socket";
+const char *SMACK_LOAD_FILE = "@abs_top_srcdir@/test/test.load2";
 const int USE_SMACK = 0;
 #else
-const char* MODULE_DIRECTORY = _MODULE_DIRECTORY;
-const char* DEFAULT_CONFIGURATION_FILE = _DEFAULT_CONFIGURATION_FILE;
-const char* DB_PATH = _DB_PATH;
-const char* BUXTON_SOCKET = _BUXTON_SOCKET;
-const char* SMACK_LOAD_FILE = _SMACK_LOAD_FILE;
+const char *MODULE_DIRECTORY = _MODULE_DIRECTORY;
+const char *DEFAULT_CONFIGURATION_FILE = _DEFAULT_CONFIGURATION_FILE;
+const char *DB_PATH = _DB_PATH;
+const char *BUXTON_SOCKET = _BUXTON_SOCKET;
+const char *SMACK_LOAD_FILE = _SMACK_LOAD_FILE;
 const int USE_SMACK = 1;
 #endif
 

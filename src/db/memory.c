@@ -33,7 +33,7 @@
 static Hashmap *_resources;
 
 /* Return existing hashmap or create new hashmap on the fly */
-static Hashmap* _db_for_resource(BuxtonLayer *layer)
+static Hashmap *_db_for_resource(BuxtonLayer *layer)
 {
 	Hashmap *db;
 

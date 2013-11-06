@@ -26,7 +26,7 @@
 #include "util.h"
 
 /* TODO: Add Smack support */
-BuxtonData* set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
+BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 		      int n_params, BuxtonStatus *status)
 {
 	BuxtonData layer, key, value;
@@ -56,12 +56,12 @@ BuxtonData* set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 }
 
 /* TODO: Add smack support */
-BuxtonData* get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
+BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 		      int n_params, BuxtonStatus *status)
 {
 	BuxtonData layer, key;
 	*status = BUXTON_STATUS_FAILED;
-	BuxtonData* ret = NULL;
+	BuxtonData *ret = NULL;
 
 	if (n_params < 1)
 		goto end;

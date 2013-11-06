@@ -21,7 +21,7 @@
 #define buxton_debug(...) do {} while(0);
 #endif /* DEBUG */
 
-void buxton_log(const char* fmt, ...);
+void buxton_log(const char *fmt, ...);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

@@ -222,7 +222,7 @@ static bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 	return true;
 }
 
-static BuxtonBackend* backend_for_layer(BuxtonLayer *layer)
+static BuxtonBackend *backend_for_layer(BuxtonLayer *layer)
 {
 	BuxtonBackend *backend;
 

@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-void buxton_log(const char* fmt, ...)
+void buxton_log(const char *fmt, ...)
 {
 	va_list args;
 

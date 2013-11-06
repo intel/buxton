@@ -65,7 +65,7 @@ typedef enum BuxtonControlMessage{
  * @param dest Pointer to store serialized data in
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_serialize(BuxtonData *source, uint8_t** dest);
+bool buxton_serialize(BuxtonData *source, uint8_t **dest);
 
 /**
  * Deserialize internal data for client consumption
