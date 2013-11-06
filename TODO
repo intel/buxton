@@ -12,6 +12,3 @@
 
 - add checks for data consistency, and determine if gdbm needs to be
   "reorganised" to ensure minimal I/O bottlenecking
-
-- change to use getopt for cli (and daemon once it starts looking at
-  options)
