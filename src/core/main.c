@@ -55,14 +55,15 @@ int main(int argc, char *argv[])
 	struct sockaddr_un remote;
 	int descriptors;
 	int ret;
-
 	bool manual_start = false;
 
-	if (!buxton_cache_smack_rules())
-		exit(EXIT_FAILURE);
-	smackfd = buxton_watch_smack_rules();
-	if (smackfd < 0)
-		exit(EXIT_FAILURE);
+	if (USE_SMACK) {
+		if (!buxton_cache_smack_rules())
+			exit(EXIT_FAILURE);
+		smackfd = buxton_watch_smack_rules();
+		if (smackfd < 0)
+			exit(EXIT_FAILURE);
+	}
 
 	self.nfds_alloc = 0;
 	self.accepting_alloc = 0;
@@ -131,8 +132,10 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	/* add Smack rule fd to pollfds */
-	add_pollfd(&self, smackfd, POLLIN | POLLPRI, false);
+	if (USE_SMACK) {
+		/* add Smack rule fd to pollfds */
+		add_pollfd(&self, smackfd, POLLIN | POLLPRI, false);
+	}
 
 	buxton_log("%s: Started\n", argv[0]);
 
@@ -161,13 +164,15 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			if (self.pollfds[i].fd == smackfd) {
-				if (!buxton_cache_smack_rules())
-					exit(EXIT_FAILURE);
-				buxton_log("Reloaded Smack access rules\n");
-				/* discard inotify data itself */
-				while (read(smackfd, &discard, 256) == 256);
-				continue;
+			if (USE_SMACK) {
+				if (self.pollfds[i].fd == smackfd) {
+					if (!buxton_cache_smack_rules())
+						exit(EXIT_FAILURE);
+					buxton_log("Reloaded Smack access rules\n");
+					/* discard inotify data itself */
+					while (read(smackfd, &discard, 256) == 256);
+					continue;
+				}
 			}
 
 			if (self.accepting[i] == true) {
@@ -206,7 +211,8 @@ int main(int argc, char *argv[])
 			}
 
 			assert(self.accepting[i] == 0);
-			assert(self.pollfds[i].fd != smackfd);
+			if (USE_SMACK)
+				assert(self.pollfds[i].fd != smackfd);
 
 			/* handle data on any connection */
 			/* TODO: Replace with hash table lookup */

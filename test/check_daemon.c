@@ -21,16 +21,44 @@
 #include <sys/socket.h>
 #include <signal.h>
 #include <unistd.h>
+
+#include "bt-daemon.h"
+#include "log.h"
 #include "util.h"
 
 pid_t daemon_pid;
 
-static void setup()
+static void setup(void)
 {
 	daemon_pid = 0;
+	sigset_t sigset;
+	pid_t pid;
+
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGCHLD);
+	sigprocmask(SIG_BLOCK, &sigset, NULL);
+
+	pid = fork();
+	fail_if(pid < 0, "couldn't fork");
+	if (pid) {
+		/* parent*/
+		daemon_pid = pid;
+	} else {
+		/* child */
+		char path[PATH_MAX];
+
+		//FIXME: path is wrong for makedistcheck
+		snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
+
+		if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
+			fail("couldn't exec: %m");
+		}
+		fail("should never reach here");
+	}
+	unlink(BUXTON_SOCKET);
 }
 
-static void teardown()
+static void teardown(void)
 {
 	/* if the daemon is still running, kill it */
 	if (daemon_pid) {
@@ -40,63 +68,69 @@ static void teardown()
 	}
 }
 
-START_TEST(daemon_start_check)
+START_TEST(buxton_client_open_check)
 {
-	const char magic[] = "!";
-	char buf[2];
-	sigset_t sigset;
-	pid_t pid;
-	int socks[2];
+	BuxtonClient c;
+	usleep(250*1000);
+	fail_if(buxton_client_open(&c) == false,
+		"Connection failed to open with daemon.");
+}
+END_TEST
 
-	sigemptyset(&sigset);
-	sigaddset(&sigset, SIGCHLD);
-	sigprocmask(SIG_BLOCK, &sigset, NULL);
+START_TEST(buxton_client_set_value_check)
+{
+	BuxtonClient c;
+	usleep(250*1000);
+	fail_if(buxton_client_open(&c) == false,
+		"Direct open failed without daemon.");
+	BuxtonData data;
+	data.type = STRING;
+	data.store.d_string = "bxt_test_value";
+	fail_if(buxton_client_set_value(&c, "test-gdbm", "bxt_test", &data) == false,
+		"Setting value in buxton directly failed.");
+}
+END_TEST
 
-	fail_if(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, socks),
-		"socketpair: %m");
-	pid = fork();
-	fail_if(pid < 0, "couldn't fork");
-	if (pid) {
-		/* parent*/
-		int status;
+START_TEST(buxton_client_get_value_for_layer_check)
+{
+	BuxtonClient c;
+	BuxtonData result;
+	usleep(250*1000);
+	fail_if(buxton_client_open(&c) == false,
+		"Direct open failed without daemon.");
+	fail_if(buxton_client_get_value_for_layer(&c, "test-gdbm", "bxt_test", &result) == false,
+		"Retrieving value from buxton gdbm backend failed.");
+	fail_if(result.type != STRING,
+		"Buxton gdbm backend returned incorrect result type.");
+	fail_if(strcmp(result.store.d_string, "bxt_test_value") != 0,
+		"Buxton gdbm returned a different value to that set.");
+	if (result.store.d_string)
+		free(result.store.d_string);
+}
+END_TEST
 
-		close(socks[0]);
-		daemon_pid = pid;
+START_TEST(buxton_client_get_value_check)
+{
+	BuxtonClient c;
+	BuxtonData data, result;
+	usleep(250*1000);
+	fail_if(buxton_client_open(&c) == false,
+		"Direct open failed without daemon.");
 
-		fail_if(write(socks[1], (void*)magic, 1) < 0,
-			"can't write to child: %m");
-		fail_if(read(socks[1], (void*)buf, 1) < 0,
-			"couldn't read from child: %m");
-
-		usleep(250*1000);
-		pid_t waited = waitpid(daemon_pid, &status, WNOHANG);
-		if (daemon_pid == waited) {
-			/* the daemon exited already */
-			fail_if(WIFSIGNALED(status), "daemon was killed");
-			fail_if(WIFEXITED(status), "daemon exited");
-			fail("the daemon exited somewhere, but we don't know how");
-		}
-	} else {
-		/* child */
-		char path[PATH_MAX];
-
-		close(socks[1]);
-
-		fail_if(read(socks[0], (void*)buf, 1) < 0,
-			"couldn't read from parent: %m");
-
-		//FIXME: path is wrong for makedistcheck
-		snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
-		fprintf(stderr, "path is %s\n", path);
-
-		fail_if(write(socks[0], (void*)magic, 1) < 0,
-			"can't write to parent: %m");
-		if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
-			fail("couldn't exec: %m");
-		}
-		fail("should never reach here");
-	}
-	unlink(BUXTON_SOCKET);
+	data.type = STRING;
+	data.store.d_string = "bxt_test_value2";
+	fail_if(data.store.d_string == NULL,
+		"Failed to allocate test string.");
+	fail_if(buxton_client_set_value(&c, "test-gdbm-user", "bxt_test", &data) == false,
+		"Failed to set second value.");
+	fail_if(buxton_client_get_value(&c, "bxt_test", &result) == false,
+		"Retrieving value from buxton gdbm backend failed.");
+	fail_if(result.type != STRING,
+		"Buxton gdbm backend returned incorrect result type.");
+	fail_if(strcmp(result.store.d_string, "bxt_test_value2") != 0,
+		"Buxton gdbm returned a different value to that set.");
+	if (result.store.d_string)
+		free(result.store.d_string);
 }
 END_TEST
 
@@ -109,8 +143,10 @@ daemon_suite(void)
 	s = suite_create("daemon");
 	tc = tcase_create("daemon test functions");
 	tcase_add_checked_fixture(tc, setup, teardown);
-	tcase_add_test(tc, daemon_start_check);
-
+	tcase_add_test(tc, buxton_client_open_check);
+	tcase_add_test(tc, buxton_client_set_value_check);
+	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
+	tcase_add_test(tc, buxton_client_get_value_check);
 	suite_add_tcase(s, tc);
 
 	return s;

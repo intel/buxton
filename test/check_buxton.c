@@ -13,14 +13,6 @@
 #include <stdlib.h>
 #include "bt-daemon.h"
 
-START_TEST(buxton_client_open_check)
-{
-	BuxtonClient c;
-	fail_if(buxton_client_open(&c) == true,
-		"Connection opened without daemon.");
-}
-END_TEST
-
 START_TEST(buxton_direct_open_check)
 {
 	BuxtonClient c;
@@ -29,7 +21,7 @@ START_TEST(buxton_direct_open_check)
 }
 END_TEST
 
-START_TEST(buxton_client_set_value_check)
+START_TEST(buxton_direct_set_value_check)
 {
 	BuxtonClient c;
 	fail_if(buxton_direct_open(&c) == false,
@@ -42,7 +34,7 @@ START_TEST(buxton_client_set_value_check)
 }
 END_TEST
 
-START_TEST(buxton_client_get_value_for_layer_check)
+START_TEST(buxton_direct_get_value_for_layer_check)
 {
 	BuxtonClient c;
 	BuxtonData result;
@@ -59,7 +51,7 @@ START_TEST(buxton_client_get_value_for_layer_check)
 }
 END_TEST
 
-START_TEST(buxton_client_get_value_check)
+START_TEST(buxton_direct_get_value_check)
 {
 	BuxtonClient c;
 	BuxtonData data, result;
@@ -106,15 +98,14 @@ buxton_suite(void)
 
 	s = suite_create("buxton");
 	tc = tcase_create("buxton_client_lib_functions");
-	tcase_add_test(tc, buxton_client_open_check);
 
 	tcase_add_test(tc, buxton_direct_open_check);
 
-	tcase_add_test(tc, buxton_client_set_value_check);
+	tcase_add_test(tc, buxton_direct_set_value_check);
 
-	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
+	tcase_add_test(tc, buxton_direct_get_value_for_layer_check);
 
-	tcase_add_test(tc, buxton_client_get_value_check);
+	tcase_add_test(tc, buxton_direct_get_value_check);
 
 	tcase_add_test(tc, buxton_memory_backend_check);
 

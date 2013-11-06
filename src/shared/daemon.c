@@ -243,25 +243,27 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 			return;
 		}
 
-		slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, 0);
-		if (slabel_len <= 0) {
-			buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
-			exit(EXIT_FAILURE);
-		}
+		if (USE_SMACK) {
+			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, 0);
+			if (slabel_len <= 0) {
+				buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
+				exit(EXIT_FAILURE);
+			}
 
-		slabel = malloc0(slabel_len + 1);
-		if (!slabel) {
-			buxton_log("malloc0(): %m\n");
-			exit(EXIT_FAILURE);
-		}
-		slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
-		if (!slabel_len) {
-			buxton_log("fgetxattr(): %m\n");
-			exit(EXIT_FAILURE);
-		}
+			slabel = malloc0(slabel_len + 1);
+			if (!slabel) {
+				buxton_log("malloc0(): %m\n");
+				exit(EXIT_FAILURE);
+			}
+			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
+			if (!slabel_len) {
+				buxton_log("fgetxattr(): %m\n");
+				exit(EXIT_FAILURE);
+			}
 
-		buxton_debug("fgetxattr(): label=\"%s\"\n", slabel);
-		cl->smack_label = strdup(slabel);
+			buxton_debug("fgetxattr(): label=\"%s\"\n", slabel);
+			cl->smack_label = slabel;
+		}
 	}
 	buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
 

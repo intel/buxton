@@ -219,6 +219,7 @@ check_daemon_CFLAGS = \
 check_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
+	libbuxton.la \
 	libbuxton-shared.la
 
 
