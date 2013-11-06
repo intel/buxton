@@ -49,7 +49,7 @@ static BuxtonDaemon self;
 int main(int argc, char *argv[])
 {
 	int fd;
-	int smackfd;
+	int smackfd = -1;
 	socklen_t addr_len;
 	struct sockaddr_un remote;
 	int descriptors;
