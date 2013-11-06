@@ -1,6 +1,6 @@
 AC_PREREQ([2.68])
 AC_INIT([buxton],[1],[william.douglas@intel.com])
-AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability subdir-objects color-tests no-dist-gzip dist-xz])
+AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability silent-rules subdir-objects color-tests no-dist-gzip dist-xz])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_SRCDIR([src/core/main.c])
