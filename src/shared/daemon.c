@@ -25,6 +25,80 @@
 #include "smack.h"
 #include "util.h"
 
+void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
+{
+	BuxtonControlMessage msg;
+	BuxtonStatus response;
+	BuxtonData *list = NULL;
+	BuxtonData *data = NULL;
+	int p_count, i;
+	size_t response_len;
+	BuxtonData response_data;
+	uint8_t *response_store = NULL;
+
+	assert(self);
+	assert(client);
+
+	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size, &list);
+	if (p_count < 0) {
+		/* Todo: terminate the client due to invalid message */
+		buxton_debug("Failed to deserialize message\n");
+		goto end;
+	}
+
+	/* Check valid range */
+	if (msg < BUXTON_CONTROL_SET || msg > BUXTON_CONTROL_MAX)
+		goto end;
+
+	/* use internal function from bt-daemon */
+	switch (msg) {
+		case BUXTON_CONTROL_SET:
+			data = self->set_value(self, client, list, p_count, &response);
+			break;
+		case BUXTON_CONTROL_GET:
+			data = self->get_value(self, client, list, p_count, &response);
+			break;
+		default:
+			goto end;
+	}
+	/* Set a response code */
+	response_data.type = INT;
+	response_data.store.d_int = response;
+
+	/* Prepare a data response */
+	if (data) {
+		/* Get response */
+		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 2, &response_data, data);
+		if (response_len == 0) {
+			buxton_log("Failed to serialize 2 parameter response message\n");
+			goto end;
+		}
+	} else {
+		/* Set response */
+		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 1, &response_data);
+		if (response_len == 0) {
+			buxton_log("Failed to serialize single parameter response message\n");
+			goto end;
+		}
+	}
+
+	/* Now write the response */
+	write(client->fd, response_store, response_len);
+
+end:
+	if (response_store)
+		free(response_store);
+	if (data && data->type == STRING)
+		free(data->store.d_string);
+	if (list) {
+		for (i=0; i < p_count; i++) {
+			if (list[i].type == STRING)
+				free(list[i].store.d_string);
+		}
+		free(list);
+	}
+}
+
 /* TODO: Add Smack support */
 BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 		      int n_params, BuxtonStatus *status)

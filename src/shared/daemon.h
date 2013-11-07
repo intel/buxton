@@ -24,6 +24,14 @@
 #include "protocol.h"
 
 /**
+ * Handle a message within bt-daemon
+ * @param self Reference to BuxtonDaemon
+ * @param client Current client
+ * @param size Size of the data being handled
+ */
+void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size);
+
+/**
  * Buxton daemon function for setting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access

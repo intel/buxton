@@ -76,14 +76,6 @@ struct BuxtonDaemon {
 };
 
 /**
- * Handle a message within bt-daemon
- * @param self Reference to BuxtonDaemon
- * @param client Current client
- * @param size Size of the data being handled
- */
-void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int size);
-
-/**
  * Wait for and parse a response from bt-daemon
  * @param client A Buxton Client
  * @param msg Pointer to BuxtonControlMessage
