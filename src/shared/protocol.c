@@ -14,7 +14,6 @@
 #endif
 
 #include <stdlib.h>
-#include <malloc.h>
 #include <assert.h>
 
 #include "protocol.h"
@@ -28,7 +27,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int 
 	BuxtonData *list = NULL;
 	BuxtonData *data = NULL;
 	int p_count, i;
-	int response_len;
+	size_t response_len;
 	BuxtonData response_data;
 	uint8_t *response_store = NULL;
 
@@ -62,22 +61,23 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, int 
 	response_data.store.d_int = response;
 
 	/* Prepare a data response */
-	/* TODO: When do we care about the else case here? Cleanup? */
 	if (data) {
-		/* Returning data from inside buxton */
-		if (!buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 2, &response_data, data)) {
+		/* Get response */
+		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 2, &response_data, data);
+		if (response_len == 0) {
 			buxton_log("Failed to serialize 2 parameter response message\n");
 			goto end;
 		}
 	} else {
-		if (!buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 1, &response_data)) {
+		/* Set response */
+		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 1, &response_data);
+		if (response_len == 0) {
 			buxton_log("Failed to serialize single parameter response message\n");
 			goto end;
 		}
 	}
 
 	/* Now write the response */
-	response_len = malloc_usable_size(response_store);
 	write(client->fd, response_store, response_len);
 
 end:

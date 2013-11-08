@@ -17,7 +17,6 @@
 #include <gdbm.h>
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
 
 #include "log.h"
 #include "bt-daemon.h"
@@ -66,6 +65,7 @@ static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 	datum key = { (char *)key_name, strlen(key_name) + 1};
 	datum value;
 	uint8_t *data_store = NULL;
+	size_t size;
 
 	assert(layer);
 	assert(key_name);
@@ -75,11 +75,12 @@ static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 	if (!db)
 		return false;
 
-	if (!buxton_serialize(data, &data_store))
+	size = buxton_serialize(data, &data_store);
+	if (size < BXT_MINIMUM_SIZE)
 		return false;
 
 	value.dptr = (char*)data_store;
-	value.dsize = malloc_usable_size(data_store);
+	value.dsize = size;
 	ret = gdbm_store(db, key, value, GDBM_REPLACE);
 
 	free(data_store);

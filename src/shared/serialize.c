@@ -23,19 +23,19 @@
 #include "serialize.h"
 #include "util.h"
 
-bool buxton_serialize(BuxtonData *source, uint8_t **target)
+size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 {
-	unsigned int length;
-	unsigned int size;
-	unsigned int offset = 0;
+	size_t length;
+	size_t size;
+	size_t offset = 0;
 	uint8_t *data = NULL;
-	bool ret = false;
+	size_t ret = 0;
 
 	assert(source);
 	assert(target);
 
 	/* DataType + length field */
-	size = sizeof(BuxtonDataType) + sizeof(unsigned int);
+	size = sizeof(BuxtonDataType) + sizeof(size_t);
 
 	/* Total size will be different for string data */
 	switch (source->type) {
@@ -59,8 +59,8 @@ bool buxton_serialize(BuxtonData *source, uint8_t **target)
 	offset += sizeof(BuxtonDataType);
 
 	/* Write out the length of the data field */
-	memcpy(data+offset, &length, sizeof(unsigned int));
-	offset += sizeof(unsigned int);
+	memcpy(data+offset, &length, sizeof(size_t));
+	offset += sizeof(size_t);
 
 	/* Write the data itself */
 	switch (source->type) {
@@ -87,9 +87,9 @@ bool buxton_serialize(BuxtonData *source, uint8_t **target)
 	}
 
 	*target = data;
-	ret = true;
+	ret = size;
 end:
-	if (!ret && data)
+	if (ret < BXT_MINIMUM_SIZE && data)
 		free(data);
 
 	return ret;
@@ -98,27 +98,21 @@ end:
 bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 {
 	void *copy_data = NULL;
-	unsigned int offset = 0;
-	unsigned int length = 0;
-	unsigned int len;
+	size_t offset = 0;
+	size_t length = 0;
 	BuxtonDataType type;
 	bool ret = false;
 
 	assert(source);
 	assert(target);
 
-	len = malloc_usable_size(source);
-
-	if (len < BXT_MINIMUM_SIZE)
-		return false;
-
 	/* firstly, retrieve the BuxtonDataType */
 	memcpy(&type, source, sizeof(BuxtonDataType));
 	offset += sizeof(BuxtonDataType);
 
 	/* Now retrieve the length */
-	memcpy(&length, source+offset, sizeof(unsigned int));
-	offset += sizeof(unsigned int);
+	memcpy(&length, source+offset, sizeof(size_t));
+	offset += sizeof(size_t);
 
 	/* Retrieve the remainder of the data */
 	copy_data = malloc(length);
