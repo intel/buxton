@@ -410,7 +410,7 @@ end:
 	return ret;
 }
 
-size_t buxton_get_message_size(uint8_t *data, int size)
+size_t buxton_get_message_size(uint8_t *data, size_t size)
 {
 	size_t r_size;
 
