@@ -27,14 +27,35 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	assert(msg);
 	assert(list);
 
-	uint8_t response[256];
+	uint8_t *response;
 	int l;
 	BuxtonData *r_list = NULL;
 	BuxtonControlMessage r_msg;
-	__attribute__((unused)) uint8_t *data = NULL;
 	int count = -1;
+	size_t offset = 0;
+	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
 
-	while ((l = read(client->fd, &response, 256)) > 0) {
+	response = malloc(BUXTON_MESSAGE_HEADER_LENGTH);
+
+	while ((l = read(client->fd, response + offset, size - offset)) > 0) {
+		offset += l;
+		buxton_log("offset=%lu : bmhl=%d\n", offset, BUXTON_MESSAGE_HEADER_LENGTH);
+		if (offset < BUXTON_MESSAGE_HEADER_LENGTH)
+			continue;
+		if (size == BUXTON_MESSAGE_HEADER_LENGTH) {
+			size = buxton_get_message_size(response, offset);
+			buxton_log("size=%lu\n", size);
+			if (size == 0 || size > BUXTON_MESSAGE_MAX_LENGTH)
+				goto end;
+		}
+		if (size != BUXTON_MESSAGE_HEADER_LENGTH) {
+			response = realloc(response, size);
+			if (!response)
+				goto end;
+		}
+		if (size != offset)
+			continue;
+
 		count = buxton_deserialize_message(response, &r_msg, l, &r_list);
 		if (count < 0)
 			goto end;
@@ -47,6 +68,9 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	*msg = r_msg;
 	*list = r_list;
 end:
+	if (response)
+		free(response);
+
 	return count;
 }
 
