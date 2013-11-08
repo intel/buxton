@@ -38,7 +38,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 		count = buxton_deserialize_message(response, &r_msg, l, &r_list);
 		if (count < 0)
 			goto end;
-		if (r_msg != BUXTON_CONTROL_STATUS && r_list[0].type != INT) {
+		if (r_msg != BUXTON_CONTROL_STATUS || r_list[0].type != INT) {
 			buxton_log("Critical error: Invalid response\n");
 			goto end;
 		}
