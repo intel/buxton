@@ -69,19 +69,19 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 			memcpy(data+offset, source->store.d_string.value, length);
 			break;
 		case BOOLEAN:
-			memcpy(data+offset, &(source->store.d_boolean), length);
+			memcpy(data+offset, &(source->store.d_boolean), sizeof(bool));
 			break;
 		case FLOAT:
-			memcpy(data+offset, &(source->store.d_float), length);
+			memcpy(data+offset, &(source->store.d_float), sizeof(float));
 			break;
 		case INT:
-			memcpy(data+offset, &(source->store.d_int), length);
+			memcpy(data+offset, &(source->store.d_int), sizeof(int32_t));
 			break;
 		case DOUBLE:
-			memcpy(data+offset, &(source->store.d_double), length);
+			memcpy(data+offset, &(source->store.d_double), sizeof(double));
 			break;
 		case LONG:
-			memcpy(data+offset, &(source->store.d_long), length);
+			memcpy(data+offset, &(source->store.d_long), sizeof(int64_t));
 			break;
 		default:
 			goto end;
@@ -98,7 +98,6 @@ end:
 
 bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 {
-	void *copy_data = NULL;
 	size_t offset = 0;
 	size_t length = 0;
 	BuxtonDataType type;
@@ -115,37 +114,32 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	memcpy(&length, source+offset, sizeof(size_t));
 	offset += sizeof(size_t);
 
-	/* Retrieve the remainder of the data */
-	copy_data = malloc(length);
-	if (!copy_data)
-		goto end;
-	memcpy(copy_data, source+offset, length);
-
 	switch (type) {
 		case STRING:
 			/* User must free the string */
 			target->store.d_string.value = malloc(length);
 			if (!target->store.d_string.value)
 				goto end;
-			memcpy(target->store.d_string.value, copy_data, length);
+			memcpy(target->store.d_string.value, source+offset, length);
 			target->store.d_string.length = length;
 			break;
 		case BOOLEAN:
-			target->store.d_boolean = *(bool*)copy_data;
+			target->store.d_boolean = *(bool*)(source+offset);
 			break;
 		case FLOAT:
-			target->store.d_float = *(float*)copy_data;
+			target->store.d_float = *(float*)(source+offset);
 			break;
 		case INT:
-			target->store.d_int = *(int*)copy_data;
+			target->store.d_int = *(int32_t*)(source+offset);
 			break;
 		case DOUBLE:
-			target->store.d_double = *(double*)copy_data;
+			target->store.d_double = *(double*)(source+offset);
 			break;
 		case LONG:
-			target->store.d_long = *(long*)copy_data;
+			target->store.d_long = *(int64_t*)(source+offset);
 			break;
 		default:
+			buxton_debug("Invalid BuxtonDataType: %lu\n", type);
 			goto end;
 	}
 
@@ -154,10 +148,6 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	ret = true;
 
 end:
-	/* Cleanup */
-	if (copy_data)
-		free(copy_data);
-
 	return ret;
 }
 
@@ -243,19 +233,19 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 				memcpy(data+offset, param->store.d_string.value, p_length);
 				break;
 			case BOOLEAN:
-				memcpy(data+offset, &(param->store.d_boolean), p_length);
+				memcpy(data+offset, &(param->store.d_boolean), sizeof(bool));
 				break;
 			case FLOAT:
-				memcpy(data+offset, &(param->store.d_float), p_length);
+				memcpy(data+offset, &(param->store.d_float), sizeof(float));
 				break;
 			case INT:
-				memcpy(data+offset, &(param->store.d_int), p_length);
+				memcpy(data+offset, &(param->store.d_int), sizeof(int32_t));
 				break;
 			case DOUBLE:
-				memcpy(data+offset, &(param->store.d_double), p_length);
+				memcpy(data+offset, &(param->store.d_double), sizeof(double));
 				break;
 			case LONG:
-				memcpy(data+offset, &(param->store.d_long), p_length);
+				memcpy(data+offset, &(param->store.d_long), sizeof(int64_t));
 				break;
 			default:
 				buxton_log("Invalid parameter type %lu\n", param->type);
@@ -290,9 +280,6 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	void *copy_params = NULL;
 	uint16_t control, message;
 	unsigned int n_params, c_param;
-	/* For each parameter */
-	size_t p_size = 0;
-	void *p_content = NULL;
 	BuxtonDataType c_type;
 	unsigned int c_length;
 	BuxtonData *k_list = NULL;
@@ -358,16 +345,6 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 		if (c_length <= 0)
 			goto end;
 
-		if (!p_content)
-			p_content = malloc(c_length);
-		else
-			p_content = greedy_realloc((void**)&p_content, &p_size, c_length);
-
-		/* If it still doesn't exist, bail */
-		if (!p_content)
-			goto end;
-		memcpy(p_content, data+offset, c_length);
-
 		if (!c_data)
 			c_data = malloc(sizeof(BuxtonData));
 		if (!c_data)
@@ -378,23 +355,23 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 				c_data->store.d_string.value = malloc(c_length);
 				if (!c_data->store.d_string.value)
 					goto end;
-				memcpy(c_data->store.d_string.value, p_content, c_length);
+				memcpy(c_data->store.d_string.value, data+offset, c_length);
 				c_data->store.d_string.length = c_length;
 				break;
 			case BOOLEAN:
-				c_data->store.d_boolean = *(bool*)p_content;
+				c_data->store.d_boolean = *(bool*)(data+offset);
 				break;
 			case FLOAT:
-				c_data->store.d_float = *(float*)p_content;
+				c_data->store.d_float = *(float*)(data+offset);
 				break;
 			case INT:
-				c_data->store.d_int = *(int*)p_content;
+				c_data->store.d_int = *(int*)(data+offset);
 				break;
 			case DOUBLE:
-				c_data->store.d_double = *(double*)p_content;
+				c_data->store.d_double = *(double*)(data+offset);
 				break;
 			case LONG:
-				c_data->store.d_long = *(long*)p_content;
+				c_data->store.d_long = *(long*)(data+offset);
 				break;
 			default:
 				goto end;
@@ -415,8 +392,6 @@ end:
 		free(copy_message);
 	if (copy_params)
 		free(copy_params);
-	if (p_content)
-		free(p_content);
 	if (c_data)
 		free(c_data);
 
