@@ -40,7 +40,7 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 	assert(layer);
 	assert(_resources);
 
-	db = hashmap_get(_resources, layer->name);
+	db = hashmap_get(_resources, layer->name.value);
 	if (!db) {
 		path = get_layer_path(layer);
 		if (!path)
@@ -50,19 +50,19 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 			buxton_log("Couldn't create db for path: %s\n", path);
 			goto end;
 		}
-		hashmap_put(_resources, layer->name, db);
+		hashmap_put(_resources, layer->name.value, db);
 	}
 end:
 	if (path)
 		free(path);
-	return (GDBM_FILE) hashmap_get(_resources, layer->name);
+	return (GDBM_FILE) hashmap_get(_resources, layer->name.value);
 }
 
-static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
+static bool set_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *data)
 {
 	GDBM_FILE db;
 	int ret;
-	datum key = { (char *)key_name, strlen(key_name) + 1};
+	datum key;
 	datum value;
 	uint8_t *data_store = NULL;
 	size_t size;
@@ -70,6 +70,9 @@ static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 	assert(layer);
 	assert(key_name);
 	assert(data);
+
+	key.dptr = key_name->value;
+	key.dsize = key_name->length;
 
 	db = _db_for_resource(layer);
 	if (!db)
@@ -89,16 +92,19 @@ static bool set_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data
 	return true;
 }
 
-static bool get_value(BuxtonLayer *layer, const char *key_name, BuxtonData *data)
+static bool get_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *data)
 {
 	GDBM_FILE db;
-	datum key = { (char *)key_name, strlen(key_name) + 1};
+	datum key;
 	datum value;
 	uint8_t *data_store = NULL;
 	bool ret = false;
 
 	assert(layer);
 	assert(key_name);
+
+	key.dptr = key_name->value;
+	key.dsize = key_name->length;
 
 	memset(&value, 0, sizeof(datum));
 	db = _db_for_resource(layer);

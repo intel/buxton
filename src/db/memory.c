@@ -40,16 +40,16 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 	assert(layer);
 	assert(_resources);
 
-	db = hashmap_get(_resources, layer->name);
+	db = hashmap_get(_resources, layer->name.value);
 	if (!db) {
 		db = hashmap_new(string_hash_func, string_compare_func);
-		hashmap_put(_resources, layer->name, db);
+		hashmap_put(_resources, layer->name.value, db);
 	}
 
-	return (Hashmap*) hashmap_get(_resources, layer->name);
+	return (Hashmap*) hashmap_get(_resources, layer->name.value);
 }
 
-static bool set_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
+static bool set_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
 {
 	Hashmap *db;
 	assert(layer);
@@ -60,11 +60,11 @@ static bool set_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 	if (!db)
 		return false;
 
-	hashmap_put(db, key, data);
+	hashmap_put(db, key->value, data);
 	return true;
 }
 
-static bool get_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
+static bool get_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
 {
 	Hashmap *db;
 	BuxtonData *stored;
@@ -76,7 +76,7 @@ static bool get_value(BuxtonLayer *layer, const char *key, BuxtonData *data)
 	if (!db)
 		return false;
 
-	stored = (BuxtonData*)hashmap_get(db, key);
+	stored = (BuxtonData*)hashmap_get(db, key->value);
 	if (!stored)
 		return false;
 	data = stored;

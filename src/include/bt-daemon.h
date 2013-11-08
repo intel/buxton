@@ -64,10 +64,18 @@ typedef enum BuxtonDataType {
 } BuxtonDataType;
 
 /**
+ * Stores a string entity in Buxton
+ */
+typedef struct BuxtonString {
+	char *value; /**<The content of the string */
+	size_t length; /**<The length of the string */
+} BuxtonString;
+
+/**
  * Stores values in Buxton, may have only one value
  */
 typedef union BuxtonDataStore {
-	char *d_string; /**<Stores a string value */
+	BuxtonString d_string; /**<Stores a string value */
 	bool d_boolean; /**<Stores a boolean value */
 	float d_float; /**<Stores a float value */
 	int d_int; /**<Stores an integer value */
@@ -86,6 +94,13 @@ typedef struct BuxtonData {
 	BuxtonDataType type; /**<Type of data stored */
 	BuxtonDataStore store;/**<Contains one value, correlating to type */
 } BuxtonData;
+
+static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)
+{
+	d->type = STRING;
+	d->store.d_string.value = s->value;
+	d->store.d_string.length = s->length;
+}
 
 /* Buxton API Methods */
 
@@ -110,7 +125,7 @@ _bx_export_ void buxton_client_close(BuxtonClient *client);
  * @param data A struct containing the data to set
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_set_value(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
+_bx_export_ bool buxton_client_set_value(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonData *data);
 
 /**
  * Retrieve a value from Buxton
@@ -119,7 +134,7 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client, const char *layer
  * @param data An empty BuxtonData, where data is stored
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *key, BuxtonData *data);
+_bx_export_ bool buxton_client_get_value(BuxtonClient *client, BuxtonString *key, BuxtonData *data);
 
 /**
  * Retrieve a value from Buxton
@@ -129,7 +144,7 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client, const char *key, 
  * @param data An empty BuxtonData, where data is stored
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client, const char *layer, const char *key, BuxtonData *data);
+_bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonData *data);
 
 /**
  * Open a direct connection to Buxton

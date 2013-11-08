@@ -230,20 +230,20 @@ static BuxtonBackend *backend_for_layer(BuxtonLayer *layer)
 
 	if (!_databases)
 		_databases = hashmap_new(string_hash_func, string_compare_func);
-	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->name)) == NULL) {
+	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->name.value)) == NULL) {
 		/* attempt load of backend */
 		if (!init_backend(layer, &backend)) {
 			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
 			free(backend);
 			return NULL;
 		}
-		hashmap_put(_databases, layer->name, backend);
+		hashmap_put(_databases, layer->name.value, backend);
 	}
-	return (BuxtonBackend*)hashmap_get(_databases, layer->name);
+	return (BuxtonBackend*)hashmap_get(_databases, layer->name.value);
 }
 
 bool buxton_client_get_value(BuxtonClient *client,
-			      const char *key,
+			      BuxtonString *key,
 			      BuxtonData *data)
 {
 
@@ -257,7 +257,7 @@ bool buxton_client_get_value(BuxtonClient *client,
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */
 		BuxtonLayer *l;
-		BuxtonLayer *layer = NULL;
+		BuxtonString layer = (BuxtonString){ NULL, 0 };
 		Iterator i;
 		BuxtonData d;
 		int priority = 0;
@@ -265,19 +265,20 @@ bool buxton_client_get_value(BuxtonClient *client,
 
 		HASHMAP_FOREACH(l, _layers, i) {
 			r = buxton_client_get_value_for_layer(client,
-							      l->name,
+							      &l->name,
 							      key,
 							      &d);
 			if (r) {
 				if (priority < l->priority) {
 					priority = l->priority;
-					layer = l;
+					layer.value = l->name.value;
+					layer.length = l->name.length;
 				}
 			}
 		}
-		if (layer) {
+		if (layer.value) {
 			return buxton_client_get_value_for_layer(client,
-								 layer->name,
+								 &layer,
 								 key,
 								 data);
 		}
@@ -289,13 +290,14 @@ bool buxton_client_get_value(BuxtonClient *client,
 }
 
 bool buxton_client_get_value_for_layer(BuxtonClient *client,
-			      const char *layer_name,
-			      const char *key,
+			      BuxtonString *layer_name,
+			      BuxtonString *key,
 			      BuxtonData *data)
 {
 
 	assert(client);
 	assert(layer_name);
+	assert(layer_name->value);
 	assert(key);
 
 	/* TODO: Implement */
@@ -303,7 +305,7 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
 		BuxtonLayer *layer;
-		if ((layer = hashmap_get(_layers, layer_name)) == NULL) {
+		if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
 			return false;
 		}
 		backend = backend_for_layer(layer);
@@ -320,13 +322,14 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 }
 
 bool buxton_client_set_value(BuxtonClient *client,
-			      const char *layer_name,
-			      const char *key,
+			      BuxtonString *layer_name,
+			      BuxtonString *key,
 			      BuxtonData *data)
 {
 
 	assert(client);
 	assert(layer_name);
+	assert(layer_name->value);
 	assert(key);
 	assert(data);
 
@@ -334,7 +337,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
 		BuxtonLayer *layer;
-		if ((layer = hashmap_get(_layers, layer_name)) == NULL) {
+		if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
 			return false;
 		}
 		backend = backend_for_layer(layer);
@@ -406,7 +409,7 @@ bool buxton_init_layers(void)
 			buxton_log("Failed to load layer: %s\n", section_name);
 			continue;
 		}
-		hashmap_put(_layers, layer->name, layer);
+		hashmap_put(_layers, layer->name.value, layer);
 	}
 	ret = true;
 
@@ -457,9 +460,10 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	if (!_type || !name || !_backend || _priority < 0)
 		goto end;
 
-	out->name = strdup(name);
-	if (!out->name)
+	out->name.value = strdup(name);
+	if (!out->name.value)
 		goto fail;
+	out->name.length = strlen(name);
 
 	if (strcmp(_type, "System") == 0)
 		out->type = LAYER_SYSTEM;
@@ -486,8 +490,8 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	goto end;
 
 fail:
-	if (out->name)
-		free(out->name);
+	if (out->name.value)
+		free(out->name.value);
 	if (out->description)
 		free(out->description);
 

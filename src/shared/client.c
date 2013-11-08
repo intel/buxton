@@ -26,24 +26,28 @@
 bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char
  *one, char *two, char *three)
 {
-	char *layer, *key, *value;
+	BuxtonString layer, key, value;
 	BuxtonData set;
 
-	layer = one;
-	key = two;
-	value = three;
+	layer.value = one;
+	layer.length = strlen(one) + 1;
+	key.value = two;
+	key.length = strlen(two) + 1;
+	value.value = three;
+	value.length = strlen(three) + 1;
 
 	bool ret = false;
 
 	set.type = type;
 	switch (set.type) {
 		case STRING:
-			set.store.d_string = value;
+			set.store.d_string.value = value.value;
+			set.store.d_string.length = value.length;
 			break;
 		case BOOLEAN:
-			if (streq(value, "true"))
+			if (streq(value.value, "true"))
 				set.store.d_boolean = true;
-			else if (streq(value, "false"))
+			else if (streq(value.value, "false"))
 				set.store.d_boolean = false;
 			else {
 				printf("Accepted values are [true] [false]. Not updating\n");
@@ -51,28 +55,28 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char
 			}
 			break;
 		case FLOAT:
-			set.store.d_float = strtof(value, NULL);
+			set.store.d_float = strtof(value.value, NULL);
 			if (errno) {
 				printf("Invalid floating point value\n");
 				return false;
 			}
 			break;
 		case DOUBLE:
-			set.store.d_double = strtod(value, NULL);
+			set.store.d_double = strtod(value.value, NULL);
 			if (errno) {
 				printf("Invalid double precision value\n");
 				return false;
 			}
 			break;
 		case LONG:
-			set.store.d_long = strtol(value, NULL, 10);
+			set.store.d_long = strtol(value.value, NULL, 10);
 			if (errno) {
 				printf("Invalid long integer value\n");
 				return false;
 			}
 			break;
 		case INT:
-			set.store.d_int = strtol(value, NULL, 10);
+			set.store.d_int = strtol(value.value, NULL, 10);
 			if (errno) {
 				printf("Invalid integer\n");
 				return false;
@@ -81,38 +85,41 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char
 		default:
 			break;
 	}
-	ret = buxton_client_set_value(self, layer, key, &set);
+	ret = buxton_client_set_value(self, &layer, &key, &set);
 	if (!ret)
-		printf("Failed to update key \'%s\' in layer '%s'\n", key, layer);
+		printf("Failed to update key \'%s\' in layer '%s'\n", key.value, layer.value);
 	return ret;
 }
 
 bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char
  *one, char *two, __attribute__((unused)) char *three)
 {
-	char *layer, *key;
+	BuxtonString layer, key;
 	BuxtonData get;
 	bool ret = true;
 	char *prefix;
 
 	if (two != NULL) {
-		layer = one;
-		key = two;
-		asprintf(&prefix, "[%s] ", layer);
+		layer.value = one;
+		layer.length = strlen(one) + 1;
+		key.value = two;
+		key.length = strlen(two) + 1;
+		asprintf(&prefix, "[%s] ", layer.value);
 	} else {
-		key = one;
+		key.value = one;
+		key.length = strlen(one) + 1;
 		asprintf(&prefix, " ");
 	}
 
 	if (two != NULL) {
-		if (!buxton_client_get_value_for_layer(self, layer, key, &get)) {
-			printf("Requested key was not found in layer \'%s\': %s\n", layer, key);
+		if (!buxton_client_get_value_for_layer(self, &layer, &key, &get)) {
+			printf("Requested key was not found in layer \'%s\': %s\n", layer.value, key.value);
 			ret = false;
 			goto end;
 		}
 	} else {
-		if (!buxton_client_get_value(self, key, &get)) {
-			printf("Requested key was not found: %s\n", key);
+		if (!buxton_client_get_value(self, &key, &get)) {
+			printf("Requested key was not found: %s\n", key.value);
 			ret = false;
 			goto end;
 		}
@@ -129,25 +136,25 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char
 
 	switch (get.type) {
 		case STRING:
-			printf("%s%s = %s\n", prefix, key, get.store.d_string);
+			printf("%s%s = %s\n", prefix, key.value, get.store.d_string.value);
 			break;
 		case BOOLEAN:
 			if (get.store.d_boolean == true)
-				printf("%s%s = true\n", prefix, key);
+				printf("%s%s = true\n", prefix, key.value);
 			else
-				printf("%s%s = false\n", prefix, key);
+				printf("%s%s = false\n", prefix, key.value);
 			break;
 		case FLOAT:
-			printf("%s%s = %f\n", prefix, key, get.store.d_float);
+			printf("%s%s = %f\n", prefix, key.value, get.store.d_float);
 			break;
 		case DOUBLE:
-			printf("%s%s = %f\n", prefix, key, get.store.d_double);
+			printf("%s%s = %f\n", prefix, key.value, get.store.d_double);
 			break;
 		case LONG:
-			printf("%s%s = %ld\n", prefix, key, get.store.d_long);
+			printf("%s%s = %ld\n", prefix, key.value, get.store.d_long);
 			break;
 		case INT:
-			printf("%s%s = %d\n", prefix, key, get.store.d_int);
+			printf("%s%s = %d\n", prefix, key.value, get.store.d_int);
 			break;
 		default:
 			printf("unknown type\n");
@@ -157,7 +164,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char
 end:
 	free(prefix);
 	if (ret && get.type == STRING)
-		free(get.store.d_string);
+		free(get.store.d_string.value);
 
 	return ret;
 }

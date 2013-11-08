@@ -74,7 +74,7 @@ end:
 	return count;
 }
 
-bool buxton_wire_set_value(BuxtonClient *client, const char *layer_name, const char *key,
+bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
 			   BuxtonData *value)
 {
 	assert(client);
@@ -88,12 +88,11 @@ bool buxton_wire_set_value(BuxtonClient *client, const char *layer_name, const c
 	int send_len = 0;
 	BuxtonControlMessage r_msg;
 	BuxtonData *r_list = NULL;
-	BuxtonData d_layer, d_key;
+	BuxtonData d_layer;
+	BuxtonData d_key;
 
-	d_layer.type = STRING;
-	d_layer.store.d_string = (char *)layer_name;
-	d_key.type = STRING;
-	d_key.store.d_string = (char *)key;
+	buxton_string_to_data(layer_name, &d_layer);
+	buxton_string_to_data(key, &d_key);
 
 	/* Attempt to serialize our send message */
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, 3,
@@ -116,7 +115,7 @@ end:
 	return ret;
 }
 
-bool buxton_wire_get_value(BuxtonClient *client, const char *layer_name, const char *key,
+bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
 			   BuxtonData *value)
 {
 	assert(client);
@@ -129,22 +128,20 @@ bool buxton_wire_get_value(BuxtonClient *client, const char *layer_name, const c
 	int send_len = 0;
 	BuxtonControlMessage r_msg;
 	BuxtonData *r_list = NULL;
-	BuxtonData d_layer, d_key;
+	BuxtonData d_layer;
+	BuxtonData d_key;
 
-	/* Optional layer */
-	if (layer_name != NULL) {
-		d_layer.type = STRING;
-		d_layer.store.d_string = (char *)layer_name;
-	}
-	d_key.type = STRING;
-	d_key.store.d_string = (char *)key;
+	buxton_string_to_data(key, &d_key);
 
 	/* Attempt to serialize our send message */
-	if (layer_name != NULL)
+	if (layer_name != NULL) {
+		buxton_string_to_data(layer_name, &d_layer);
 		send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, 2,
 						    &d_layer, &d_key);
-	else
-		send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, 1, &d_key);
+	} else {
+		send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, 1,
+						    &d_key);
+	}
 
 	if (send_len == 0)
 		goto end;
@@ -167,7 +164,7 @@ end:
 	if (r_list) {
 		for (i=0; i < count; i++) {
 			if (r_list[i].type == STRING)
-				free(r_list[i].store.d_string);
+				free(r_list[i].store.d_string.value);
 		}
 		free(r_list);
 	}

@@ -49,7 +49,7 @@ typedef enum BuxtonLayerType {
  * through a consistent API
  */
 typedef struct BuxtonLayer {
-	char *name; /**<Name of the layer*/
+	BuxtonString name; /**<Name of the layer*/
 	BuxtonLayerType type; /**<Type of layer */
 	BuxtonBackendType backend; /**<Backend for this layer */
 	uid_t uid; /**<User ID for layers of type LAYER_USER */
@@ -64,7 +64,7 @@ typedef struct BuxtonLayer {
  * @param data Set or get data, dependant on operation
  * @return a boolean value, indicating success of the operation
  */
-typedef bool (*module_value_func) (BuxtonLayer *layer, const char *key, BuxtonData *data);
+typedef bool (*module_value_func) (BuxtonLayer *layer, BuxtonString *key, BuxtonData *data);
 
 /**
  * Destroy (or shutdown) a backend module

@@ -89,11 +89,11 @@ end:
 	if (response_store)
 		free(response_store);
 	if (data && data->type == STRING)
-		free(data->store.d_string);
+		free(data->store.d_string.value);
 	if (list) {
 		for (i=0; i < p_count; i++) {
 			if (list[i].type == STRING)
-				free(list[i].store.d_string);
+				free(list[i].store.d_string.value);
 		}
 		free(list);
 	}
@@ -119,7 +119,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 		return NULL;
 
 	/* Use internal library to set value */
-	if (!buxton_client_set_value(&(self->buxton), layer.store.d_string, key.store.d_string, &value)) {
+	if (!buxton_client_set_value(&(self->buxton), &layer.store.d_string, &key.store.d_string, &value)) {
 		*status = BUXTON_STATUS_FAILED;
 		return NULL;
 	}
@@ -163,11 +163,11 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	/* Attempt to retrieve key */
 	if (n_params == 2) {
 		/* Layer + key */
-		if (!buxton_client_get_value_for_layer(&(self->buxton), layer.store.d_string, key.store.d_string, ret))
+		if (!buxton_client_get_value_for_layer(&(self->buxton), &layer.store.d_string, &key.store.d_string, ret))
 			goto fail;
 	} else {
 		/* Key only */
-		if (!buxton_client_get_value(&(self->buxton), key.store.d_string, ret))
+		if (!buxton_client_get_value(&(self->buxton), &key.store.d_string, ret))
 			goto fail;
 	}
 	*status = BUXTON_STATUS_OK;

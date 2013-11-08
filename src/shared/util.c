@@ -66,14 +66,14 @@ char* get_layer_path(BuxtonLayer *layer)
 
 	switch (layer->type) {
 		case LAYER_SYSTEM:
-			r = asprintf(&path, "%s/%s.db", DB_PATH, layer->name);
+			r = asprintf(&path, "%s/%s.db", DB_PATH, layer->name.value);
 			if (r == -1)
 				return NULL;
 			break;
 		case LAYER_USER:
 			/* uid must already be set in layer before calling */
 			sprintf(uid, "%d", (int)layer->uid);
-			r = asprintf(&path, "%s/%s-%s.db", DB_PATH, layer->name, uid);
+			r = asprintf(&path, "%s/%s-%s.db", DB_PATH, layer->name.value, uid);
 			if (r == -1)
 				return NULL;
 			break;
@@ -93,7 +93,11 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 
 	switch (original->type) {
 		case STRING:
-			store.d_string = strdup(original->store.d_string);
+			store.d_string.value = malloc(original->store.d_string.length);
+			if (!store.d_string.value)
+				goto fail;
+			memcpy(store.d_string.value, original->store.d_string.value, original->store.d_string.length);
+			store.d_string.length = original->store.d_string.length;
 			break;
 		case BOOLEAN:
 			store.d_boolean = original->store.d_boolean;
@@ -113,9 +117,6 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 		default:
 			goto fail;
 	}
-
-	if (original->type == STRING && !store.d_string)
-		goto fail;
 
 	copy->type = original->type;
 	copy->store = store;

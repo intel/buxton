@@ -92,7 +92,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
  * @param value A BuxtonData storing the new value
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_wire_set_value(BuxtonClient *client, const char *layer_name, const char *key,
+bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
 			   BuxtonData *value);
 
 /**
@@ -103,7 +103,7 @@ bool buxton_wire_set_value(BuxtonClient *client, const char *layer_name, const c
  * @param value A pointer to store retrieved value in
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_wire_get_value(BuxtonClient *client, const char *layer_name, const char *key,
+bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
 			   BuxtonData *value);
 
 /*

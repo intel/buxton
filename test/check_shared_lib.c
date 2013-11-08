@@ -30,6 +30,8 @@
 #include "smack.h"
 #include "util.h"
 
+#define PACK(s) ((BuxtonString){(s), strlen(s) + 1})
+
 START_TEST(log_write_check)
 {
 	char log_file[] = "log-check-stderr-file";
@@ -192,7 +194,7 @@ START_TEST(get_layer_path_check)
 	int r;
 
 	memset(&layer, 0, sizeof(BuxtonLayer));
-	layer.name = "path-test";
+	layer.name = PACK("path-test");
 	layer.type = LAYER_SYSTEM;
 	r = asprintf(&real_path, "%s/%s", DB_PATH, "path-test.db");
 	fail_if(r == -1, "Failed to set real path for system layer");
@@ -207,7 +209,7 @@ START_TEST(get_layer_path_check)
 	if (real_path)
 		free(real_path);
 
-	layer.name = "user-path-test";
+	layer.name = PACK("user-path-test");
 	layer.type = LAYER_USER;
 	layer.uid = 1000;
 	r = asprintf(&real_path, "%s/%s", DB_PATH, "user-path-test-1000.db");
@@ -223,7 +225,7 @@ START_TEST(get_layer_path_check)
 	if (real_path)
 		free(real_path);
 
-	layer.name = "bad-type-test";
+	layer.name = PACK("bad-type-test");
 	layer.type = -1;
 	fail_if(get_layer_path(&layer) != NULL,
 		"Invalid layer type didn't return failure");
@@ -235,14 +237,14 @@ START_TEST(buxton_data_copy_check)
 	BuxtonData original, copy;
 
 	original.type = STRING;
-	original.store.d_string = "test-data-copy";
+	original.store.d_string = PACK("test-data-copy");
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
 		"Failed to copy string type");
-	fail_if((strcmp(original.store.d_string, copy.store.d_string) != 0),
+	fail_if((strcmp(original.store.d_string.value, copy.store.d_string.value) != 0),
 		"Failed to copy string data");
-	if(copy.store.d_string)
-		free(copy.store.d_string);
+	if (copy.store.d_string.value)
+		free(copy.store.d_string.value);
 
 	original.type = BOOLEAN;
 	original.store.d_boolean = true;
@@ -286,7 +288,7 @@ START_TEST(buxton_data_copy_check)
 
 	original.type = -1;
 	buxton_data_copy(&original, &copy);
-	fail_if(copy.type || copy.store.d_string, "Copied invalid data");
+	fail_if(copy.type || copy.store.d_string.value, "Copied invalid data");
 }
 END_TEST
 
@@ -326,19 +328,19 @@ START_TEST(buxton_db_serialize_check)
 	uint8_t *packed;
 
 	dsource.type = STRING;
-	dsource.store.d_string = "test-string";
+	dsource.store.d_string = PACK("test-string");
 	fail_if(buxton_serialize(&dsource, &packed) == false,
 		"Failed to serialize string data");
 	fail_if(buxton_deserialize(packed, &dtarget) == false,
 		"Failed to deserialize string data");
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for string");
-	fail_if(strcmp(dsource.store.d_string, dtarget.store.d_string) != 0,
+	fail_if(strcmp(dsource.store.d_string.value, dtarget.store.d_string.value) != 0,
 		"Source and destination string data differ");
 	if (packed)
 		free(packed);
-	if (dtarget.store.d_string)
-		free(dtarget.store.d_string);
+	if (dtarget.store.d_string.value)
+		free(dtarget.store.d_string.value);
 
 	dsource.type = FLOAT;
 	dsource.store.d_float = 3.14;
@@ -409,7 +411,7 @@ START_TEST(buxton_message_serialize_check)
 	size_t ret;
 
 	dsource.type = STRING;
-	dsource.store.d_string = "test-key";
+	dsource.store.d_string = PACK("test-key");
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
 	fail_if(ret == 0, "Failed to serialize string data");
@@ -418,13 +420,13 @@ START_TEST(buxton_message_serialize_check)
 	fail_if(ctarget != csource, "Failed to get correct control message for string");
 	fail_if(dsource.type != dtarget[0].type,
 		"Source and destination type differ for string");
-	fail_if(strcmp(dsource.store.d_string, dtarget[0].store.d_string) != 0,
+	fail_if(strcmp(dsource.store.d_string.value, dtarget[0].store.d_string.value) != 0,
 		"Source and destination string data differ");
 	if (packed)
 		free(packed);
 	if (dtarget) {
-		if (dtarget[0].store.d_string) {
-			free(dtarget[0].store.d_string);
+		if (dtarget[0].store.d_string.value) {
+			free(dtarget[0].store.d_string.value);
 		}
 		free(dtarget);
 	}
@@ -520,19 +522,19 @@ START_TEST(buxton_message_serialize_check)
 	}
 
 	dsource.type = STRING;
-	dsource.store.d_string = "test-key";
+	dsource.store.d_string = PACK("test-key");
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 2, &dsource);
 	fail_if(ret != 0, "Serialized with incorrect parameter count");
 
 	dsource.type = -1;
-	dsource.store.d_string = "test-key";
+	dsource.store.d_string = PACK("test-key");
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
 	fail_if(ret != 0, "Serialized with bad data type");
 
 	dsource.type = STRING;
-	dsource.store.d_string = "test-key";
+	dsource.store.d_string = PACK("test-key");
 	csource = -1;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
 	fail_if(ret != 0, "Serialized with bad message type");
@@ -547,7 +549,7 @@ START_TEST(buxton_get_message_size_check)
 	size_t ret;
 
 	dsource.type = STRING;
-	dsource.store.d_string = "test-key";
+	dsource.store.d_string = PACK("test-key");
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
 	fail_if(ret == 0, "Failed to serialize string data for size");

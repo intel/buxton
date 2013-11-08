@@ -26,6 +26,8 @@
 #include "log.h"
 #include "util.h"
 
+#define PACK(s) ((BuxtonString){(s), strlen(s) + 1})
+
 pid_t daemon_pid;
 
 static void setup(void)
@@ -80,13 +82,15 @@ END_TEST
 START_TEST(buxton_client_set_value_check)
 {
 	BuxtonClient c;
+	BuxtonString layer = PACK("test-gdbm");
+	BuxtonString key = PACK("bxt_test");
 	usleep(250*1000);
 	fail_if(buxton_client_open(&c) == false,
 		"Direct open failed without daemon.");
 	BuxtonData data;
 	data.type = STRING;
-	data.store.d_string = "bxt_test_value";
-	fail_if(buxton_client_set_value(&c, "test-gdbm", "bxt_test", &data) == false,
+	data.store.d_string = PACK("bxt_test_value");
+	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
 		"Setting value in buxton directly failed.");
 }
 END_TEST
@@ -94,43 +98,47 @@ END_TEST
 START_TEST(buxton_client_get_value_for_layer_check)
 {
 	BuxtonClient c;
+	BuxtonString layer = PACK("test-gdbm");
+	BuxtonString key = PACK("bxt_test");
 	BuxtonData result;
 	usleep(250*1000);
 	fail_if(buxton_client_open(&c) == false,
 		"Direct open failed without daemon.");
-	fail_if(buxton_client_get_value_for_layer(&c, "test-gdbm", "bxt_test", &result) == false,
+	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
-	fail_if(strcmp(result.store.d_string, "bxt_test_value") != 0,
+	fail_if(strcmp(result.store.d_string.value, "bxt_test_value") != 0,
 		"Buxton gdbm returned a different value to that set.");
-	if (result.store.d_string)
-		free(result.store.d_string);
+	if (result.store.d_string.value)
+		free(result.store.d_string.value);
 }
 END_TEST
 
 START_TEST(buxton_client_get_value_check)
 {
 	BuxtonClient c;
+	BuxtonString layer = PACK("test-gdbm-user");
+	BuxtonString key = PACK("bxt_test");
 	BuxtonData data, result;
 	usleep(250*1000);
 	fail_if(buxton_client_open(&c) == false,
 		"Direct open failed without daemon.");
 
 	data.type = STRING;
-	data.store.d_string = "bxt_test_value2";
-	fail_if(data.store.d_string == NULL,
+	data.store.d_string = PACK("bxt_test_value2");
+	fail_if(data.store.d_string.value == NULL,
 		"Failed to allocate test string.");
-	fail_if(buxton_client_set_value(&c, "test-gdbm-user", "bxt_test", &data) == false,
+	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
 		"Failed to set second value.");
-	fail_if(buxton_client_get_value(&c, "bxt_test", &result) == false,
+	fail_if(buxton_client_get_value(&c, &key, &result) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
-	fail_if(strcmp(result.store.d_string, "bxt_test_value2") != 0,
+	fail_if(strcmp(result.store.d_string.value, "bxt_test_value2") != 0,
 		"Buxton gdbm returned a different value to that set.");
-	if (result.store.d_string)
-		free(result.store.d_string);
+	if (result.store.d_string.value)
+		free(result.store.d_string.value);
 }
 END_TEST
 

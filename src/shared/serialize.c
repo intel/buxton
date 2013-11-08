@@ -22,6 +22,7 @@
 #include "bt-daemon.h"
 #include "serialize.h"
 #include "util.h"
+#include "log.h"
 
 size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 {
@@ -40,7 +41,7 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	/* Total size will be different for string data */
 	switch (source->type) {
 		case STRING:
-			length = strlen(source->store.d_string) + 1;
+			length = source->store.d_string.length;
 			break;
 		default:
 			length = sizeof(source->store);
@@ -65,7 +66,7 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	/* Write the data itself */
 	switch (source->type) {
 		case STRING:
-			memcpy(data+offset, source->store.d_string, length);
+			memcpy(data+offset, source->store.d_string.value, length);
 			break;
 		case BOOLEAN:
 			memcpy(data+offset, &(source->store.d_boolean), length);
@@ -123,9 +124,11 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	switch (type) {
 		case STRING:
 			/* User must free the string */
-			target->store.d_string = strdup((char*)copy_data);
-			if (!target->store.d_string)
+			target->store.d_string.value = malloc(length);
+			if (!target->store.d_string.value)
 				goto end;
+			memcpy(target->store.d_string.value, copy_data, length);
+			target->store.d_string.length = length;
 			break;
 		case BOOLEAN:
 			target->store.d_boolean = *(bool*)copy_data;
@@ -172,6 +175,8 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 	assert(dest);
 
+	buxton_debug("Serializing message...\n");
+
 	/* Empty message not permitted */
 	if (n_params <= 0)
 		return ret;
@@ -209,9 +214,11 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		param = va_arg(args, BuxtonData*);
 		if (!param)
 			goto fail;
-		if (param->type == STRING)
-			p_length = strlen(param->store.d_string)+1;
-		else
+		if (param->type == STRING) {
+			//FIXME - this assert should likely go away
+			assert(param->store.d_string.value);
+			p_length = param->store.d_string.length;
+		} else
 			p_length = sizeof(param->store);
 
 		/* Need to allocate enough room to hold this data */
@@ -233,7 +240,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 		switch (param->type) {
 			case STRING:
-				memcpy(data+offset, param->store.d_string, p_length);
+				memcpy(data+offset, param->store.d_string.value, p_length);
 				break;
 			case BOOLEAN:
 				memcpy(data+offset, &(param->store.d_boolean), p_length);
@@ -251,8 +258,9 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 				memcpy(data+offset, &(param->store.d_long), p_length);
 				break;
 			default:
+				buxton_log("Invalid parameter type %lu\n", param->type);
 				goto fail;
-		}
+		};
 		offset += p_length;
 		p_length = 0;
 	}
@@ -267,6 +275,7 @@ fail:
 		free(data);
 	va_end(args);
 end:
+	buxton_debug("Serializing returned:%lu\n", ret);
 	return ret;
 }
 
@@ -292,6 +301,8 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	assert(data);
 	assert(r_message);
 	assert(list);
+
+	buxton_debug("Deserializing message...\n");
 
 	if (size < min_length)
 		goto end;
@@ -364,9 +375,11 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 
 		switch (c_type) {
 			case STRING:
-				c_data->store.d_string = strndup((char*)p_content, c_length);
-				if (!c_data->store.d_string)
+				c_data->store.d_string.value = malloc(c_length);
+				if (!c_data->store.d_string.value)
 					goto end;
+				memcpy(c_data->store.d_string.value, p_content, c_length);
+				c_data->store.d_string.length = c_length;
 				break;
 			case BOOLEAN:
 				c_data->store.d_boolean = *(bool*)p_content;
@@ -407,6 +420,7 @@ end:
 	if (c_data)
 		free(c_data);
 
+	buxton_debug("Deserializing returned:%i\n", ret);
 	return ret;
 }
 
