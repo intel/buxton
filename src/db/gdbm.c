@@ -53,8 +53,7 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 		hashmap_put(_resources, layer->name.value, db);
 	}
 end:
-	if (path)
-		free(path);
+	free(path);
 	return (GDBM_FILE) hashmap_get(_resources, layer->name.value);
 }
 
@@ -122,8 +121,7 @@ static bool get_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *da
 	ret = true;
 
 end:
-	if (value.dptr)
-		free(value.dptr);
+	free(value.dptr);
 	data_store = NULL;
 
 	return ret;

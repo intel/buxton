@@ -261,7 +261,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	*dest = data;
 fail:
 	/* Clean up */
-	if (ret == 0 && data)
+	if (ret == 0)
 		free(data);
 	va_end(args);
 end:
@@ -386,14 +386,10 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	ret = n_params;
 end:
 
-	if (copy_control)
-		free(copy_control);
-	if (copy_message)
-		free(copy_message);
-	if (copy_params)
-		free(copy_params);
-	if (c_data)
-		free(c_data);
+	free(copy_control);
+	free(copy_message);
+	free(copy_params);
+	free(c_data);
 
 	buxton_debug("Deserializing returned:%i\n", ret);
 	return ret;

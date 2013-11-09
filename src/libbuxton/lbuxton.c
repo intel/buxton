@@ -485,20 +485,14 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	goto end;
 
 fail:
-	if (out->name.value)
-		free(out->name.value);
-	if (out->description)
-		free(out->description);
+	free(out->name.value);
+	free(out->description);
 
 end:
-	if (k_desc)
-		free(k_desc);
-	if (k_backend)
-		free(k_backend);
-	if (k_type)
-		free(k_type);
-	if (k_priority)
-		free(k_priority);
+	free(k_desc);
+	free(k_backend);
+	free(k_type);
+	free(k_priority);
 
 	return ret;
 }

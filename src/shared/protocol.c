@@ -68,8 +68,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	*msg = r_msg;
 	*list = r_list;
 end:
-	if (response)
-		free(response);
+	free(response);
 
 	return count;
 }
@@ -107,10 +106,8 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 	if (count > 0 && r_list[0].store.d_int == BUXTON_STATUS_OK)
 		ret = true;
 end:
-	if (send)
-		free(send);
-	if (r_list)
-		free(r_list);
+	free(send);
+	free(r_list);
 
 	return ret;
 }
@@ -159,8 +156,7 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 	buxton_data_copy(&r_list[1], value);
 
 end:
-	if (send)
-		free(send);
+	free(send);
 	if (r_list) {
 		for (i=0; i < count; i++) {
 			if (r_list[i].type == STRING)
