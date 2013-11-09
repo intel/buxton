@@ -15,3 +15,6 @@
 
 - verify that received strings over the socket have a \x00 at the last
   byte just to assure that it's not utter garbage.
+
+- change malloc's into calloc's everywhere, make sure we zero anything
+  that is serialized due to the union member leaving padding uncleared.
