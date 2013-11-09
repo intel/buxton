@@ -66,7 +66,6 @@ bool buxton_client_open(BuxtonClient *client)
 {
 	int bx_socket, r;
 	struct sockaddr_un remote;
-	bool ret;
 
 	assert(client);
 
@@ -76,8 +75,7 @@ bool buxton_client_open(BuxtonClient *client)
 	}
 
 	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		ret = false;
-		goto end;
+		return false;
 	}
 
 	remote.sun_family = AF_UNIX;
@@ -85,14 +83,11 @@ bool buxton_client_open(BuxtonClient *client)
 	r = connect(bx_socket, (struct sockaddr *)&remote, sizeof(remote));
 	client->fd = bx_socket;
 	if ( r == -1) {
-		ret = false;
 		close(client->fd);
-		goto end;
+		return false;
 	}
 
-	ret = true;
-end:
-	return ret;
+	return true;
 }
 
 void buxton_client_close(BuxtonClient *client)
