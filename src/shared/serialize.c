@@ -329,6 +329,8 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	n_params = *(unsigned int*)copy_params;
 
 	k_list = malloc(sizeof(BuxtonData)*n_params);
+	if (!k_list)
+		goto end;
 
 	for (c_param = 0; c_param < n_params; c_param++) {
 		/* Now unpack type + length */
