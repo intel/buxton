@@ -275,9 +275,6 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	int offset = 0;
 	int ret = -1;
 	int min_length = BUXTON_MESSAGE_HEADER_LENGTH;
-	void *copy_control = NULL;
-	void *copy_message = NULL;
-	void *copy_params = NULL;
 	uint16_t control, message;
 	unsigned int n_params, c_param;
 	BuxtonDataType c_type;
@@ -295,24 +292,17 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 		goto end;
 
 	/* Copy the control code */
-	copy_control = malloc(sizeof(uint16_t));
-	if (!copy_control)
-		goto end;
-	memcpy(copy_control, data, sizeof(uint16_t));
+	control = *(uint16_t*)data;
 	offset += sizeof(uint16_t);
-	control = *(uint16_t*)copy_control;
 
 	/* Check this is a valid buxton message */
 	if (control != BUXTON_CONTROL_CODE)
 		goto end;
 
 	/* Obtain the control message */
-	copy_message = malloc(sizeof(uint16_t));
-	if (!copy_message)
-		goto end;
-	memcpy(copy_message, data+offset, sizeof(uint16_t));
+	message = *(BuxtonControlMessage*)(data+offset);
 	offset += sizeof(uint16_t);
-	message = *(BuxtonControlMessage*)copy_message;
+
 	/* Ensure control message is in valid range */
 	if (message >= BUXTON_CONTROL_MAX)
 		goto end;
@@ -321,12 +311,8 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	offset += sizeof(size_t);
 
 	/* Obtain number of parameters */
-	copy_params = malloc(sizeof(unsigned int));
-	if (!copy_params)
-		goto end;
-	memcpy(copy_params, data+offset, sizeof(unsigned int));
+	n_params = *(unsigned int*)(data+offset);
 	offset += sizeof(unsigned int);
-	n_params = *(unsigned int*)copy_params;
 
 	k_list = malloc(sizeof(BuxtonData)*n_params);
 	if (!k_list)
@@ -341,7 +327,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 			goto end;
 
 		/* Length */
-		memcpy(&c_length, data+offset, sizeof(unsigned int));
+		c_length = *(unsigned int*)(data+offset);
 		offset += sizeof(unsigned int);
 
 		if (c_length <= 0)
@@ -388,9 +374,6 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	ret = n_params;
 end:
 
-	free(copy_control);
-	free(copy_message);
-	free(copy_params);
 	free(c_data);
 
 	buxton_debug("Deserializing returned:%i\n", ret);
