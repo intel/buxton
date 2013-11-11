@@ -107,11 +107,11 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	assert(target);
 
 	/* firstly, retrieve the BuxtonDataType */
-	memcpy(&type, source, sizeof(BuxtonDataType));
+	type = *(BuxtonDataType*)source;
 	offset += sizeof(BuxtonDataType);
 
 	/* Now retrieve the length */
-	memcpy(&length, source+offset, sizeof(size_t));
+	length = *(size_t*)(source+offset);
 	offset += sizeof(size_t);
 
 	switch (type) {
