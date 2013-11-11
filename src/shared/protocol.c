@@ -120,9 +120,10 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 	assert(value);
 
 	bool ret = false;
-	int count, i;
-	uint8_t *send = NULL;
+	int count = 0;
 	int send_len = 0;
+	int i;
+	uint8_t *send = NULL;
 	BuxtonControlMessage r_msg;
 	BuxtonData *r_list = NULL;
 	BuxtonData d_layer;
