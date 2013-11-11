@@ -36,6 +36,8 @@ static void setup(void)
 	sigset_t sigset;
 	pid_t pid;
 
+	unlink(BUXTON_SOCKET);
+
 	sigemptyset(&sigset);
 	sigaddset(&sigset, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &sigset, NULL);
@@ -45,6 +47,7 @@ static void setup(void)
 	if (pid) {
 		/* parent*/
 		daemon_pid = pid;
+		usleep(32*1000);
 	} else {
 		/* child */
 		char path[PATH_MAX];
@@ -57,7 +60,6 @@ static void setup(void)
 		}
 		fail("should never reach here");
 	}
-	unlink(BUXTON_SOCKET);
 }
 
 static void teardown(void)
@@ -73,7 +75,6 @@ static void teardown(void)
 START_TEST(buxton_client_open_check)
 {
 	BuxtonClient c;
-	usleep(250*1000);
 	fail_if(buxton_client_open(&c) == false,
 		"Connection failed to open with daemon.");
 }
@@ -84,7 +85,6 @@ START_TEST(buxton_client_set_value_check)
 	BuxtonClient c;
 	BuxtonString layer = PACK("test-gdbm");
 	BuxtonString key = PACK("bxt_test");
-	usleep(250*1000);
 	fail_if(buxton_client_open(&c) == false,
 		"Direct open failed without daemon.");
 	BuxtonData data;
@@ -101,7 +101,6 @@ START_TEST(buxton_client_get_value_for_layer_check)
 	BuxtonString layer = PACK("test-gdbm");
 	BuxtonString key = PACK("bxt_test");
 	BuxtonData result;
-	usleep(250*1000);
 	fail_if(buxton_client_open(&c) == false,
 		"Direct open failed without daemon.");
 	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result) == false,
@@ -147,7 +146,6 @@ daemon_suite(void)
 {
 	Suite *s;
 	TCase *tc;
-	int i; const int TIMES = 10;
 
 	s = suite_create("daemon");
 	tc = tcase_create("daemon test functions");
@@ -156,9 +154,7 @@ daemon_suite(void)
 	tcase_add_test(tc, buxton_client_set_value_check);
 	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
 	tcase_add_test(tc, buxton_client_get_value_check);
-	for (i=0; i < TIMES; i++) {
-		suite_add_tcase(s, tc);
-	}
+	suite_add_tcase(s, tc);
 	return s;
 }
 
