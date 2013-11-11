@@ -314,7 +314,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	n_params = *(unsigned int*)(data+offset);
 	offset += sizeof(unsigned int);
 
-	k_list = malloc(sizeof(BuxtonData)*n_params);
+	k_list = malloc0(sizeof(BuxtonData)*n_params);
 	if (!k_list)
 		goto end;
 
