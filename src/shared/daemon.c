@@ -156,7 +156,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	if (key.type != STRING)
 		goto end;
 
-	ret = malloc(sizeof(BuxtonData));
+	ret = calloc(1, sizeof(BuxtonData));
 	if (!ret)
 		goto end;
 
@@ -289,7 +289,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 	BuxtonSmackLabel slabel = NULL;
 
 	if (!cl->data) {
-		cl->data = malloc(BUXTON_MESSAGE_HEADER_LENGTH);
+		cl->data = calloc(1, BUXTON_MESSAGE_HEADER_LENGTH);
 		cl->offset = 0;
 		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	}

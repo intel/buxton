@@ -93,7 +93,7 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 
 	switch (original->type) {
 		case STRING:
-			store.d_string.value = malloc(original->store.d_string.length);
+			store.d_string.value = calloc(original->store.d_string.length, sizeof(char));
 			if (!store.d_string.value)
 				goto fail;
 			memcpy(store.d_string.value, original->store.d_string.value, original->store.d_string.length);

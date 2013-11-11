@@ -51,7 +51,7 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	size += length;
 
 	/* Allocate memory big enough to hold all information */
-	data = malloc(size);
+	data = calloc(1, size);
 	if (!data)
 		goto end;
 
@@ -117,7 +117,7 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	switch (type) {
 		case STRING:
 			/* User must free the string */
-			target->store.d_string.value = malloc(length);
+			target->store.d_string.value = calloc(length, sizeof(char));
 			if (!target->store.d_string.value)
 				goto end;
 			memcpy(target->store.d_string.value, source+offset, length);
@@ -174,7 +174,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
 		return ret;
 
-	data = malloc(sizeof(uint32_t) + sizeof(size_t) + sizeof(unsigned int));
+	data = calloc(1, sizeof(uint32_t) + sizeof(size_t) + sizeof(unsigned int));
 	if (!data)
 		goto end;
 
@@ -295,7 +295,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 		goto end;
 
 	/* Copy the control code */
-	copy_control = malloc(sizeof(uint16_t));
+	copy_control = calloc(1, sizeof(uint16_t));
 	if (!copy_control)
 		goto end;
 	memcpy(copy_control, data, sizeof(uint16_t));
@@ -307,7 +307,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 		goto end;
 
 	/* Obtain the control message */
-	copy_message = malloc(sizeof(uint16_t));
+	copy_message = calloc(1, sizeof(uint16_t));
 	if (!copy_message)
 		goto end;
 	memcpy(copy_message, data+offset, sizeof(uint16_t));
@@ -321,14 +321,14 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 	offset += sizeof(size_t);
 
 	/* Obtain number of parameters */
-	copy_params = malloc(sizeof(unsigned int));
+	copy_params = calloc(1, sizeof(unsigned int));
 	if (!copy_params)
 		goto end;
 	memcpy(copy_params, data+offset, sizeof(unsigned int));
 	offset += sizeof(unsigned int);
 	n_params = *(unsigned int*)copy_params;
 
-	k_list = malloc(sizeof(BuxtonData)*n_params);
+	k_list = calloc(n_params, sizeof(BuxtonData));
 
 	for (c_param = 0; c_param < n_params; c_param++) {
 		/* Now unpack type + length */
@@ -346,13 +346,13 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 			goto end;
 
 		if (!c_data)
-			c_data = malloc(sizeof(BuxtonData));
+			c_data = calloc(1, sizeof(BuxtonData));
 		if (!c_data)
 			goto end;
 
 		switch (c_type) {
 			case STRING:
-				c_data->store.d_string.value = malloc(c_length);
+				c_data->store.d_string.value = calloc(c_length, sizeof(char));
 				if (!c_data->store.d_string.value)
 					goto end;
 				memcpy(c_data->store.d_string.value, data+offset, c_length);
