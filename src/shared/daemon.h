@@ -24,6 +24,15 @@
 #include "protocol.h"
 
 /**
+ * Time given to clients before timing out an active session
+ *
+ * If we're recieving some data from the client, and then recieve no
+ * further data, we can assume the connection is dead. If we successfully
+ * handle a complete message we reset the timeout
+ */
+#define CLIENT_SOCKET_TIMEOUT 5
+
+/**
  * Handle a message within bt-daemon
  * @param self Reference to BuxtonDaemon
  * @param client Current client

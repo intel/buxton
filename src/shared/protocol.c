@@ -35,7 +35,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
 
-	response = malloc(BUXTON_MESSAGE_HEADER_LENGTH);
+	response = calloc(1, BUXTON_MESSAGE_HEADER_LENGTH);
 
 	while ((l = read(client->fd, response + offset, size - offset)) > 0) {
 		offset += l;

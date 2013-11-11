@@ -36,7 +36,7 @@ START_TEST(log_write_check)
 {
 	char log_file[] = "log-check-stderr-file";
 	char log_msg[] = "Log test";
-	char *log_read = malloc(strlen(log_msg));
+	char *log_read = calloc(strlen(log_msg)+1, sizeof(char));
 	fail_if(log_read == NULL,
 		"Failed to allocate space for reading the log");
 

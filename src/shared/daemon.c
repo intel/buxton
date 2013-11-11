@@ -35,6 +35,8 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	size_t response_len;
 	BuxtonData response_data;
 	uint8_t *response_store = NULL;
+	struct timeval tv;
+	int rc;
 
 	assert(self);
 	assert(client);
@@ -85,6 +87,12 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	/* Now write the response */
 	write(client->fd, response_store, response_len);
 
+	/* After successful exchange we can reset the timeout */
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	if ((rc = setsockopt(client->fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(struct timeval))) < 0)
+		buxton_debug("setsockopt(): unable to remove timeout\n");
+
 end:
 	if (response_store)
 		free(response_store);
@@ -125,7 +133,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	}
 
 	*status = BUXTON_STATUS_OK;
-	buxton_debug("Setting value of [%s][%s]\n", layer.store.d_string, key.store.d_string);
+	buxton_debug("Setting value of [%s][%s]\n", layer.store.d_string.value, key.store.d_string.value);
 	return NULL;
 }
 
@@ -156,7 +164,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	if (key.type != STRING)
 		goto end;
 
-	ret = malloc(sizeof(BuxtonData));
+	ret = calloc(1, sizeof(BuxtonData));
 	if (!ret)
 		goto end;
 
@@ -287,9 +295,11 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 	ssize_t l;
 	int slabel_len;
 	BuxtonSmackLabel slabel = NULL;
+	struct timeval tv;
+	int rc;
 
 	if (!cl->data) {
-		cl->data = malloc(BUXTON_MESSAGE_HEADER_LENGTH);
+		cl->data = calloc(1, BUXTON_MESSAGE_HEADER_LENGTH);
 		cl->offset = 0;
 		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	}
@@ -340,6 +350,12 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 		}
 	}
 	buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
+
+	/* Set a timeout so we do not hang indefinitely */
+	tv.tv_sec = CLIENT_SOCKET_TIMEOUT;
+	tv.tv_usec = 0;
+	if ((rc = setsockopt(cl->fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(struct timeval))) < 0)
+		buxton_debug("setsockopt(): unable to set timeout: %d\n", rc);
 
 	/* Hand off any read data */
 	/*
