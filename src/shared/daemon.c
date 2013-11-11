@@ -129,7 +129,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	}
 
 	*status = BUXTON_STATUS_OK;
-	buxton_debug("Setting value of [%s][%s]\n", layer.store.d_string, key.store.d_string);
+	buxton_debug("Setting value of [%s][%s]\n", layer.store.d_string.value, key.store.d_string.value);
 	return NULL;
 }
 
