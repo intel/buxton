@@ -51,7 +51,7 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	size += length;
 
 	/* Allocate memory big enough to hold all information */
-	data = malloc(size);
+	data = malloc0(size);
 	if (!data)
 		goto end;
 
@@ -174,7 +174,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
 		return ret;
 
-	data = malloc(sizeof(uint32_t) + sizeof(size_t) + sizeof(unsigned int));
+	data = malloc0(sizeof(uint32_t) + sizeof(size_t) + sizeof(unsigned int));
 	if (!data)
 		goto end;
 
