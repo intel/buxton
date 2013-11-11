@@ -346,7 +346,7 @@ int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 			goto end;
 
 		if (!c_data)
-			c_data = malloc(sizeof(BuxtonData));
+			c_data = malloc0(sizeof(BuxtonData));
 		if (!c_data)
 			goto end;
 
