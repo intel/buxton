@@ -86,12 +86,12 @@ START_TEST(buxton_client_set_value_check)
 	BuxtonString layer = PACK("test-gdbm");
 	BuxtonString key = PACK("bxt_test");
 	fail_if(buxton_client_open(&c) == false,
-		"Direct open failed without daemon.");
+		"Open failed with daemon.");
 	BuxtonData data;
 	data.type = STRING;
 	data.store.d_string = PACK("bxt_test_value");
 	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
-		"Setting value in buxton directly failed.");
+		"Setting value in buxton failed.");
 }
 END_TEST
 
@@ -102,7 +102,7 @@ START_TEST(buxton_client_get_value_for_layer_check)
 	BuxtonString key = PACK("bxt_test");
 	BuxtonData result;
 	fail_if(buxton_client_open(&c) == false,
-		"Direct open failed without daemon.");
+		"Open failed with daemon.");
 	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
@@ -122,7 +122,7 @@ START_TEST(buxton_client_get_value_check)
 	BuxtonData data, result;
 	usleep(250*1000);
 	fail_if(buxton_client_open(&c) == false,
-		"Direct open failed without daemon.");
+		"Open failed with daemon.");
 
 	data.type = STRING;
 	data.store.d_string = PACK("bxt_test_value2");
