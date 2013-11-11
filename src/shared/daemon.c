@@ -106,6 +106,10 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	BuxtonData layer, key, value;
 	*status = BUXTON_STATUS_FAILED;
 
+	assert(self);
+	assert(client);
+	assert(list);
+
 	/* Require layer, key and value */
 	if (n_params != 3)
 		return NULL;
@@ -135,7 +139,11 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 {
 	BuxtonData layer, key;
 	*status = BUXTON_STATUS_FAILED;
-	BuxtonData *ret = NULL;
+	BuxtonData *data = NULL;
+
+	assert(self);
+	assert(client);
+	assert(list);
 
 	if (n_params < 1)
 		goto end;
@@ -156,29 +164,28 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	if (key.type != STRING)
 		goto end;
 
-	ret = malloc(sizeof(BuxtonData));
-	if (!ret)
+	data = malloc0(sizeof(BuxtonData));
+	if (!data)
 		goto end;
 
 	/* Attempt to retrieve key */
 	if (n_params == 2) {
 		/* Layer + key */
-		if (!buxton_client_get_value_for_layer(&(self->buxton), &layer.store.d_string, &key.store.d_string, ret))
+		if (!buxton_client_get_value_for_layer(&(self->buxton), &layer.store.d_string, &key.store.d_string, data))
 			goto fail;
 	} else {
 		/* Key only */
-		if (!buxton_client_get_value(&(self->buxton), &key.store.d_string, ret))
+		if (!buxton_client_get_value(&(self->buxton), &key.store.d_string, data))
 			goto fail;
 	}
 	*status = BUXTON_STATUS_OK;
 	goto end;
 fail:
-	if (ret)
-		free(ret);
-	ret = NULL;
+	free(data);
+	data = NULL;
 end:
 
-	return ret;
+	return data;
 }
 
 bool identify_client(client_list_item *cl)
@@ -189,8 +196,10 @@ bool identify_client(client_list_item *cl)
 	struct iovec iov;
 	__attribute__((unused)) struct ucred *ucredp;
 	struct cmsghdr *cmhp;
-        socklen_t len = sizeof(struct ucred);
+	socklen_t len = sizeof(struct ucred);
 	int on = 1;
+
+	assert(cl);
 
 	union {
 		struct cmsghdr cmh;
@@ -288,8 +297,11 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 	int slabel_len;
 	BuxtonSmackLabel slabel = NULL;
 
+	assert(self);
+	assert(cl);
+
 	if (!cl->data) {
-		cl->data = malloc(BUXTON_MESSAGE_HEADER_LENGTH);
+		cl->data = malloc0(BUXTON_MESSAGE_HEADER_LENGTH);
 		cl->offset = 0;
 		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	}
@@ -379,8 +391,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 	if (l == 0 && cl->offset < cl->size)
 		return;
 cleanup:
-	if (cl->data)
-		free(cl->data);
+	free(cl->data);
 	cl->data = NULL;
 	cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	cl->offset = 0;
