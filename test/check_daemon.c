@@ -147,6 +147,7 @@ daemon_suite(void)
 {
 	Suite *s;
 	TCase *tc;
+	int i; const int TIMES = 10;
 
 	s = suite_create("daemon");
 	tc = tcase_create("daemon test functions");
@@ -155,8 +156,9 @@ daemon_suite(void)
 	tcase_add_test(tc, buxton_client_set_value_check);
 	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
 	tcase_add_test(tc, buxton_client_get_value_check);
-	suite_add_tcase(s, tc);
-
+	for (i=0; i < TIMES; i++) {
+		suite_add_tcase(s, tc);
+	}
 	return s;
 }
 
