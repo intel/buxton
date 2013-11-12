@@ -41,12 +41,10 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 
 	while ((l = read(client->fd, response + offset, size - offset)) > 0) {
 		offset += l;
-		buxton_log("offset=%lu : bmhl=%d\n", offset, BUXTON_MESSAGE_HEADER_LENGTH);
 		if (offset < BUXTON_MESSAGE_HEADER_LENGTH)
 			continue;
 		if (size == BUXTON_MESSAGE_HEADER_LENGTH) {
 			size = buxton_get_message_size(response, offset);
-			buxton_log("size=%lu\n", size);
 			if (size == 0 || size > BUXTON_MESSAGE_MAX_LENGTH)
 				goto end;
 		}
