@@ -30,7 +30,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	uint8_t *response;
 	int l;
 	BuxtonData *r_list = NULL;
-	BuxtonControlMessage r_msg;
+	BuxtonControlMessage r_msg = BUXTON_CONTROL_MIN;
 	int count = -1;
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
@@ -67,6 +67,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 		}
 		break;
 	}
+	assert((r_msg > BUXTON_CONTROL_MIN) && (r_msg < BUXTON_CONTROL_MAX));
 	*msg = r_msg;
 	*list = r_list;
 end:

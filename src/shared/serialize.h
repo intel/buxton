@@ -43,6 +43,7 @@
  * A control message for the wire protocol
  */
 typedef enum BuxtonControlMessage{
+	BUXTON_CONTROL_MIN,
 	BUXTON_CONTROL_SET, /**<Set a value within Buxton */
 	BUXTON_CONTROL_GET, /**<Retrieve a value from Buxton */
 	BUXTON_CONTROL_STATUS, /**<Status code follows */
