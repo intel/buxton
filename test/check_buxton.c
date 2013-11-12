@@ -11,10 +11,10 @@
 
 #include <check.h>
 #include <stdlib.h>
-#include "bt-daemon.h"
-#include "src/shared/backend.h"
 
-#define PACK(s) ((BuxtonString){(s), strlen(s) + 1})
+#include "backend.h"
+#include "bt-daemon.h"
+#include "util.h"
 
 START_TEST(buxton_direct_open_check)
 {
@@ -30,10 +30,10 @@ START_TEST(buxton_direct_set_value_check)
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	BuxtonData data;
-	BuxtonString layer = PACK("test-gdbm");
-	BuxtonString key = PACK("bxt_test");
+	BuxtonString layer = buxton_string_pack("test-gdbm");
+	BuxtonString key = buxton_string_pack("bxt_test");
 	data.type = STRING;
-	data.store.d_string = PACK("bxt_test_value");
+	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
 		"Setting value in buxton directly failed.");
 }
@@ -43,8 +43,8 @@ START_TEST(buxton_direct_get_value_for_layer_check)
 {
 	BuxtonClient c;
 	BuxtonData result;
-	BuxtonString layer = PACK("test-gdbm");
-	BuxtonString key = PACK("bxt_test");
+	BuxtonString layer = buxton_string_pack("test-gdbm");
+	BuxtonString key = buxton_string_pack("bxt_test");
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result) == false,
@@ -62,13 +62,13 @@ START_TEST(buxton_direct_get_value_check)
 {
 	BuxtonClient c;
 	BuxtonData data, result;
-	BuxtonString layer = PACK("test-gdbm-user");
-	BuxtonString key = PACK("bxt_test");
+	BuxtonString layer = buxton_string_pack("test-gdbm-user");
+	BuxtonString key = buxton_string_pack("bxt_test");
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 
 	data.type = STRING;
-	data.store.d_string = PACK("bxt_test_value2");
+	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(data.store.d_string.value == NULL,
 		"Failed to allocate test string.");
 	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
@@ -87,13 +87,13 @@ END_TEST
 START_TEST(buxton_memory_backend_check)
 {
 	BuxtonClient c;
-	BuxtonString layer = PACK("temp");
-	BuxtonString key = PACK("bxt_mem_test");
+	BuxtonString layer = buxton_string_pack("temp");
+	BuxtonString key = buxton_string_pack("bxt_mem_test");
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	BuxtonData data, result;
 	data.type = STRING;
-	data.store.d_string = PACK("bxt_test_value");
+	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
 		"Setting value in buxton memory backend directly failed.");
 	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &data) == false,

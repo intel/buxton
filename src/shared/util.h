@@ -27,6 +27,7 @@
 
 #include <alloca.h>
 #include <inttypes.h>
+#include <string.h>
 #include <time.h>
 #include <sys/time.h>
 #include <stdarg.h>
@@ -50,6 +51,8 @@
 
 size_t page_size(void);
 #define PAGE_ALIGN(l) ALIGN_TO((l), page_size())
+
+#define buxton_string_pack(s) ((BuxtonString){(s), strlen(s) + 1})
 
 #define streq(a,b) (strcmp((a),(b)) == 0)
 #define strneq(a, b, n) (strncmp((a), (b), (n)) == 0)

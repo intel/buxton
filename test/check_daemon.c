@@ -26,8 +26,6 @@
 #include "log.h"
 #include "util.h"
 
-#define PACK(s) ((BuxtonString){(s), strlen(s) + 1})
-
 pid_t daemon_pid;
 
 static void setup(void)
@@ -83,13 +81,13 @@ END_TEST
 START_TEST(buxton_client_set_value_check)
 {
 	BuxtonClient c;
-	BuxtonString layer = PACK("test-gdbm");
-	BuxtonString key = PACK("bxt_test");
+	BuxtonString layer = buxton_string_pack("test-gdbm");
+	BuxtonString key = buxton_string_pack("bxt_test");
 	fail_if(buxton_client_open(&c) == false,
 		"Open failed with daemon.");
 	BuxtonData data;
 	data.type = STRING;
-	data.store.d_string = PACK("bxt_test_value");
+	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
 		"Setting value in buxton failed.");
 }
@@ -98,8 +96,8 @@ END_TEST
 START_TEST(buxton_client_get_value_for_layer_check)
 {
 	BuxtonClient c;
-	BuxtonString layer = PACK("test-gdbm");
-	BuxtonString key = PACK("bxt_test");
+	BuxtonString layer = buxton_string_pack("test-gdbm");
+	BuxtonString key = buxton_string_pack("bxt_test");
 	BuxtonData result;
 	fail_if(buxton_client_open(&c) == false,
 		"Open failed with daemon.");
@@ -117,15 +115,15 @@ END_TEST
 START_TEST(buxton_client_get_value_check)
 {
 	BuxtonClient c;
-	BuxtonString layer = PACK("test-gdbm-user");
-	BuxtonString key = PACK("bxt_test");
+	BuxtonString layer = buxton_string_pack("test-gdbm-user");
+	BuxtonString key = buxton_string_pack("bxt_test");
 	BuxtonData data, result;
 	usleep(250*1000);
 	fail_if(buxton_client_open(&c) == false,
 		"Open failed with daemon.");
 
 	data.type = STRING;
-	data.store.d_string = PACK("bxt_test_value2");
+	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(data.store.d_string.value == NULL,
 		"Failed to allocate test string.");
 	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
