@@ -378,7 +378,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 		}
 		if (cl->size != cl->offset)
 			continue;
-		bt_daemon_handle_message(self, cl, l);
+		bt_daemon_handle_message(self, cl, cl->size);
 
 		/* reset in case there are more messages */
 		cl->data = realloc(cl->data, BUXTON_MESSAGE_HEADER_LENGTH);
