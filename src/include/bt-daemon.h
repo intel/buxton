@@ -124,6 +124,16 @@ _bx_export_ void buxton_client_close(BuxtonClient *client);
  * @param client An open client connection
  * @param layer The layer to manipulate
  * @param key The key name
+ * @param label A BuxtonString containing the label to set
+ * @return A boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_set_label(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonString *label);
+
+/**
+ * Set a value within Buxton
+ * @param client An open client connection
+ * @param layer The layer to manipulate
+ * @param key The key name
  * @param data A struct containing the data to set
  * @return A boolean value, indicating success of the operation
  */

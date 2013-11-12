@@ -350,6 +350,48 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return buxton_wire_set_value(client, layer_name, key, data);
 }
 
+bool buxton_client_set_label(BuxtonClient *client,
+			      BuxtonString *layer_name,
+			      BuxtonString *key,
+			      BuxtonString *label)
+{
+	BuxtonBackend *backend;
+	BuxtonData data;
+	BuxtonLayer *layer;
+	bool r;
+
+	assert(client);
+	assert(layer_name);
+	assert(layer_name->value);
+	assert(key);
+	assert(key->value);
+	assert(label);
+	assert(label->value);
+
+	if (!_directPermitted || !client->direct || hashmap_get(_directPermitted, &(client->pid)) != client)
+		return false;
+
+	/* Handle direct manipulation */
+	if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
+		return false;
+	}
+	backend = backend_for_layer(layer);
+	if (!backend) {
+		/* Already logged */
+		return false;
+	}
+
+	r = buxton_client_get_value_for_layer(client, layer_name, key, &data);
+	if (!r)
+		return false;
+
+	free(data.label.value);
+	data.label.length = label->length;
+	data.label.value = label->value;
+
+	return backend->set_value(layer, key, &data);
+}
+
 static void destroy_backend(BuxtonBackend *backend)
 {
 
