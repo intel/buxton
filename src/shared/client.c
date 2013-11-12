@@ -23,8 +23,8 @@
 #include "hashmap.h"
 #include "util.h"
 
-bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char
- *one, char *two, char *three)
+bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
+		   char *one, char *two, char *three)
 {
 	BuxtonString layer, key, value;
 	BuxtonData set;
@@ -40,50 +40,50 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char
 
 	set.type = type;
 	switch (set.type) {
-		case STRING:
-			set.store.d_string.value = value.value;
-			set.store.d_string.length = value.length;
-			break;
-		case BOOLEAN:
-			if (streq(value.value, "true"))
-				set.store.d_boolean = true;
-			else if (streq(value.value, "false"))
-				set.store.d_boolean = false;
-			else {
-				printf("Accepted values are [true] [false]. Not updating\n");
-				return false;
-			}
-			break;
-		case FLOAT:
-			set.store.d_float = strtof(value.value, NULL);
-			if (errno) {
-				printf("Invalid floating point value\n");
-				return false;
-			}
-			break;
-		case DOUBLE:
-			set.store.d_double = strtod(value.value, NULL);
-			if (errno) {
-				printf("Invalid double precision value\n");
-				return false;
-			}
-			break;
-		case LONG:
-			set.store.d_long = strtol(value.value, NULL, 10);
-			if (errno) {
-				printf("Invalid long integer value\n");
-				return false;
-			}
-			break;
-		case INT:
-			set.store.d_int = strtol(value.value, NULL, 10);
-			if (errno) {
-				printf("Invalid integer\n");
-				return false;
-			}
-			break;
-		default:
-			break;
+	case STRING:
+		set.store.d_string.value = value.value;
+		set.store.d_string.length = value.length;
+		break;
+	case BOOLEAN:
+		if (streq(value.value, "true"))
+			set.store.d_boolean = true;
+		else if (streq(value.value, "false"))
+			set.store.d_boolean = false;
+		else {
+			printf("Accepted values are [true] [false]. Not updating\n");
+			return false;
+		}
+		break;
+	case FLOAT:
+		set.store.d_float = strtof(value.value, NULL);
+		if (errno) {
+			printf("Invalid floating point value\n");
+			return false;
+		}
+		break;
+	case DOUBLE:
+		set.store.d_double = strtod(value.value, NULL);
+		if (errno) {
+			printf("Invalid double precision value\n");
+			return false;
+		}
+		break;
+	case LONG:
+		set.store.d_long = strtol(value.value, NULL, 10);
+		if (errno) {
+			printf("Invalid long integer value\n");
+			return false;
+		}
+		break;
+	case INT:
+		set.store.d_int = strtol(value.value, NULL, 10);
+		if (errno) {
+			printf("Invalid integer\n");
+			return false;
+		}
+		break;
+	default:
+		break;
 	}
 	ret = buxton_client_set_value(self, &layer, &key, &set);
 	if (!ret)
@@ -91,8 +91,8 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char
 	return ret;
 }
 
-bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char
- *one, char *two, __attribute__((unused)) char *three)
+bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
+		   char *one, char *two, __attribute__((unused)) char *three)
 {
 	BuxtonString layer, key;
 	BuxtonData get;
@@ -135,31 +135,31 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char
 	}
 
 	switch (get.type) {
-		case STRING:
-			printf("%s%s = %s\n", prefix, key.value, get.store.d_string.value);
-			break;
-		case BOOLEAN:
-			if (get.store.d_boolean == true)
-				printf("%s%s = true\n", prefix, key.value);
-			else
-				printf("%s%s = false\n", prefix, key.value);
-			break;
-		case FLOAT:
-			printf("%s%s = %f\n", prefix, key.value, get.store.d_float);
-			break;
-		case DOUBLE:
-			printf("%s%s = %f\n", prefix, key.value, get.store.d_double);
-			break;
-		case LONG:
-			printf("%s%s = %ld\n", prefix, key.value, get.store.d_long);
-			break;
-		case INT:
-			printf("%s%s = %d\n", prefix, key.value, get.store.d_int);
-			break;
-		default:
-			printf("unknown type\n");
-			ret = false;
-			break;
+	case STRING:
+		printf("%s%s = %s\n", prefix, key.value, get.store.d_string.value);
+		break;
+	case BOOLEAN:
+		if (get.store.d_boolean == true)
+			printf("%s%s = true\n", prefix, key.value);
+		else
+			printf("%s%s = false\n", prefix, key.value);
+		break;
+	case FLOAT:
+		printf("%s%s = %f\n", prefix, key.value, get.store.d_float);
+		break;
+	case DOUBLE:
+		printf("%s%s = %f\n", prefix, key.value, get.store.d_double);
+		break;
+	case LONG:
+		printf("%s%s = %ld\n", prefix, key.value, get.store.d_long);
+		break;
+	case INT:
+		printf("%s%s = %d\n", prefix, key.value, get.store.d_int);
+		break;
+	default:
+		printf("unknown type\n");
+		ret = false;
+		break;
 	}
 end:
 	free(prefix);
