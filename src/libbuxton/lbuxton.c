@@ -326,7 +326,9 @@ bool buxton_client_set_value(BuxtonClient *client,
 	assert(layer_name);
 	assert(layer_name->value);
 	assert(key);
+	assert(key->value);
 	assert(data);
+	assert(data->label.value);
 
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */

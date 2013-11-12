@@ -87,9 +87,18 @@ char* get_layer_path(BuxtonLayer *layer)
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 {
 	BuxtonDataStore store;
+	BuxtonString label;
 
 	assert(original);
+	assert(original->label.value);
 	assert(copy);
+
+	memset(&label, 0, sizeof(BuxtonString));
+	label.value = malloc(original->label.length);
+	if (!label.value)
+		goto fail;
+	memcpy(label.value, original->label.value, original->label.length);
+	label.length = original->label.length;
 
 	switch (original->type) {
 		case STRING:
@@ -120,10 +129,13 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 
 	copy->type = original->type;
 	copy->store = store;
+	copy->label = label;
 
 	return;
 
 fail:
+	if (label.value)
+		free(label.value);
 	memset(copy, 0, sizeof(BuxtonData));
 }
 

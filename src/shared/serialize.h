@@ -36,8 +36,12 @@
 
 /**
  * Minimum size of serialized BuxtonData
+ * 2 is the minimum number of characters in a valid SMACK label
+ * 1 is the mimimum number of characters in a valid value
  */
-#define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) + (sizeof(int)*2)
+#define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) \
+	+ (sizeof(size_t) * 2) \
+	+ 2 + 1
 
 /**
  * A control message for the wire protocol
@@ -59,6 +63,11 @@ typedef enum BuxtonControlMessage{
  * Maximum length of valid control message
  */
 #define BUXTON_MESSAGE_MAX_LENGTH 4096
+
+/**
+ * Maximum length of valid control message
+ */
+#define BUXTON_MESSAGE_MAX_PARAMS 16
 
 /**
  * Serialize data internally for backend consumption

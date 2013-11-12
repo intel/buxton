@@ -33,6 +33,7 @@ START_TEST(buxton_direct_set_value_check)
 	BuxtonString layer = buxton_string_pack("test-gdbm");
 	BuxtonString key = buxton_string_pack("bxt_test");
 	data.type = STRING;
+	data.label = buxton_string_pack("label");
 	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
 		"Setting value in buxton directly failed.");
@@ -51,8 +52,12 @@ START_TEST(buxton_direct_get_value_for_layer_check)
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
+	fail_if(strcmp(result.label.value, "label") != 0,
+		"Buxton gdbm returned a different label to that set.");
 	fail_if(strcmp(result.store.d_string.value, "bxt_test_value") != 0,
 		"Buxton gdbm returned a different value to that set.");
+	if (result.label.value)
+		free(result.label.value);
 	if (result.store.d_string.value)
 		free(result.store.d_string.value);
 }
@@ -68,6 +73,7 @@ START_TEST(buxton_direct_get_value_check)
 		"Direct open failed without daemon.");
 
 	data.type = STRING;
+	data.label = buxton_string_pack("label2");
 	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(data.store.d_string.value == NULL,
 		"Failed to allocate test string.");
@@ -77,8 +83,12 @@ START_TEST(buxton_direct_get_value_check)
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
+	fail_if(strcmp(result.label.value, "label2") != 0,
+		"Buxton gdbm returned a different label to that set.");
 	fail_if(strcmp(result.store.d_string.value, "bxt_test_value2") != 0,
 		"Buxton gdbm returned a different value to that set.");
+	if (result.label.value)
+		free(result.label.value);
 	if (result.store.d_string.value)
 		free(result.store.d_string.value);
 }

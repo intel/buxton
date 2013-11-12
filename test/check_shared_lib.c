@@ -235,6 +235,7 @@ START_TEST(buxton_data_copy_check)
 	BuxtonData original, copy;
 
 	original.type = STRING;
+	original.label = buxton_string_pack("label");
 	original.store.d_string = buxton_string_pack("test-data-copy");
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -244,46 +245,68 @@ START_TEST(buxton_data_copy_check)
 		"Incorrectly copied string data");
 	if (copy.store.d_string.value)
 		free(copy.store.d_string.value);
+	if (copy.label.value)
+		free(copy.label.value);
 
 	original.type = BOOLEAN;
 	original.store.d_boolean = true;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
 		"Failed to copy boolean type");
+	fail_if(!streq(original.label.value, copy.label.value),
+		"Incorrectly copied boolean label");
 	fail_if(original.store.d_boolean != copy.store.d_boolean,
 		"Failed to copy boolean data");
+	if (copy.label.value)
+		free(copy.label.value);
 
 	original.type = FLOAT;
 	original.store.d_float = 3.14;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
 		"Failed to copy float type");
+	fail_if(!streq(original.label.value, copy.label.value),
+		"Incorrectly copied float label");
 	fail_if(original.store.d_float != copy.store.d_float,
 		"Failed to copy float data");
+	if (copy.label.value)
+		free(copy.label.value);
 
 	original.type = INT;
 	original.store.d_int = INT_MAX;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
 		"Failed to copy int type");
+	fail_if(!streq(original.label.value, copy.label.value),
+		"Incorrectly copied int label");
 	fail_if(original.store.d_int != copy.store.d_int,
 		"Failed to copy int data");
+	if (copy.label.value)
+		free(copy.label.value);
 
 	original.type = DOUBLE;
 	original.store.d_double = 3.1415;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
 		"Failed to copy double type");
+	fail_if(!streq(original.label.value, copy.label.value),
+		"Incorrectly copied double label");
 	fail_if(original.store.d_double != copy.store.d_double,
 		"Failed to copy double data");
+	if (copy.label.value)
+		free(copy.label.value);
 
 	original.type = LONG;
 	original.store.d_long = LONG_MAX;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
 		"Failed to copy long type");
+	fail_if(!streq(original.label.value, copy.label.value),
+		"Incorrectly copied long label");
 	fail_if(original.store.d_long != copy.store.d_long,
 		"Failed to copy long data");
+	if (copy.label.value)
+		free(copy.label.value);
 
 	original.type = -1;
 	buxton_data_copy(&original, &copy);
@@ -327,6 +350,7 @@ START_TEST(buxton_db_serialize_check)
 	uint8_t *packed;
 
 	dsource.type = STRING;
+	dsource.label = buxton_string_pack("label");
 	dsource.store.d_string = buxton_string_pack("test-string");
 	fail_if(buxton_serialize(&dsource, &packed) == false,
 		"Failed to serialize string data");
@@ -334,6 +358,8 @@ START_TEST(buxton_db_serialize_check)
 		"Failed to deserialize string data");
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for string");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination string labels differ");
 	fail_if(strcmp(dsource.store.d_string.value, dtarget.store.d_string.value) != 0,
 		"Source and destination string data differ");
 	if (packed)
@@ -349,6 +375,8 @@ START_TEST(buxton_db_serialize_check)
 		"Failed to deserialize float data");
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for float");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination float labels differ");
 	fail_if(dsource.store.d_float != dtarget.store.d_float,
 		"Source and destination float data differ");
 	if (packed)
@@ -362,6 +390,8 @@ START_TEST(buxton_db_serialize_check)
 		"Failed to deserialize int data");
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for int");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination int labels differ");
 	fail_if(dsource.store.d_int != dtarget.store.d_int,
 		"Source and destination int data differ");
 	if (packed)
@@ -375,6 +405,8 @@ START_TEST(buxton_db_serialize_check)
 		"Failed to deserialize double data");
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for double");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination double labels differ");
 	fail_if(dsource.store.d_double != dtarget.store.d_double,
 		"Source and destination double data differ");
 	if (packed)
@@ -388,6 +420,8 @@ START_TEST(buxton_db_serialize_check)
 		"Failed to deserialize long data");
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for long");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination long labels differ");
 	fail_if(dsource.store.d_long != dtarget.store.d_long,
 		"Source and destination long data differ");
 	if (packed)
@@ -410,6 +444,7 @@ START_TEST(buxton_message_serialize_check)
 	size_t ret;
 
 	dsource.type = STRING;
+	dsource.label = buxton_string_pack("label");
 	dsource.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
@@ -548,6 +583,7 @@ START_TEST(buxton_get_message_size_check)
 	size_t ret;
 
 	dsource.type = STRING;
+	dsource.label = buxton_string_pack("label");
 	dsource.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);

@@ -65,6 +65,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	/* Set a response code */
 	response_data.type = INT;
 	response_data.store.d_int = response;
+	response_data.label = buxton_string_pack("dummy");
 
 	/* Prepare a data response */
 	if (data) {
@@ -119,6 +120,10 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	key = list[1];
 	value = list[2];
 
+	buxton_debug("Daemon setting [%s0x00%s][%s]=%s\n", value.label.value,
+		     layer.store.d_string.value, key.store.d_string.value,
+		     value.store.d_string.value);
+
 	/* We only accept strings for layer and key names */
 	if (layer.type != STRING && key.type != STRING)
 		return NULL;
@@ -130,7 +135,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	}
 
 	*status = BUXTON_STATUS_OK;
-	buxton_debug("Setting value of [%s][%s]\n", layer.store.d_string.value, key.store.d_string.value);
+	buxton_debug("Daemon set value completed\n");
 	return NULL;
 }
 

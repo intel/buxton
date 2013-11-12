@@ -20,9 +20,11 @@
 #include <string.h>
 
 #include "bt-daemon.h"
-#include "serialize.h"
-#include "util.h"
 #include "log.h"
+#include "serialize.h"
+#include "smack.h"
+#include "util.h"
+
 
 size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 {
@@ -33,10 +35,11 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	size_t ret = 0;
 
 	assert(source);
+	assert(source->label.value);
 	assert(target);
 
 	/* DataType + length field */
-	size = sizeof(BuxtonDataType) + sizeof(size_t);
+	size = sizeof(BuxtonDataType) + (sizeof(size_t) * 2) + source->label.length;
 
 	/* Total size will be different for string data */
 	switch (source->type) {
@@ -59,9 +62,17 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	memcpy(data, &(source->type), sizeof(BuxtonDataType));
 	offset += sizeof(BuxtonDataType);
 
+	/* Write out the length of the label field */
+	memcpy(data+offset, &(source->label.length), sizeof(size_t));
+	offset += sizeof(size_t);
+
 	/* Write out the length of the data field */
 	memcpy(data+offset, &length, sizeof(size_t));
 	offset += sizeof(size_t);
+
+	/* Write out the label field */
+	memcpy(data+offset, source->label.value, source->label.length);
+	offset += source->label.length;
 
 	/* Write the data itself */
 	switch (source->type) {
@@ -106,13 +117,24 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	assert(source);
 	assert(target);
 
-	/* firstly, retrieve the BuxtonDataType */
+	/* Retrieve the BuxtonDataType */
 	type = *(BuxtonDataType*)source;
 	offset += sizeof(BuxtonDataType);
 
-	/* Now retrieve the length */
+	/* Retrieve the length of the label */
+	target->label.length = *(size_t*)(source+offset);
+	offset += sizeof(size_t);
+
+	/* Retrieve the length of the value */
 	length = *(size_t*)(source+offset);
 	offset += sizeof(size_t);
+
+	/* Retrieve the label */
+	target->label.value = malloc(target->label.length);
+	if (!target->label.value)
+		goto end;
+	memcpy(target->label.value, source+offset, target->label.length);
+	offset += target->label.length;
 
 	switch (type) {
 		case STRING:
@@ -148,6 +170,10 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	ret = true;
 
 end:
+	if (!ret) {
+		free(target->label.value);
+		target->label.value = NULL;
+	}
 	return ret;
 }
 
@@ -167,8 +193,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 	buxton_debug("Serializing message...\n");
 
-	/* Empty message not permitted */
-	if (n_params <= 0)
+	if (n_params == 0 || n_params > BUXTON_MESSAGE_MAX_PARAMS)
 		return ret;
 
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
@@ -204,29 +229,43 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		param = va_arg(args, BuxtonData*);
 		if (!param)
 			goto fail;
+
+		//FIXME - this assert should likely go away
+		assert(param->label.value);
+
 		if (param->type == STRING) {
 			//FIXME - this assert should likely go away
 			assert(param->store.d_string.value);
 			p_length = param->store.d_string.length;
-		} else
+		} else {
 			p_length = sizeof(param->store);
+		}
 
 		/* Need to allocate enough room to hold this data */
-		size += sizeof(BuxtonDataType) + sizeof(size_t);
-		size += p_length;
+		size += sizeof(BuxtonDataType) + (sizeof(size_t) * 2)
+			+ param->label.length
+			+ p_length;
 
 		if (curSize < size) {
 			if (!(data = greedy_realloc((void**)&data, &curSize, size)))
 				goto fail;
 		}
 
-		/* Begin copying */
+		/* Copy data type */
 		memcpy(data+offset, &(param->type), sizeof(BuxtonDataType));
 		offset += sizeof(BuxtonDataType);
 
-		/* Length of following data */
+		/* Write out the length of the label field */
+		memcpy(data+offset, &(param->label.length), sizeof(size_t));
+		offset += sizeof(size_t);
+
+		/* Write out the length of value */
 		memcpy(data+offset, &p_length, sizeof(size_t));
 		offset += sizeof(size_t);
+
+		/* Write out the label field */
+		memcpy(data+offset, param->label.value, param->label.length);
+		offset += param->label.length;
 
 		switch (param->type) {
 			case STRING:
@@ -286,6 +325,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	assert(list);
 
 	buxton_debug("Deserializing message...\n");
+	buxton_debug("size=%lu\n", size);
 
 	if (size < min_length)
 		goto end;
@@ -314,16 +354,39 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	offset += sizeof(size_t);
 	buxton_debug("total params: %d\n", n_params);
 
+	if (n_params > BUXTON_MESSAGE_MAX_PARAMS)
+		goto end;
+
 	k_list = malloc0(sizeof(BuxtonData)*n_params);
 	if (!k_list)
 		goto end;
 
 	for (c_param = 0; c_param < n_params; c_param++) {
-		/* Now unpack type + length */
+		buxton_debug("param: %d\n", c_param + 1);
+		buxton_debug("offset=%lu\n", offset);
+		/* Don't read past the end of the buffer */
+		if (offset + sizeof(BuxtonDataType) + (sizeof(size_t) * 2) >= size)
+			goto end;
+
+		/* Now unpack type */
 		memcpy(&c_type, data+offset, sizeof(BuxtonDataType));
 		offset += sizeof(BuxtonDataType);
 
 		if (c_type >= BUXTON_TYPE_MAX || c_type < STRING)
+			goto end;
+
+		c_data = malloc0(sizeof(BuxtonData));
+		if (!c_data)
+			goto end;
+
+		/* Retrieve the length of the label */
+		c_data->label.length = *(size_t*)(data+offset);
+		if (c_data->label.length < 2)
+			goto end;
+		offset += sizeof(size_t);
+		buxton_debug("label length: %lu\n", c_data->label.length);
+
+		if (c_data->label.length > SMACK_LABEL_LEN)
 			goto end;
 
 		/* Retrieve the length of the value */
@@ -331,10 +394,18 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 		if (c_length == 0)
 			goto end;
 		offset += sizeof(size_t);
+		buxton_debug("value length: %lu\n", c_length);
 
-		c_data = malloc0(sizeof(BuxtonData));
-		if (!c_data)
+		/* Don't try to read past the end of our buffer */
+		if (offset + c_length + c_data->label.length > size)
 			goto end;
+
+		/* Retrieve the label */
+		c_data->label.value = malloc(c_data->label.length);
+		if (!c_data->label.value)
+			goto end;
+		memcpy(c_data->label.value, data+offset, c_data->label.length);
+		offset += c_data->label.length;
 
 		switch (c_type) {
 			case STRING:
@@ -375,7 +446,8 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	*list = k_list;
 	ret = n_params;
 end:
-
+	if (c_data)
+		free(c_data->label.value);
 	free(c_data);
 
 	buxton_debug("Deserializing returned:%i\n", ret);

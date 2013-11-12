@@ -92,7 +92,9 @@ typedef union BuxtonDataStore {
  */
 typedef struct BuxtonData {
 	BuxtonDataType type; /**<Type of data stored */
-	BuxtonDataStore store;/**<Contains one value, correlating to type */
+	BuxtonDataStore store; /**<Contains one value, correlating to
+			       * type */
+	BuxtonString label; /**<SMACK label for data */
 } BuxtonData;
 
 static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)

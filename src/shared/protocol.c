@@ -56,7 +56,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 		if (size != offset)
 			continue;
 
-		count = buxton_deserialize_message(response, &r_msg, l, &r_list);
+		count = buxton_deserialize_message(response, &r_msg, size, &r_list);
 		if (count == 0)
 			goto end;
 		if (r_msg != BUXTON_CONTROL_STATUS || r_list[0].type != INT) {
@@ -81,6 +81,7 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 	assert(layer_name);
 	assert(key);
 	assert(value);
+	assert(value->label.value);
 
 	bool ret = false;
 	int count;
@@ -93,6 +94,8 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 
 	buxton_string_to_data(layer_name, &d_layer);
 	buxton_string_to_data(key, &d_key);
+	d_layer.label = buxton_string_pack("dummy");
+	d_key.label = buxton_string_pack("dummy");
 
 	/* Attempt to serialize our send message */
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, 3,
@@ -131,10 +134,12 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 	BuxtonData d_key;
 
 	buxton_string_to_data(key, &d_key);
+	d_key.label = buxton_string_pack("dummy");
 
 	/* Attempt to serialize our send message */
 	if (layer_name != NULL) {
 		buxton_string_to_data(layer_name, &d_layer);
+		d_layer.label = buxton_string_pack("dummy");
 		send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, 2,
 						    &d_layer, &d_key);
 	} else {
@@ -161,6 +166,7 @@ end:
 	free(send);
 	if (r_list) {
 		for (i=0; i < count; i++) {
+			free(r_list[i].label.value);
 			if (r_list[i].type == STRING)
 				free(r_list[i].store.d_string.value);
 		}
