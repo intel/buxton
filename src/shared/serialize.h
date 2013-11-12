@@ -96,7 +96,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
  * @return the length of the array, or 0 if deserialization failed
  */
 size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
-			       int size, BuxtonData **list);
+			       size_t size, BuxtonData **list);
 
 /**
  * Get size of a buxton message data stream

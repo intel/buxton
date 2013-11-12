@@ -270,7 +270,7 @@ end:
 }
 
 size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
-			       int size, BuxtonData **list)
+			       size_t size, BuxtonData **list)
 {
 	int offset = 0;
 	int ret = -1;
