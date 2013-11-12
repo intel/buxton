@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 	Command c_get_double, c_set_double;
 	Command c_get_int, c_set_int;
 	Command c_get_long, c_set_long;
+	Command c_get_label, c_set_label;
 	Command *command;
 	int i = 0;
 	int c;
@@ -135,6 +136,16 @@ int main(int argc, char **argv)
 				3, 3, "layer key value", &cli_set_value, INT };
 	hashmap_put(commands, c_set_int.name, &c_set_int);
 
+	/* SMACK labels */
+	c_get_label = (Command) { "get-label", "Get a label for a value",
+				  2, 2, "layer key", &cli_get_value, STRING };
+	hashmap_put(commands, c_get_label.name, &c_get_label);
+
+	c_set_label = (Command) { "set-label", "Set a value's label",
+				  3, 3, "layer key label", &cli_set_value, STRING };
+
+	hashmap_put(commands, c_set_label.name, &c_set_label);
+
 	static struct option opts[] = {
 		{ "direct", 0, NULL, 'd' },
 		{ "help",   0, NULL, 'h' },
@@ -168,6 +179,11 @@ int main(int argc, char **argv)
 
 	if ((command = hashmap_get(commands, argv[optind])) == NULL) {
 		printf("Unknown command: %s\n", argv[optind]);
+		goto end;
+	}
+
+	if (streq(command->name, "set-label") && !client.direct) {
+		printf("Must use direct to set a label");
 		goto end;
 	}
 

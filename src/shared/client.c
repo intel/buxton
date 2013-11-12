@@ -23,6 +23,41 @@
 #include "hashmap.h"
 #include "util.h"
 
+bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
+		   char *one, char *two, char *three)
+{
+	BuxtonString layer, key, label;
+	bool ret = false;
+
+	layer = buxton_string_pack(one);
+	key = buxton_string_pack(two);
+	label = buxton_string_pack(three);
+
+	ret = buxton_client_set_label(self, &layer, &key, &label);
+	if (!ret)
+		printf("Failed to update key \'%s\' label in layer '%s'\n", key.value, layer.value);
+	return ret;
+}
+
+bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
+		   char *one, char *two, __attribute__((unused)) char *three)
+{
+	BuxtonString layer, key;
+	BuxtonData get;
+	bool ret = false;
+
+	layer = buxton_string_pack(one);
+	key = buxton_string_pack(two);
+
+	ret = buxton_client_get_value_for_layer(self, &layer, &key, &get);
+	if (!ret)
+		printf("Failed to get key \'%s\' in layer '%s'\n", key.value, layer.value);
+	else
+		printf("[%s][%s] = %s\n", layer.value, key.value, get.label.value);
+
+	return ret;
+}
+
 bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 		   char *one, char *two, char *three)
 {
@@ -38,6 +73,7 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 
 	bool ret = false;
 
+	set.label = buxton_string_pack("_");
 	set.type = type;
 	switch (set.type) {
 	case STRING:
