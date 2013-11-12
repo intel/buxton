@@ -27,8 +27,8 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	assert(msg);
 	assert(list);
 
+	ssize_t l;
 	uint8_t *response;
-	int l;
 	BuxtonData *r_list = NULL;
 	BuxtonControlMessage r_msg = BUXTON_CONTROL_MIN;
 	size_t count = 0;
