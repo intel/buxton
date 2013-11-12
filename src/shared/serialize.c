@@ -152,7 +152,7 @@ end:
 }
 
 size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
-			      unsigned int n_params, ...)
+			      size_t n_params, ...)
 {
 	va_list args;
 	int i = 0;
@@ -174,7 +174,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
 		return ret;
 
-	data = malloc0(sizeof(uint32_t) + sizeof(size_t) + sizeof(unsigned int));
+	data = malloc0(sizeof(uint32_t) + sizeof(size_t) + sizeof(size_t));
 	if (!data)
 		goto end;
 
@@ -190,15 +190,15 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	offset += sizeof(size_t);
 
 	/* Now write the parameter count */
-	memcpy(data+offset, &n_params, sizeof(unsigned int));
-	offset += sizeof(unsigned int);
+	memcpy(data+offset, &n_params, sizeof(size_t));
+	offset += sizeof(size_t);
 
 	size = offset;
 
 	/* Deal with parameters */
 	va_start(args, n_params);
 	BuxtonData *param;
-	unsigned int p_length = 0;
+	size_t p_length = 0;
 	for (i=0; i<n_params; i++) {
 		/* Every parameter must be a BuxtonData. */
 		param = va_arg(args, BuxtonData*);
@@ -212,7 +212,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			p_length = sizeof(param->store);
 
 		/* Need to allocate enough room to hold this data */
-		size += sizeof(BuxtonDataType) + sizeof(unsigned int);
+		size += sizeof(BuxtonDataType) + sizeof(size_t);
 		size += p_length;
 
 		if (curSize < size) {
@@ -225,8 +225,8 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		offset += sizeof(BuxtonDataType);
 
 		/* Length of following data */
-		memcpy(data+offset, &p_length, sizeof(unsigned int));
-		offset += sizeof(unsigned int);
+		memcpy(data+offset, &p_length, sizeof(size_t));
+		offset += sizeof(size_t);
 
 		switch (param->type) {
 			case STRING:
@@ -272,13 +272,12 @@ end:
 size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
 			       size_t size, BuxtonData **list)
 {
-	int offset = 0;
-	int ret = -1;
-	int min_length = BUXTON_MESSAGE_HEADER_LENGTH;
+	size_t offset = 0;
+	size_t ret = 0;
+	size_t min_length = BUXTON_MESSAGE_HEADER_LENGTH;
 	uint16_t control, message;
-	unsigned int n_params, c_param;
+	size_t n_params, c_param, c_length;
 	BuxtonDataType c_type;
-	unsigned int c_length;
 	BuxtonData *k_list = NULL;
 	BuxtonData *c_data = NULL;
 
@@ -311,8 +310,9 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	offset += sizeof(size_t);
 
 	/* Obtain number of parameters */
-	n_params = *(unsigned int*)(data+offset);
-	offset += sizeof(unsigned int);
+	n_params = *(size_t*)(data+offset);
+	offset += sizeof(size_t);
+	buxton_debug("total params: %d\n", n_params);
 
 	k_list = malloc0(sizeof(BuxtonData)*n_params);
 	if (!k_list)
@@ -326,15 +326,13 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 		if (c_type >= BUXTON_TYPE_MAX || c_type < STRING)
 			goto end;
 
-		/* Length */
-		c_length = *(unsigned int*)(data+offset);
-		offset += sizeof(unsigned int);
-
-		if (c_length <= 0)
+		/* Retrieve the length of the value */
+		c_length = *(size_t*)(data+offset);
+		if (c_length == 0)
 			goto end;
+		offset += sizeof(size_t);
 
-		if (!c_data)
-			c_data = malloc0(sizeof(BuxtonData));
+		c_data = malloc0(sizeof(BuxtonData));
 		if (!c_data)
 			goto end;
 

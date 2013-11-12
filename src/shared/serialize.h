@@ -85,7 +85,7 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
  * @return a size_t, 0 indicates failure otherwise size of dest
  */
 size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
-			      unsigned int n_params, ...);
+			      size_t n_params, ...);
 
 /**
  * Deserialize the given data into an array of BuxtonData structs
