@@ -31,7 +31,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	int l;
 	BuxtonData *r_list = NULL;
 	BuxtonControlMessage r_msg = BUXTON_CONTROL_MIN;
-	int count = -1;
+	size_t count = 0;
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
 

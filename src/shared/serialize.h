@@ -93,9 +93,9 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
  * @param message An empty pointer that will be set to the message type
  * @param size The size of the data being deserialized
  * @param list A pointer that will be filled out as an array of BuxtonData structs
- * @return the length of the array, or a negative value if deserialization failed
+ * @return the length of the array, or 0 if deserialization failed
  */
-int buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
+size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
 			       int size, BuxtonData **list);
 
 /**
