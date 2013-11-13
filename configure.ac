@@ -21,6 +21,8 @@ AC_CHECK_LIB([gdbm], [gdbm_open])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
+AC_TYPE_INT32_T
+AC_TYPE_INT64_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
