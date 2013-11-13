@@ -46,6 +46,30 @@ typedef struct Command {
 } Command;
 
 /**
+ * Set a label in Buxton
+ * @param self Client instance being run
+ * @param type Type of label being set (unused)
+ * @param one Layer of label being set
+ * @param two Key of the label being set
+ * @param three Label of the label to set
+ * @returns bool indicating success or failure
+ */
+bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
+		   char *one, char *two, char *three);
+
+/**
+ * Get a label from Buxton
+ * @param self Client instance being run
+ * @param type Type of label being sought (unused)
+ * @param one Layer of the label being sought
+ * @param two Key of the label being sought
+ * @param three NULL (unused)
+ * @returns bool indicating success or failure
+ */
+bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
+		   char *one, char *two, __attribute__((unused)) char *three);
+
+/**
  * Set a value in Buxton
  * @param self Client instance being run
  * @param type Type of data being set
