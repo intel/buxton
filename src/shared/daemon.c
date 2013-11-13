@@ -120,9 +120,13 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	key = list[1];
 	value = list[2];
 
-	buxton_debug("Daemon setting [%s0x00%s][%s]=%s\n", value.label.value,
-		     layer.store.d_string.value, key.store.d_string.value,
-		     value.store.d_string.value);
+	/* Require corresponding values for the data items */
+	if (!layer.store.d_string.value || !key.store.d_string.value || !value.label.value)
+		return NULL;
+	buxton_debug("Daemon setting [%s][%s][%s]\n",
+		     layer.store.d_string.value,
+		     key.store.d_string.value,
+		     value.label.value);
 
 	/* We only accept strings for layer and key names */
 	if (layer.type != STRING && key.type != STRING)
@@ -160,12 +164,16 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 		if (layer.type != STRING)
 			goto end;
 		key = list[1];
+		if (!layer.store.d_string.value)
+			goto end;
 	} else  if (n_params == 1) {
 		key = list[0];
 	} else {
 		goto end;
 	}
 
+	if (!key.store.d_string.value)
+		goto end;
 	/* We only accept strings for layer and key names */
 	if (key.type != STRING)
 		goto end;
