@@ -97,42 +97,42 @@ end:
 	return ret;
 }
 
-bool buxton_check_smack_access(BuxtonSmackLabel subject, BuxtonSmackLabel object, BuxtonKeyAccessType request)
+bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, BuxtonKeyAccessType request)
 {
 	char *key;
 	int r;
 	BuxtonKeyAccessType *access;
 
-	assert(subject);
-	assert(object);
+	assert(subject->value);
+	assert(object->value);
 	assert((request == ACCESS_READ) || (request == ACCESS_WRITE));
 	assert(_smackrules);
 
-	buxton_debug("Subject: %s\n", subject);
-	buxton_debug("Object: %s\n", object);
+	buxton_debug("Subject: %s\n", subject->value);
+	buxton_debug("Object: %s\n", object->value);
 
 	/* check the builtin Smack rules first */
-	if (streq(subject, "*"))
+	if (streq(subject->value, "*"))
 		return false;
 
-	if (streq(object, "@") || streq(subject, "@"))
+	if (streq(object->value, "@") || streq(subject->value, "@"))
 		return true;
 
-	if (streq(object, "*"))
+	if (streq(object->value, "*"))
 		return true;
 
-	if (streq(subject, object))
+	if (streq(subject->value, object->value))
 		return true;
 
 	if (request == ACCESS_READ) {
-		if (streq(object, "_"))
+		if (streq(object->value, "_"))
 			return true;
-		if (streq(subject, "^"))
+		if (streq(subject->value, "^"))
 			return true;
 	}
 
 	/* finally, check the loaded rules */
-	r = asprintf(&key, "%s %s", subject, object);
+	r = asprintf(&key, "%s %s", subject->value, object->value);
 	if (r == -1) {
 		buxton_log("asprintf(): %m\n");
 		exit(1);

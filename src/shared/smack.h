@@ -15,6 +15,8 @@
     #include "config.h"
 #endif
 
+#include "bt-daemon.h"
+
 /**
  * Maximum length for a Smack label
  */
@@ -58,7 +60,7 @@ bool buxton_cache_smack_rules(void);
  * @param request The buxton access type being queried
  * @return true if the smack access matches the given request, otherwise false
  */
-bool buxton_check_smack_access(BuxtonSmackLabel subject, BuxtonSmackLabel object, BuxtonKeyAccessType request);
+bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, BuxtonKeyAccessType request);
 
 /**
  * Set up inotify to track Smack rule file for changes
