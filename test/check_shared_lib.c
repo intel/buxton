@@ -598,7 +598,7 @@ START_TEST(buxton_get_message_size_check)
 }
 END_TEST
 
-Suite *
+static Suite *
 shared_lib_suite(void)
 {
 	Suite *s;

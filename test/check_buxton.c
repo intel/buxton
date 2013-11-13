@@ -116,7 +116,7 @@ START_TEST(buxton_memory_backend_check)
 }
 END_TEST
 
-Suite *
+static Suite *
 buxton_suite(void)
 {
 	Suite *s;

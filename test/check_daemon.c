@@ -26,7 +26,7 @@
 #include "log.h"
 #include "util.h"
 
-pid_t daemon_pid;
+static pid_t daemon_pid;
 
 static void setup(void)
 {
@@ -149,7 +149,7 @@ START_TEST(buxton_client_get_value_check)
 }
 END_TEST
 
-Suite *
+static Suite *
 daemon_suite(void)
 {
 	Suite *s;
