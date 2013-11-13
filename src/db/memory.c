@@ -79,7 +79,7 @@ static bool get_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
 	stored = (BuxtonData*)hashmap_get(db, key->value);
 	if (!stored)
 		return false;
-	data = stored;
+	*data = *stored;
 	return true;
 }
 

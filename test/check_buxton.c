@@ -103,11 +103,16 @@ START_TEST(buxton_memory_backend_check)
 		"Direct open failed without daemon.");
 	BuxtonData data, result;
 	data.type = STRING;
+	data.label = buxton_string_pack("label");
 	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
 		"Setting value in buxton memory backend directly failed.");
-	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &data) == false,
-		"Retrieving value from buxton memory backend failed.");
+	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result) == false,
+		"Retrieving value from buxton memory backend directly failed.");
+	fail_if(!streq(result.label.value, "label"),
+		"Buxton memory returned a different label to that set.");
+	fail_if(!streq(result.store.d_string.value, "bxt_test_value"),
+		"Buxton memory returned a different value to that set.");
 }
 END_TEST
 
