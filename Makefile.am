@@ -240,3 +240,16 @@ check_DATA = \
 	test/test.conf \
 	test/test.load2 \
 	${NULL}
+
+if BUILD_DEMOS
+bin_PROGRAMS += \
+	bxt_timing
+
+# Timing test
+bxt_timing_SOURCES = \
+	demo/timing.c \
+	src/shared/constants.c
+bxt_timing_LDADD = \
+	libbuxton.la \
+	libbuxton-shared.la
+endif
