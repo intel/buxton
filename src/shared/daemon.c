@@ -348,7 +348,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 				exit(EXIT_FAILURE);
 			}
 			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
-			if (!slabel_len) {
+			if (slabel_len <= 0) {
 				buxton_log("fgetxattr(): %m\n");
 				exit(EXIT_FAILURE);
 			}
