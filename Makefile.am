@@ -222,6 +222,18 @@ check_daemon_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la
 
+if BUILD_DEMOS
+bin_PROGRAMS += \
+	bxt_timing
+
+# Timing test
+bxt_timing_SOURCES = \
+	demo/timing.c \
+	src/shared/constants.c
+bxt_timing_LDADD = \
+	libbuxton.la \
+	libbuxton-shared.la
+endif
 
 check_DATA = \
 	test/test-pass.ini \
