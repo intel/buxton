@@ -33,11 +33,6 @@
 #define ACC_LEN 5
 
 /**
- * Represents the Smack label for a client or key
- */
-typedef char * BuxtonSmackLabel;
-
-/**
  * Represents client access to a given resource
  */
 typedef enum BuxtonKeyAccessType {
