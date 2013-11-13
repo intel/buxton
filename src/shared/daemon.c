@@ -101,7 +101,6 @@ end:
 	}
 }
 
-/* TODO: Add Smack support */
 BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 		      int n_params, BuxtonStatus *status)
 {
@@ -132,6 +131,31 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	if (layer.type != STRING && key.type != STRING)
 		return NULL;
 
+	if (USE_SMACK) {
+		BuxtonData *data = malloc0(sizeof(BuxtonData));
+		if (!data) {
+			buxton_log("malloc0: %m\n");
+			return NULL;
+		}
+
+		buxton_client_get_value_for_layer(&(self->buxton), &layer.store.d_string, &key.store.d_string, data);
+
+		/* TODO: should properly check for valid BuxtonData here */
+		if (!data->label.value && !buxton_check_smack_access(client->smack_label, &(value.label), ACCESS_WRITE)) {
+			buxton_debug("Smack: not permitted to set new value\n");
+			free(data);
+			return NULL;
+		}
+
+		if (data->label.value && !buxton_check_smack_access(client->smack_label, &(data->label), ACCESS_WRITE)) {
+			buxton_debug("Smack: not permitted to modify existing value\n");
+			free(data);
+			return NULL;
+		}
+
+		free(data);
+	}
+
 	/* Use internal library to set value */
 	if (!buxton_client_set_value(&(self->buxton), &layer.store.d_string, &key.store.d_string, &value)) {
 		*status = BUXTON_STATUS_FAILED;
@@ -143,7 +167,6 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	return NULL;
 }
 
-/* TODO: Add smack support */
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 		      int n_params, BuxtonStatus *status)
 {
@@ -198,6 +221,14 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 		if (!buxton_client_get_value(&(self->buxton), &key.store.d_string, data))
 			goto fail;
 	}
+
+	if (USE_SMACK) {
+		if (!buxton_check_smack_access(client->smack_label, &(data->label), ACCESS_READ)) {
+			buxton_debug("Smack: not permitted to get value\n");
+			goto fail;
+		}
+	}
+
 	*status = BUXTON_STATUS_OK;
 	goto end;
 fail:
