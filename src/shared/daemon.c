@@ -182,6 +182,12 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	if (!data)
 		goto end;
 
+	if (n_params == 2) {
+		buxton_debug("Daemon getting [%s][%s]\n", layer.store.d_string.value,
+			     key.store.d_string.value);
+	} else {
+		buxton_debug("Daemon getting [%s]\n", key.store.d_string.value);
+	}
 	/* Attempt to retrieve key */
 	if (n_params == 2) {
 		/* Layer + key */
