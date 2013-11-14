@@ -9,11 +9,19 @@
  * of the License, or (at your option) any later version.
  */
 
+#ifdef HAVE_CONFIG_H
+    #include "config.h"
+#endif
+
 #include <check.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "backend.h"
 #include "bt-daemon.h"
+#include "check_utils.h"
+#include "protocol.h"
+#include "serialize.h"
 #include "util.h"
 
 START_TEST(buxton_direct_open_check)
@@ -118,6 +126,46 @@ END_TEST
 
 START_TEST(buxton_wire_get_response_check)
 {
+	BuxtonClient client;
+	BuxtonData *list = NULL;
+	BuxtonControlMessage msg;
+	pid_t pid;
+	int server;
+
+	setup_socket_pair(&(client.fd), &server);
+
+	pid = fork();
+	if (pid == 0) {
+		/* child (server) */
+		uint8_t *dest = NULL;
+		size_t size;
+		BuxtonData data;
+		data.type = INT;
+		data.store.d_int = 0;
+		data.label = buxton_string_pack("dummy");
+		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 1, &data);
+		fail_if(size == 0, "Failed to serialize message");
+		write(server, dest, size);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for response check");
+	} else {
+		/* parent (client) */
+		fail_if(buxton_wire_get_response(&client, &msg, &list) != 1,
+			"Failed to properly handle response");
+		fail_if(msg != BUXTON_CONTROL_STATUS,
+			"Failed to get correct control message type");
+		fail_if(list[0].type != INT,
+			"Failed to get correct data type from message");
+		fail_if(!(list[0].label.value),
+			"Failed to get label from message");
+		fail_if(!streq(list[0].label.value, "dummy"),
+			"Failed to get correct label from message");
+		fail_if(list[0].store.d_int != 0,
+			"Failed to get correct data value from message");
+		free(list);
+	}
 }
 END_TEST
 

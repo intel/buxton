@@ -184,7 +184,8 @@ check_buxton_CFLAGS = \
 	-DMAKE_CHECK
 check_buxton_LDADD = \
 	@CHECK_LIBS@ \
-	libbuxton.la
+	libbuxton.la \
+	libbuxton-shared.la
 
 check_shared_lib_SOURCES = \
 	src/shared/constants.c \
