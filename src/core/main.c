@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	buxton_log("%s: Closing all connections");
+	buxton_log("%s: Closing all connections\n", argv[0]);
 
 	if (manual_start)
 		unlink(BUXTON_SOCKET);
