@@ -86,7 +86,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	bool ret = false;
 	int count;
 	uint8_t *send = NULL;
-	int send_len = 0;
+	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
 	BuxtonData *r_list = NULL;
 	BuxtonData d_layer;
@@ -125,7 +125,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 
 	bool ret = false;
 	int count = 0;
-	int send_len = 0;
+	size_t send_len = 0;
 	int i;
 	uint8_t *send = NULL;
 	BuxtonControlMessage r_msg;
@@ -183,7 +183,7 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 	bool ret = false;
 	int count;
 	uint8_t *send = NULL;
-	int send_len = 0;
+	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
 	BuxtonData *r_list = NULL;
 	BuxtonData d_key;
