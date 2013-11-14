@@ -149,6 +149,31 @@ START_TEST(buxton_client_get_value_check)
 }
 END_TEST
 
+START_TEST(bt_daemon_handle_message_check)
+{
+}
+END_TEST
+
+START_TEST(identify_client_check)
+{
+}
+END_TEST
+
+START_TEST(add_pollfd_check)
+{
+}
+END_TEST
+
+START_TEST(del_pollfd_check)
+{
+}
+END_TEST
+
+START_TEST(handle_client_check)
+{
+}
+END_TEST
+
 static Suite *
 daemon_suite(void)
 {

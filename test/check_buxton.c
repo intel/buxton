@@ -116,6 +116,21 @@ START_TEST(buxton_memory_backend_check)
 }
 END_TEST
 
+START_TEST(buxton_wire_get_response_check)
+{
+}
+END_TEST
+
+START_TEST(buxton_wire_set_value_check)
+{
+}
+END_TEST
+
+START_TEST(buxton_wire_get_value_check)
+{
+}
+END_TEST
+
 static Suite *
 buxton_suite(void)
 {
@@ -123,18 +138,19 @@ buxton_suite(void)
 	TCase *tc;
 
 	s = suite_create("buxton");
+
 	tc = tcase_create("buxton_client_lib_functions");
-
 	tcase_add_test(tc, buxton_direct_open_check);
-
 	tcase_add_test(tc, buxton_direct_set_value_check);
-
 	tcase_add_test(tc, buxton_direct_get_value_for_layer_check);
-
 	tcase_add_test(tc, buxton_direct_get_value_check);
-
 	tcase_add_test(tc, buxton_memory_backend_check);
+	suite_add_tcase(s, tc);
 
+	tc = tcase_create("buxton_protocol_functions");
+	tcase_add_test(tc, buxton_wire_get_response_check);
+	tcase_add_test(tc, buxton_wire_get_value_check);
+	tcase_add_test(tc, buxton_wire_get_value_check);
 	suite_add_tcase(s, tc);
 
 	return s;
