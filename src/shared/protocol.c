@@ -39,8 +39,11 @@ int buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 	if (!response)
 		return 0;
 
-	while ((l = read(self->fd, response + offset, size - offset)) > 0) {
-		offset += l;
+	do {
+		l = read(self->fd, response + offset, size - offset);
+		if (l <= 0)
+			goto end;
+		offset += (size_t)l;
 		if (offset < BUXTON_MESSAGE_HEADER_LENGTH)
 			continue;
 		if (size == BUXTON_MESSAGE_HEADER_LENGTH) {
@@ -64,7 +67,7 @@ int buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 			return 0;
 		}
 		break;
-	}
+	} while (true);
 	assert((r_msg > BUXTON_CONTROL_MIN) && (r_msg < BUXTON_CONTROL_MAX));
 	*msg = r_msg;
 	*list = r_list;

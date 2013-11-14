@@ -495,8 +495,13 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 	 * Probably need a timer to stop waiting and just move to the
 	 * next client at some point as well.
 	 */
-	while ((l = read(self->pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset)) > 0) {
-		cl->offset += l;
+	do {
+		l = read(self->pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset);
+		if (l < 0)
+			goto cleanup;
+		else if (l == 0)
+			break;
+		cl->offset += (size_t)l;
 		if (cl->offset < BUXTON_MESSAGE_HEADER_LENGTH) {
 			continue;
 		}
@@ -520,7 +525,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 			goto cleanup;
 		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 		cl->offset = 0;
-	}
+	} while (l > 0);
 
 	/* Not done with this message so don't cleanup */
 	if (l == 0 && cl->offset < cl->size)
