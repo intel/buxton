@@ -18,7 +18,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <signal.h>
 #include <unistd.h>
 
@@ -188,6 +187,15 @@ daemon_suite(void)
 	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
 	tcase_add_test(tc, buxton_client_get_value_check);
 	suite_add_tcase(s, tc);
+
+	tc = tcase_create("buxton_daemon_functions");
+	tcase_add_test(tc, bt_daemon_handle_message_check);
+	tcase_add_test(tc, identify_client_check);
+	tcase_add_test(tc, add_pollfd_check);
+	tcase_add_test(tc, del_pollfd_check);
+	tcase_add_test(tc, handle_client_check);
+	suite_add_tcase(s, tc);
+
 	return s;
 }
 
