@@ -99,7 +99,7 @@ end:
 
 bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, BuxtonKeyAccessType request)
 {
-	char *key;
+	_cleanup_free_ char *key = NULL;
 	int r;
 	BuxtonKeyAccessType *access;
 
@@ -135,7 +135,7 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 	r = asprintf(&key, "%s %s", subject->value, object->value);
 	if (r == -1) {
 		buxton_log("asprintf(): %m\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	buxton_debug("Key: %s\n", key);
@@ -148,11 +148,8 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 		 * because there are no further rules to consider.
 		 */
 		buxton_debug("Value of key '%s' is NULL\n", key);
-		free(key);
 		return false;
 	}
-
-	free(key);
 
 	/* After debugging, change this code to: */
 	/* return ((*access) & request); */

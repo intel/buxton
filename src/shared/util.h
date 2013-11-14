@@ -61,6 +61,11 @@ size_t page_size(void);
 
 bool streq_ptr(const char *a, const char *b) _pure_;
 
+static inline void freep(void *p) {
+	free(*(void**) p);
+}
+#define _cleanup_free_ _cleanup_(freep)
+
 #define new(t, n) ((t*) malloc_multiply(sizeof(t), (n)))
 
 #define new0(t, n) ((t*) calloc((n), sizeof(t)))

@@ -34,7 +34,7 @@ START_TEST(log_write_check)
 {
 	char log_file[] = "log-check-stderr-file";
 	char log_msg[] = "Log test";
-	char *log_read = malloc(strlen(log_msg));
+	_cleanup_free_ char *log_read = malloc(strlen(log_msg));
 	fail_if(log_read == NULL,
 		"Failed to allocate space for reading the log");
 
@@ -61,7 +61,6 @@ START_TEST(log_write_check)
 	fclose(stderr);
 	fclose(read_test);
 	stderr = fdopen(dup_stderr, "w");
-	free(log_read);
 }
 END_TEST
 
@@ -187,8 +186,8 @@ END_TEST
 START_TEST(get_layer_path_check)
 {
 	BuxtonLayer layer;
-	char *path;
-	char *real_path;
+	char *path = NULL;
+	char *real_path = NULL;
 	int r;
 
 	memset(&layer, 0, sizeof(BuxtonLayer));
@@ -202,10 +201,8 @@ START_TEST(get_layer_path_check)
 	fail_if(strcmp(path, real_path) != 0,
 		"Failed to set correct system path");
 
-	if (path)
-		free(path);
-	if (real_path)
-		free(real_path);
+	free(path);
+	free(real_path);
 
 	layer.name = buxton_string_pack("user-path-test");
 	layer.type = LAYER_USER;
@@ -218,10 +215,8 @@ START_TEST(get_layer_path_check)
 	fail_if(strcmp(path, real_path) != 0,
 		"Failed to set correct user path");
 
-	if (path)
-		free(path);
-	if (real_path)
-		free(real_path);
+	free(path);
+	free(real_path);
 
 	layer.name = buxton_string_pack("bad-type-test");
 	layer.type = -1;
@@ -347,7 +342,7 @@ END_TEST
 START_TEST(buxton_db_serialize_check)
 {
 	BuxtonData dsource, dtarget;
-	uint8_t *packed;
+	uint8_t *packed = NULL;
 
 	dsource.type = STRING;
 	dsource.label = buxton_string_pack("label");
@@ -362,8 +357,7 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination string labels differ");
 	fail_if(strcmp(dsource.store.d_string.value, dtarget.store.d_string.value) != 0,
 		"Source and destination string data differ");
-	if (packed)
-		free(packed);
+	free(packed);
 	if (dtarget.store.d_string.value)
 		free(dtarget.store.d_string.value);
 
@@ -379,8 +373,7 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination float labels differ");
 	fail_if(dsource.store.d_float != dtarget.store.d_float,
 		"Source and destination float data differ");
-	if (packed)
-		free(packed);
+	free(packed);
 
 	dsource.type = INT;
 	dsource.store.d_int = INT_MAX;
@@ -394,8 +387,7 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination int labels differ");
 	fail_if(dsource.store.d_int != dtarget.store.d_int,
 		"Source and destination int data differ");
-	if (packed)
-		free(packed);
+	free(packed);
 
 	dsource.type = DOUBLE;
 	dsource.store.d_double = 3.1415;
@@ -409,8 +401,7 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination double labels differ");
 	fail_if(dsource.store.d_double != dtarget.store.d_double,
 		"Source and destination double data differ");
-	if (packed)
-		free(packed);
+	free(packed);
 
 	dsource.type = LONG;
 	dsource.store.d_long = LONG_MAX;
@@ -424,8 +415,7 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination long labels differ");
 	fail_if(dsource.store.d_long != dtarget.store.d_long,
 		"Source and destination long data differ");
-	if (packed)
-		free(packed);
+	free(packed);
 
 	dsource.type = -1;
 	dsource.store.d_boolean = true;
@@ -439,8 +429,8 @@ START_TEST(buxton_message_serialize_check)
 	BuxtonControlMessage csource;
 	BuxtonControlMessage ctarget;
 	BuxtonData dsource;
-	BuxtonData *dtarget;
-	uint8_t *packed;
+	BuxtonData *dtarget = NULL;
+	uint8_t *packed = NULL;
 	size_t ret;
 
 	dsource.type = STRING;
@@ -456,8 +446,7 @@ START_TEST(buxton_message_serialize_check)
 		"Source and destination type differ for string");
 	fail_if(strcmp(dsource.store.d_string.value, dtarget[0].store.d_string.value) != 0,
 		"Source and destination string data differ");
-	if (packed)
-		free(packed);
+	free(packed);
 	if (dtarget) {
 		if (dtarget[0].store.d_string.value) {
 			free(dtarget[0].store.d_string.value);
@@ -477,11 +466,8 @@ START_TEST(buxton_message_serialize_check)
 		"Source and destination type differ for boolean");
 	fail_if(dsource.store.d_boolean != dtarget[0].store.d_boolean,
 		"Source and destination boolean data differ");
-	if (packed)
-		free(packed);
-	if (dtarget) {
-		free(dtarget);
-	}
+	free(packed);
+	free(dtarget);
 
 	dsource.type = FLOAT;
 	dsource.store.d_float = 3.14;
@@ -495,11 +481,8 @@ START_TEST(buxton_message_serialize_check)
 		"Source and destination type differ for float");
 	fail_if(dsource.store.d_float != dtarget[0].store.d_float,
 		"Source and destination float data differ");
-	if (packed)
-		free(packed);
-	if (dtarget) {
-		free(dtarget);
-	}
+	free(packed);
+	free(dtarget);
 
 	dsource.type = INT;
 	dsource.store.d_int = INT_MAX;
@@ -513,11 +496,8 @@ START_TEST(buxton_message_serialize_check)
 		"Source and destination type differ for int");
 	fail_if(dsource.store.d_int != dtarget[0].store.d_int,
 		"Source and destination int data differ");
-	if (packed)
-		free(packed);
-	if (dtarget) {
-		free(dtarget);
-	}
+	free(packed);
+	free(dtarget);
 
 	dsource.type = DOUBLE;
 	dsource.store.d_double = 3.1415;
@@ -531,11 +511,8 @@ START_TEST(buxton_message_serialize_check)
 		"Source and destination type differ for double");
 	fail_if(dsource.store.d_double != dtarget[0].store.d_double,
 		"Source and destination double data differ");
-	if (packed)
-		free(packed);
-	if (dtarget) {
-		free(dtarget);
-	}
+	free(packed);
+	free(dtarget);
 
 	dsource.type = LONG;
 	dsource.store.d_long = LONG_MAX;
@@ -549,11 +526,8 @@ START_TEST(buxton_message_serialize_check)
 		"Source and destination type differ for long");
 	fail_if(dsource.store.d_long != dtarget[0].store.d_long,
 		"Source and destination long data differ");
-	if (packed)
-		free(packed);
-	if (dtarget) {
-		free(dtarget);
-	}
+	free(packed);
+	free(dtarget);
 
 	dsource.type = STRING;
 	dsource.store.d_string = buxton_string_pack("test-key");
@@ -579,7 +553,7 @@ START_TEST(buxton_get_message_size_check)
 {
 	BuxtonControlMessage csource;
 	BuxtonData dsource;
-	uint8_t *packed;
+	uint8_t *packed = NULL;
 	size_t ret;
 
 	dsource.type = STRING;
@@ -593,8 +567,7 @@ START_TEST(buxton_get_message_size_check)
 	fail_if(buxton_get_message_size(packed, BUXTON_MESSAGE_HEADER_LENGTH - 1) != 0,
 		"Got size even though message smaller than the minimum");
 
-	if (packed)
-		free(packed);
+	free(packed);
 }
 END_TEST
 

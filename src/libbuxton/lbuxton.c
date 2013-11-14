@@ -127,7 +127,7 @@ bool buxton_direct_open(BuxtonClient *client)
 static bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 {
 	void *handle, *cast;
-	char *path;
+	_cleanup_free_ char *path = NULL;
 	const char *name;
 	char *error;
 	int r;
@@ -163,7 +163,6 @@ static bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
 
 	/* Load the module */
 	handle = dlopen(path, RTLD_LAZY);
-	free(path);
 
 	if (!handle) {
 		buxton_log("dlopen(): %s\n", dlerror());
@@ -298,8 +297,8 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 	/* TODO: Implement */
 	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
 		/* Handle direct manipulation */
-		BuxtonBackend *backend;
-		BuxtonLayer *layer;
+		BuxtonBackend *backend = NULL;
+		BuxtonLayer *layer = NULL;
 		if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
 			return false;
 		}
@@ -472,12 +471,11 @@ finish:
 
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 {
-	bool ret = false;
 	int r;
-	char *k_desc = NULL;
-	char *k_backend = NULL;
-	char *k_type = NULL;
-	char *k_priority = NULL;
+	_cleanup_free_ char *k_desc = NULL;
+	_cleanup_free_ char *k_backend = NULL;
+	_cleanup_free_ char *k_type = NULL;
+	_cleanup_free_ char *k_priority = NULL;
 	char *_desc = NULL;
 	char *_backend = NULL;
 	char *_type = NULL;
@@ -489,19 +487,19 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 
 	r = asprintf(&k_desc, "%s:description", name);
 	if (r == -1)
-		goto end;
+		return false;
 
 	r = asprintf(&k_backend, "%s:backend", name);
 	if (r == -1)
-		goto end;
+		return false;
 
 	r = asprintf(&k_type, "%s:type", name);
 	if (r == -1)
-		goto end;
+		return false;
 
 	r = asprintf(&k_priority, "%s:priority", name);
 	if (r == -1)
-		goto end;
+		return false;
 
 	_type = iniparser_getstring(ini, k_type, NULL);
 	_backend = iniparser_getstring(ini, k_backend, NULL);
@@ -509,7 +507,7 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	_desc = iniparser_getstring(ini, k_desc, NULL);
 
 	if (!_type || !name || !_backend || _priority < 0)
-		goto end;
+		return false;
 
 	out->name.value = strdup(name);
 	if (!out->name.value)
@@ -536,21 +534,13 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 		out->description = strdup(_desc);
 
 	out->priority = _priority;
+	return true;
 
-	ret = true;
-	goto end;
 
 fail:
 	free(out->name.value);
 	free(out->description);
-
-end:
-	free(k_desc);
-	free(k_backend);
-	free(k_type);
-	free(k_priority);
-
-	return ret;
+	return false;
 }
 
 void exit_handler(void)

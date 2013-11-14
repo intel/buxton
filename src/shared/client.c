@@ -132,8 +132,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 {
 	BuxtonString layer, key;
 	BuxtonData get;
-	bool ret = true;
-	char *prefix;
+	_cleanup_free_ char *prefix = NULL;
 
 	if (two != NULL) {
 		layer.value = one;
@@ -150,14 +149,12 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 	if (two != NULL) {
 		if (!buxton_client_get_value_for_layer(self, &layer, &key, &get)) {
 			printf("Requested key was not found in layer \'%s\': %s\n", layer.value, key.value);
-			ret = false;
-			goto end;
+			return false;
 		}
 	} else {
 		if (!buxton_client_get_value(self, &key, &get)) {
 			printf("Requested key was not found: %s\n", key.value);
-			ret = false;
-			goto end;
+			return false;
 		}
 	}
 
@@ -166,8 +163,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 		type_req = buxton_type_as_string(type);
 		type_got = buxton_type_as_string(get.type);
 		printf("You requested a key with type \'%s\', but value is of type \'%s\'.\n\n", type_req, type_got);
-		ret = false;
-		goto end;
+		return false;
 	}
 
 	switch (get.type) {
@@ -194,15 +190,14 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 		break;
 	default:
 		printf("unknown type\n");
-		ret = false;
+		return false;
 		break;
 	}
-end:
-	free(prefix);
-	if (ret && get.type == STRING)
+
+	if (get.type == STRING)
 		free(get.store.d_string.value);
 
-	return ret;
+	return true;
 }
 
 /*

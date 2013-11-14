@@ -101,7 +101,7 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	*target = data;
 	ret = size;
 end:
-	if (ret < BXT_MINIMUM_SIZE && data)
+	if (ret < BXT_MINIMUM_SIZE)
 		free(data);
 
 	return ret;
@@ -182,7 +182,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 {
 	va_list args;
 	int i = 0;
-	uint8_t *data;
+	uint8_t *data = NULL;
 	size_t ret = 0;
 	size_t offset = 0;
 	size_t size = 0;

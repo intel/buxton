@@ -35,7 +35,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	size_t p_count;
 	size_t response_len;
 	BuxtonData response_data;
-	uint8_t *response_store = NULL;
+	_cleanup_free_ uint8_t *response_store = NULL;
 
 	assert(self);
 	assert(client);
@@ -95,8 +95,6 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		bt_daemon_notify_clients(self, client, data);
 
 end:
-	if (response_store)
-		free(response_store);
 	if (data && data->type == STRING)
 		free(data->store.d_string.value);
 	if (list) {
