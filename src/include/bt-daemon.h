@@ -159,6 +159,14 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client, BuxtonString *key
 _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonData *data);
 
 /**
+ * Register for motifications on the given key in all layers
+ * @param client An open client connection
+ * @param key The key to register interest with
+ * @return a boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_register_notification(BuxtonClient *client, BuxtonString *key);
+
+/**
  * Open a direct connection to Buxton
  *
  * @param client The client struct will be used throughout the life of Buxton operations

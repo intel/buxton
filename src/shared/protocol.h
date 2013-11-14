@@ -106,6 +106,14 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
 			   BuxtonData *value);
 
+/**
+ * Send a NOTIFY message over the protocol, register for events
+ * @param client Client connection
+ * @param key Key name
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_register_notification(BuxtonClient *client, BuxtonString *key);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
