@@ -256,7 +256,7 @@ START_TEST(buxton_data_copy_check)
 		free(copy.label.value);
 
 	original.type = FLOAT;
-	original.store.d_float = 3.14;
+	original.store.d_float = 3.14F;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
 		"Failed to copy float type");
@@ -362,7 +362,7 @@ START_TEST(buxton_db_serialize_check)
 		free(dtarget.store.d_string.value);
 
 	dsource.type = FLOAT;
-	dsource.store.d_float = 3.14;
+	dsource.store.d_float = 3.14F;
 	fail_if(buxton_serialize(&dsource, &packed) == false,
 		"Failed to serialize float data");
 	fail_if(buxton_deserialize(packed, &dtarget) == false,
@@ -470,7 +470,7 @@ START_TEST(buxton_message_serialize_check)
 	free(dtarget);
 
 	dsource.type = FLOAT;
-	dsource.store.d_float = 3.14;
+	dsource.store.d_float = 3.14F;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
 	fail_if(ret == 0, "Failed to serialize float data");

@@ -66,7 +66,7 @@ typedef struct BuxtonDaemon BuxtonDaemon;
 typedef BuxtonData* (*daemon_value_func) (struct BuxtonDaemon *self,
 					  client_list_item *client,
 					  BuxtonData *list,
-					  int n_params,
+					  size_t n_params,
 					  BuxtonStatus *status);
 
 /**
@@ -91,9 +91,9 @@ struct BuxtonDaemon {
  * @param client A Buxton Client
  * @param msg Pointer to BuxtonControlMessage
  * @param list Pointer to empty BuxtonData list (NULL)
- * @return the number of parameters returned, or -1
+ * @return the number of parameters returned, or 0
  */
-int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
+size_t buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 			      BuxtonData **list);
 /**
  * Send a SET message over the wire protocol, return the response

@@ -137,7 +137,7 @@ end:
 		free(response);
 }
 BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-		      int n_params, BuxtonStatus *status)
+		      size_t n_params, BuxtonStatus *status)
 {
 	BuxtonData layer, key, value;
 	*status = BUXTON_STATUS_FAILED;
@@ -209,7 +209,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 }
 
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-		      int n_params, BuxtonStatus *status)
+		      size_t n_params, BuxtonStatus *status)
 {
 	BuxtonData layer, key;
 	*status = BUXTON_STATUS_FAILED;
@@ -312,7 +312,8 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client, 
 bool identify_client(client_list_item *cl)
 {
 	/* Identity handling */
-	int nr, data;
+	ssize_t nr;
+	int data;
 	struct msghdr msgh;
 	struct iovec iov;
 	__attribute__((unused)) struct ucred *ucredp;
@@ -388,10 +389,10 @@ void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a)
 	buxton_debug("Added fd %d to our poll list (accepting=%d)\n", fd, a);
 }
 
-void del_pollfd(BuxtonDaemon *self, int i)
+void del_pollfd(BuxtonDaemon *self, nfds_t i)
 {
 	assert(self);
-	assert(i <= self->nfds);
+	assert(i < self->nfds);
 	assert(i >= 0);
 
 	buxton_debug("Removing fd %d from our list\n", self->pollfds[i].fd);
@@ -399,10 +400,17 @@ void del_pollfd(BuxtonDaemon *self, int i)
 	if (i != (self->nfds - 1)) {
 		memmove(&(self->pollfds[i]),
 			&(self->pollfds[i + 1]),
-			(self->nfds - i - 1) * sizeof(struct pollfd));
+			/*
+			 * nfds < max int because of kernel limit of
+			 * fds. i + 1 < nfds because of if and assert
+			 * so the casts below are always >= 0 and less
+			 * than long unsigned max int so no loss of
+			 * precision.
+			 */
+			(long unsigned int)(self->nfds - i - 1) * sizeof(struct pollfd));
 		memmove(&(self->accepting[i]),
 			&(self->accepting[i + 1]),
-			(self->nfds - i - 1) * sizeof(self->accepting));
+			(long unsigned int)(self->nfds - i - 1) * sizeof(self->accepting));
 	}
 	self->nfds--;
 }
@@ -412,7 +420,7 @@ void del_pollfd(BuxtonDaemon *self, int i)
  * @param cl The currently activate client
  * @param i The currently active file descriptor
  */
-void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
+void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 {
 	ssize_t l;
 	ssize_t slabel_len;
@@ -466,7 +474,8 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 				exit(EXIT_FAILURE);
 			}
 
-			buf = malloc0(slabel_len + 1);
+			/* already checked slabel_len positive above */
+			buf = malloc0((size_t)slabel_len + 1);
 			if (!buf) {
 				buxton_log("malloc0() for string value: %m\n");
 				exit(EXIT_FAILURE);
@@ -479,7 +488,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 			}
 
 			slabel->value = buf;
-			slabel->length = slabel_len;
+			slabel->length = (size_t)slabel_len;
 
 			buxton_debug("fgetxattr(): label=\"%s\"\n", slabel->value);
 

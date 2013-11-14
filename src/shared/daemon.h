@@ -49,7 +49,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
  * @returns BuxtonData Always NULL currently, may be changed in the future
  */
 BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-			     int n_params, BuxtonStatus *status);
+			     size_t n_params, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for getting a value
@@ -61,7 +61,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-			     int n_params, BuxtonStatus *status);
+			     size_t n_params, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for registering notifications on a given key
@@ -98,7 +98,7 @@ void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a);
  * @param i File descriptor to remove from poll list
  * @return None
  */
-void del_pollfd(BuxtonDaemon *self, int i);
+void del_pollfd(BuxtonDaemon *self, nfds_t i);
 
 /**
  * Handle a client connection
@@ -106,7 +106,7 @@ void del_pollfd(BuxtonDaemon *self, int i);
  * @param cl The currently activate client
  * @param i The currently active file descriptor
  */
-void handle_client(BuxtonDaemon *self, client_list_item *cl, int i);
+void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

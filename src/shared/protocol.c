@@ -20,7 +20,7 @@
 #include "protocol.h"
 #include "util.h"
 
-int buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
+size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 			      BuxtonData **list)
 {
 	assert(self);
@@ -84,8 +84,8 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	assert(value);
 	assert(value->label.value);
 
-	int count;
 	_cleanup_free_ uint8_t *send = NULL;
+	size_t count;
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
 	_cleanup_free_ BuxtonData *r_list = NULL;
@@ -122,7 +122,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	assert(value);
 
 	bool ret = false;
-	int count = 0;
+	size_t count = 0;
 	size_t send_len = 0;
 	int i;
 	_cleanup_free_ uint8_t *send = NULL;
