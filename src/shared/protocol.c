@@ -20,10 +20,10 @@
 #include "protocol.h"
 #include "util.h"
 
-int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
+int buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 			      BuxtonData **list)
 {
-	assert(client);
+	assert(self);
 	assert(msg);
 	assert(list);
 
@@ -39,7 +39,7 @@ int buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 	if (!response)
 		goto end;
 
-	while ((l = read(client->fd, response + offset, size - offset)) > 0) {
+	while ((l = read(self->fd, response + offset, size - offset)) > 0) {
 		offset += l;
 		if (offset < BUXTON_MESSAGE_HEADER_LENGTH)
 			continue;
@@ -74,10 +74,10 @@ end:
 	return count;
 }
 
-bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
+bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonString *key,
 			   BuxtonData *value)
 {
-	assert(client);
+	assert(self);
 	assert(layer_name);
 	assert(key);
 	assert(value);
@@ -103,10 +103,10 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 	if (send_len == 0)
 		goto end;
 	/* Now write it off */
-	write(client->fd, send, send_len);
+	write(self->fd, send, send_len);
 
 	/* Gain response */
-	count = buxton_wire_get_response(client, &r_msg, &r_list);
+	count = buxton_wire_get_response(self, &r_msg, &r_list);
 	if (count > 0 && r_list[0].store.d_int == BUXTON_STATUS_OK)
 		ret = true;
 end:
@@ -116,10 +116,10 @@ end:
 	return ret;
 }
 
-bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
+bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonString *key,
 			   BuxtonData *value)
 {
-	assert(client);
+	assert(self);
 	assert(key);
 	assert(value);
 
@@ -150,10 +150,10 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 	if (send_len == 0)
 		goto end;
 	/* Now write it off */
-	write(client->fd, send, send_len);
+	write(self->fd, send, send_len);
 
 	/* Gain response */
-	count = buxton_wire_get_response(client, &r_msg, &r_list);
+	count = buxton_wire_get_response(self, &r_msg, &r_list);
 	if (count == 2 && r_list[0].store.d_int == BUXTON_STATUS_OK)
 		ret = true;
 	else
