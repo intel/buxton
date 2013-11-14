@@ -146,6 +146,7 @@ START_TEST(buxton_wire_get_response_check)
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 1, &data);
 		fail_if(size == 0, "Failed to serialize message");
 		write(server, dest, size);
+		close(client.fd);
 		_exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
@@ -165,6 +166,7 @@ START_TEST(buxton_wire_get_response_check)
 		fail_if(list[0].store.d_int != 0,
 			"Failed to get correct data value from message");
 		free(list);
+		close(server);
 	}
 }
 END_TEST
