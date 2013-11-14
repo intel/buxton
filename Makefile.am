@@ -175,6 +175,8 @@ check_PROGRAMS = \
 
 check_buxton_SOURCES = \
 	src/shared/constants.c \
+	test/check_utils.c \
+	test/check_utils.h \
         test/check_buxton.c
 check_buxton_CFLAGS = \
 	@CHECK_CFLAGS@ \
@@ -185,6 +187,8 @@ check_buxton_LDADD = \
 
 check_shared_lib_SOURCES = \
 	src/shared/constants.c \
+	test/check_utils.c \
+	test/check_utils.h \
         test/check_shared_lib.c
 check_shared_lib_CFLAGS = \
 	@CHECK_CFLAGS@ \
@@ -197,6 +201,8 @@ check_shared_lib_LDADD = \
 
 check_bt_daemon_SOURCES = \
 	src/shared/constants.c \
+	test/check_utils.c \
+	test/check_utils.h \
 	src/core/main.c
 check_bt_daemon_CFLAGS = \
 	@CHECK_CFLAGS@ \
@@ -211,6 +217,8 @@ check_bt_daemon_LDADD = \
 
 check_daemon_SOURCES = \
 	src/shared/constants.c \
+	test/check_utils.c \
+	test/check_utils.h \
         test/check_daemon.c
 check_daemon_CFLAGS = \
 	@CHECK_CFLAGS@ \
@@ -221,7 +229,6 @@ check_daemon_LDADD = \
 	@INIPARSER_LIBS@ \
 	libbuxton.la \
 	libbuxton-shared.la
-
 
 check_DATA = \
 	test/test-pass.ini \
