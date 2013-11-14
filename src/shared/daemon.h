@@ -32,6 +32,14 @@
 void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size);
 
 /**
+ * Notify clients a value changes in bt-daemon
+ * @param self Refernece to BuxtonDaemon
+ * @param client Current client
+ * @param data Modified data
+ */
+void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonData* data);
+
+/**
  * Buxton daemon function for setting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access

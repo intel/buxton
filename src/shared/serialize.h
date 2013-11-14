@@ -52,6 +52,7 @@ typedef enum BuxtonControlMessage{
 	BUXTON_CONTROL_GET, /**<Retrieve a value from Buxton */
 	BUXTON_CONTROL_STATUS, /**<Status code follows */
 	BUXTON_CONTROL_NOTIFY, /**<Register for notification */
+	BUXTON_CONTROL_CHANGED, /**<A key changed in Buxton */
 	BUXTON_CONTROL_MAX
 } BuxtonControlMessage;
 
