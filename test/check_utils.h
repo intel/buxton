@@ -10,7 +10,7 @@
  */
 
 /**
- * \file test-utils.h Internal header
+ * \file check-utils.h Internal header
  * This file is used internally by buxton to provide functionality
  * used for testing
  */
@@ -21,7 +21,7 @@
     #include "config.h"
 #endif
 
-static void setup_socket_pair(int *client, int *server);
+void setup_socket_pair(int *client, int *server);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

@@ -12,7 +12,9 @@
 #include <check.h>
 #include <sys/socket.h>
 
-static void setup_socket_pair(int *client, int *server)
+#include "check_utils.h"
+
+void setup_socket_pair(int *client, int *server)
 {
 	int socks[2];
 	fail_if(socketpair(AF_UNIX, SOCK_STREAM, 0, socks),
