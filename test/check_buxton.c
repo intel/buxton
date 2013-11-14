@@ -149,7 +149,7 @@ buxton_suite(void)
 
 	tc = tcase_create("buxton_protocol_functions");
 	tcase_add_test(tc, buxton_wire_get_response_check);
-	tcase_add_test(tc, buxton_wire_get_value_check);
+	tcase_add_test(tc, buxton_wire_set_value_check);
 	tcase_add_test(tc, buxton_wire_get_value_check);
 	suite_add_tcase(s, tc);
 
