@@ -179,6 +179,7 @@ check_buxton_SOURCES = \
 	test/check_utils.h \
         test/check_buxton.c
 check_buxton_CFLAGS = \
+	$(AM_CFLAGS) \
 	@CHECK_CFLAGS@ \
 	-DMAKE_CHECK
 check_buxton_LDADD = \
@@ -191,6 +192,7 @@ check_shared_lib_SOURCES = \
 	test/check_utils.h \
         test/check_shared_lib.c
 check_shared_lib_CFLAGS = \
+	$(AM_CFLAGS) \
 	@CHECK_CFLAGS@ \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK
@@ -221,6 +223,7 @@ check_daemon_SOURCES = \
 	test/check_utils.h \
         test/check_daemon.c
 check_daemon_CFLAGS = \
+	$(AM_CFLAGS) \
 	@CHECK_CFLAGS@ \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK
