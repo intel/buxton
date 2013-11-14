@@ -314,8 +314,9 @@ void del_pollfd(BuxtonDaemon *self, int i)
 void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 {
 	ssize_t l;
-	int slabel_len;
-	BuxtonSmackLabel slabel = NULL;
+	ssize_t slabel_len;
+	char *buf = NULL;
+	BuxtonString *slabel = NULL;
 
 	assert(self);
 	assert(cl);
@@ -331,6 +332,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
 		del_pollfd(self, i);
 		close(cl->fd);
+		free(cl->smack_label->value);
 		free(cl->smack_label);
 		buxton_debug("Closed connection from fd %d\n", cl->fd);
 		LIST_REMOVE(client_list_item, item, self->client_list, cl);
@@ -343,6 +345,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 		if (!identify_client(cl)) {
 			del_pollfd(self, i);
 			close(cl->fd);
+			free(cl->smack_label->value);
 			free(cl->smack_label);
 			buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
 			LIST_REMOVE(client_list_item, item, self->client_list, cl);
@@ -350,24 +353,35 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, int i)
 		}
 
 		if (USE_SMACK) {
-			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, 0);
+			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, buf, 0);
 			if (slabel_len <= 0) {
 				buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
 				exit(EXIT_FAILURE);
 			}
 
-			slabel = malloc0(slabel_len + 1);
+			slabel = malloc0(sizeof(BuxtonString));
 			if (!slabel) {
-				buxton_log("malloc0(): %m\n");
+				buxton_log("malloc0() for BuxtonString: %m\n");
 				exit(EXIT_FAILURE);
 			}
-			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, slabel, SMACK_LABEL_LEN);
+
+			buf = malloc0(slabel_len + 1);
+			if (!buf) {
+				buxton_log("malloc0() for string value: %m\n");
+				exit(EXIT_FAILURE);
+			}
+
+			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, buf, SMACK_LABEL_LEN);
 			if (slabel_len <= 0) {
 				buxton_log("fgetxattr(): %m\n");
 				exit(EXIT_FAILURE);
 			}
 
-			buxton_debug("fgetxattr(): label=\"%s\"\n", slabel);
+			slabel->value = buf;
+			slabel->length = slabel_len;
+
+			buxton_debug("fgetxattr(): label=\"%s\"\n", slabel->value);
+
 			cl->smack_label = slabel;
 		}
 	}
