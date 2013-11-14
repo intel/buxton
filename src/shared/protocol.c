@@ -179,7 +179,6 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 {
 	assert(self);
 	assert(key);
-	assert(key->value);
 
 	bool ret = false;
 	int count;
