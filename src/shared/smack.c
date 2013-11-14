@@ -142,10 +142,14 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 
 	access = hashmap_get(_smackrules, key);
 	if (!access) {
-		/* corruption */
-		buxton_log("Value of key '%s' is NULL\n", key);
+		/* A null value is not an error, since clients may try to
+		 * read/write keys with labels that are not in the loaded
+		 * rule set. In this situation, access is simply denied,
+		 * because there are no further rules to consider.
+		 */
+		buxton_debug("Value of key '%s' is NULL\n", key);
 		free(key);
-		exit(1);
+		return false;
 	}
 
 	free(key);
