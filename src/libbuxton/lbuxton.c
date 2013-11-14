@@ -316,6 +316,18 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 	return buxton_wire_get_value(client, layer_name, key, data);
 }
 
+bool buxton_client_register_notification(BuxtonClient *client, BuxtonString *key)
+{
+	assert(client);
+	assert(key);
+
+	if (_directPermitted && client->direct && hashmap_get(_directPermitted, &(client->pid)) == client) {
+		/* Direct notifications not currently supported */
+		return false;
+	}
+	return buxton_wire_register_notification(client, key);
+}
+
 bool buxton_client_set_value(BuxtonClient *client,
 			      BuxtonString *layer_name,
 			      BuxtonString *key,

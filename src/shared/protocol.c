@@ -86,7 +86,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	bool ret = false;
 	int count;
 	uint8_t *send = NULL;
-	int send_len = 0;
+	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
 	BuxtonData *r_list = NULL;
 	BuxtonData d_layer;
@@ -125,7 +125,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 
 	bool ret = false;
 	int count = 0;
-	int send_len = 0;
+	size_t send_len = 0;
 	int i;
 	uint8_t *send = NULL;
 	BuxtonControlMessage r_msg;
@@ -175,6 +175,40 @@ end:
 	return ret;
 }
 
+bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
+{
+	assert(self);
+	assert(key);
+
+	bool ret = false;
+	int count;
+	uint8_t *send = NULL;
+	size_t send_len = 0;
+	BuxtonControlMessage r_msg;
+	BuxtonData *r_list = NULL;
+	BuxtonData d_key;
+
+	buxton_string_to_data(key, &d_key);
+	d_key.label = buxton_string_pack("dummy");
+
+	/* Attempt to serialize our send message */
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_NOTIFY, 1,
+					    &d_key);
+	if (send_len == 0)
+		goto end;
+	/* Now write it off */
+	write(self->fd, send, send_len);
+
+	/* Gain response */
+	count = buxton_wire_get_response(self, &r_msg, &r_list);
+	if (count > 0 && r_list[0].store.d_int == BUXTON_STATUS_OK)
+		ret = true;
+end:
+	free(send);
+	free(r_list);
+
+	return ret;
+}
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

@@ -32,6 +32,14 @@
 void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size);
 
 /**
+ * Notify clients a value changes in bt-daemon
+ * @param self Refernece to BuxtonDaemon
+ * @param client Current client
+ * @param data Modified data
+ */
+void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonData* data);
+
+/**
  * Buxton daemon function for setting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
@@ -53,6 +61,18 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
+			     int n_params, BuxtonStatus *status);
+
+/**
+ * Buxton daemon function for registering notifications on a given key
+ * @param self bt-daemon instance being run
+ * @param client Used to validate smack access
+ * @param list Contains key being used
+ * @param n_params Number of items contained in the list
+ * @param status Will be set with the BuxtonStatus result of the operation
+ * @returns BuxtonData Always NULL currently, may be changed in the future
+ */
+BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 			     int n_params, BuxtonStatus *status);
 
 /**

@@ -148,6 +148,12 @@ AS_IF([test "x$enable_debug" = "xyes"],
 	[AC_DEFINE([DEBUG], [1], [Debugging mode enabled])],
 	[])
 
+AC_ARG_ENABLE(demos, AS_HELP_STRING([--enable-demos], [enable demos]))
+AS_IF([test "x$enable_demos" = "xyes"],
+	[AC_DEFINE([DEMOS], [1], [Building demos])],
+	[])
+AM_CONDITIONAL([BUILD_DEMOS], [test x$enable_demos = x"yes"])
+
 AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket

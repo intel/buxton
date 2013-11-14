@@ -70,9 +70,12 @@ int main(int argc, char *argv[])
 	self.buxton.direct = true;
 	self.set_value = &set_value;
 	self.get_value = &get_value;
+	self.register_notification = &register_notification;
 	if (!buxton_direct_open(&self.buxton))
 		exit(EXIT_FAILURE);
 
+	/* For client notifications */
+	self.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	/* Store a list of connected clients */
 	LIST_HEAD_INIT(client_list_item, self.client_list);
 
@@ -237,6 +240,7 @@ int main(int argc, char *argv[])
 		free(i);
 		i = j;
 	}
+	hashmap_free(self.notify_mapping);
 	buxton_client_close(&self.buxton);
 	return EXIT_SUCCESS;
 }

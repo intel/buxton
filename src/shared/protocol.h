@@ -27,6 +27,7 @@
 #include "list.h"
 #include "serialize.h"
 #include "smack.h"
+#include "hashmap.h"
 
 /**
  * List for daemon's clients
@@ -40,6 +41,14 @@ typedef struct client_list_item {
 	size_t offset; /**<Current position to write to data buffer */
 	size_t size; /**<Size of the data buffer */
 } client_list_item;
+
+/**
+ * List of clients interested in a key
+ */
+typedef struct notification_list_item {
+	LIST_FIELDS(struct notification_list_item, item); /**<List type */
+	client_list_item *client; /**<Client */
+} notification_list_item;
 
 /**
  * Buxton Status Codes
@@ -70,9 +79,11 @@ struct BuxtonDaemon {
 	bool *accepting;
 	struct pollfd *pollfds;
 	client_list_item *client_list;
+	Hashmap *notify_mapping;
 	BuxtonClient buxton;
 	daemon_value_func set_value;
 	daemon_value_func get_value;
+	daemon_value_func register_notification;
 };
 
 /**
@@ -105,6 +116,14 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
  */
 bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
 			   BuxtonData *value);
+
+/**
+ * Send a NOTIFY message over the protocol, register for events
+ * @param client Client connection
+ * @param key Key name
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_register_notification(BuxtonClient *client, BuxtonString *key);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
