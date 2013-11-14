@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 	}
 
 	if (streq(command->name, "set-label") && !client.direct) {
-		printf("Must use direct to set a label");
+		printf("Must use direct to set a label\n");
 		goto end;
 	}
 
