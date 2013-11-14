@@ -122,9 +122,6 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		return;
 
 	LIST_FOREACH(item, cl, list) {
-		/* Don't notify the originator */
-		if (cl->fd == client->fd)
-			continue;
 		if (response) {
 			free(response);
 			response = NULL;
