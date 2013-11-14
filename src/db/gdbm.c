@@ -70,7 +70,7 @@ static bool set_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *da
 	assert(data);
 
 	key.dptr = key_name->value;
-	key.dsize = key_name->length;
+	key.dsize = (int)key_name->length;
 
 	db = _db_for_resource(layer);
 	if (!db)
@@ -81,7 +81,7 @@ static bool set_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *da
 		return false;
 
 	value.dptr = (char*)data_store;
-	value.dsize = size;
+	value.dsize = (int)size;
 	ret = gdbm_store(db, key, value, GDBM_REPLACE);
 
 	if (ret == -1)
@@ -101,7 +101,7 @@ static bool get_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *da
 	assert(key_name);
 
 	key.dptr = key_name->value;
-	key.dsize = key_name->length;
+	key.dsize = (int)key_name->length;
 
 	memset(&value, 0, sizeof(datum));
 	db = _db_for_resource(layer);
