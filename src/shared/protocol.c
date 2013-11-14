@@ -178,7 +178,7 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 	assert(key);
 
 	bool ret = false;
-	int count;
+	size_t count;
 	uint8_t *send = NULL;
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
