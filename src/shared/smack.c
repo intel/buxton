@@ -103,8 +103,8 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 	int r;
 	BuxtonKeyAccessType *access;
 
-	assert(subject->value);
-	assert(object->value);
+	assert(subject);
+	assert(object);
 	assert((request == ACCESS_READ) || (request == ACCESS_WRITE));
 	assert(_smackrules);
 
