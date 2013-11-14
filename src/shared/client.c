@@ -112,7 +112,7 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 		}
 		break;
 	case INT:
-		set.store.d_int = strtol(value.value, NULL, 10);
+		set.store.d_int = (int)strtol(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid integer\n");
 			return false;
