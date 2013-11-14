@@ -140,19 +140,21 @@ START_TEST(buxton_wire_get_response_check)
 		uint8_t *dest = NULL;
 		size_t size;
 		BuxtonData data;
+		close(client.fd);
 		data.type = INT;
 		data.store.d_int = 0;
 		data.label = buxton_string_pack("dummy");
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 1, &data);
 		fail_if(size == 0, "Failed to serialize message");
 		write(server, dest, size);
-		close(client.fd);
+		close(server);
 		_exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for response check");
 	} else {
 		/* parent (client) */
+		close(server);
 		fail_if(buxton_wire_get_response(&client, &msg, &list) != 1,
 			"Failed to properly handle response");
 		fail_if(msg != BUXTON_CONTROL_STATUS,
@@ -166,7 +168,7 @@ START_TEST(buxton_wire_get_response_check)
 		fail_if(list[0].store.d_int != 0,
 			"Failed to get correct data value from message");
 		free(list);
-		close(server);
+		close(client.fd);
 	}
 }
 END_TEST
