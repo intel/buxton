@@ -43,6 +43,14 @@ typedef struct client_list_item {
 } client_list_item;
 
 /**
+ * List of clients interested in a key
+ */
+typedef struct notification_list_item {
+	LIST_FIELDS(struct notification_list_item, item); /**<List type */
+	client_list_item *client; /**<Client */
+} notification_list_item;
+
+/**
  * Buxton Status Codes
  */
 typedef enum BuxtonStatus {

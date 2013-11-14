@@ -245,7 +245,29 @@ end:
 BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 			     int n_params, BuxtonStatus *status)
 {
+	notification_list_item *n_list = NULL;
+	BuxtonData key;
+	char *key_name;
+
 	*status = BUXTON_STATUS_FAILED;
+	if (n_params != 1)
+		return NULL;
+
+	key = list[0];
+	key_name = key.store.d_string.value;
+	n_list = hashmap_get(self->notify_mapping, key_name);
+	if (!n_list) {
+		/* Duplicate the key and store it */
+		key_name = strdup(key_name);
+		LIST_HEAD_INIT(notification_list_item, n_list);
+		LIST_PREPEND(notification_list_item, item, n_list, client);
+		hashmap_put(self->notify_mapping, key_name, n_list);
+		n_list = hashmap_get(self->notify_mapping, key_name);
+	} else {
+		LIST_PREPEND(notification_list_item, item, n_list, client);
+	}
+	*status = BUXTON_STATUS_OK;
+
 	return NULL;
 }
 

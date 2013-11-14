@@ -70,6 +70,7 @@ int main(int argc, char *argv[])
 	self.buxton.direct = true;
 	self.set_value = &set_value;
 	self.get_value = &get_value;
+	self.register_notification = &register_notification;
 	if (!buxton_direct_open(&self.buxton))
 		exit(EXIT_FAILURE);
 
