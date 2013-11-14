@@ -61,7 +61,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-			     size_t n_params, BuxtonStatus *status);
+			      size_t n_params, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for registering notifications on a given key
@@ -72,8 +72,9 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Always NULL currently, may be changed in the future
  */
-BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-			     int n_params, BuxtonStatus *status);
+BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
+					  BuxtonData *list, size_t n_params,
+					  BuxtonStatus *status);
 
 /**
  * Verify credentials for the client socket

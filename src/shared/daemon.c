@@ -280,8 +280,8 @@ end:
 	return data;
 }
 
-BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-			     int n_params, BuxtonStatus *status)
+BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
+				  BuxtonData *list, size_t n_params, BuxtonStatus *status)
 {
 	notification_list_item *n_list = NULL;
 	BuxtonData key;
