@@ -56,6 +56,18 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 			     int n_params, BuxtonStatus *status);
 
 /**
+ * Buxton daemon function for registering notifications on a given key
+ * @param self bt-daemon instance being run
+ * @param client Used to validate smack access
+ * @param list Contains key being used
+ * @param n_params Number of items contained in the list
+ * @param status Will be set with the BuxtonStatus result of the operation
+ * @returns BuxtonData Always NULL currently, may be changed in the future
+ */
+BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
+			     int n_params, BuxtonStatus *status);
+
+/**
  * Verify credentials for the client socket
  * @param cl Client to check the credentials of
  * @return bool indicating credentials where found or not

@@ -59,6 +59,9 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		case BUXTON_CONTROL_GET:
 			data = self->get_value(self, client, list, p_count, &response);
 			break;
+		case BUXTON_CONTROL_NOTIFY:
+			data = self->register_notification(self, client, list, p_count, &response);
+			break;
 		default:
 			goto end;
 	}
@@ -237,6 +240,13 @@ fail:
 end:
 
 	return data;
+}
+
+BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
+			     int n_params, BuxtonStatus *status)
+{
+	*status = BUXTON_STATUS_FAILED;
+	return NULL;
 }
 
 bool identify_client(client_list_item *cl)

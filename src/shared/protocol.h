@@ -27,6 +27,7 @@
 #include "list.h"
 #include "serialize.h"
 #include "smack.h"
+#include "hashmap.h"
 
 /**
  * List for daemon's clients
@@ -70,9 +71,11 @@ struct BuxtonDaemon {
 	bool *accepting;
 	struct pollfd *pollfds;
 	client_list_item *client_list;
+	Hashmap *notify_mapping;
 	BuxtonClient buxton;
 	daemon_value_func set_value;
 	daemon_value_func get_value;
+	daemon_value_func register_notification;
 };
 
 /**
