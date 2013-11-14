@@ -42,7 +42,7 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 	do {
 		l = read(self->fd, response + offset, size - offset);
 		if (l <= 0)
-			goto end;
+			return 0;
 		offset += (size_t)l;
 		if (offset < BUXTON_MESSAGE_HEADER_LENGTH)
 			continue;
