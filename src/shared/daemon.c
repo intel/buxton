@@ -173,16 +173,15 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 			return NULL;
 		}
 
-		buxton_client_get_value_for_layer(&(self->buxton), &layer.store.d_string, &key.store.d_string, data);
+		bool valid = buxton_client_get_value_for_layer(&(self->buxton), &layer.store.d_string, &key.store.d_string, data);
 
-		/* TODO: should properly check for valid BuxtonData here */
-		if (!data->label.value && !buxton_check_smack_access(client->smack_label, &(value.label), ACCESS_WRITE)) {
+		if (!valid && !buxton_check_smack_access(client->smack_label, &(value.label), ACCESS_WRITE)) {
 			buxton_debug("Smack: not permitted to set new value\n");
 			free(data);
 			return NULL;
 		}
 
-		if (data->label.value && !buxton_check_smack_access(client->smack_label, &(data->label), ACCESS_WRITE)) {
+		if (valid && !buxton_check_smack_access(client->smack_label, &(data->label), ACCESS_WRITE)) {
 			buxton_debug("Smack: not permitted to modify existing value\n");
 			free(data);
 			return NULL;
