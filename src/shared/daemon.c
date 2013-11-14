@@ -90,10 +90,6 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	/* Now write the response */
 	write(client->fd, response_store, response_len);
 
-	/* If it was a set message, issue changed notification to all clients */
-	if (response == BUXTON_STATUS_OK && msg == BUXTON_CONTROL_SET)
-		bt_daemon_notify_clients(self, client, data);
-
 end:
 	if (data && data->type == STRING)
 		free(data->store.d_string.value);
