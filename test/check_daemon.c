@@ -64,7 +64,7 @@ static void teardown(void)
 	/* if the daemon is still running, kill it */
 	if (daemon_pid) {
 		kill(SIGTERM, daemon_pid);
-		usleep(500*1000);
+		usleep(64*1000);
 		kill(SIGKILL, daemon_pid);
 	}
 }
