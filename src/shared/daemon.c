@@ -503,7 +503,8 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		if (!identify_client(cl)) {
 			del_pollfd(self, i);
 			close(cl->fd);
-			free(cl->smack_label->value);
+			if (USE_SMACK)
+				free(cl->smack_label->value);
 			free(cl->smack_label);
 			buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
 			LIST_REMOVE(client_list_item, item, self->client_list, cl);
