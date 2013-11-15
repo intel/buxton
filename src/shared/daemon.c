@@ -116,7 +116,6 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 	assert(data);
 
 	key = data[0];
-	free(key.label.value);
 	if (key.type != STRING)
 		return;
 	key_name = key.store.d_string.value;
@@ -133,7 +132,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 			buxton_log("Failed to serialize notification\n");
 			goto end;
 		}
-		buxton_log("Notification to %d of key change (%s)\n", nitem->client->fd, key);
+		buxton_log("Notification to %d of key change (%s)\n", nitem->client->fd, key.store.d_string.value);
 		write(nitem->client->fd, response, response_len);
 	}
 end:
