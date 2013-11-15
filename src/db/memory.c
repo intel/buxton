@@ -97,6 +97,7 @@ _bx_export_ void buxton_module_destroy(void)
 	/* free all hashmaps */
 	HASHMAP_FOREACH_KEY(map, key, _resources, iterator) {
 		hashmap_free(map);
+		free((void *)key);
 		map = NULL;
 	}
 	hashmap_free(_resources);
