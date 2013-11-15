@@ -417,7 +417,6 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i)
 {
 	assert(self);
 	assert(i < self->nfds);
-	assert(i >= 0);
 
 	buxton_debug("Removing fd %d from our list\n", self->pollfds[i].fd);
 
