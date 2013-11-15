@@ -68,7 +68,8 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 		}
 		break;
 	} while (true);
-	assert((r_msg > BUXTON_CONTROL_MIN) && (r_msg < BUXTON_CONTROL_MAX));
+	assert(r_msg > BUXTON_CONTROL_MIN);
+	assert(r_msg < BUXTON_CONTROL_MAX);
 	*msg = r_msg;
 	*list = r_list;
 
