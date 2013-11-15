@@ -66,8 +66,9 @@ typedef struct BuxtonDaemon BuxtonDaemon;
  */
 typedef BuxtonData* (*daemon_value_func) (struct BuxtonDaemon *self,
 					  client_list_item *client,
-					  BuxtonData *list,
-					  size_t n_params,
+					  BuxtonString *layer,
+					  BuxtonString *key,
+					  BuxtonData *value,
 					  BuxtonStatus *status);
 
 /**

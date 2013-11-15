@@ -104,13 +104,14 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	/* use internal function from bt-daemon */
 	switch (msg) {
 		case BUXTON_CONTROL_SET:
-			data = self->set_value(self, client, list, p_count, &response);
+			data = self->set_value(self, client, layer, key, value, &response);
 			break;
 		case BUXTON_CONTROL_GET:
-			data = self->get_value(self, client, list, p_count, &response);
+			data = self->get_value(self, client, layer, key, value, &response);
 			break;
 		case BUXTON_CONTROL_NOTIFY:
-			data = self->register_notification(self, client, list, p_count, &response);
+			data = self->register_notification(self, client, layer, key, value,
+							   &response);
 			break;
 		default:
 			goto end;
@@ -154,81 +155,70 @@ end:
 	}
 }
 
-void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonData* data)
+void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonString *key, BuxtonData *value)
 {
 	notification_list_item *list = NULL;
 	notification_list_item *nitem;
-	BuxtonData key;
 	uint8_t* response = NULL;
 	size_t response_len;
-	char *key_name;
+	BuxtonData data;
 
 	assert(self);
 	assert(client);
-	assert(data);
+	assert(key);
+	assert(value);
 
-	key = data[0];
-	if (key.type != STRING)
-		return;
-	key_name = key.store.d_string.value;
-
-	list = hashmap_get(self->notify_mapping, key_name);
+	list = hashmap_get(self->notify_mapping, key->value);
 	if (!list)
 		return;
 
+	if (list->old_data) {
+		if (list->old_data->type == STRING)
+			free(list->old_data->store.d_string.value);
+		free(list->old_data);
+	}
+
+	list->old_data = malloc0(sizeof(BuxtonData));
+	if (!list->old_data)
+		goto end;
+	buxton_data_copy(value, list->old_data);
+
+	data.type = STRING;
+	data.label = buxton_string_pack("dummy");
 	LIST_FOREACH(item, nitem, list) {
 		free(response);
 		response = NULL;
 
-		if (nitem->old_data) {
-			if (nitem->old_data->type == STRING)
-				free(nitem->old_data->store.d_string.value);
-			free(nitem->old_data);
-		}
-		nitem->old_data = malloc0(sizeof(BuxtonData));
-		if (!nitem->old_data)
-			goto end;
-		buxton_data_copy(&(data[1]), nitem->old_data);
-		response_len = buxton_serialize_message(&response, BUXTON_CONTROL_CHANGED, 2, &(data[0]), &(data[1]));
+		data.store.d_string.value = key->value;
+		data.store.d_string.length = key->length;
+		response_len = buxton_serialize_message(&response, BUXTON_CONTROL_CHANGED, 2,
+							&data, value);
 		if (response_len == 0) {
 			buxton_log("Failed to serialize notification\n");
 			goto end;
 		}
-		buxton_log("Notification to %d of key change (%s)\n", nitem->client->fd, key.store.d_string.value);
+		buxton_log("Notification to %d of key change (%s)\n", nitem->client->fd,
+			   key->value);
 		write(nitem->client->fd, response, response_len);
 	}
 end:
 	free(response);
 }
-BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-		      size_t n_params, BuxtonStatus *status)
+BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+		      BuxtonString *key, BuxtonData *value, BuxtonStatus *status)
 {
-	BuxtonData layer, key, value;
 	*status = BUXTON_STATUS_FAILED;
 
 	assert(self);
 	assert(client);
-	assert(list);
+	assert(layer);
+	assert(key);
+	assert(value);
 
-	/* Require layer, key and value */
-	if (n_params != 3)
-		return NULL;
-
-	layer = list[0];
-	key = list[1];
-	value = list[2];
-
-	/* Require corresponding values for the data items */
-	if (!layer.store.d_string.value || !key.store.d_string.value || !value.label.value)
-		return NULL;
 	buxton_debug("Daemon setting [%s][%s][%s]\n",
-		     layer.store.d_string.value,
-		     key.store.d_string.value,
-		     value.label.value);
-
-	/* We only accept strings for layer and key names */
-	if (layer.type != STRING && key.type != STRING)
-		return NULL;
+		     layer->value,
+		     key->value,
+		     value->label.value);
 
 	if (USE_SMACK) {
 		BuxtonData *data = malloc0(sizeof(BuxtonData));
@@ -238,12 +228,12 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 		}
 
 		bool valid = buxton_client_get_value_for_layer(&(self->buxton),
-							       &layer.store.d_string,
-							       &key.store.d_string,
+							       layer,
+							       key,
 							       data);
 
 		if (!valid && !buxton_check_smack_access(client->smack_label,
-							 &(value.label),
+							 &(value->label),
 							 ACCESS_WRITE)) {
 			buxton_debug("Smack: not permitted to set new value\n");
 			free(data);
@@ -263,7 +253,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 
 	/* Use internal library to set value */
 	self->buxton.uid = client->cred.uid;
-	if (!buxton_client_set_value(&(self->buxton), &layer.store.d_string, &key.store.d_string, &value)) {
+	if (!buxton_client_set_value(&(self->buxton), layer, key, value)) {
 		*status = BUXTON_STATUS_FAILED;
 		return NULL;
 	}
@@ -273,59 +263,36 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	return NULL;
 }
 
-BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-		      size_t n_params, BuxtonStatus *status)
+BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+		      BuxtonString *key, __attribute__((unused)) BuxtonData *value,
+		      BuxtonStatus *status)
 {
-	BuxtonData layer, key;
 	*status = BUXTON_STATUS_FAILED;
 	BuxtonData *data = NULL;
 
 	assert(self);
 	assert(client);
-	assert(list);
-
-	if (n_params < 1)
-		goto end;
-
-	/* Optional layer */
-	if (n_params == 2) {
-		layer = list[0];
-		if (layer.type != STRING)
-			goto end;
-		key = list[1];
-		if (!layer.store.d_string.value)
-			goto end;
-	} else  if (n_params == 1) {
-		key = list[0];
-	} else {
-		goto end;
-	}
-
-	if (!key.store.d_string.value)
-		goto end;
-	/* We only accept strings for layer and key names */
-	if (key.type != STRING)
-		goto end;
+	assert(key);
 
 	data = malloc0(sizeof(BuxtonData));
 	if (!data)
 		goto end;
 
-	if (n_params == 2) {
-		buxton_debug("Daemon getting [%s][%s]\n", layer.store.d_string.value,
-			     key.store.d_string.value);
+	if (layer) {
+		buxton_debug("Daemon getting [%s][%s]\n", layer->value,
+			     key->value);
 	} else {
-		buxton_debug("Daemon getting [%s]\n", key.store.d_string.value);
+		buxton_debug("Daemon getting [%s]\n", key->value);
 	}
 	self->buxton.uid = client->cred.uid;
 	/* Attempt to retrieve key */
-	if (n_params == 2) {
+	if (layer) {
 		/* Layer + key */
-		if (!buxton_client_get_value_for_layer(&(self->buxton), &layer.store.d_string, &key.store.d_string, data))
+		if (!buxton_client_get_value_for_layer(&(self->buxton), layer, key, data))
 			goto fail;
 	} else {
 		/* Key only */
-		if (!buxton_client_get_value(&(self->buxton), &key.store.d_string, data))
+		if (!buxton_client_get_value(&(self->buxton), key, data))
 			goto fail;
 	}
 
@@ -347,31 +314,23 @@ end:
 }
 
 BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
-				  BuxtonData *list, size_t n_params, BuxtonStatus *status)
+				  __attribute__((unused)) BuxtonString *layer,
+				  BuxtonString *key,
+				  __attribute__((unused)) BuxtonData *value,
+				  BuxtonStatus *status)
 {
 	notification_list_item *n_list = NULL;
 	notification_list_item *nitem;
-	BuxtonData key;
 	BuxtonData *old_data = NULL;
 	BuxtonStatus key_status;
 	char *key_name;
 
 	assert(self);
 	assert(client);
-	assert(list);
+	assert(key);
 	assert(status);
 
 	*status = BUXTON_STATUS_FAILED;
-	if (n_params != 1)
-		return NULL;
-
-	key = list[0];
-	free(key.label.value);
-	if (key.type != STRING)
-		return NULL;
-	key_name = key.store.d_string.value;
-	if (!key_name)
-		return NULL;
 
 	nitem = malloc0(sizeof(notification_list_item));
 	if (!nitem)
@@ -379,27 +338,33 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 	LIST_INIT(notification_list_item, item, nitem);
 	nitem->client = client;
 
-	/* Store data now, cheap */
-	old_data = get_value(self, client, &key, 1, &key_status);
-	if (key_status != BUXTON_STATUS_OK)
-		return NULL;
-	if (nitem->old_data) {
-		if (nitem->old_data->type == STRING)
-			free(nitem->old_data->store.d_string.value);
-		free(nitem->old_data);
-	}
-	nitem->old_data = old_data;
-
-	n_list = hashmap_get(self->notify_mapping, key_name);
+	n_list = hashmap_get(self->notify_mapping, key->value);
 	if (!n_list) {
-		LIST_HEAD_INIT(notification_list_item, n_list);
-		LIST_PREPEND(notification_list_item, item, n_list, nitem);
-		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0) {
+		key_name = strdup(key->value);
+		if (!key_name) {
+			free(nitem);
+			return NULL;
+		}
+
+		/* Store data now, cheap */
+		old_data = get_value(self, client, NULL, key, NULL, &key_status);
+		if (key_status != BUXTON_STATUS_OK) {
 			free(key_name);
+			free(nitem);
+			return NULL;
+		}
+
+		nitem->old_data = old_data;
+
+		if (hashmap_put(self->notify_mapping, key_name, nitem) < 0) {
+			free(key_name);
+			free(nitem);
 			return NULL;
 		}
 	} else {
-		LIST_PREPEND(notification_list_item, item, n_list, nitem);
+		notification_list_item *tail;
+		LIST_FIND_TAIL(notification_list_item, item, n_list, tail);
+		LIST_INSERT_AFTER(notification_list_item, item, n_list, tail, nitem);
 	}
 	*status = BUXTON_STATUS_OK;
 

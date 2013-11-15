@@ -49,46 +49,51 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
  * Notify clients a value changes in bt-daemon
  * @param self Refernece to BuxtonDaemon
  * @param client Current client
- * @param data Modified data
+ * @param key Modified key
+ * @param value Modified value
  */
-void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonData* data);
+void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
+			      BuxtonString* key, BuxtonData *value);
 
 /**
  * Buxton daemon function for setting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param list Contains layer, key and value data being used
- * @param n_params Number of items contained in the list
+ * @param layer Layer for the value being set
+ * @param key Key for the value being set
+ * @param value Value being set
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Always NULL currently, may be changed in the future
  */
-BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-			     size_t n_params, BuxtonStatus *status);
+BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+			      BuxtonString *key, BuxtonData *value, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for getting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param list Contains key and possibly layer data being used
- * @param n_params Number of items contained in the list
+ * @param label Label for the value being set (optional)
+ * @param key Key for the value being set
+ * @param value Not used
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
-BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
-			      size_t n_params, BuxtonStatus *status);
+BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+			      BuxtonString *key, BuxtonData *value, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for registering notifications on a given key
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param list Contains key being used
- * @param n_params Number of items contained in the list
+ * @param label Not used
+ * @param key Key to notify for changes on
+ * @param value Not used
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Always NULL currently, may be changed in the future
  */
 BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
-					  BuxtonData *list, size_t n_params,
-					  BuxtonStatus *status);
+					  BuxtonString *layer, BuxtonString *key,
+					  BuxtonData *value, BuxtonStatus *status);
 
 /**
  * Verify credentials for the client socket
