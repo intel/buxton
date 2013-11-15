@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include "bt-daemon.h"
+#include "daemon.h"
 #include "log.h"
 #include "util.h"
 
@@ -148,6 +149,74 @@ START_TEST(buxton_client_get_value_check)
 }
 END_TEST
 
+START_TEST(parse_list_check)
+{
+	BuxtonData l3[3];
+	BuxtonData l2[2];
+	BuxtonData l1[1];
+	BuxtonString *key = NULL;
+	BuxtonString *layer = NULL;
+	BuxtonData *value = NULL;
+
+	l1[0].type = INT;
+	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 1, l1, &key, &layer, &value),
+		"Parsed bad notify type");
+	l1[0].type = STRING;
+	l1[0].store.d_string = buxton_string_pack("s1");
+	fail_if(!parse_list(BUXTON_CONTROL_NOTIFY, 1, l1, &key, &layer, &value),
+		"Unable to parse valid notify");
+	fail_if(!streq(key->value, l1[0].store.d_string.value),
+		"Failed to set correct notify key");
+	l2[0].type = INT;
+	l2[1].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
+		"Parsed bad get type 1");
+	l2[0].type = STRING;
+	l2[1].type = INT;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
+		"Parsed bad get type 2");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[0].store.d_string = buxton_string_pack("s2");
+	l2[1].store.d_string = buxton_string_pack("s3");
+	fail_if(!parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
+		"Unable to parse valid get 1");
+	fail_if(!streq(layer->value, l2[0].store.d_string.value),
+		"Failed to set correct get layer 1");
+	fail_if(!streq(key->value, l2[1].store.d_string.value),
+		"Failed to set correct get key 1");
+	fail_if(!parse_list(BUXTON_CONTROL_GET, 1, l2, &key, &layer, &value),
+		"Unable to parse valid get 2");
+	fail_if(!streq(key->value, l2[0].store.d_string.value),
+		"Failed to set correct get key 2");
+
+	l3[0].type = INT;
+	l3[1].type = STRING;
+	l3[2].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
+		"Parsed bad set type 1");
+	l3[0].type = STRING;
+	l3[1].type = INT;
+	l3[2].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
+		"Parsed bad set type 2");
+	l3[0].type = STRING;
+	l3[1].type = STRING;
+	l3[2].type = FLOAT;
+	l3[0].store.d_string = buxton_string_pack("s4");
+	l3[1].store.d_string = buxton_string_pack("s5");
+	l3[2].store.d_float = 3.14F;
+	fail_if(!parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
+		"Unable to parse valid set 1");
+	fail_if(!streq(layer->value, l3[0].store.d_string.value),
+		"Failed to set correct set layer 1");
+	fail_if(!streq(key->value, l3[1].store.d_string.value),
+		"Failed to set correct set key 1");
+	fail_if(value->store.d_float != l3[2].store.d_float,
+		"Failed to set correct set value 1");
+}
+END_TEST
+
 START_TEST(bt_daemon_handle_message_check)
 {
 }
@@ -189,6 +258,7 @@ daemon_suite(void)
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("buxton_daemon_functions");
+	tcase_add_test(tc, parse_list_check);
 	tcase_add_test(tc, bt_daemon_handle_message_check);
 	tcase_add_test(tc, identify_client_check);
 	tcase_add_test(tc, add_pollfd_check);

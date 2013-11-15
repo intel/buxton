@@ -25,6 +25,48 @@
 #include "smack.h"
 #include "util.h"
 
+bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
+		       BuxtonString **key, BuxtonString **layer, BuxtonData **value)
+{
+	switch (msg) {
+	case BUXTON_CONTROL_SET:
+		if (count != 3)
+			return false;
+		if (list[0].type != STRING || list[1].type != STRING)
+			return false;
+		*layer = &(list[0].store.d_string);
+		*key = &(list[1].store.d_string);
+		*value = &(list[2]);
+		break;
+	case BUXTON_CONTROL_GET:
+		if (count == 2) {
+			if(list[0].type != STRING || list[1].type != STRING)
+				return false;
+			*layer = &(list[0].store.d_string);
+			*key = &(list[1].store.d_string);
+		} else if (count == 1) {
+			if (list[0].type != STRING)
+				return false;
+			*key = &(list[0].store.d_string);
+		} else {
+			return false;
+		}
+		break;
+	case BUXTON_CONTROL_NOTIFY:
+		if (count != 1)
+			return false;
+		if (list[0].type != STRING)
+			return false;
+		*key = &(list[0].store.d_string);
+		break;
+	default:
+		return false;
+		break;
+	}
+
+	return true;
+}
+
 void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
 {
 	BuxtonControlMessage msg;
@@ -35,6 +77,9 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	size_t p_count;
 	size_t response_len;
 	BuxtonData response_data;
+	BuxtonData *value = NULL;
+	BuxtonString *key = NULL;
+	BuxtonString *layer = NULL;
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
 
@@ -51,6 +96,9 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 
 	/* Check valid range */
 	if (msg < BUXTON_CONTROL_SET || msg > BUXTON_CONTROL_MAX)
+		goto end;
+
+	if (!parse_list(msg, p_count, list, &key, &layer, &value))
 		goto end;
 
 	/* use internal function from bt-daemon */
