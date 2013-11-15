@@ -44,7 +44,7 @@ static void setup(void)
 	if (pid) {
 		/* parent*/
 		daemon_pid = pid;
-		usleep(32*1000);
+		usleep(128*1000);
 	} else {
 		/* child */
 		char path[PATH_MAX];
