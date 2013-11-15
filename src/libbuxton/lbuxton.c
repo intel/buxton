@@ -280,6 +280,7 @@ bool buxton_client_get_value(BuxtonClient *client,
 	}
 
 	/* Normal interaction (wire-protocol) */
+	client->uid = geteuid();
 	return buxton_wire_get_value(client, NULL, key, data);
 }
 
@@ -312,6 +313,7 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 	}
 
 	/* Normal interaction (wire-protocol) */
+	client->uid = geteuid();
 	return buxton_wire_get_value(client, layer_name, key, data);
 }
 
@@ -358,6 +360,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 	}
 
 	/* Normal interaction (wire-protocol) */
+	client->uid = geteuid();
 	return buxton_wire_set_value(client, layer_name, key, data);
 }
 
