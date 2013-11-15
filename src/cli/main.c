@@ -208,6 +208,7 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
+	client.uid = geteuid();
 	if (client.direct) {
 		if (!buxton_direct_open(&client)){
 			buxton_log("Failed to directly talk to Buxton\n");
