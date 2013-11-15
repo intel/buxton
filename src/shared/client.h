@@ -38,7 +38,7 @@ typedef bool (*command_method) (BuxtonClient *self, BuxtonDataType type, char *o
 typedef struct Command {
 	const char     *name; /**<name of the command*/
 	const char     *description; /**<one line description of the command*/
-	unsigned int   min_arguments; /**minimum number of arguments */
+	unsigned int   min_arguments; /**<minimum number of arguments */
 	unsigned int   max_arguments; /**<maximum number of arguments */
 	const char     *usage; /**<correct usage of the command */
 	command_method method; /**<pointer to a method */

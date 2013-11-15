@@ -36,10 +36,12 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	size_t response_len;
 	BuxtonData response_data;
 	_cleanup_free_ uint8_t *response_store = NULL;
+	uid_t uid;
 
 	assert(self);
 	assert(client);
 
+	uid = self->buxton.uid;
 	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size, &list);
 	if (p_count == 0) {
 		/* Todo: terminate the client due to invalid message */
@@ -91,6 +93,8 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	write(client->fd, response_store, response_len);
 
 end:
+	/* Restore our own UID */
+	self->buxton.uid = uid;
 	if (data && data->type == STRING)
 		free(data->store.d_string.value);
 	if (list) {
@@ -127,7 +131,17 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 	LIST_FOREACH(item, nitem, list) {
 		free(response);
 		response = NULL;
-		response_len = buxton_serialize_message(&response, BUXTON_CONTROL_CHANGED, 1, &(data[0]));
+
+		if (nitem->old_data) {
+			if (nitem->old_data->type == STRING)
+				free(nitem->old_data->store.d_string.value);
+			free(nitem->old_data);
+		}
+		nitem->old_data = malloc0(sizeof(BuxtonData));
+		if (!nitem->old_data)
+			goto end;
+		buxton_data_copy(&(data[1]), &nitem->old_data);
+		response_len = buxton_serialize_message(&response, BUXTON_CONTROL_CHANGED, 2, &(data[0]), &(data[1]));
 		if (response_len == 0) {
 			buxton_log("Failed to serialize notification\n");
 			goto end;
@@ -200,6 +214,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	}
 
 	/* Use internal library to set value */
+	self->buxton.uid = client->cred.uid;
 	if (!buxton_client_set_value(&(self->buxton), &layer.store.d_string, &key.store.d_string, &value)) {
 		*status = BUXTON_STATUS_FAILED;
 		return NULL;
@@ -254,6 +269,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	} else {
 		buxton_debug("Daemon getting [%s]\n", key.store.d_string.value);
 	}
+	self->buxton.uid = client->cred.uid;
 	/* Attempt to retrieve key */
 	if (n_params == 2) {
 		/* Layer + key */
@@ -288,6 +304,8 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 	notification_list_item *n_list = NULL;
 	notification_list_item *nitem;
 	BuxtonData key;
+	BuxtonData *old_data = NULL;
+	BuxtonStatus key_status;
 	char *key_name;
 
 	assert(self);
@@ -312,6 +330,17 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 		return NULL;
 	LIST_INIT(notification_list_item, item, nitem);
 	nitem->client = client;
+
+	/* Store data now, cheap */
+	old_data = get_value(self, client, &key, 1, &key_status);
+	if (key_status != BUXTON_STATUS_OK)
+		return NULL;
+	if (nitem->old_data) {
+		if (nitem->old_data->type == STRING)
+			free(nitem->old_data->store.d_string.value);
+		free(nitem->old_data);
+	}
+	nitem->old_data = old_data;
 
 	n_list = hashmap_get(self->notify_mapping, key_name);
 	if (!n_list) {
@@ -460,7 +489,8 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
 		del_pollfd(self, i);
 		close(cl->fd);
-		free(cl->smack_label->value);
+		if (USE_SMACK)
+			free(cl->smack_label->value);
 		free(cl->smack_label);
 		buxton_debug("Closed connection from fd %d\n", cl->fd);
 		LIST_REMOVE(client_list_item, item, self->client_list, cl);

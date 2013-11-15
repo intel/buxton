@@ -36,17 +36,22 @@ static Hashmap *_resources;
 static Hashmap *_db_for_resource(BuxtonLayer *layer)
 {
 	Hashmap *db;
+	char *name = NULL;
 
 	assert(layer);
 	assert(_resources);
 
-	db = hashmap_get(_resources, layer->name.value);
+	if (layer->type == LAYER_USER)
+		asprintf(&name, "%s-%d", layer->name.value, layer->uid);
+	else
+		asprintf(&name, "%s", layer->name.value);
+	db = hashmap_get(_resources, name);
 	if (!db) {
 		db = hashmap_new(string_hash_func, string_compare_func);
-		hashmap_put(_resources, layer->name.value, db);
+		hashmap_put(_resources, name, db);
 	}
 
-	return (Hashmap*) hashmap_get(_resources, layer->name.value);
+	return (Hashmap*) hashmap_get(_resources, name);
 }
 
 static bool set_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)

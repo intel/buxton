@@ -36,11 +36,16 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 {
 	GDBM_FILE db;
 	_cleanup_free_ char *path = NULL;
+	char *name = NULL;
 
 	assert(layer);
 	assert(_resources);
 
-	db = hashmap_get(_resources, layer->name.value);
+	if (layer->type == LAYER_USER)
+		asprintf(&name, "%s-%d", layer->name.value, layer->uid);
+	else
+		asprintf(&name, "%s", layer->name.value);
+	db = hashmap_get(_resources, name);
 	if (!db) {
 		path = get_layer_path(layer);
 		if (!path)
@@ -50,10 +55,10 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 			buxton_log("Couldn't create db for path: %s\n", path);
 			return 0;
 		}
-		hashmap_put(_resources, layer->name.value, db);
+		hashmap_put(_resources, name, db);
 	}
 
-	return (GDBM_FILE) hashmap_get(_resources, layer->name.value);
+	return (GDBM_FILE) hashmap_get(_resources, name);
 }
 
 static bool set_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *data)
