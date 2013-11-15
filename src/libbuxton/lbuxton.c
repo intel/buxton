@@ -263,7 +263,7 @@ bool buxton_client_get_value(BuxtonClient *client,
 							      key,
 							      &d);
 			if (r) {
-				if (priority < l->priority) {
+				if (priority <= l->priority) {
 					priority = l->priority;
 					layer.value = l->name.value;
 					layer.length = l->name.length;
