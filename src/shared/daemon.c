@@ -126,10 +126,8 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		return;
 
 	LIST_FOREACH(item, nitem, list) {
-		if (response) {
-			free(response);
-			response = NULL;
-		}
+		free(response);
+		response = NULL;
 		response_len = buxton_serialize_message(&response, BUXTON_CONTROL_CHANGED, 1, &(data[0]));
 		if (response_len == 0) {
 			buxton_log("Failed to serialize notification\n");
@@ -139,8 +137,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		write(nitem->client->fd, response, response_len);
 	}
 end:
-	if (response)
-		free(response);
+	free(response);
 }
 BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *list,
 		      size_t n_params, BuxtonStatus *status)
