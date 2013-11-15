@@ -36,10 +36,12 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	size_t response_len;
 	BuxtonData response_data;
 	_cleanup_free_ uint8_t *response_store = NULL;
+	uid_t uid;
 
 	assert(self);
 	assert(client);
 
+	uid = self->buxton.uid;
 	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size, &list);
 	if (p_count == 0) {
 		/* Todo: terminate the client due to invalid message */
@@ -91,6 +93,8 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	write(client->fd, response_store, response_len);
 
 end:
+	/* Restore our own UID */
+	self->buxton.uid = uid;
 	if (data && data->type == STRING)
 		free(data->store.d_string.value);
 	if (list) {
@@ -210,6 +214,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	}
 
 	/* Use internal library to set value */
+	self->buxton.uid = client->cred.uid;
 	if (!buxton_client_set_value(&(self->buxton), &layer.store.d_string, &key.store.d_string, &value)) {
 		*status = BUXTON_STATUS_FAILED;
 		return NULL;
@@ -264,6 +269,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonData *
 	} else {
 		buxton_debug("Daemon getting [%s]\n", key.store.d_string.value);
 	}
+	self->buxton.uid = client->cred.uid;
 	/* Attempt to retrieve key */
 	if (n_params == 2) {
 		/* Layer + key */
