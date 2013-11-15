@@ -307,7 +307,7 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 			/* Already logged */
 			return false;
 		}
-		layer->uid = geteuid();
+		layer->uid = client->uid;
 		return backend->get_value(layer, key, data);
 	}
 
@@ -353,7 +353,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 			/* Already logged */
 			return false;
 		}
-		layer->uid = geteuid();
+		layer->uid = client->uid;
 		return backend->set_value(layer, key, data);
 	}
 

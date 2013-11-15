@@ -48,6 +48,7 @@ typedef struct BuxtonClient {
 	int fd; /**<The file descriptor for the connection */
 	bool direct; /**<Only used for direction connections */
 	pid_t pid; /**<Process ID, used within libbuxton */
+	uid_t uid; /**<User ID of currently using user */
 } BuxtonClient;
 
 /**
