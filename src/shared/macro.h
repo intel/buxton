@@ -54,8 +54,8 @@
 
 /* Rounds up */
 
-#define ALIGN4(l) (((l) + 3) & ~3)
-#define ALIGN8(l) (((l) + 7) & ~7)
+#define ALIGN4(l) (((l) + 3) & (unsigned)~3)
+#define ALIGN8(l) (((l) + 7) & (unsigned)~7)
 
 #if __SIZEOF_POINTER__ == 8
 #define ALIGN(l) ALIGN8(l)
@@ -70,7 +70,7 @@
 #define ALIGN8_PTR(p) ((void*) ALIGN8((unsigned long) p))
 
 static inline size_t ALIGN_TO(size_t l, size_t ali) {
-        return ((l + ali - 1) & ~(ali - 1));
+        return ((l + ali - 1) & (unsigned)~(ali - 1));
 }
 
 #define ALIGN_TO_PTR(p, ali) ((void*) ALIGN_TO((unsigned long) p))
