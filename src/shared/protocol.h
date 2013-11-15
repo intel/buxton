@@ -99,7 +99,7 @@ size_t buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 /**
  * Send a SET message over the wire protocol, return the response
  * @param client Client connection
- * @param layer Layer name
+ * @param layer_name Layer name
  * @param key Key name
  * @param value A BuxtonData storing the new value
  * @return a boolean value, indicating success of the operation
@@ -110,7 +110,7 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
 /**
  * Send a GET message over the wire protocol, return the data
  * @param client Client connection
- * @param layer Layer name (optional)
+ * @param layer_name Layer name (optional)
  * @param key Key name
  * @param value A pointer to store retrieved value in
  * @return a boolean value, indicating success of the operation
