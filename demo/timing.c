@@ -23,14 +23,14 @@ typedef bool (*TestFunction) (BuxtonClient *client);
 bool timed_func(TestFunction func, BuxtonClient *client, unsigned long long *total)
 {
 	struct timespec tsi, tsf;
-	float elapsed;
+	unsigned long long elapsed;
 	bool ret;
 
 	clock_gettime(CLOCK_MONOTONIC, &tsi);
 	ret = func(client);
 	clock_gettime(CLOCK_MONOTONIC, &tsf);
 
-	elapsed = tsf.tv_nsec - tsi.tv_nsec;
+	elapsed = (unsigned long long)(tsf.tv_nsec - tsi.tv_nsec);
 	elapsed += *total;
 
 	*total = elapsed;
