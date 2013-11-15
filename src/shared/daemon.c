@@ -105,17 +105,27 @@ end:
 void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonData* data)
 {
 	notification_list_item *list = NULL;
-	char *key;
-	client_list_item *cl;
+	notification_list_item *nitem;
+	BuxtonData key;
 	uint8_t* response = NULL;
 	size_t response_len;
+	char *key_name;
 
-	key = data[0].store.d_string.value;
-	list = hashmap_get(self->notify_mapping, key);
+	assert(self);
+	assert(client);
+	assert(data);
+
+	key = data[0];
+	free(key.label.value);
+	if (key.type != STRING)
+		return;
+	key_name = key.store.d_string.value;
+
+	list = hashmap_get(self->notify_mapping, key_name);
 	if (!list)
 		return;
 
-	LIST_FOREACH(item, cl, list) {
+	LIST_FOREACH(item, nitem, list) {
 		if (response) {
 			free(response);
 			response = NULL;
@@ -125,8 +135,8 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 			buxton_log("Failed to serialize notification\n");
 			goto end;
 		}
-		buxton_log("Notification to %d of key change (%s)\n", cl->fd, key);
-		write(cl->fd, response, response_len);
+		buxton_log("Notification to %d of key change (%s)\n", nitem->client->fd, key);
+		write(nitem->client->fd, response, response_len);
 	}
 end:
 	if (response)
@@ -280,25 +290,43 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 				  BuxtonData *list, size_t n_params, BuxtonStatus *status)
 {
 	notification_list_item *n_list = NULL;
+	notification_list_item *nitem;
 	BuxtonData key;
 	char *key_name;
+
+	assert(self);
+	assert(client);
+	assert(list);
+	assert(status);
 
 	*status = BUXTON_STATUS_FAILED;
 	if (n_params != 1)
 		return NULL;
 
 	key = list[0];
+	free(key.label.value);
+	if (key.type != STRING)
+		return NULL;
 	key_name = key.store.d_string.value;
+	if (!key_name)
+		return NULL;
+
+	nitem = malloc0(sizeof(notification_list_item));
+	if (!nitem)
+		return NULL;
+	LIST_INIT(notification_list_item, item, nitem);
+	nitem->client = client;
+
 	n_list = hashmap_get(self->notify_mapping, key_name);
 	if (!n_list) {
-		/* Duplicate the key and store it */
-		key_name = strdup(key_name);
 		LIST_HEAD_INIT(notification_list_item, n_list);
-		LIST_PREPEND(notification_list_item, item, n_list, client);
-		hashmap_put(self->notify_mapping, key_name, n_list);
-		n_list = hashmap_get(self->notify_mapping, key_name);
+		LIST_PREPEND(notification_list_item, item, n_list, nitem);
+		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0) {
+			free(key_name);
+			return NULL;
+		}
 	} else {
-		LIST_PREPEND(notification_list_item, item, n_list, client);
+		LIST_PREPEND(notification_list_item, item, n_list, nitem);
 	}
 	*status = BUXTON_STATUS_OK;
 
