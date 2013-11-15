@@ -65,7 +65,7 @@
 /*-------------------------------------------------------------------------*/
 typedef struct _dictionary_ {
     int             n ;     /** Number of entries in dictionary */
-    int             size ;  /** Storage size */
+    size_t          size ;  /** Storage size */
     char        **  val ;   /** List of string values */
     char        **  key ;   /** List of string keys */
     unsigned     *  hash ;  /** List of hash values for keys */
@@ -101,7 +101,7 @@ unsigned dictionary_hash(const char * key);
   dictionary, give size=0.
  */
 /*--------------------------------------------------------------------------*/
-dictionary * dictionary_new(int size);
+dictionary * dictionary_new(size_t size);
 
 /*-------------------------------------------------------------------------*/
 /**
