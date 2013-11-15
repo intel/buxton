@@ -460,7 +460,8 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
 		del_pollfd(self, i);
 		close(cl->fd);
-		free(cl->smack_label->value);
+		if (USE_SMACK)
+			free(cl->smack_label->value);
 		free(cl->smack_label);
 		buxton_debug("Closed connection from fd %d\n", cl->fd);
 		LIST_REMOVE(client_list_item, item, self->client_list, cl);
