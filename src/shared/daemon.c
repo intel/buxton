@@ -127,7 +127,17 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 	LIST_FOREACH(item, nitem, list) {
 		free(response);
 		response = NULL;
-		response_len = buxton_serialize_message(&response, BUXTON_CONTROL_CHANGED, 1, &(data[0]));
+
+		if (nitem->old_data) {
+			if (nitem->old_data->type == STRING)
+				free(nitem->old_data->store.d_string.value);
+			free(nitem->old_data);
+		}
+		nitem->old_data = malloc0(sizeof(BuxtonData));
+		if (!nitem->old_data)
+			goto end;
+		buxton_data_copy(&(data[1]), &nitem->old_data);
+		response_len = buxton_serialize_message(&response, BUXTON_CONTROL_CHANGED, 2, &(data[0]), &(data[1]));
 		if (response_len == 0) {
 			buxton_log("Failed to serialize notification\n");
 			goto end;
@@ -288,6 +298,8 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 	notification_list_item *n_list = NULL;
 	notification_list_item *nitem;
 	BuxtonData key;
+	BuxtonData *old_data = NULL;
+	BuxtonStatus key_status;
 	char *key_name;
 
 	assert(self);
@@ -312,6 +324,17 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 		return NULL;
 	LIST_INIT(notification_list_item, item, nitem);
 	nitem->client = client;
+
+	/* Store data now, cheap */
+	old_data = get_value(self, client, &key, 1, &key_status);
+	if (key_status != BUXTON_STATUS_OK)
+		return NULL;
+	if (nitem->old_data) {
+		if (nitem->old_data->type == STRING)
+			free(nitem->old_data->store.d_string.value);
+		free(nitem->old_data);
+	}
+	nitem->old_data = old_data;
 
 	n_list = hashmap_get(self->notify_mapping, key_name);
 	if (!n_list) {

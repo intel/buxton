@@ -48,6 +48,7 @@ typedef struct client_list_item {
 typedef struct notification_list_item {
 	LIST_FIELDS(struct notification_list_item, item); /**<List type */
 	client_list_item *client; /**<Client */
+	BuxtonData *old_data; /**<Old value of a particular key*/
 } notification_list_item;
 
 /**
