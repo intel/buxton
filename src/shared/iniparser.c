@@ -271,12 +271,12 @@ void iniparser_dumpsection_ini(dictionary * d, char * s, FILE * f)
 {
     int     j ;
     char    keym[ASCIILINESZ+1];
-    int     seclen ;
+    size_t  seclen ;
 
     if (d==NULL || f==NULL) return ;
     if (! iniparser_find_entry(d, s)) return ;
 
-    seclen  = (int)strlen(s);
+    seclen  = strlen(s);
     fprintf(f, "\n[%s]\n", s);
     sprintf(keym, "%s:", s);
     for (j=0 ; j<d->size ; j++) {
@@ -303,7 +303,8 @@ void iniparser_dumpsection_ini(dictionary * d, char * s, FILE * f)
 /*--------------------------------------------------------------------------*/
 int iniparser_getsecnkeys(dictionary * d, char * s)
 {
-    int     seclen, nkeys ;
+    size_t  seclen;
+    int     nkeys;
     char    keym[ASCIILINESZ+1];
     int j ;
 
@@ -312,7 +313,7 @@ int iniparser_getsecnkeys(dictionary * d, char * s)
     if (d==NULL) return nkeys;
     if (! iniparser_find_entry(d, s)) return nkeys;
 
-    seclen  = (int)strlen(s);
+    seclen  = strlen(s);
     sprintf(keym, "%s:", s);
 
     for (j=0 ; j<d->size ; j++) {
@@ -347,7 +348,8 @@ char ** iniparser_getseckeys(dictionary * d, char * s)
 
     int i, j ;
     char    keym[ASCIILINESZ+1];
-    int     seclen, nkeys ;
+    size_t  seclen;
+    int     nkeys;
 
     keys = NULL;
 
@@ -356,12 +358,12 @@ char ** iniparser_getseckeys(dictionary * d, char * s)
 
     nkeys = iniparser_getsecnkeys(d, s);
 
-    keys = (char**) malloc(nkeys*sizeof(char*));
+    keys = (char**) malloc((size_t)nkeys*sizeof(char*));
 
     if (!keys)
 	    return NULL;
 
-    seclen  = (int)strlen(s);
+    seclen  = strlen(s);
     sprintf(keym, "%s:", s);
 
     i = 0;
