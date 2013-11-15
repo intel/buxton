@@ -18,8 +18,12 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "bt-daemon.h"
 #include "daemon.h"
@@ -27,6 +31,69 @@
 #include "util.h"
 
 static pid_t daemon_pid;
+
+typedef struct _fuzz_context_t {
+		uint8_t buf[4096];
+		size_t size;
+		int iteration;
+} FuzzContext;
+
+static char* dump_fuzz(FuzzContext *fuzz)
+{
+	char* buf;
+	size_t buff_size;
+	FILE* s;
+	int l = 0;
+	int c = 0;
+
+	s = open_memstream(&buf, &buff_size);
+
+	fprintf(s, "\n\n******************************************\n");
+	fprintf(s, "current time %ld\n", time(NULL));
+	fprintf(s, "iteration: %d\tsize: %ld\n", fuzz->iteration, fuzz->size);
+	for (int i = 0; i < fuzz->size; i++) {
+		fprintf(s, "%02X ", fuzz->buf[i]);
+		c+= 3;
+		if (c > 80) {
+			fprintf(s, "\n");
+			c = 0;
+			l++;
+		}
+	}
+	fclose(s);
+
+	return buf;
+}
+
+static void check_did_not_crash(pid_t pid, FuzzContext *fuzz)
+{
+	pid_t rpid;
+	int status;
+
+	rpid = waitpid(pid, &status, WNOHANG);
+	fail_if(rpid == -1, "couldn't wait for pid %m");
+	if (rpid == 0) {
+		 /* child is still running */
+		return;
+	}
+	fail_if(WIFEXITED(status), "daemon exited with status %d%s",
+		WEXITSTATUS(status), dump_fuzz(fuzz));
+	fail_if(WIFSIGNALED(status), "daemon was killed with signal %d%s",
+		WTERMSIG(status), dump_fuzz(fuzz));
+}
+
+static void exec_daemon(void)
+{
+		char path[PATH_MAX];
+
+		//FIXME: path is wrong for makedistcheck
+		snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
+
+		if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
+			fail("couldn't exec: %m");
+		}
+		fail("should never reach here");
+}
 
 static void setup(void)
 {
@@ -48,25 +115,26 @@ static void setup(void)
 		usleep(128*1000);
 	} else {
 		/* child */
-		char path[PATH_MAX];
-
-		//FIXME: path is wrong for makedistcheck
-		snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
-
-		if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
-			fail("couldn't exec: %m");
-		}
-		fail("should never reach here");
+		exec_daemon();
 	}
 }
 
 static void teardown(void)
 {
-	/* if the daemon is still running, kill it */
 	if (daemon_pid) {
-		kill(SIGTERM, daemon_pid);
-		usleep(64*1000);
-		kill(SIGKILL, daemon_pid);
+		int status;
+		pid_t pid;
+
+		pid = waitpid(daemon_pid, &status, WNOHANG);
+		fail_if(pid == -1, "waitpid error");
+		if (pid) {
+			fail("daemon crashed!");
+		} else  {
+			/* if the daemon is still running, kill it */
+			kill(SIGTERM, daemon_pid);
+			usleep(64*1000);
+			kill(SIGKILL, daemon_pid);
+		}
 	}
 }
 
@@ -242,6 +310,69 @@ START_TEST(handle_client_check)
 }
 END_TEST
 
+START_TEST(bt_daemon_eat_garbage_check)
+{
+	daemon_pid = 0;
+	sigset_t sigset;
+	pid_t pid;
+
+	unlink(BUXTON_SOCKET);
+
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGCHLD);
+	sigprocmask(SIG_BLOCK, &sigset, NULL);
+
+	pid = fork();
+	fail_if(pid < 0, "couldn't fork");
+	if (pid) {		/* parent*/
+		BuxtonClient c;
+		FuzzContext fuzz;
+		time_t start;
+		bool keep_going = true;
+
+
+		srand(0);
+		bzero(&fuzz, sizeof(FuzzContext));
+
+		daemon_pid = pid;
+		usleep(250*1000);
+		check_did_not_crash(daemon_pid, &fuzz);
+
+
+		fail_if(time(&start) == -1, "call to time() failed");
+		do {
+			ssize_t bytes;
+			time_t now;
+
+			fail_if(time(&now) == -1, "call to time() failed");
+			if (now - start >= 2) {
+				keep_going = false;
+			}
+
+			fail_if(buxton_client_open(&c) == false,
+				"Open failed with daemon%s", dump_fuzz(&fuzz));
+
+			fuzz.size = (unsigned int)rand() % 4096;
+			for (int i=0; i < fuzz.size; i++) {
+				fuzz.buf[i] = (uint8_t)(rand() % 255);
+			}
+
+			bytes = write(c.fd, (void*)(fuzz.buf), fuzz.size);
+			fail_if(bytes == -1, "write failed: %m%s", dump_fuzz(&fuzz));
+			fail_unless(bytes == fuzz.size, "write was %d instead of %d", bytes, fuzz.size);
+
+			buxton_client_close(&c);
+			usleep(1*1000);
+
+			check_did_not_crash(daemon_pid, &fuzz);
+			fuzz.iteration++;
+		} while (keep_going);
+	} else {		/* child */
+		exec_daemon();
+	}
+}
+END_TEST
+
 static Suite *
 daemon_suite(void)
 {
@@ -264,6 +395,11 @@ daemon_suite(void)
 	tcase_add_test(tc, add_pollfd_check);
 	tcase_add_test(tc, del_pollfd_check);
 	tcase_add_test(tc, handle_client_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("buxton daemon evil tests");
+	tcase_add_checked_fixture(tc, NULL, teardown);
+	tcase_add_test(tc, bt_daemon_eat_garbage_check);
 	suite_add_tcase(s, tc);
 
 	return s;
