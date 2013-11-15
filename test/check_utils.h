@@ -10,7 +10,7 @@
  */
 
 /**
- * \file check-utils.h Internal header
+ * \file check_utils.h Internal header
  * This file is used internally by buxton to provide functionality
  * used for testing
  */
@@ -21,6 +21,11 @@
     #include "config.h"
 #endif
 
+/**
+ * Set up a socket pair
+ * @param client Client socket file descriptor
+ * @param server Server socket file descriptor
+ */
 void setup_socket_pair(int *client, int *server);
 
 /*
