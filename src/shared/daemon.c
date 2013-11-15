@@ -140,7 +140,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		nitem->old_data = malloc0(sizeof(BuxtonData));
 		if (!nitem->old_data)
 			goto end;
-		buxton_data_copy(&(data[1]), &nitem->old_data);
+		buxton_data_copy(&(data[1]), nitem->old_data);
 		response_len = buxton_serialize_message(&response, BUXTON_CONTROL_CHANGED, 2, &(data[0]), &(data[1]));
 		if (response_len == 0) {
 			buxton_log("Failed to serialize notification\n");
