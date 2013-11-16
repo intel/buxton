@@ -18,6 +18,7 @@ AC_PROG_INSTALL
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlopen])
 AC_CHECK_LIB([gdbm], [gdbm_open])
+AC_CHECK_LIB([rt], [clock_gettime])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -82,6 +83,7 @@ AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([stdlib.h])
 AC_CHECK_HEADERS([string.h])
+AC_CHECK_HEADERS([time.h])
 AC_CHECK_HEADERS([sys/param.h])
 AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([sys/time.h])
