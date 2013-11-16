@@ -172,22 +172,61 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 	if (!list)
 		return;
 
-	if (list->old_data) {
-		if (list->old_data->type == STRING)
-			free(list->old_data->store.d_string.value);
-		free(list->old_data);
-	}
-
-	list->old_data = malloc0(sizeof(BuxtonData));
-	if (!list->old_data)
-		goto end;
-	buxton_data_copy(value, list->old_data);
-
 	data.type = STRING;
 	data.label = buxton_string_pack("dummy");
 	LIST_FOREACH(item, nitem, list) {
+		int c = 1;
 		free(response);
 		response = NULL;
+
+		if (nitem->old_data) {
+			switch (value->type) {
+			case STRING:
+				c = memcmp((const void *)
+					   (nitem->old_data->store.d_string.value),
+					   (const void *)(value->store.d_string.value),
+					   value->store.d_string.length);
+				break;
+			case BOOLEAN:
+				c = memcmp((const void *)&(nitem->old_data->store.d_boolean),
+					   (const void *)&(value->store.d_boolean),
+					   sizeof(bool));
+				break;
+			case FLOAT:
+				c = memcmp((const void *)&(nitem->old_data->store.d_float),
+					   (const void *)&(value->store.d_float),
+					   sizeof(float));
+				break;
+			case INT:
+				c = memcmp((const void *)&(nitem->old_data->store.d_int),
+					   (const void *)&(value->store.d_int),
+					   sizeof(int32_t));
+				break;
+			case DOUBLE:
+				c = memcmp((const void *)&(nitem->old_data->store.d_double),
+					   (const void *)&(value->store.d_double),
+					   sizeof(double));
+				break;
+			case LONG:
+				c = memcmp((const void *)&(nitem->old_data->store.d_long),
+					   (const void *)&(value->store.d_long),
+					   sizeof(int64_t));
+				break;
+			default:
+				goto end;
+			}
+		}
+
+		if (!c) {
+			continue;
+		}
+		if (nitem->old_data->type == STRING)
+			free(nitem->old_data->store.d_string.value);
+		free(nitem->old_data);
+
+		nitem->old_data = malloc0(sizeof(BuxtonData));
+		if (nitem->old_data)
+			buxton_data_copy(value, nitem->old_data);
 
 		data.store.d_string.value = key->value;
 		data.store.d_string.length = key->length;
@@ -197,8 +236,8 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 			buxton_log("Failed to serialize notification\n");
 			goto end;
 		}
-		buxton_log("Notification to %d of key change (%s)\n", nitem->client->fd,
-			   key->value);
+		buxton_debug("Notification to %d of key change (%s)\n", nitem->client->fd,
+			     key->value);
 		write(nitem->client->fd, response, response_len);
 	}
 end:
@@ -338,6 +377,14 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 	LIST_INIT(notification_list_item, item, nitem);
 	nitem->client = client;
 
+	/* Store data now, cheap */
+	old_data = get_value(self, client, NULL, key, NULL, &key_status);
+	if (key_status != BUXTON_STATUS_OK) {
+		free(nitem);
+		return NULL;
+	}
+	nitem->old_data = old_data;
+
 	n_list = hashmap_get(self->notify_mapping, key->value);
 	if (!n_list) {
 		key_name = strdup(key->value);
@@ -346,25 +393,13 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 			return NULL;
 		}
 
-		/* Store data now, cheap */
-		old_data = get_value(self, client, NULL, key, NULL, &key_status);
-		if (key_status != BUXTON_STATUS_OK) {
-			free(key_name);
-			free(nitem);
-			return NULL;
-		}
-
-		nitem->old_data = old_data;
-
 		if (hashmap_put(self->notify_mapping, key_name, nitem) < 0) {
 			free(key_name);
 			free(nitem);
 			return NULL;
 		}
 	} else {
-		notification_list_item *tail;
-		LIST_FIND_TAIL(notification_list_item, item, n_list, tail);
-		LIST_INSERT_AFTER(notification_list_item, item, n_list, tail, nitem);
+		LIST_PREPEND(notification_list_item, item, n_list, nitem);
 	}
 	*status = BUXTON_STATUS_OK;
 
