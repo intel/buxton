@@ -574,7 +574,7 @@ BuxtonString *buxton_make_key(char *group, char *name)
 			free(key);
 			return NULL;
 		}
-		key->length = strlen(key->value);
+		key->length = strlen(key->value) + 1;
 		return key;
 	}
 
@@ -583,7 +583,7 @@ BuxtonString *buxton_make_key(char *group, char *name)
 		free(key);
 		return NULL;
 	}
-	key->length = (size_t) len;
+	key->length = (size_t)len + 1;
 
 	return key;
 }

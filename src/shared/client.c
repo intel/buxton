@@ -80,8 +80,8 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 	key = buxton_make_key(two, three);
 	if (!key)
 		return ret;
-	value.value = three;
-	value.length = strlen(three) + 1;
+	value.value = four;
+	value.length = strlen(four) + 1;
 
 	set.label = buxton_string_pack("_");
 	set.type = type;
