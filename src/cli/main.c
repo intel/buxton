@@ -138,11 +138,11 @@ int main(int argc, char **argv)
 
 	/* SMACK labels */
 	c_get_label = (Command) { "get-label", "Get a label for a value",
-				  3, 3, "layer group name", &cli_get_label, STRING };
+				  2, 3, "layer group [name]", &cli_get_label, STRING };
 	hashmap_put(commands, c_get_label.name, &c_get_label);
 
 	c_set_label = (Command) { "set-label", "Set a value's label",
-				  4, 4, "layer group name label", &cli_set_label, STRING };
+				  3, 4, "layer group [name] label", &cli_set_label, STRING };
 
 	hashmap_put(commands, c_set_label.name, &c_set_label);
 

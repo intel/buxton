@@ -31,10 +31,19 @@ bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType ty
 	bool ret = false;
 
 	layer = buxton_string_pack(one);
-	key = buxton_make_key(two, three);
+
+	if (four != NULL)
+		key = buxton_make_key(two, three);
+	else
+		key = buxton_make_key(two, NULL);
+
 	if (!key)
 		return ret;
-	label = buxton_string_pack(four);
+
+	if (four != NULL)
+		label = buxton_string_pack(four);
+	else
+		label = buxton_string_pack(three);
 
 	ret = buxton_client_set_label(self, &layer, key, &label);
 	if (!ret)
