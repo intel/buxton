@@ -615,7 +615,11 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		}
 		if (cl->size != cl->offset)
 			continue;
-		bt_daemon_handle_message(self, cl, cl->size);
+		if (!bt_daemon_handle_message(self, cl, cl->size)) {
+			buxton_log("Communication failed with client %d\n", cl->fd);
+			terminate_client(self, cl, i);
+			goto cleanup;
+		}
 
 		/* reset in case there are more messages */
 		cl->data = realloc(cl->data, BUXTON_MESSAGE_HEADER_LENGTH);
