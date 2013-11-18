@@ -171,10 +171,10 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 		printf("%s%s = %s\n", prefix, key.value, get.store.d_string.value);
 		break;
 	case INT32:
-		printf("%s%s = %d\n", prefix, key.value, get.store.d_int32);
+		printf("%s%s = %" PRId32 "\n", prefix, key.value, get.store.d_int32);
 		break;
 	case INT64:
-		printf("%s%s = %ld\n", prefix, key.value, get.store.d_int64);
+		printf("%s%s = %" PRId64 "\n", prefix, key.value, get.store.d_int64);
 		break;
 	case FLOAT:
 		printf("%s%s = %f\n", prefix, key.value, get.store.d_float);
