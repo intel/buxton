@@ -595,8 +595,10 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	 */
 	do {
 		l = read(self->pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset);
-		if (l < 0)
+		if (l < 0) {
+			terminate_client(self, cl, i);
 			goto cleanup;
+		}
 		else if (l == 0)
 			break;
 		cl->offset += (size_t)l;
