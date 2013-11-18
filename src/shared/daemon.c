@@ -538,13 +538,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		return;
 	/* client closed the connection, or some error occurred? */
 	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
-		del_pollfd(self, i);
-		close(cl->fd);
-		if (USE_SMACK)
-			free(cl->smack_label->value);
-		free(cl->smack_label);
-		buxton_debug("Closed connection from fd %d\n", cl->fd);
-		LIST_REMOVE(client_list_item, item, self->client_list, cl);
+		terminate_client(self, cl, i);
 		free(cl);
 		return;
 	}
@@ -552,13 +546,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	/* need to authenticate the client? */
 	if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
 		if (!identify_client(cl)) {
-			del_pollfd(self, i);
-			close(cl->fd);
-			if (USE_SMACK)
-				free(cl->smack_label->value);
-			free(cl->smack_label);
-			buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
-			LIST_REMOVE(client_list_item, item, self->client_list, cl);
+			terminate_client(self, cl, i);
 			return;
 		}
 
@@ -645,6 +633,17 @@ cleanup:
 	cl->data = NULL;
 	cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	cl->offset = 0;
+}
+
+void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
+{
+	del_pollfd(self, i);
+	close(cl->fd);
+	if (USE_SMACK)
+		free(cl->smack_label->value);
+	free(cl->smack_label);
+	buxton_debug("Closed connection from fd %d\n", cl->fd);
+	LIST_REMOVE(client_list_item, item, self->client_list, cl);
 }
 
 /*
