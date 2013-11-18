@@ -149,6 +149,7 @@ AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [enable debug mode]))
 AS_IF([test "x$enable_debug" = "xyes"],
 	[AC_DEFINE([DEBUG], [1], [Debugging mode enabled])],
 	[])
+AM_CONDITIONAL([DEBUG], [test x$enable_debug = x"yes"])
 
 AC_ARG_ENABLE(demos, AS_HELP_STRING([--enable-demos], [enable demos]))
 AS_IF([test "x$enable_demos" = "xyes"],

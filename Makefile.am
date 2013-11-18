@@ -4,6 +4,9 @@ AM_CFLAGS = -std=gnu99 -fstack-protector -Wall -pedantic \
         -Werror-implicit-function-declaration \
         -Wformat -Wformat-security -Werror=format-security \
 	-Wconversion
+if DEBUG
+AM_CFLAGS += -ggdb3
+endif
 
 AM_CPPFLAGS = \
 	-I $(top_srcdir)/src/include \
