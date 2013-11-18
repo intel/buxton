@@ -42,8 +42,9 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
  * @param self Reference to BuxtonDaemon
  * @param client Current client
  * @param size Size of the data being handled
+ * @returns bool True if message was successfully handled
  */
-void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size);
+bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size);
 
 /**
  * Notify clients a value changes in bt-daemon
@@ -127,6 +128,14 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i);
  * @param i The currently active file descriptor
  */
 void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
+
+/**
+ * Terminate client connectoin
+ * @param self bt-daemon instance being run
+ * @param cl The client to terminate
+ * @param i File descriptor to remove from poll list
+ */
+void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

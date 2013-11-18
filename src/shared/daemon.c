@@ -67,7 +67,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	return true;
 }
 
-void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
+bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
 {
 	BuxtonControlMessage msg;
 	BuxtonStatus response;
@@ -82,6 +82,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	BuxtonString *layer = NULL;
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
+	bool ret = false;
 
 	assert(self);
 	assert(client);
@@ -140,6 +141,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 
 	/* Now write the response */
 	write(client->fd, response_store, response_len);
+	ret = true;
 
 end:
 	/* Restore our own UID */
@@ -153,6 +155,7 @@ end:
 		}
 		free(list);
 	}
+	return ret;
 }
 
 void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonString *key, BuxtonData *value)
@@ -535,13 +538,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		return;
 	/* client closed the connection, or some error occurred? */
 	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
-		del_pollfd(self, i);
-		close(cl->fd);
-		if (USE_SMACK)
-			free(cl->smack_label->value);
-		free(cl->smack_label);
-		buxton_debug("Closed connection from fd %d\n", cl->fd);
-		LIST_REMOVE(client_list_item, item, self->client_list, cl);
+		terminate_client(self, cl, i);
 		free(cl);
 		return;
 	}
@@ -549,13 +546,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	/* need to authenticate the client? */
 	if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
 		if (!identify_client(cl)) {
-			del_pollfd(self, i);
-			close(cl->fd);
-			if (USE_SMACK)
-				free(cl->smack_label->value);
-			free(cl->smack_label);
-			buxton_debug("Closed untrusted connection from fd %d\n", cl->fd);
-			LIST_REMOVE(client_list_item, item, self->client_list, cl);
+			terminate_client(self, cl, i);
 			return;
 		}
 
@@ -624,7 +615,11 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		}
 		if (cl->size != cl->offset)
 			continue;
-		bt_daemon_handle_message(self, cl, cl->size);
+		if (!bt_daemon_handle_message(self, cl, cl->size)) {
+			buxton_log("Communication failed with client %d\n", cl->fd);
+			terminate_client(self, cl, i);
+			goto cleanup;
+		}
 
 		/* reset in case there are more messages */
 		cl->data = realloc(cl->data, BUXTON_MESSAGE_HEADER_LENGTH);
@@ -642,6 +637,17 @@ cleanup:
 	cl->data = NULL;
 	cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	cl->offset = 0;
+}
+
+void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
+{
+	del_pollfd(self, i);
+	close(cl->fd);
+	if (USE_SMACK)
+		free(cl->smack_label->value);
+	free(cl->smack_label);
+	buxton_debug("Closed connection from fd %d\n", cl->fd);
+	LIST_REMOVE(client_list_item, item, self->client_list, cl);
 }
 
 /*
