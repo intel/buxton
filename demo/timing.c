@@ -30,7 +30,7 @@ bool timed_func(TestFunction func, BuxtonClient *client, unsigned long long *tot
 	ret = func(client);
 	clock_gettime(CLOCK_MONOTONIC, &tsf);
 
-	elapsed = (unsigned long long)(tsf.tv_nsec - tsi.tv_nsec);
+	elapsed = (unsigned long long)((tsf.tv_nsec - tsi.tv_nsec) + ((tsf.tv_sec - tsi.tv_sec) * 1000000000));
 	elapsed += *total;
 
 	*total = elapsed;
