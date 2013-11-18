@@ -171,7 +171,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 	if (!key)
 		return false;
 
-	if (two != NULL) {
+	if (three != NULL) {
 		if (!buxton_client_get_value_for_layer(self, &layer, key, &get)) {
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
 			       layer.value, buxton_get_group(key), buxton_get_name(key));
