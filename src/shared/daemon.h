@@ -42,8 +42,9 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
  * @param self Reference to BuxtonDaemon
  * @param client Current client
  * @param size Size of the data being handled
+ * @returns bool True if message was successfully handled
  */
-void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size);
+bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size);
 
 /**
  * Notify clients a value changes in bt-daemon

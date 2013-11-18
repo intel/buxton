@@ -67,7 +67,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	return true;
 }
 
-void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
+bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
 {
 	BuxtonControlMessage msg;
 	BuxtonStatus response;
@@ -82,6 +82,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	BuxtonString *layer = NULL;
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
+	bool ret = false;
 
 	assert(self);
 	assert(client);
@@ -140,6 +141,7 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 
 	/* Now write the response */
 	write(client->fd, response_store, response_len);
+	ret = true;
 
 end:
 	/* Restore our own UID */
@@ -153,6 +155,7 @@ end:
 		}
 		free(list);
 	}
+	return ret;
 }
 
 void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonString *key, BuxtonData *value)
