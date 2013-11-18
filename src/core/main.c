@@ -38,6 +38,8 @@
 #include "smack.h"
 #include "util.h"
 
+#define SOCKET_TIMEOUT 5
+
 static BuxtonDaemon self;
 
 /**
@@ -180,6 +182,7 @@ int main(int argc, char *argv[])
 			}
 
 			if (self.accepting[i] == true) {
+				struct timeval tv;
 				int fd;
 				int on = 1;
 
@@ -209,6 +212,13 @@ int main(int argc, char *argv[])
 				/* Mark our packets as high prio */
 				if (setsockopt(cl->fd, SOL_SOCKET, SO_PRIORITY, &on, sizeof(on)) == -1)
 					buxton_log("setsockopt(SO_PRIORITY): %m\n");
+
+				/* Set socket recv timeout */
+				tv.tv_sec = SOCKET_TIMEOUT;
+				tv.tv_usec = 0;
+				if (setsockopt(cl->fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
+					       sizeof(struct timeval)) == -1)
+					buxton_log("setsockopt(SO_RCVTIMEO): %m\n");
 
 				/* check if this is optimal or not */
 				break;
