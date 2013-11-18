@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	hashmap_put(commands, c_set_int32.name, &c_set_int32);
 
 	/* Longs */
-	c_get_int64 = (Command) { "get-int64", "Get a int64_t value by key",
+	c_get_int64 = (Command) { "get-int64", "Get an int64_t value by key",
 				  2, 3, "[layer] group name", &cli_get_value, INT64};
 	hashmap_put(commands, c_get_int64.name, &c_get_int64);
 
