@@ -176,6 +176,28 @@ _bx_export_ bool buxton_client_register_notification(BuxtonClient *client, Buxto
  */
 _bx_export_ bool buxton_direct_open(BuxtonClient *client);
 
+/**
+ * Create a key for item lookup in buxton
+ * @param group Pointer to a character string representing a group
+ * @param name Pointer to a character string representing a name
+ * @return A pointer to a BuxtonString containing the key
+ */
+_bx_export_ BuxtonString *buxton_make_key(char *group, char *name);
+
+/**
+ * Get the group portion of a buxton key
+ * @param key Pointer to BuxtonString representing a buxton key
+ * @return A pointer to a character string containing the key's group
+ */
+_bx_export_ char *buxton_get_group(BuxtonString *key);
+
+/**
+ * Get the name portion of a buxton key
+ * @param key Pointer to BuxtonString representing a buxton key
+ * @return A pointer to a character string containing the key's name
+ */
+_bx_export_ char *buxton_get_name(BuxtonString *key);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

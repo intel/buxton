@@ -556,6 +556,63 @@ void exit_handler(void)
 	hashmap_free(_layers);
 }
 
+BuxtonString *buxton_make_key(char *group, char *name)
+{
+	BuxtonString *key;
+	int len;
+
+	if (!group)
+		return NULL;
+
+	key = malloc0(sizeof(BuxtonString));
+	if (!key)
+		return NULL;
+
+	if (!name) {
+		key->value = strdup(group);
+		if (!key->value) {
+			free(key);
+			return NULL;
+		}
+		key->length = strlen(key->value);
+		return key;
+	}
+
+	len = asprintf(&(key->value), "%s%c%s", group, 0, name);
+	if (len < 0) {
+		free(key);
+		return NULL;
+	}
+	key->length = (size_t) len;
+
+	return key;
+}
+
+char *buxton_get_group(BuxtonString *key)
+{
+	if (!key || !(key->value) || !(*(key->value)))
+		return NULL;
+
+	return key->value;
+}
+
+char *buxton_get_name(BuxtonString *key)
+{
+	char *c;
+
+	if (!key || !(key->value))
+		return NULL;
+
+	c = strchr(key->value, 0);
+	if (!c)
+		return NULL;
+	if (c - (key->value + key->length) >= 0)
+		return NULL;
+	c++;
+
+	return c;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

@@ -8,6 +8,9 @@ BUXTON_1 {
                 buxton_client_get_value_for_layer;
                 buxton_client_register_notification;
                 buxton_direct_open;
+		buxton_get_group;
+		buxton_get_name;
+		buxton_make_key;
         local:
                 *;
 };

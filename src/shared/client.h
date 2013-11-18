@@ -28,9 +28,10 @@
  * @param one Pointer to char for first parameter
  * @param two Pointer to char for second parameter
  * @param three Pointer to char for third parameter
+ * @param four Pointer to char for fourth parameter
  * @return a boolean value, indicating success of the operation
  */
-typedef bool (*command_method) (BuxtonClient *self, BuxtonDataType type, char *one, char *two, char *three);
+typedef bool (*command_method) (BuxtonClient *self, BuxtonDataType type, char *one, char *two, char *three, char *four);
 
 /**
  * Defines a command within the buxtonctl cli
@@ -50,46 +51,51 @@ typedef struct Command {
  * @param self Client instance being run
  * @param type Type of label being set (unused)
  * @param one Layer of label being set
- * @param two Key of the label being set
- * @param three Label of the label to set
+ * @param two Group of the label being set
+ * @param three Name of the label to set
+ * @param four Label of the label to set
  * @returns bool indicating success or failure
  */
 bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
-		   char *one, char *two, char *three);
+		   char *one, char *two, char *three, char *four);
 
 /**
  * Get a label from Buxton
  * @param self Client instance being run
  * @param type Type of label being sought (unused)
  * @param one Layer of the label being sought
- * @param two Key of the label being sought
- * @param three NULL (unused)
+ * @param two Group of the label being sought
+ * @param two Name of the label being sought
+ * @param four NULL (unused)
  * @returns bool indicating success or failure
  */
 bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
-		   char *one, char *two, __attribute__((unused)) char *three);
+		   char *one, char *two, char *three, __attribute__((unused)) char *four);
 
 /**
  * Set a value in Buxton
  * @param self Client instance being run
  * @param type Type of data being set
  * @param one Layer of data being set
- * @param two Key of the data being set
+ * @param two Group of the data being set
+ * @param three Name of the data to set
  * @param three Value of the data to set
  * @returns bool indicating success or failure
  */
-bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two, char *three);
+bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two,
+		   char *three, char *four);
 
 /**
  * Get a value from Buxton
  * @param self Client instance being run
  * @param type Type of data being sought
- * @param one Layer or key of data being set
+ * @param one Layer or Group of data being set
+ * @param two  or key of data being set
  * @param two Key if one is Layer
  * @param three NULL (unused)
  * @returns bool indicating success or failure
  */
-bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two, __attribute__((unused)) char *three);
+bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two, char *three, __attribute__((unused)) char *four);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

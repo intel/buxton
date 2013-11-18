@@ -124,6 +124,63 @@ START_TEST(buxton_memory_backend_check)
 }
 END_TEST
 
+START_TEST(buxton_key_check)
+{
+	char *group = "g";
+	char *name = "n";
+	BuxtonString *key;
+	char *g;
+	char *n;
+	char bkey[5];
+
+	key = buxton_make_key(group, name);
+	fail_if(!key, "Failed to create buxton key");
+	g = buxton_get_group(key);
+	n = buxton_get_name(key);
+	fail_if(!g, "Failed to get group from key");
+	fail_if(!n, "Failed to get name from key");
+	fail_if(!streq(g, group), "Got different group back from key");
+	fail_if(!streq(n, name), "Got different name back from key");
+
+	fail_if(buxton_make_key(NULL, name), "Got key back with invalid group");
+	free(key->value);
+	free(key);
+	key = buxton_make_key(group, NULL);
+	fail_if(!key, "Failed to create buxton key with empty name");
+
+	free(key->value);
+	key->value = NULL;
+	fail_if(buxton_get_group(NULL), "Got group back with invalid key1");
+	fail_if(buxton_get_group(key), "Got group back with invalid key2");
+	key->value = bkey;
+	bkey[0] = 0;
+	bkey[1] = 'a';
+	bkey[2] = 'a';
+	bkey[3] = 'a';
+	bkey[4] = 'a';
+	fail_if(buxton_get_group(key), "Got group back with invalid key3");
+
+	key->value = NULL;
+	fail_if(buxton_get_name(NULL), "Got name back with invalid key1");
+	fail_if(buxton_get_name(key), "Got name back with invalid key2");
+
+	key->value = bkey;
+	bkey[0] = 'a';
+	bkey[1] = 'a';
+	bkey[2] = 'a';
+	bkey[3] = 'a';
+	bkey[4] = 'a';
+	fail_if(buxton_get_name(key), "Got name back with invalid key3");
+	bkey[0] = 'a';
+	bkey[1] = 'a';
+	bkey[2] = 'a';
+	bkey[3] = 'a';
+	bkey[4] = 0;
+	fail_if(buxton_get_name(key), "Got name back with invalid key4");
+
+}
+END_TEST
+
 START_TEST(buxton_wire_get_response_check)
 {
 	BuxtonClient client;
@@ -294,6 +351,7 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_direct_get_value_for_layer_check);
 	tcase_add_test(tc, buxton_direct_get_value_check);
 	tcase_add_test(tc, buxton_memory_backend_check);
+	tcase_add_test(tc, buxton_key_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("buxton_protocol_functions");

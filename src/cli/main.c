@@ -84,65 +84,65 @@ int main(int argc, char **argv)
 
 	/* Strings */
 	c_get_string = (Command) { "get-string", "Get a string value by key",
-				   1, 2, "[layer] key", &cli_get_value, STRING };
+				   2, 3, "[layer] group name", &cli_get_value, STRING };
 	hashmap_put(commands, c_get_string.name, &c_get_string);
 
 	c_set_string = (Command) { "set-string", "Set a key with a string value",
-				   3, 3, "layer key value", &cli_set_value, STRING };
+				   4, 4, "layer group name value", &cli_set_value, STRING };
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
 	/* Integers */
 	c_get_int32 = (Command) { "get-int32", "Get an int32_t value by key",
-				  1, 2, "[layer] key", &cli_get_value, INT32 };
+				  2, 3, "[layer] group name", &cli_get_value, INT32 };
 	hashmap_put(commands, c_get_int32.name, &c_get_int32);
 
 	c_set_int32 = (Command) { "set-int32", "Set a key with an int32_t value",
-				  3, 3, "layer key value", &cli_set_value, INT32 };
+				  4, 4, "layer group name value", &cli_set_value, INT32 };
 	hashmap_put(commands, c_set_int32.name, &c_set_int32);
 
 	/* Longs */
 	c_get_int64 = (Command) { "get-int64", "Get a int64_t value by key",
-				  1, 2, "[layer] key", &cli_get_value, INT64};
+				  2, 3, "[layer] group name", &cli_get_value, INT64};
 	hashmap_put(commands, c_get_int64.name, &c_get_int64);
 
 	c_set_int64 = (Command) { "set-int64", "Set a key with an int64_t value",
-				  3, 3, "layer key value", &cli_set_value, INT64 };
+				  4, 4, "layer group name value", &cli_set_value, INT64 };
 	hashmap_put(commands, c_set_int64.name, &c_set_int64);
 
 	/* Floats */
 	c_get_float = (Command) { "get-float", "Get a float point value by key",
-				  1, 2, "[layer] key", &cli_get_value, FLOAT };
+				  2, 3, "[layer] group name", &cli_get_value, FLOAT };
 	hashmap_put(commands, c_get_float.name, &c_get_float);
 
 	c_set_float = (Command) { "set-float", "Set a key with a floating point value",
-				  3, 3, "layer key value", &cli_set_value, FLOAT };
+				  4, 4, "layer group name value", &cli_set_value, FLOAT };
 	hashmap_put(commands, c_set_float.name, &c_set_float);
 
 	/* Doubles */
 	c_get_double = (Command) { "get-double", "Get a double precision value by key",
-				   1, 2, "[layer] key", &cli_get_value, DOUBLE };
+				   2, 3, "[layer] group name", &cli_get_value, DOUBLE };
 	hashmap_put(commands, c_get_double.name, &c_get_double);
 
 	c_set_double = (Command) { "set-double", "Set a key with a double precision value",
-				   3, 3, "layer key value", &cli_set_value, DOUBLE };
+				   4, 4, "layer group name value", &cli_set_value, DOUBLE };
 	hashmap_put(commands, c_set_double.name, &c_set_double);
 
 	/* Booleans */
 	c_get_bool = (Command) { "get-bool", "Get a boolean value by key",
-				 1, 2, "[layer] key", &cli_get_value, BOOLEAN };
+				 2, 3, "[layer] group name", &cli_get_value, BOOLEAN };
 	hashmap_put(commands, c_get_bool.name, &c_get_bool);
 
 	c_set_bool = (Command) { "set-bool", "Set a key with a boolean value",
-				 3, 3, "layer key value", &cli_set_value, BOOLEAN };
+				 4, 4, "layer group name value", &cli_set_value, BOOLEAN };
 	hashmap_put(commands, c_set_bool.name, &c_set_bool);
 
 	/* SMACK labels */
 	c_get_label = (Command) { "get-label", "Get a label for a value",
-				  2, 2, "layer key", &cli_get_label, STRING };
+				  3, 3, "layer group name", &cli_get_label, STRING };
 	hashmap_put(commands, c_get_label.name, &c_get_label);
 
 	c_set_label = (Command) { "set-label", "Set a value's label",
-				  3, 3, "layer key label", &cli_set_label, STRING };
+				  4, 4, "layer group name label", &cli_set_label, STRING };
 
 	hashmap_put(commands, c_set_label.name, &c_set_label);
 
@@ -225,9 +225,10 @@ int main(int argc, char **argv)
 
 	/* Connected to buxton_client, execute method */
 	ret = command->method(&client, command->type,
-		optind + 1 < argc ? argv[optind + 1] : NULL,
-		optind + 2 < argc ? argv[optind + 2] : NULL,
-		optind + 3 < argc ? argv[optind + 3] : NULL);
+			      optind + 1 < argc ? argv[optind + 1] : NULL,
+			      optind + 2 < argc ? argv[optind + 2] : NULL,
+			      optind + 3 < argc ? argv[optind + 3] : NULL,
+			      optind + 4 < argc ? argv[optind + 4] : NULL);
 
 end:
 	hashmap_free(commands);

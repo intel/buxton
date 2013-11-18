@@ -24,54 +24,64 @@
 #include "util.h"
 
 bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
-		   char *one, char *two, char *three)
+		   char *one, char *two, char *three, char *four)
 {
-	BuxtonString layer, key, label;
+	BuxtonString layer, label;
+	BuxtonString *key;
 	bool ret = false;
 
 	layer = buxton_string_pack(one);
-	key = buxton_string_pack(two);
-	label = buxton_string_pack(three);
+	key = buxton_make_key(two, three);
+	if (!key)
+		return ret;
+	label = buxton_string_pack(four);
 
-	ret = buxton_client_set_label(self, &layer, &key, &label);
+	ret = buxton_client_set_label(self, &layer, key, &label);
 	if (!ret)
-		printf("Failed to update key \'%s\' label in layer '%s'\n", key.value, layer.value);
+		printf("Failed to update key \'%s:%s\' label in layer '%s'\n",
+		       buxton_get_group(key), buxton_get_name(key), layer.value);
 	return ret;
 }
 
 bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
-		   char *one, char *two, __attribute__((unused)) char *three)
+		   char *one, char *two, char *three, __attribute__((unused)) char *four)
 {
-	BuxtonString layer, key;
+	BuxtonString layer;
+	BuxtonString *key;
 	BuxtonData get;
 	bool ret = false;
 
 	layer = buxton_string_pack(one);
-	key = buxton_string_pack(two);
+	key = buxton_make_key(two, three);
+	if (!key)
+		return ret;
 
-	ret = buxton_client_get_value_for_layer(self, &layer, &key, &get);
+	ret = buxton_client_get_value_for_layer(self, &layer, key, &get);
 	if (!ret)
-		printf("Failed to get key \'%s\' in layer '%s'\n", key.value, layer.value);
+		printf("Failed to get key \'%s:%s\' in layer '%s'\n", buxton_get_group(key),
+		       buxton_get_name(key), layer.value);
 	else
-		printf("[%s][%s] = %s\n", layer.value, key.value, get.label.value);
+		printf("[%s][%s:%s] = %s\n", layer.value, buxton_get_group(key),
+		       buxton_get_name(key), get.label.value);
 
 	return ret;
 }
 
 bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
-		   char *one, char *two, char *three)
+		   char *one, char *two, char *three, char *four)
 {
-	BuxtonString layer, key, value;
+	BuxtonString layer, value;
+	BuxtonString *key;
 	BuxtonData set;
+	bool ret = false;
 
 	layer.value = one;
 	layer.length = strlen(one) + 1;
-	key.value = two;
-	key.length = strlen(two) + 1;
+	key = buxton_make_key(two, three);
+	if (!key)
+		return ret;
 	value.value = three;
 	value.length = strlen(three) + 1;
-
-	bool ret = false;
 
 	set.label = buxton_string_pack("_");
 	set.type = type;
@@ -121,39 +131,44 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 	default:
 		break;
 	}
-	ret = buxton_client_set_value(self, &layer, &key, &set);
+	ret = buxton_client_set_value(self, &layer, key, &set);
 	if (!ret)
-		printf("Failed to update key \'%s\' in layer '%s'\n", key.value, layer.value);
+		printf("Failed to update key \'%s:%s\' in layer '%s'\n", buxton_get_group(key),
+		       buxton_get_name(key), layer.value);
 	return ret;
 }
 
 bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
-		   char *one, char *two, __attribute__((unused)) char *three)
+		   char *one, char *two, char *three, __attribute__((unused)) char * four)
 {
-	BuxtonString layer, key;
+	BuxtonString layer;
+	BuxtonString *key;
 	BuxtonData get;
 	_cleanup_free_ char *prefix = NULL;
 
-	if (two != NULL) {
+	if (three != NULL) {
 		layer.value = one;
 		layer.length = strlen(one) + 1;
-		key.value = two;
-		key.length = strlen(two) + 1;
+		key = buxton_make_key(two, three);
 		asprintf(&prefix, "[%s] ", layer.value);
 	} else {
-		key.value = one;
-		key.length = strlen(one) + 1;
+		key = buxton_make_key(one, two);
 		asprintf(&prefix, " ");
 	}
 
+	if (!key)
+		return false;
+
 	if (two != NULL) {
-		if (!buxton_client_get_value_for_layer(self, &layer, &key, &get)) {
-			printf("Requested key was not found in layer \'%s\': %s\n", layer.value, key.value);
+		if (!buxton_client_get_value_for_layer(self, &layer, key, &get)) {
+			printf("Requested key was not found in layer \'%s\': %s:%s\n",
+			       layer.value, buxton_get_group(key), buxton_get_name(key));
 			return false;
 		}
 	} else {
-		if (!buxton_client_get_value(self, &key, &get)) {
-			printf("Requested key was not found: %s\n", key.value);
+		if (!buxton_client_get_value(self, key, &get)) {
+			printf("Requested key was not found: %s:%s\n", buxton_get_group(key),
+			       buxton_get_name(key));
 			return false;
 		}
 	}
@@ -168,25 +183,32 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 
 	switch (get.type) {
 	case STRING:
-		printf("%s%s = %s\n", prefix, key.value, get.store.d_string.value);
+		printf("%s%s:%s = %s\n", prefix, buxton_get_group(key), buxton_get_name(key),
+		       get.store.d_string.value);
 		break;
 	case INT32:
-		printf("%s%s = %" PRId32 "\n", prefix, key.value, get.store.d_int32);
+		printf("%s%s:%s = %" PRId32 "\n", prefix, buxton_get_group(key),
+		       buxton_get_name(key), get.store.d_int32);
 		break;
 	case INT64:
-		printf("%s%s = %" PRId64 "\n", prefix, key.value, get.store.d_int64);
+		printf("%s%s:%s = %" PRId64 "\n", prefix, buxton_get_group(key),
+		       buxton_get_name(key), get.store.d_int64);
 		break;
 	case FLOAT:
-		printf("%s%s = %f\n", prefix, key.value, get.store.d_float);
+		printf("%s%s:%s = %f\n", prefix, buxton_get_group(key),
+		       buxton_get_name(key), get.store.d_float);
 		break;
 	case DOUBLE:
-		printf("%s%s = %f\n", prefix, key.value, get.store.d_double);
+		printf("%s%s:%s = %f\n", prefix, buxton_get_group(key),
+		       buxton_get_name(key), get.store.d_double);
 		break;
 	case BOOLEAN:
 		if (get.store.d_boolean == true)
-			printf("%s%s = true\n", prefix, key.value);
+			printf("%s%s:%s = true\n", prefix, buxton_get_group(key),
+			       buxton_get_name(key));
 		else
-			printf("%s%s = false\n", prefix, key.value);
+			printf("%s%s:%s = false\n", prefix, buxton_get_group(key),
+			       buxton_get_name(key));
 		break;
 	default:
 		printf("unknown type\n");
