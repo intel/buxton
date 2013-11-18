@@ -141,8 +141,8 @@ START_TEST(buxton_wire_get_response_check)
 		size_t size;
 		BuxtonData data;
 		close(client.fd);
-		data.type = INT;
-		data.store.d_int = 0;
+		data.type = INT32;
+		data.store.d_int32 = 0;
 		data.label = buxton_string_pack("dummy");
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 1, &data);
 		fail_if(size == 0, "Failed to serialize message");
@@ -159,13 +159,13 @@ START_TEST(buxton_wire_get_response_check)
 			"Failed to properly handle response");
 		fail_if(msg != BUXTON_CONTROL_STATUS,
 			"Failed to get correct control message type");
-		fail_if(list[0].type != INT,
+		fail_if(list[0].type != INT32,
 			"Failed to get correct data type from message");
 		fail_if(!(list[0].label.value),
 			"Failed to get label from message");
 		fail_if(!streq(list[0].label.value, "dummy"),
 			"Failed to get correct label from message");
-		fail_if(list[0].store.d_int != 0,
+		fail_if(list[0].store.d_int32 != 0,
 			"Failed to get correct data value from message");
 		free(list);
 		close(client.fd);
@@ -191,8 +191,8 @@ START_TEST(buxton_wire_set_value_check)
 		ssize_t r;
 
 		close(client.fd);
-		data.type = INT;
-		data.store.d_int = 0;
+		data.type = INT32;
+		data.store.d_int32 = 0;
 		data.label = buxton_string_pack("dummy");
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 1, &data);
 		fail_if(size == 0, "Failed to serialize message");
@@ -241,11 +241,11 @@ START_TEST(buxton_wire_get_value_check)
 		ssize_t r;
 
 		close(client.fd);
-		data1.type = INT;
-		data1.store.d_int = 0;
+		data1.type = INT32;
+		data1.store.d_int32 = 0;
 		data1.label = buxton_string_pack("dummy");
-		data2.type = INT;
-		data2.store.d_int = 1;
+		data2.type = INT32;
+		data2.store.d_int32 = 1;
 		data2.label = buxton_string_pack("label");
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 2, &data1,
 						&data2);
@@ -269,11 +269,11 @@ START_TEST(buxton_wire_get_value_check)
 		key = buxton_string_pack("key");
 		fail_if(buxton_wire_get_value(&client, &layer_name, &key, &value) != true,
 			"Failed to properly get value");
-		fail_if(value.type != INT, "Failed to get value's correct type");
+		fail_if(value.type != INT32, "Failed to get value's correct type");
 		fail_if(!(value.label.value), "Failed to get value's label");
 		fail_if(!streq(value.label.value, "label"),
 			"Failed to get value's correct label");
-		fail_if(value.store.d_int != 1, "Failed to get value's correct value");
+		fail_if(value.store.d_int32 != 1, "Failed to get value's correct value");
 		close(client.fd);
 		free(value.label.value);
 	}

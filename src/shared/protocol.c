@@ -62,7 +62,7 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 		count = buxton_deserialize_message(response, &r_msg, size, &r_list);
 		if (count == 0)
 			return 0;
-		if (r_msg != BUXTON_CONTROL_STATUS || r_list[0].type != INT) {
+		if (r_msg != BUXTON_CONTROL_STATUS || r_list[0].type != INT32) {
 			buxton_log("Critical error: Invalid response\n");
 			return 0;
 		}
@@ -109,7 +109,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
-	if (count > 0 && r_list[0].store.d_int == BUXTON_STATUS_OK)
+	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		return true;
 
 	return false;
@@ -153,7 +153,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
-	if (count == 2 && r_list[0].store.d_int == BUXTON_STATUS_OK)
+	if (count == 2 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 	else
 		goto end;
@@ -199,7 +199,7 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
-	if (count > 0 && r_list[0].store.d_int == BUXTON_STATUS_OK)
+	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 end:
 	free(send);

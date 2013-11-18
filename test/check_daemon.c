@@ -158,7 +158,7 @@ START_TEST(parse_list_check)
 	BuxtonString *layer = NULL;
 	BuxtonData *value = NULL;
 
-	l1[0].type = INT;
+	l1[0].type = INT32;
 	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 1, l1, &key, &layer, &value),
 		"Parsed bad notify type");
 	l1[0].type = STRING;
@@ -167,12 +167,12 @@ START_TEST(parse_list_check)
 		"Unable to parse valid notify");
 	fail_if(!streq(key->value, l1[0].store.d_string.value),
 		"Failed to set correct notify key");
-	l2[0].type = INT;
+	l2[0].type = INT32;
 	l2[1].type = STRING;
 	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
 		"Parsed bad get type 1");
 	l2[0].type = STRING;
-	l2[1].type = INT;
+	l2[1].type = INT32;
 	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
 		"Parsed bad get type 2");
 	l2[0].type = STRING;
@@ -190,13 +190,13 @@ START_TEST(parse_list_check)
 	fail_if(!streq(key->value, l2[0].store.d_string.value),
 		"Failed to set correct get key 2");
 
-	l3[0].type = INT;
+	l3[0].type = INT32;
 	l3[1].type = STRING;
 	l3[2].type = FLOAT;
 	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
 		"Parsed bad set type 1");
 	l3[0].type = STRING;
-	l3[1].type = INT;
+	l3[1].type = INT32;
 	l3[2].type = FLOAT;
 	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
 		"Parsed bad set type 2");

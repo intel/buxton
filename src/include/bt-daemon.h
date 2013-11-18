@@ -55,12 +55,13 @@ typedef struct BuxtonClient {
  * Possible data types for use in Buxton
  */
 typedef enum BuxtonDataType {
+	BUXTON_TYPE_MIN,
 	STRING, /**<Represents type of a string value */
-	BOOLEAN, /**<Represents type of a boolean value */
+	INT32, /**<Represents type of an int32_t value */
+	INT64, /**<Represents type of a int64_t value */
 	FLOAT, /**<Represents type of a float value */
-	INT, /**<Represents type of an integer value */
 	DOUBLE, /**<Represents type of a double value */
-	LONG, /**<Represents type of a long value */
+	BOOLEAN, /**<Represents type of a boolean value */
 	BUXTON_TYPE_MAX
 } BuxtonDataType;
 
@@ -77,11 +78,11 @@ typedef struct BuxtonString {
  */
 typedef union BuxtonDataStore {
 	BuxtonString d_string; /**<Stores a string value */
-	bool d_boolean; /**<Stores a boolean value */
+	int32_t d_int32; /**<Stores an int32_t value */
+	int64_t d_int64; /**<Stores a int64_t value */
 	float d_float; /**<Stores a float value */
-	int d_int; /**<Stores an integer value */
 	double d_double; /**<Stores a double value */
-	long d_long; /**<Stores a long value */
+	bool d_boolean; /**<Stores a boolean value */
 } BuxtonDataStore;
 
 /**

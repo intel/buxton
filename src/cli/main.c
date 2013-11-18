@@ -68,11 +68,11 @@ int main(int argc, char **argv)
 {
 	bool ret = false;
 	Command c_get_string, c_set_string;
-	Command c_get_bool, c_set_bool;
+	Command c_get_int32, c_set_int32;
+	Command c_get_int64, c_set_int64;
 	Command c_get_float, c_set_float;
 	Command c_get_double, c_set_double;
-	Command c_get_int, c_set_int;
-	Command c_get_long, c_set_long;
+	Command c_get_bool, c_set_bool;
 	Command c_get_label, c_set_label;
 	Command *command;
 	int i = 0;
@@ -91,22 +91,31 @@ int main(int argc, char **argv)
 				   3, 3, "layer key value", &cli_set_value, STRING };
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
-	/* Booleans */
-	c_get_bool = (Command) { "get-bool", "Get a boolean value by key",
-				   1, 2, "[layer] key", &cli_get_value, BOOLEAN };
-	hashmap_put(commands, c_get_bool.name, &c_get_bool);
+	/* Integers */
+	c_get_int32 = (Command) { "get-int32", "Get an int32_t value by key",
+				  1, 2, "[layer] key", &cli_get_value, INT32 };
+	hashmap_put(commands, c_get_int32.name, &c_get_int32);
 
-	c_set_bool = (Command) { "set-bool", "Set a key with a boolean value",
-				   3, 3, "layer key value", &cli_set_value, BOOLEAN };
-	hashmap_put(commands, c_set_bool.name, &c_set_bool);
+	c_set_int32 = (Command) { "set-int32", "Set a key with an int32_t value",
+				  3, 3, "layer key value", &cli_set_value, INT32 };
+	hashmap_put(commands, c_set_int32.name, &c_set_int32);
+
+	/* Longs */
+	c_get_int64 = (Command) { "get-int64", "Get a int64_t value by key",
+				  1, 2, "[layer] key", &cli_get_value, INT64};
+	hashmap_put(commands, c_get_int64.name, &c_get_int64);
+
+	c_set_int64 = (Command) { "set-int64", "Set a key with an int64_t value",
+				  3, 3, "layer key value", &cli_set_value, INT64 };
+	hashmap_put(commands, c_set_int64.name, &c_set_int64);
 
 	/* Floats */
 	c_get_float = (Command) { "get-float", "Get a float point value by key",
-				   1, 2, "[layer] key", &cli_get_value, FLOAT };
+				  1, 2, "[layer] key", &cli_get_value, FLOAT };
 	hashmap_put(commands, c_get_float.name, &c_get_float);
 
 	c_set_float = (Command) { "set-float", "Set a key with a floating point value",
-				   3, 3, "layer key value", &cli_set_value, FLOAT };
+				  3, 3, "layer key value", &cli_set_value, FLOAT };
 	hashmap_put(commands, c_set_float.name, &c_set_float);
 
 	/* Doubles */
@@ -118,23 +127,14 @@ int main(int argc, char **argv)
 				   3, 3, "layer key value", &cli_set_value, DOUBLE };
 	hashmap_put(commands, c_set_double.name, &c_set_double);
 
-	/* Longs */
-	c_get_long = (Command) { "get-long", "Get a long integer value by key",
-				   1, 2, "[layer] key", &cli_get_value, LONG };
-	hashmap_put(commands, c_get_long.name, &c_get_long);
+	/* Booleans */
+	c_get_bool = (Command) { "get-bool", "Get a boolean value by key",
+				 1, 2, "[layer] key", &cli_get_value, BOOLEAN };
+	hashmap_put(commands, c_get_bool.name, &c_get_bool);
 
-	c_set_long = (Command) { "set-long", "Set a key with a long integer value",
-				   3, 3, "layer key value", &cli_set_value, LONG };
-	hashmap_put(commands, c_set_long.name, &c_set_long);
-
-	/* Integers */
-	c_get_int = (Command) { "get-int", "Get an integer value by key",
-				1, 2, "[layer] key", &cli_get_value, INT };
-	hashmap_put(commands, c_get_int.name, &c_get_int);
-
-	c_set_int = (Command) { "set-int", "Set a key with an integer value",
-				3, 3, "layer key value", &cli_set_value, INT };
-	hashmap_put(commands, c_set_int.name, &c_set_int);
+	c_set_bool = (Command) { "set-bool", "Set a key with a boolean value",
+				 3, 3, "layer key value", &cli_set_value, BOOLEAN };
+	hashmap_put(commands, c_set_bool.name, &c_set_bool);
 
 	/* SMACK labels */
 	c_get_label = (Command) { "get-label", "Get a label for a value",

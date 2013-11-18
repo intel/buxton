@@ -108,20 +108,20 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 			memcpy(store.d_string.value, original->store.d_string.value, original->store.d_string.length);
 			store.d_string.length = original->store.d_string.length;
 			break;
-		case BOOLEAN:
-			store.d_boolean = original->store.d_boolean;
+		case INT32:
+			store.d_int32 = original->store.d_int32;
+			break;
+		case INT64:
+			store.d_int64 = original->store.d_int64;
 			break;
 		case FLOAT:
 			store.d_float = original->store.d_float;
 			break;
-		case INT:
-			store.d_int = original->store.d_int;
-			break;
 		case DOUBLE:
 			store.d_double = original->store.d_double;
 			break;
-		case LONG:
-			store.d_long = original->store.d_long;
+		case BOOLEAN:
+			store.d_boolean = original->store.d_boolean;
 			break;
 		default:
 			goto fail;
@@ -144,16 +144,16 @@ const char* buxton_type_as_string(BuxtonDataType type)
 	switch (type) {
 		case STRING:
 			return "string";
-		case BOOLEAN:
-			return "boolean";
+		case INT32:
+			return "int32_t";
+		case INT64:
+			return "int64_t";
 		case FLOAT:
 			return "float";
 		case DOUBLE:
 			return "double";
-		case LONG:
-			return "long";
-		case INT:
-			return "int";
+		case BOOLEAN:
+			return "boolean";
 		default:
 			return "[unknown]";
 	}

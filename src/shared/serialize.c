@@ -79,20 +79,20 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 		case STRING:
 			memcpy(data+offset, source->store.d_string.value, length);
 			break;
-		case BOOLEAN:
-			memcpy(data+offset, &(source->store.d_boolean), sizeof(bool));
+		case INT32:
+			memcpy(data+offset, &(source->store.d_int32), sizeof(int32_t));
+			break;
+		case INT64:
+			memcpy(data+offset, &(source->store.d_int64), sizeof(int64_t));
 			break;
 		case FLOAT:
 			memcpy(data+offset, &(source->store.d_float), sizeof(float));
 			break;
-		case INT:
-			memcpy(data+offset, &(source->store.d_int), sizeof(int32_t));
-			break;
 		case DOUBLE:
 			memcpy(data+offset, &(source->store.d_double), sizeof(double));
 			break;
-		case LONG:
-			memcpy(data+offset, &(source->store.d_long), sizeof(int64_t));
+		case BOOLEAN:
+			memcpy(data+offset, &(source->store.d_boolean), sizeof(bool));
 			break;
 		default:
 			goto end;
@@ -145,20 +145,20 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 			memcpy(target->store.d_string.value, source+offset, length);
 			target->store.d_string.length = length;
 			break;
-		case BOOLEAN:
-			target->store.d_boolean = *(bool*)(source+offset);
+		case INT32:
+			target->store.d_int32 = *(int32_t*)(source+offset);
+			break;
+		case INT64:
+			target->store.d_int64 = *(int64_t*)(source+offset);
 			break;
 		case FLOAT:
 			target->store.d_float = *(float*)(source+offset);
 			break;
-		case INT:
-			target->store.d_int = *(int32_t*)(source+offset);
-			break;
 		case DOUBLE:
 			target->store.d_double = *(double*)(source+offset);
 			break;
-		case LONG:
-			target->store.d_long = *(int64_t*)(source+offset);
+		case BOOLEAN:
+			target->store.d_boolean = *(bool*)(source+offset);
 			break;
 		default:
 			buxton_debug("Invalid BuxtonDataType: %lu\n", type);
@@ -271,20 +271,20 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			case STRING:
 				memcpy(data+offset, param->store.d_string.value, p_length);
 				break;
-			case BOOLEAN:
-				memcpy(data+offset, &(param->store.d_boolean), sizeof(bool));
+			case INT32:
+				memcpy(data+offset, &(param->store.d_int32), sizeof(int32_t));
+				break;
+			case INT64:
+				memcpy(data+offset, &(param->store.d_int64), sizeof(int64_t));
 				break;
 			case FLOAT:
 				memcpy(data+offset, &(param->store.d_float), sizeof(float));
 				break;
-			case INT:
-				memcpy(data+offset, &(param->store.d_int), sizeof(int32_t));
-				break;
 			case DOUBLE:
 				memcpy(data+offset, &(param->store.d_double), sizeof(double));
 				break;
-			case LONG:
-				memcpy(data+offset, &(param->store.d_long), sizeof(int64_t));
+			case BOOLEAN:
+				memcpy(data+offset, &(param->store.d_boolean), sizeof(bool));
 				break;
 			default:
 				buxton_log("Invalid parameter type %lu\n", param->type);
@@ -419,20 +419,20 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 					goto end;
 				}
 				break;
-			case BOOLEAN:
-				c_data->store.d_boolean = *(bool*)(data+offset);
+			case INT32:
+				c_data->store.d_int32 = *(int32_t*)(data+offset);
+				break;
+			case INT64:
+				c_data->store.d_int64 = *(int64_t*)(data+offset);
 				break;
 			case FLOAT:
 				c_data->store.d_float = *(float*)(data+offset);
 				break;
-			case INT:
-				c_data->store.d_int = *(int*)(data+offset);
-				break;
 			case DOUBLE:
 				c_data->store.d_double = *(double*)(data+offset);
 				break;
-			case LONG:
-				c_data->store.d_long = *(long*)(data+offset);
+			case BOOLEAN:
+				c_data->store.d_boolean = *(bool*)(data+offset);
 				break;
 			default:
 				goto end;

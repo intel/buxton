@@ -117,8 +117,8 @@ void bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 			goto end;
 	}
 	/* Set a response code */
-	response_data.type = INT;
-	response_data.store.d_int = response;
+	response_data.type = INT32;
+	response_data.store.d_int32 = response;
 	response_data.label = buxton_string_pack("dummy");
 
 	/* Prepare a data response */
@@ -187,30 +187,30 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 					   (const void *)(value->store.d_string.value),
 					   value->store.d_string.length);
 				break;
-			case BOOLEAN:
-				c = memcmp((const void *)&(nitem->old_data->store.d_boolean),
-					   (const void *)&(value->store.d_boolean),
-					   sizeof(bool));
+			case INT32:
+				c = memcmp((const void *)&(nitem->old_data->store.d_int32),
+					   (const void *)&(value->store.d_int32),
+					   sizeof(int32_t));
+				break;
+			case INT64:
+				c = memcmp((const void *)&(nitem->old_data->store.d_int64),
+					   (const void *)&(value->store.d_int64),
+					   sizeof(int64_t));
 				break;
 			case FLOAT:
 				c = memcmp((const void *)&(nitem->old_data->store.d_float),
 					   (const void *)&(value->store.d_float),
 					   sizeof(float));
 				break;
-			case INT:
-				c = memcmp((const void *)&(nitem->old_data->store.d_int),
-					   (const void *)&(value->store.d_int),
-					   sizeof(int32_t));
-				break;
 			case DOUBLE:
 				c = memcmp((const void *)&(nitem->old_data->store.d_double),
 					   (const void *)&(value->store.d_double),
 					   sizeof(double));
 				break;
-			case LONG:
-				c = memcmp((const void *)&(nitem->old_data->store.d_long),
-					   (const void *)&(value->store.d_long),
-					   sizeof(int64_t));
+			case BOOLEAN:
+				c = memcmp((const void *)&(nitem->old_data->store.d_boolean),
+					   (const void *)&(value->store.d_boolean),
+					   sizeof(bool));
 				break;
 			default:
 				goto end;

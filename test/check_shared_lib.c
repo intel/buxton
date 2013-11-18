@@ -243,15 +243,27 @@ START_TEST(buxton_data_copy_check)
 	if (copy.label.value)
 		free(copy.label.value);
 
-	original.type = BOOLEAN;
-	original.store.d_boolean = true;
+	original.type = INT32;
+	original.store.d_int32 = INT_MAX;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
-		"Failed to copy boolean type");
+		"Failed to copy int32 type");
 	fail_if(!streq(original.label.value, copy.label.value),
-		"Incorrectly copied boolean label");
-	fail_if(original.store.d_boolean != copy.store.d_boolean,
-		"Failed to copy boolean data");
+		"Incorrectly copied int32 label");
+	fail_if(original.store.d_int32 != copy.store.d_int32,
+		"Failed to copy int32 data");
+	if (copy.label.value)
+		free(copy.label.value);
+
+	original.type = INT64;
+	original.store.d_int64 = LONG_MAX;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy long type");
+	fail_if(!streq(original.label.value, copy.label.value),
+		"Incorrectly copied long label");
+	fail_if(original.store.d_int64 != copy.store.d_int64,
+		"Failed to copy long data");
 	if (copy.label.value)
 		free(copy.label.value);
 
@@ -267,18 +279,6 @@ START_TEST(buxton_data_copy_check)
 	if (copy.label.value)
 		free(copy.label.value);
 
-	original.type = INT;
-	original.store.d_int = INT_MAX;
-	buxton_data_copy(&original, &copy);
-	fail_if(copy.type != original.type,
-		"Failed to copy int type");
-	fail_if(!streq(original.label.value, copy.label.value),
-		"Incorrectly copied int label");
-	fail_if(original.store.d_int != copy.store.d_int,
-		"Failed to copy int data");
-	if (copy.label.value)
-		free(copy.label.value);
-
 	original.type = DOUBLE;
 	original.store.d_double = 3.1415;
 	buxton_data_copy(&original, &copy);
@@ -291,15 +291,15 @@ START_TEST(buxton_data_copy_check)
 	if (copy.label.value)
 		free(copy.label.value);
 
-	original.type = LONG;
-	original.store.d_long = LONG_MAX;
+	original.type = BOOLEAN;
+	original.store.d_boolean = true;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
-		"Failed to copy long type");
+		"Failed to copy boolean type");
 	fail_if(!streq(original.label.value, copy.label.value),
-		"Incorrectly copied long label");
-	fail_if(original.store.d_long != copy.store.d_long,
-		"Failed to copy long data");
+		"Incorrectly copied boolean label");
+	fail_if(original.store.d_boolean != copy.store.d_boolean,
+		"Failed to copy boolean data");
 	if (copy.label.value)
 		free(copy.label.value);
 
@@ -317,9 +317,13 @@ START_TEST(buxton_type_as_string_check)
 	fail_if(strcmp(buxton_type_as_string(type), "string") != 0,
 		"Failed to get string of STRING type");
 
-	type = BOOLEAN;
-	fail_if(strcmp(buxton_type_as_string(type), "boolean") != 0,
-		"Failed to get string of BOOLEAN type");
+	type = INT32;
+	fail_if(strcmp(buxton_type_as_string(type), "int32_t") != 0,
+		"Failed to get string of INT32 type");
+
+	type = INT64;
+	fail_if(strcmp(buxton_type_as_string(type), "int64_t") != 0,
+		"Failed to get string of INT64 type");
 
 	type = FLOAT;
 	fail_if(strcmp(buxton_type_as_string(type), "float") != 0,
@@ -329,13 +333,9 @@ START_TEST(buxton_type_as_string_check)
 	fail_if(strcmp(buxton_type_as_string(type), "double") != 0,
 		"Failed to get string of DOUBLE type");
 
-	type = LONG;
-	fail_if(strcmp(buxton_type_as_string(type), "long") != 0,
-		"Failed to get string of LONG type");
-
-	type = INT;
-	fail_if(strcmp(buxton_type_as_string(type), "int") != 0,
-		"Failed to get string of INT type");
+	type = BOOLEAN;
+	fail_if(strcmp(buxton_type_as_string(type), "boolean") != 0,
+		"Failed to get string of BOOLEAN type");
 }
 END_TEST
 
@@ -361,6 +361,34 @@ START_TEST(buxton_db_serialize_check)
 	if (dtarget.store.d_string.value)
 		free(dtarget.store.d_string.value);
 
+	dsource.type = INT32;
+	dsource.store.d_int32 = INT_MAX;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize int data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize int data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for int");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination int labels differ");
+	fail_if(dsource.store.d_int32 != dtarget.store.d_int32,
+		"Source and destination int data differ");
+	free(packed);
+
+	dsource.type = INT64;
+	dsource.store.d_int64 = LONG_MAX;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize long data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize long data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for long");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination long labels differ");
+	fail_if(dsource.store.d_int64 != dtarget.store.d_int64,
+		"Source and destination long data differ");
+	free(packed);
+
 	dsource.type = FLOAT;
 	dsource.store.d_float = 3.14F;
 	fail_if(buxton_serialize(&dsource, &packed) == false,
@@ -373,20 +401,6 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination float labels differ");
 	fail_if(dsource.store.d_float != dtarget.store.d_float,
 		"Source and destination float data differ");
-	free(packed);
-
-	dsource.type = INT;
-	dsource.store.d_int = INT_MAX;
-	fail_if(buxton_serialize(&dsource, &packed) == false,
-		"Failed to serialize int data");
-	fail_if(buxton_deserialize(packed, &dtarget) == false,
-		"Failed to deserialize int data");
-	fail_if(dsource.type != dtarget.type,
-		"Source and destination type differ for int");
-	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
-		"Source and destination int labels differ");
-	fail_if(dsource.store.d_int != dtarget.store.d_int,
-		"Source and destination int data differ");
 	free(packed);
 
 	dsource.type = DOUBLE;
@@ -403,19 +417,7 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination double data differ");
 	free(packed);
 
-	dsource.type = LONG;
-	dsource.store.d_long = LONG_MAX;
-	fail_if(buxton_serialize(&dsource, &packed) == false,
-		"Failed to serialize long data");
-	fail_if(buxton_deserialize(packed, &dtarget) == false,
-		"Failed to deserialize long data");
-	fail_if(dsource.type != dtarget.type,
-		"Source and destination type differ for long");
-	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
-		"Source and destination long labels differ");
-	fail_if(dsource.store.d_long != dtarget.store.d_long,
-		"Source and destination long data differ");
-	free(packed);
+	//FIXME add boolean serialize check
 
 	dsource.type = -1;
 	dsource.store.d_boolean = true;
@@ -454,18 +456,33 @@ START_TEST(buxton_message_serialize_check)
 		free(dtarget);
 	}
 
-	dsource.type = BOOLEAN;
-	dsource.store.d_boolean = true;
+	dsource.type = INT32;
+	dsource.store.d_int32 = INT_MAX;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
-	fail_if(ret == 0, "Failed to serialize boolean data");
+	fail_if(ret == 0, "Failed to serialize int data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
-		"Failed to deserialize boolean data");
-	fail_if(ctarget != csource, "Failed to get correct control message for boolean");
+		"Failed to deserialize int data");
+	fail_if(ctarget != csource, "Failed to get correct control message for int");
 	fail_if(dsource.type != dtarget[0].type,
-		"Source and destination type differ for boolean");
-	fail_if(dsource.store.d_boolean != dtarget[0].store.d_boolean,
-		"Source and destination boolean data differ");
+		"Source and destination type differ for int");
+	fail_if(dsource.store.d_int32 != dtarget[0].store.d_int32,
+		"Source and destination int data differ");
+	free(packed);
+	free(dtarget);
+
+	dsource.type = INT64;
+	dsource.store.d_int64 = LONG_MAX;
+	csource = BUXTON_CONTROL_GET;
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	fail_if(ret == 0, "Failed to serialize long data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
+		"Failed to deserialize long data");
+	fail_if(ctarget != csource, "Failed to get correct control message for long");
+	fail_if(dsource.type != dtarget[0].type,
+		"Source and destination type differ for long");
+	fail_if(dsource.store.d_int64 != dtarget[0].store.d_int64,
+		"Source and destination long data differ");
 	free(packed);
 	free(dtarget);
 
@@ -484,21 +501,6 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource.type = INT;
-	dsource.store.d_int = INT_MAX;
-	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
-	fail_if(ret == 0, "Failed to serialize int data");
-	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
-		"Failed to deserialize int data");
-	fail_if(ctarget != csource, "Failed to get correct control message for int");
-	fail_if(dsource.type != dtarget[0].type,
-		"Source and destination type differ for int");
-	fail_if(dsource.store.d_int != dtarget[0].store.d_int,
-		"Source and destination int data differ");
-	free(packed);
-	free(dtarget);
-
 	dsource.type = DOUBLE;
 	dsource.store.d_double = 3.1415;
 	csource = BUXTON_CONTROL_GET;
@@ -514,18 +516,18 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource.type = LONG;
-	dsource.store.d_long = LONG_MAX;
+	dsource.type = BOOLEAN;
+	dsource.store.d_boolean = true;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
-	fail_if(ret == 0, "Failed to serialize long data");
+	fail_if(ret == 0, "Failed to serialize boolean data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
-		"Failed to deserialize long data");
-	fail_if(ctarget != csource, "Failed to get correct control message for long");
+		"Failed to deserialize boolean data");
+	fail_if(ctarget != csource, "Failed to get correct control message for boolean");
 	fail_if(dsource.type != dtarget[0].type,
-		"Source and destination type differ for long");
-	fail_if(dsource.store.d_long != dtarget[0].store.d_long,
-		"Source and destination long data differ");
+		"Source and destination type differ for boolean");
+	fail_if(dsource.store.d_boolean != dtarget[0].store.d_boolean,
+		"Source and destination boolean data differ");
 	free(packed);
 	free(dtarget);
 
