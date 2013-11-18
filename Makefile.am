@@ -5,7 +5,7 @@ AM_CFLAGS = -std=gnu99 -fstack-protector -Wall -pedantic \
         -Wformat -Wformat-security -Werror=format-security \
 	-Wconversion
 if DEBUG
-AM_CFLAGS += -ggdb3
+AM_CFLAGS += -ggdb3 -O0
 endif
 
 AM_CPPFLAGS = \
