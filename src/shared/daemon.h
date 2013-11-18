@@ -129,6 +129,14 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i);
  */
 void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
 
+/**
+ * Terminate client connectoin
+ * @param self bt-daemon instance being run
+ * @param cl The client to terminate
+ * @param i File descriptor to remove from poll list
+ */
+void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
