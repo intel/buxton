@@ -12,32 +12,31 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 
 #include "bt-daemon.h"
 #include "util.h"
 
 #define error(...) { printf(__VA_ARGS__); goto end; }
 
+#define ITERATIONS 100000
+
 typedef bool (*TestFunction) (BuxtonClient *client);
 
-bool timed_func(TestFunction func, BuxtonClient *client, unsigned long long *total)
+bool timed_func(TestFunction func, BuxtonClient *client, unsigned long long *elapsed)
 {
 	struct timespec tsi, tsf;
-	unsigned long long elapsed;
 	bool ret;
 
 	clock_gettime(CLOCK_MONOTONIC, &tsi);
 	ret = func(client);
 	clock_gettime(CLOCK_MONOTONIC, &tsf);
 
-	elapsed = (unsigned long long)((tsf.tv_nsec - tsi.tv_nsec) + ((tsf.tv_sec - tsi.tv_sec) * 1000000000));
-	elapsed += *total;
-
-	*total = elapsed;
+	*elapsed = (unsigned long long)((tsf.tv_nsec - tsi.tv_nsec) + ((tsf.tv_sec - tsi.tv_sec) * 1000000000));
 	return ret;
 }
 
-bool set_value_test(BuxtonClient *client)
+bool set_string(BuxtonClient *client)
 {
 	BuxtonString layer, key, value;
 	BuxtonData data;
@@ -53,30 +52,72 @@ bool set_value_test(BuxtonClient *client)
 	return ret;
 }
 
+bool get_string(BuxtonClient *client)
+{
+	BuxtonString key;
+	BuxtonData data;
+	bool ret;
+
+	key = buxton_string_pack("ValueTestTest");
+
+	ret = buxton_client_get_value(client, &key, &data);
+
+	return ret;
+}
+
+static bool test(TestFunction func, BuxtonClient *client)
+{
+	unsigned long long elapsed;
+	unsigned long long total;
+	double meansqr;
+	double mean;
+	double sigma;
+	int i;
+
+	total = 0;
+	meansqr = 0.0;
+	mean = 0.0;
+
+	for (i = 0; i < ITERATIONS; i++) {
+		if (!timed_func(func, client, &elapsed))
+			return false;
+
+		mean += (double)elapsed;
+		meansqr += (double)elapsed * (double)elapsed;
+		total += elapsed;
+	}
+	mean /= (double)ITERATIONS;
+	meansqr /= (double)ITERATIONS;
+	sigma = sqrt(meansqr - (mean * mean));
+
+	printf("get_string: %i operations took %0.3lfs; Average time: %0.3lfus, sigma: %0.3lfus\n",
+	       ITERATIONS, (double)total / 1000000000.0, mean / 1000.0, sigma / 1000.0);
+
+	return true;
+}
+
 int main(int argc, char **argv)
 {
 	BuxtonClient client;
-	int i;
 	int ret = EXIT_FAILURE;
-	unsigned long long total;
-	long num_tests = 0;
-	float average;
 
-	if (!buxton_client_open(&client))
+	if (!buxton_client_open(&client)) {
 		error("Unable to open BuxtonClient\n");
-
-	if (!set_value_test(&client))
-		error("Unable to set string\n");
-
-	/* 10,000 set operations using wire protocol */
-	num_tests = 10000;
-	for (i=0; i < num_tests; i++) {
-		if (!timed_func(set_value_test, &client, &total))
-			error("Unable to set string\n");
+		exit(EXIT_FAILURE);
 	}
-	total /= 1000000;
-	average = ((float)total) / ((float)num_tests);
-	printf("set_value_test: %ld operations took %lldms; Average time: %lfms\n", num_tests, total, average);
+
+	if (!get_string(&client)) {
+		error("Unable to get string\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (!set_string(&client)) {
+		error("Unable to set string\n");
+		exit(EXIT_FAILURE);
+	}
+
+	test(get_string, &client);
+	test(set_string, &client);
 
 	ret = EXIT_SUCCESS;
 	buxton_client_close(&client);

@@ -256,5 +256,5 @@ bxt_timing_SOURCES = \
 bxt_timing_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la \
-	-lrt
+	-lrt -lm
 endif
