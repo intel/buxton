@@ -3,18 +3,8 @@
 - integrate smack access control in get_value and set_value functions
   of bt-daemon (main.c)
 
-- don't hang for clients in bt-daemon, possible solution is to set
-  socket timeout when we have a partial message, then remove timeout
-  once a complete message is recieved.
-
 - test multi-part messaging in the client-side of the library, mirroring
   changes made to bt-daemon's protocol handling
 
 - add checks for data consistency, and determine if gdbm needs to be
   "reorganised" to ensure minimal I/O bottlenecking
-
-- verify that received strings over the socket have a \x00 at the last
-  byte just to assure that it's not utter garbage.
-
-- change malloc's into calloc's everywhere, make sure we zero anything
-  that is serialized due to the union member leaving padding uncleared.
