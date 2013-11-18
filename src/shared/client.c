@@ -119,9 +119,21 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 		}
 		break;
 	case BOOLEAN:
-		if (streq(value.value, "true"))
+		if (strcaseeq(value.value, "true") ||
+		    strcaseeq(value.value, "on") ||
+		    strcaseeq(value.value, "enable") ||
+		    strcaseeq(value.value, "yes") ||
+		    strcaseeq(value.value, "y") ||
+		    strcaseeq(value.value, "t") ||
+		    strcaseeq(value.value, "1"))
 			set.store.d_boolean = true;
-		else if (streq(value.value, "false"))
+		else if (strcaseeq(value.value, "false") ||
+			 strcaseeq(value.value, "off") ||
+			 strcaseeq(value.value, "disable") ||
+			 strcaseeq(value.value, "no") ||
+			 strcaseeq(value.value, "n") ||
+			 strcaseeq(value.value, "f") ||
+			 strcaseeq(value.value, "0"))
 			set.store.d_boolean = false;
 		else {
 			printf("Invalid bool value\n");
