@@ -17,7 +17,7 @@
 #include "bt-daemon.h"
 #include "util.h"
 
-#define error(...) { printf(__VA_ARGS__); goto end; }
+#define error(...) { printf(__VA_ARGS__); }
 
 #define ITERATIONS 100000
 
@@ -40,29 +40,73 @@ bool set_string(BuxtonClient *client)
 {
 	BuxtonString layer, key, value;
 	BuxtonData data;
-	bool ret;
 
 	layer = buxton_string_pack("base");
-	key = buxton_string_pack("ValueTestTest");
-	value = buxton_string_pack("SomeRandomString");
+	key = buxton_string_pack("TimingTestString");
+	value = buxton_string_pack("672");
 	buxton_string_to_data(&value, &data);
 	data.label = buxton_string_pack("_");
 
-	ret = buxton_client_set_value(client, &layer, &key, &data);
-	return ret;
+	return buxton_client_set_value(client, &layer, &key, &data);
 }
 
 bool get_string(BuxtonClient *client)
 {
 	BuxtonString key;
 	BuxtonData data;
-	bool ret;
 
-	key = buxton_string_pack("ValueTestTest");
+	key = buxton_string_pack("TimingTestString");
 
-	ret = buxton_client_get_value(client, &key, &data);
+	return buxton_client_get_value(client, &key, &data);
+}
 
-	return ret;
+bool set_string_4k(BuxtonClient *client)
+{
+	BuxtonString layer, key, value;
+	BuxtonData data;
+
+	layer = buxton_string_pack("base");
+	key = buxton_string_pack("TimingTestString4k");
+	value = buxton_string_pack("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+	buxton_string_to_data(&value, &data);
+	data.label = buxton_string_pack("_");
+
+	return buxton_client_set_value(client, &layer, &key, &data);
+}
+
+bool get_string_4k(BuxtonClient *client)
+{
+	BuxtonString key;
+	BuxtonData data;
+
+	key = buxton_string_pack("TimingTestString4k");
+
+	return buxton_client_get_value(client, &key, &data);
+}
+
+bool set_int32(BuxtonClient *client)
+{
+	BuxtonString layer, key;
+	BuxtonData data;
+
+	layer = buxton_string_pack("base");
+	key = buxton_string_pack("TimingTestInt32");
+	data.type = INT32;
+	data.store.d_int32 = 672;
+	data.label = buxton_string_pack("_");
+
+	return buxton_client_set_value(client, &layer, &key, &data);
+}
+
+bool get_int32(BuxtonClient *client)
+{
+	BuxtonString key;
+	BuxtonData data;
+
+	key = buxton_string_pack("TimingTestInt32");
+	data.type = INT32;
+
+	return buxton_client_get_value(client, &key, &data);
 }
 
 static bool test(TestFunction func, const char *name, BuxtonClient *client)
@@ -99,10 +143,15 @@ static bool test(TestFunction func, const char *name, BuxtonClient *client)
 int main(int argc, char **argv)
 {
 	BuxtonClient client;
-	int ret = EXIT_FAILURE;
 
 	if (!buxton_client_open(&client)) {
 		error("Unable to open BuxtonClient\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/* pre-roll all tests so that we're not asking for missing keys */
+	if (!set_string(&client)) {
+		error("Unable to set string\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -111,16 +160,39 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (!set_string(&client)) {
-		error("Unable to set string\n");
+	if (!set_string_4k(&client)) {
+		error("Unable to set 4k string\n");
 		exit(EXIT_FAILURE);
 	}
 
-	test(get_string, "get_string", &client);
-	test(set_string, "set_string", &client);
+	if (!get_string_4k(&client)) {
+		error("Unable to get 4k string\n");
+		exit(EXIT_FAILURE);
+	}
 
-	ret = EXIT_SUCCESS;
+	if (!set_int32(&client)) {
+		error("Unable to set int32\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (!get_int32(&client)) {
+		error("Unable to get int32\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (!test(get_string, "get_string", &client))
+		exit(EXIT_FAILURE);
+	if (!test(set_string, "set_string", &client))
+		exit(EXIT_FAILURE);
+	if (!test(get_string_4k, "get_string_4k", &client))
+		exit(EXIT_FAILURE);
+	if (!test(set_string_4k, "set_string_4k", &client))
+		exit(EXIT_FAILURE);
+	if (!test(get_int32, "get_int32", &client))
+		exit(EXIT_FAILURE);
+	if (!test(set_int32, "set_int32", &client))
+		exit(EXIT_FAILURE);
+
 	buxton_client_close(&client);
-end:
-	return ret;
+	exit(EXIT_SUCCESS);
 }
