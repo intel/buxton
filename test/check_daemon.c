@@ -50,7 +50,7 @@ static char* dump_fuzz(FuzzContext *fuzz)
 
 	fprintf(s, "\n\n******************************************\n");
 	fprintf(s, "current time %ld\n", time(NULL));
-	fprintf(s, "iteration: %d\tsize: %ld\n", fuzz->iteration, fuzz->size);
+	fprintf(s, "iteration: %d\tsize: %llu\n", fuzz->iteration, (unsigned long long)fuzz->size);
 	for (int i = 0; i < fuzz->size; i++) {
 		fprintf(s, "%02X ", fuzz->buf[i]);
 		c+= 3;
