@@ -105,18 +105,18 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 
 	/* use internal function from bt-daemon */
 	switch (msg) {
-		case BUXTON_CONTROL_SET:
-			data = self->set_value(self, client, layer, key, value, &response);
-			break;
-		case BUXTON_CONTROL_GET:
-			data = self->get_value(self, client, layer, key, value, &response);
-			break;
-		case BUXTON_CONTROL_NOTIFY:
-			data = self->register_notification(self, client, layer, key, value,
-							   &response);
-			break;
-		default:
-			goto end;
+	case BUXTON_CONTROL_SET:
+		data = self->set_value(self, client, layer, key, value, &response);
+		break;
+	case BUXTON_CONTROL_GET:
+		data = self->get_value(self, client, layer, key, value, &response);
+		break;
+	case BUXTON_CONTROL_NOTIFY:
+		data = self->register_notification(self, client, layer, key, value,
+						   &response);
+		break;
+	default:
+		goto end;
 	}
 	/* Set a response code */
 	response_data.type = INT32;
