@@ -65,7 +65,7 @@ bool get_string(BuxtonClient *client)
 	return ret;
 }
 
-static bool test(TestFunction func, BuxtonClient *client)
+static bool test(TestFunction func, const char *name, BuxtonClient *client)
 {
 	unsigned long long elapsed;
 	unsigned long long total;
@@ -90,8 +90,8 @@ static bool test(TestFunction func, BuxtonClient *client)
 	meansqr /= (double)ITERATIONS;
 	sigma = sqrt(meansqr - (mean * mean));
 
-	printf("get_string: %i operations took %0.3lfs; Average time: %0.3lfus, sigma: %0.3lfus\n",
-	       ITERATIONS, (double)total / 1000000000.0, mean / 1000.0, sigma / 1000.0);
+	printf("%s: %i operations took %0.3lfs; Average time: %0.3lfus, sigma: %0.3lfus\n",
+	       name, ITERATIONS, (double)total / 1000000000.0, mean / 1000.0, sigma / 1000.0);
 
 	return true;
 }
@@ -116,8 +116,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	test(get_string, &client);
-	test(set_string, &client);
+	test(get_string, "get_string", &client);
+	test(set_string, "set_string", &client);
 
 	ret = EXIT_SUCCESS;
 	buxton_client_close(&client);
