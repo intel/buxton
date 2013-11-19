@@ -249,13 +249,15 @@ end:
 void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
 		      BuxtonString *key, BuxtonData *value, BuxtonStatus *status)
 {
-	*status = BUXTON_STATUS_FAILED;
 
 	assert(self);
 	assert(client);
 	assert(layer);
 	assert(key);
 	assert(value);
+	assert(status);
+
+	*status = BUXTON_STATUS_FAILED;
 
 	buxton_debug("Daemon setting [%s][%s][%s]\n",
 		     layer->value,
@@ -307,12 +309,14 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
 		      BuxtonString *key, BuxtonStatus *status)
 {
-	*status = BUXTON_STATUS_FAILED;
 	BuxtonData *data = NULL;
 
 	assert(self);
 	assert(client);
 	assert(key);
+	assert(status);
+
+	*status = BUXTON_STATUS_FAILED;
 
 	data = malloc0(sizeof(BuxtonData));
 	if (!data)
