@@ -21,7 +21,7 @@
 #include "util.h"
 
 size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
-			      BuxtonData **list)
+			      BuxtonArray **list)
 {
 	assert(self);
 	assert(msg);
@@ -29,9 +29,8 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 
 	ssize_t l;
 	_cleanup_free_ uint8_t *response = NULL;
-	BuxtonData *r_list = NULL;
+	BuxtonArray *r_list = NULL;
 	BuxtonControlMessage r_msg = BUXTON_CONTROL_MIN;
-	size_t count = 0;
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
 
@@ -59,10 +58,9 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 		if (size != offset)
 			continue;
 
-		count = buxton_deserialize_message(response, &r_msg, size, &r_list);
-		if (count == 0)
+		if (!buxton_deserialize_message(response, &r_msg, size, &r_list))
 			return 0;
-		if (r_msg != BUXTON_CONTROL_STATUS || r_list[0].type != INT32) {
+		if (r_msg != BUXTON_CONTROL_STATUS || BD(r_list, 0)->type != INT32) {
 			buxton_log("Critical error: Invalid response\n");
 			return 0;
 		}
@@ -73,7 +71,7 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 	*msg = r_msg;
 	*list = r_list;
 
-	return count;
+	return r_list->len;
 }
 
 bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonString *key,
@@ -89,7 +87,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	size_t count;
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
-	_cleanup_free_ BuxtonData *r_list = NULL;
+	_cleanup_free_ BuxtonArray *r_list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_key;
 
@@ -109,7 +107,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
-	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
+	if (r_list->len > 0 && BD(r_list, 0)->store.d_int32 == BUXTON_STATUS_OK)
 		return true;
 
 	return false;
@@ -128,7 +126,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	int i;
 	_cleanup_free_ uint8_t *send = NULL;
 	BuxtonControlMessage r_msg;
-	BuxtonData *r_list = NULL;
+	BuxtonArray *r_list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_key;
 
@@ -153,22 +151,23 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
-	if (count == 2 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
+	if (count == 2 && BD(r_list, 0)->store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 	else
 		goto end;
 
 	/* Now copy the data over for the user */
-	buxton_data_copy(&r_list[1], value);
+	buxton_data_copy(BD(r_list, 1), value);
 
 end:
+	/* Todo: Use utility cleanup */
 	if (r_list) {
 		for (i=0; i < count; i++) {
-			free(r_list[i].label.value);
-			if (r_list[i].type == STRING)
-				free(r_list[i].store.d_string.value);
+			free(BD(r_list, i)->label.value);
+			if (BD(r_list, i)->type == STRING)
+				free(BD(r_list, i)->store.d_string.value);
 		}
-		free(r_list);
+		buxton_array_free(&r_list, NULL);
 	}
 	return ret;
 }
@@ -183,7 +182,7 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 	uint8_t *send = NULL;
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
-	BuxtonData *r_list = NULL;
+	BuxtonArray *r_list = NULL;
 	BuxtonData d_key;
 
 	buxton_string_to_data(key, &d_key);
@@ -199,11 +198,11 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
-	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
+	if (count > 0 && BD(r_list, 0)->store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 end:
 	free(send);
-	free(r_list);
+	buxton_array_free(&r_list, NULL);
 
 	return ret;
 }

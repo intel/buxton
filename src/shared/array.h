@@ -19,6 +19,13 @@
 #include <stdbool.h>
 
 /**
+ * Utility to easily access members of type BuxtonData in an array
+ * @param x a BuxtonArray
+ * @param y index of the data in the array
+ */
+#define BD(x,y)  ((BuxtonData*)x->data[y])
+
+/**
  * A dynamic array
  */
 typedef struct BuxtonArray {
