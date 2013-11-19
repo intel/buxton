@@ -93,9 +93,9 @@ struct BuxtonDaemon {
  * @param client A Buxton Client
  * @param msg Pointer to BuxtonControlMessage
  * @param list Pointer to empty BuxtonArray (NULL)
- * @return the number of parameters returned, or 0
+ * @return a boolean, indicating success of the operation
  */
-size_t buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
+bool buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
 			      BuxtonArray **list);
 /**
  * Send a SET message over the wire protocol, return the response
