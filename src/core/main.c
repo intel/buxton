@@ -70,9 +70,6 @@ int main(int argc, char *argv[])
 	self.accepting_alloc = 0;
 	self.nfds = 0;
 	self.buxton.direct = true;
-	self.set_value = &set_value;
-	self.get_value = &get_value;
-	self.register_notification = &register_notification;
 	self.buxton.uid = geteuid();
 	if (!buxton_direct_open(&self.buxton))
 		exit(EXIT_FAILURE);

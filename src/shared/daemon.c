@@ -106,14 +106,13 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	/* use internal function from bt-daemon */
 	switch (msg) {
 	case BUXTON_CONTROL_SET:
-		data = self->set_value(self, client, layer, key, value, &response);
+		set_value(self, client, layer, key, value, &response);
 		break;
 	case BUXTON_CONTROL_GET:
-		data = self->get_value(self, client, layer, key, value, &response);
+		data = get_value(self, client, layer, key, &response);
 		break;
 	case BUXTON_CONTROL_NOTIFY:
-		data = self->register_notification(self, client, layer, key, value,
-						   &response);
+		register_notification(self, client, key, &response);
 		break;
 	default:
 		goto end;
@@ -247,7 +246,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 end:
 	free(response);
 }
-BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
 		      BuxtonString *key, BuxtonData *value, BuxtonStatus *status)
 {
 	*status = BUXTON_STATUS_FAILED;
@@ -267,7 +266,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 		BuxtonData *data = malloc0(sizeof(BuxtonData));
 		if (!data) {
 			buxton_log("malloc0: %m\n");
-			return NULL;
+			return;
 		}
 
 		bool valid = buxton_client_get_value_for_layer(&(self->buxton),
@@ -280,7 +279,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 							 ACCESS_WRITE)) {
 			buxton_debug("Smack: not permitted to set new value\n");
 			free(data);
-			return NULL;
+			return;
 		}
 
 		if (valid && !buxton_check_smack_access(client->smack_label,
@@ -288,7 +287,7 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 							ACCESS_WRITE)) {
 			buxton_debug("Smack: not permitted to modify existing value\n");
 			free(data);
-			return NULL;
+			return;
 		}
 
 		free(data);
@@ -298,17 +297,15 @@ BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 	self->buxton.uid = client->cred.uid;
 	if (!buxton_client_set_value(&(self->buxton), layer, key, value)) {
 		*status = BUXTON_STATUS_FAILED;
-		return NULL;
+		return;
 	}
 
 	*status = BUXTON_STATUS_OK;
 	buxton_debug("Daemon set value completed\n");
-	return NULL;
 }
 
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
-		      BuxtonString *key, __attribute__((unused)) BuxtonData *value,
-		      BuxtonStatus *status)
+		      BuxtonString *key, BuxtonStatus *status)
 {
 	*status = BUXTON_STATUS_FAILED;
 	BuxtonData *data = NULL;
@@ -356,11 +353,8 @@ end:
 	return data;
 }
 
-BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
-				  __attribute__((unused)) BuxtonString *layer,
-				  BuxtonString *key,
-				  __attribute__((unused)) BuxtonData *value,
-				  BuxtonStatus *status)
+void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonString *key,
+			   BuxtonStatus *status)
 {
 	notification_list_item *n_list = NULL;
 	notification_list_item *nitem;
@@ -377,15 +371,15 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 
 	nitem = malloc0(sizeof(notification_list_item));
 	if (!nitem)
-		return NULL;
+		return;
 	LIST_INIT(notification_list_item, item, nitem);
 	nitem->client = client;
 
 	/* Store data now, cheap */
-	old_data = get_value(self, client, NULL, key, NULL, &key_status);
+	old_data = get_value(self, client, NULL, key, &key_status);
 	if (key_status != BUXTON_STATUS_OK) {
 		free(nitem);
-		return NULL;
+		return;
 	}
 	nitem->old_data = old_data;
 
@@ -394,20 +388,18 @@ BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
 		key_name = strdup(key->value);
 		if (!key_name) {
 			free(nitem);
-			return NULL;
+			return;
 		}
 
 		if (hashmap_put(self->notify_mapping, key_name, nitem) < 0) {
 			free(key_name);
 			free(nitem);
-			return NULL;
+			return;
 		}
 	} else {
 		LIST_PREPEND(notification_list_item, item, n_list, nitem);
 	}
 	*status = BUXTON_STATUS_OK;
-
-	return NULL;
 }
 
 bool identify_client(client_list_item *cl)

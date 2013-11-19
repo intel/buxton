@@ -59,22 +59,10 @@ typedef enum BuxtonStatus {
 	BUXTON_STATUS_FAILED /**<Operation failed */
 } BuxtonStatus;
 
-typedef struct BuxtonDaemon BuxtonDaemon;
-
-/**
- * Prototype for get and set value functions
- */
-typedef BuxtonData* (*daemon_value_func) (struct BuxtonDaemon *self,
-					  client_list_item *client,
-					  BuxtonString *layer,
-					  BuxtonString *key,
-					  BuxtonData *value,
-					  BuxtonStatus *status);
-
 /**
  * Global store of bt-daemon state
  */
-struct BuxtonDaemon {
+typedef struct BuxtonDaemon {
 	size_t nfds_alloc;
 	size_t accepting_alloc;
 	nfds_t nfds;
@@ -83,10 +71,7 @@ struct BuxtonDaemon {
 	client_list_item *client_list;
 	Hashmap *notify_mapping;
 	BuxtonClient buxton;
-	daemon_value_func set_value;
-	daemon_value_func get_value;
-	daemon_value_func register_notification;
-};
+} BuxtonDaemon;
 
 /**
  * Wait for and parse a response from bt-daemon

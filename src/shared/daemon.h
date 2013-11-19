@@ -64,37 +64,31 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
  * @param key Key for the value being set
  * @param value Value being set
  * @param status Will be set with the BuxtonStatus result of the operation
- * @returns BuxtonData Always NULL currently, may be changed in the future
  */
-BuxtonData *set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
-			      BuxtonString *key, BuxtonData *value, BuxtonStatus *status);
+void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+	       BuxtonString *key, BuxtonData *value, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for getting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param label Label for the value being set (optional)
- * @param key Key for the value being set
- * @param value Not used
+ * @param layer Layer for the value being sought
+ * @param key Key for the value being sought
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
-			      BuxtonString *key, BuxtonData *value, BuxtonStatus *status);
+		      BuxtonString *key, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for registering notifications on a given key
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param label Not used
  * @param key Key to notify for changes on
- * @param value Not used
  * @param status Will be set with the BuxtonStatus result of the operation
- * @returns BuxtonData Always NULL currently, may be changed in the future
  */
-BuxtonData *register_notification(BuxtonDaemon *self, client_list_item *client,
-					  BuxtonString *layer, BuxtonString *key,
-					  BuxtonData *value, BuxtonStatus *status);
+void register_notification(BuxtonDaemon *self, client_list_item *client,
+			   BuxtonString *key, BuxtonStatus *status);
 
 /**
  * Verify credentials for the client socket
