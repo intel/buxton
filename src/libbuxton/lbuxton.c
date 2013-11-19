@@ -512,7 +512,7 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	out->name.value = strdup(name);
 	if (!out->name.value)
 		goto fail;
-	out->name.length = strlen(name);
+	out->name.length = (uint32_t)strlen(name);
 
 	if (strcmp(_type, "System") == 0)
 		out->type = LAYER_SYSTEM;
@@ -574,7 +574,7 @@ BuxtonString *buxton_make_key(char *group, char *name)
 			free(key);
 			return NULL;
 		}
-		key->length = strlen(key->value) + 1;
+		key->length = (uint32_t)strlen(key->value) + 1;
 		return key;
 	}
 
@@ -583,7 +583,7 @@ BuxtonString *buxton_make_key(char *group, char *name)
 		free(key);
 		return NULL;
 	}
-	key->length = (size_t)len + 1;
+	key->length = (uint32_t)len + 1;
 
 	return key;
 }

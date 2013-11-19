@@ -85,12 +85,12 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 	bool ret = false;
 
 	layer.value = one;
-	layer.length = strlen(one) + 1;
+	layer.length = (uint32_t)strlen(one) + 1;
 	key = buxton_make_key(two, three);
 	if (!key)
 		return ret;
 	value.value = four;
-	value.length = strlen(four) + 1;
+	value.length = (uint32_t)strlen(four) + 1;
 
 	set.label = buxton_string_pack("_");
 	set.type = type;
@@ -169,7 +169,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 
 	if (three != NULL) {
 		layer.value = one;
-		layer.length = strlen(one) + 1;
+		layer.length = (uint32_t)strlen(one) + 1;
 		key = buxton_make_key(two, three);
 		asprintf(&prefix, "[%s] ", layer.value);
 	} else {

@@ -15,6 +15,7 @@
 
 #include <malloc.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +40,7 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	assert(target);
 
 	/* DataType + length field */
-	size = sizeof(BuxtonDataType) + (sizeof(size_t) * 2) + source->label.length;
+	size = sizeof(BuxtonDataType) + (sizeof(uint32_t) * 2) + source->label.length;
 
 	/* Total size will be different for string data */
 	switch (source->type) {
@@ -63,12 +64,12 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 	offset += sizeof(BuxtonDataType);
 
 	/* Write out the length of the label field */
-	memcpy(data+offset, &(source->label.length), sizeof(size_t));
-	offset += sizeof(size_t);
+	memcpy(data+offset, &(source->label.length), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
 
 	/* Write out the length of the data field */
-	memcpy(data+offset, &length, sizeof(size_t));
-	offset += sizeof(size_t);
+	memcpy(data+offset, &length, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
 
 	/* Write out the label field */
 	memcpy(data+offset, source->label.value, source->label.length);
@@ -122,12 +123,12 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 	offset += sizeof(BuxtonDataType);
 
 	/* Retrieve the length of the label */
-	target->label.length = *(size_t*)(source+offset);
-	offset += sizeof(size_t);
+	target->label.length = *(uint32_t*)(source+offset);
+	offset += sizeof(uint32_t);
 
 	/* Retrieve the length of the value */
-	length = *(size_t*)(source+offset);
-	offset += sizeof(size_t);
+	length = *(uint32_t*)(source+offset);
+	offset += sizeof(uint32_t);
 
 	/* Retrieve the label */
 	target->label.value = malloc(target->label.length);
@@ -143,7 +144,7 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 			if (!target->store.d_string.value)
 				goto end;
 			memcpy(target->store.d_string.value, source+offset, length);
-			target->store.d_string.length = length;
+			target->store.d_string.length = (uint32_t)length;
 			break;
 		case INT32:
 			target->store.d_int32 = *(int32_t*)(source+offset);
@@ -178,7 +179,7 @@ end:
 }
 
 size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
-			      size_t n_params, ...)
+			        size_t n_params, ...)
 {
 	va_list args;
 	int i = 0;
@@ -199,7 +200,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
 		return ret;
 
-	data = malloc0(sizeof(uint32_t) + sizeof(size_t) + sizeof(size_t));
+	data = malloc0(sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t));
 	if (!data)
 		goto end;
 
@@ -212,11 +213,11 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	offset += sizeof(uint16_t);
 
 	/* Save room for final size */
-	offset += sizeof(size_t);
+	offset += sizeof(uint32_t);
 
 	/* Now write the parameter count */
-	memcpy(data+offset, &n_params, sizeof(size_t));
-	offset += sizeof(size_t);
+	memcpy(data+offset, &n_params, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
 
 	size = offset;
 
@@ -242,7 +243,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		}
 
 		/* Need to allocate enough room to hold this data */
-		size += sizeof(BuxtonDataType) + (sizeof(size_t) * 2)
+		size += sizeof(BuxtonDataType) + (sizeof(uint32_t) * 2)
 			+ param->label.length
 			+ p_length;
 
@@ -256,12 +257,12 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		offset += sizeof(BuxtonDataType);
 
 		/* Write out the length of the label field */
-		memcpy(data+offset, &(param->label.length), sizeof(size_t));
-		offset += sizeof(size_t);
+		memcpy(data+offset, &(param->label.length), sizeof(uint32_t));
+		offset += sizeof(uint32_t);
 
 		/* Write out the length of value */
-		memcpy(data+offset, &p_length, sizeof(size_t));
-		offset += sizeof(size_t);
+		memcpy(data+offset, &p_length, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
 
 		/* Write out the label field */
 		memcpy(data+offset, param->label.value, param->label.length);
@@ -294,10 +295,11 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		p_length = 0;
 	}
 
-	memcpy(data+BUXTON_LENGTH_OFFSET, &offset, sizeof(size_t));
+	memcpy(data+BUXTON_LENGTH_OFFSET, &offset, sizeof(uint32_t));
 
 	ret = offset;
 	*dest = data;
+
 fail:
 	/* Clean up */
 	if (ret == 0)
@@ -309,7 +311,7 @@ end:
 }
 
 size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
-			       size_t size, BuxtonData **list)
+				  size_t size, BuxtonData **list)
 {
 	size_t offset = 0;
 	size_t ret = 0;
@@ -347,11 +349,11 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 		goto end;
 
 	/* Skip size since our caller got this already */
-	offset += sizeof(size_t);
+	offset += sizeof(uint32_t);
 
 	/* Obtain number of parameters */
-	n_params = *(size_t*)(data+offset);
-	offset += sizeof(size_t);
+	n_params = *(uint32_t*)(data+offset);
+	offset += sizeof(uint32_t);
 	buxton_debug("total params: %d\n", n_params);
 
 	if (n_params > BUXTON_MESSAGE_MAX_PARAMS)
@@ -365,7 +367,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 		buxton_debug("param: %d\n", c_param + 1);
 		buxton_debug("offset=%lu\n", offset);
 		/* Don't read past the end of the buffer */
-		if (offset + sizeof(BuxtonDataType) + (sizeof(size_t) * 2) >= size)
+		if (offset + sizeof(BuxtonDataType) + (sizeof(uint32_t) * 2) >= size)
 			goto end;
 
 		/* Now unpack type */
@@ -380,20 +382,20 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 			goto end;
 
 		/* Retrieve the length of the label */
-		c_data->label.length = *(size_t*)(data+offset);
+		c_data->label.length = *(uint32_t*)(data+offset);
 		if (c_data->label.length < 2)
 			goto end;
-		offset += sizeof(size_t);
+		offset += sizeof(uint32_t);
 		buxton_debug("label length: %lu\n", c_data->label.length);
 
 		if (c_data->label.length > SMACK_LABEL_LEN)
 			goto end;
 
 		/* Retrieve the length of the value */
-		c_length = *(size_t*)(data+offset);
+		c_length = *(uint32_t*)(data+offset);
 		if (c_length == 0)
 			goto end;
-		offset += sizeof(size_t);
+		offset += sizeof(uint32_t);
 		buxton_debug("value length: %lu\n", c_length);
 
 		/* Don't try to read past the end of our buffer */
@@ -413,7 +415,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 				if (!c_data->store.d_string.value)
 					goto end;
 				memcpy(c_data->store.d_string.value, data+offset, c_length);
-				c_data->store.d_string.length = c_length;
+				c_data->store.d_string.length = (uint32_t)c_length;
 				if (c_data->store.d_string.value[c_length-1] != 0x00) {
 					buxton_debug("buxton_deserialize_message(): Garbage message\n");
 					goto end;
@@ -463,7 +465,7 @@ size_t buxton_get_message_size(uint8_t *data, size_t size)
 	if (size < BUXTON_MESSAGE_HEADER_LENGTH)
 		return 0;
 
-	memcpy(&r_size, data+BUXTON_LENGTH_OFFSET, sizeof(size_t));
+	r_size = *(uint32_t*)(data + BUXTON_LENGTH_OFFSET);
 
 	if (r_size < BUXTON_MESSAGE_HEADER_LENGTH)
 		return 0;

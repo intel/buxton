@@ -32,6 +32,7 @@
 
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 #if (__GNUC__ >= 4)
@@ -70,7 +71,7 @@ typedef enum BuxtonDataType {
  */
 typedef struct BuxtonString {
 	char *value; /**<The content of the string */
-	size_t length; /**<The length of the string */
+	uint32_t length; /**<The length of the string */
 } BuxtonString;
 
 /**

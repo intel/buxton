@@ -15,6 +15,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <attr/xattr.h>
 
@@ -577,7 +578,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 			}
 
 			slabel->value = buf;
-			slabel->length = (size_t)slabel_len;
+			slabel->length = (uint32_t)slabel_len;
 
 			buxton_debug("fgetxattr(): label=\"%s\"\n", slabel->value);
 

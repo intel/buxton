@@ -40,7 +40,7 @@
  * 1 is the mimimum number of characters in a valid value
  */
 #define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) \
-	+ (sizeof(size_t) * 2) \
+	+ (sizeof(uint32_t) * 2) \
 	+ 2 + 1
 
 /**
@@ -60,7 +60,7 @@ typedef enum BuxtonControlMessage{
  * Length of valid message header
  */
 #define BUXTON_MESSAGE_HEADER_LENGTH sizeof(uint32_t) \
-	+ sizeof(size_t)
+	+ sizeof(uint32_t)
 /**
  * Maximum length of valid control message
  */
@@ -96,7 +96,7 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
  * @return a size_t, 0 indicates failure otherwise size of dest
  */
 size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
-			      size_t n_params, ...);
+				size_t n_params, ...);
 
 /**
  * Deserialize the given data into an array of BuxtonData structs
@@ -107,13 +107,13 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
  * @return the length of the array, or 0 if deserialization failed
  */
 size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
-			       size_t size, BuxtonData **list);
+				  size_t size, BuxtonData **list);
 
 /**
  * Get size of a buxton message data stream
  * @param data The source data stream
  * @param size The size of the data stream (from read)
- * @return size_t The length of the complete message or 0
+ * @return a size_t length of the complete message or 0
  */
 size_t buxton_get_message_size(uint8_t *data, size_t size);
 
