@@ -160,15 +160,9 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	buxton_data_copy(BD(r_list, 1), value);
 
 end:
-	/* Todo: Use utility cleanup */
-	if (r_list) {
-		for (i=0; i < r_list->len; i++) {
-			free(BD(r_list, i)->label.value);
-			if (BD(r_list, i)->type == STRING)
-				free(BD(r_list, i)->store.d_string.value);
-		}
-		buxton_array_free(&r_list, NULL);
-	}
+	if (r_list)
+		buxton_array_free(&r_list, &buxton_data_free);
+
 	return ret;
 }
 

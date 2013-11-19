@@ -11,6 +11,7 @@ BUXTON_1 {
 		buxton_get_group;
 		buxton_get_name;
 		buxton_make_key;
+		buxton_data_free;
         local:
                 *;
 };

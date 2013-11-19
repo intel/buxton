@@ -146,14 +146,9 @@ end:
 	self->buxton.uid = uid;
 	if (data && data->type == STRING)
 		free(data->store.d_string.value);
-	/* Todo: Use buxton_array_free with a new utility */
-	if (list) {
-		for (i=0; i < list->len; i++) {
-			if (BD(list, i)->type == STRING)
-				free(BD(list, i)->store.d_string.value);
-		}
-		buxton_array_free(&list, NULL);
-	}
+	if (list)
+		buxton_array_free(&list, &buxton_data_free);
+
 	return ret;
 }
 

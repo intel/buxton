@@ -198,6 +198,12 @@ _bx_export_ char *buxton_get_group(BuxtonString *key);
  */
 _bx_export_ char *buxton_get_name(BuxtonString *key);
 
+/**
+ * Free an allocated BuxtonData and any associated resources
+ * @param p Pointer to an allocated BuxtonData
+ */
+_bx_export_ void buxton_data_free(void *p);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
