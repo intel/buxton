@@ -29,6 +29,7 @@
 #include "serialize.h"
 #include "smack.h"
 #include "util.h"
+#include "array.h"
 
 START_TEST(log_write_check)
 {
@@ -573,6 +574,46 @@ START_TEST(buxton_get_message_size_check)
 }
 END_TEST
 
+
+START_TEST(buxton_array_check)
+{
+	BuxtonArray *array = NULL;
+	BuxtonString one, two;
+	char *three = NULL;
+	BuxtonString *test = NULL;
+	bool ret = false;
+
+	array = buxton_array_new();
+	fail_if(array == NULL, "Failed to allocate new BuxtonArray");
+
+	one = buxton_string_pack("one");
+	two = buxton_string_pack("two");
+	asprintf(&three, "three");
+
+	ret = buxton_array_add(array, &one);
+	fail_if(ret == false, "Failed to add string 1 to BuxtonArray");
+	ret = buxton_array_add(array, &two);
+	fail_if(ret == false, "Failed to add string 2 to BuxtonArray");
+	ret = buxton_array_add(array, three);
+	fail_if(ret == false, "Failed to add string 3 (pointer) to BuxtonArray");
+
+	fail_if(array->len != 3, "BuxtonArray doesn't contain 3 elements");
+	ret = buxton_array_remove(array, three, &free);
+	fail_if(ret  == false, "Failed to remove and free pointer");
+
+	ret = buxton_array_remove(array, &one, NULL);
+	fail_if(ret == false, "Failed to remove string 1 from BuxtonArray");
+	fail_if(array->len != 1, "BuxtonArray doesn't contain only 1 element");
+
+	test = (BuxtonString*)array->data[0];
+	fail_if(!test, "Null pointer in array");
+	fail_if(!streq(test->value, two.value), "Corrupted data in BuxtonArray");
+
+	buxton_array_free(&array, NULL);
+	fail_if(array != NULL, "Failed to correctly free BuxtonArray");
+}
+END_TEST
+
 static Suite *
 shared_lib_suite(void)
 {
@@ -590,6 +631,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("array_functions");
+	tcase_add_test(tc, buxton_array_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("smack_access_functions");
