@@ -23,6 +23,7 @@
 #include <stdint.h>
 
 #include "bt-daemon.h"
+#include "array.h"
 
 /**
  * Magic for Buxton messages
@@ -104,10 +105,10 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
  * @param message An empty pointer that will be set to the message type
  * @param size The size of the data being deserialized
  * @param list A pointer that will be filled out as an array of BuxtonData structs
- * @return the length of the array, or 0 if deserialization failed
+ * @return a boolean value, indicating success of the operation
  */
-size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
-			       size_t size, BuxtonData **list);
+bool buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
+			       size_t size, BuxtonArray **list);
 
 /**
  * Get size of a buxton message data stream

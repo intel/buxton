@@ -184,7 +184,7 @@ END_TEST
 START_TEST(buxton_wire_get_response_check)
 {
 	BuxtonClient client;
-	BuxtonData *list = NULL;
+	BuxtonArray *list = NULL;
 	BuxtonControlMessage msg;
 	pid_t pid;
 	int server;
@@ -216,15 +216,15 @@ START_TEST(buxton_wire_get_response_check)
 			"Failed to properly handle response");
 		fail_if(msg != BUXTON_CONTROL_STATUS,
 			"Failed to get correct control message type");
-		fail_if(list[0].type != INT32,
+		fail_if(BD(list, 0)->type != INT32,
 			"Failed to get correct data type from message");
-		fail_if(!(list[0].label.value),
+		fail_if(!(BD(list, 0)->label.value),
 			"Failed to get label from message");
-		fail_if(!streq(list[0].label.value, "dummy"),
+		fail_if(!streq(BD(list, 0)->label.value, "dummy"),
 			"Failed to get correct label from message");
-		fail_if(list[0].store.d_int32 != 0,
+		fail_if(BD(list, 0)->store.d_int32 != 0,
 			"Failed to get correct data value from message");
-		free(list);
+		buxton_array_free(&list, NULL);
 		close(client.fd);
 	}
 }

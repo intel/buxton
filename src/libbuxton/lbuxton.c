@@ -613,6 +613,18 @@ char *buxton_get_name(BuxtonString *key)
 	return c;
 }
 
+void buxton_data_free(void *p)
+{
+	BuxtonData *data = NULL;
+
+	data = (BuxtonData*)p;
+	if (!data)
+		return;
+	if (data->type == STRING)
+		free(data->store.d_string.value);
+	free(data->label.value);
+	free(data);
+}
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

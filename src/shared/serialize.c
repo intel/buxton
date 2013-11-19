@@ -308,16 +308,16 @@ end:
 	return ret;
 }
 
-size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
-			       size_t size, BuxtonData **list)
+bool buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
+			       size_t size, BuxtonArray **list)
 {
 	size_t offset = 0;
-	size_t ret = 0;
+	bool ret = false;
 	size_t min_length = BUXTON_MESSAGE_HEADER_LENGTH;
 	uint16_t control, message;
 	size_t n_params, c_param, c_length;
 	BuxtonDataType c_type;
-	BuxtonData *k_list = NULL;
+	BuxtonArray *k_list = NULL;
 	BuxtonData *c_data = NULL;
 
 	assert(data);
@@ -357,7 +357,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	if (n_params > BUXTON_MESSAGE_MAX_PARAMS)
 		goto end;
 
-	k_list = malloc0(sizeof(BuxtonData)*n_params);
+	k_list = buxton_array_new();
 	if (!k_list)
 		goto end;
 
@@ -438,13 +438,13 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 				goto end;
 		}
 		c_data->type = c_type;
-		k_list[c_param] = *c_data;
+		buxton_array_add(k_list, c_data);
 		c_data = NULL;
 		offset += c_length;
 	}
 	*r_message = message;
 	*list = k_list;
-	ret = n_params;
+	ret = true;
 end:
 	if (c_data)
 		free(c_data->label.value);

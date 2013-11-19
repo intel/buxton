@@ -22,19 +22,19 @@
 
 #include "bt-daemon.h"
 #include "protocol.h"
+#include "array.h"
 
 /**
  * Take a BuxtonData array and set key, layer and value items
  * correctly
  * @param msg Control message specifying how to parse the array
- * @param count Number of elements in the array
  * @param list BuxtonData array to parse
  * @param key Pointer to pointer to set if key is used
  * @param layer Pointer to pointer to set if layer is used
  * @param value Pointer to pointer to set if value is used
  * @returns bool indicating success of parsing
  */
-bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
+bool parse_list(BuxtonControlMessage msg, BuxtonArray *list,
 		BuxtonString **key, BuxtonString **layer, BuxtonData **value);
 
 /**

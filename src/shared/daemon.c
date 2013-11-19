@@ -25,39 +25,39 @@
 #include "smack.h"
 #include "util.h"
 
-bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
+bool parse_list(BuxtonControlMessage msg, BuxtonArray *list,
 		       BuxtonString **key, BuxtonString **layer, BuxtonData **value)
 {
 	switch (msg) {
 	case BUXTON_CONTROL_SET:
-		if (count != 3)
+		if (list->len != 3)
 			return false;
-		if (list[0].type != STRING || list[1].type != STRING)
+		if (BD(list,0)->type != STRING || BD(list,1)->type != STRING)
 			return false;
-		*layer = &(list[0].store.d_string);
-		*key = &(list[1].store.d_string);
-		*value = &(list[2]);
+		*layer = &(BD(list, 0)->store.d_string);
+		*key = &(BD(list, 1)->store.d_string);
+		*value = BD(list, 2);
 		break;
 	case BUXTON_CONTROL_GET:
-		if (count == 2) {
-			if(list[0].type != STRING || list[1].type != STRING)
+		if (list->len == 2) {
+			if(BD(list, 0)->type != STRING || BD(list, 1)->type != STRING)
 				return false;
-			*layer = &(list[0].store.d_string);
-			*key = &(list[1].store.d_string);
-		} else if (count == 1) {
-			if (list[0].type != STRING)
+			*layer = &(BD(list, 0)->store.d_string);
+			*key = &(BD(list, 1)->store.d_string);
+		} else if (list->len == 1) {
+			if (BD(list, 0)->type != STRING)
 				return false;
-			*key = &(list[0].store.d_string);
+			*key = &(BD(list, 0)->store.d_string);
 		} else {
 			return false;
 		}
 		break;
 	case BUXTON_CONTROL_NOTIFY:
-		if (count != 1)
+		if (list->len != 1)
 			return false;
-		if (list[0].type != STRING)
+		if (BD(list, 0)->type != STRING)
 			return false;
-		*key = &(list[0].store.d_string);
+		*key = &(BD(list, 0)->store.d_string);
 		break;
 	default:
 		return false;
@@ -71,10 +71,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 {
 	BuxtonControlMessage msg;
 	BuxtonStatus response;
-	BuxtonData *list = NULL;
+	BuxtonArray *list = NULL;
 	BuxtonData *data = NULL;
 	int i;
-	size_t p_count;
 	size_t response_len;
 	BuxtonData response_data;
 	BuxtonData *value = NULL;
@@ -88,8 +87,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	assert(client);
 
 	uid = self->buxton.uid;
-	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size, &list);
-	if (p_count == 0) {
+	if (!buxton_deserialize_message((uint8_t*)client->data, &msg, size, &list)) {
 		/* Todo: terminate the client due to invalid message */
 		buxton_debug("Failed to deserialize message\n");
 		goto end;
@@ -99,7 +97,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	if (msg < BUXTON_CONTROL_SET || msg > BUXTON_CONTROL_MAX)
 		goto end;
 
-	if (!parse_list(msg, p_count, list, &key, &layer, &value))
+	if (!parse_list(msg, list, &key, &layer, &value))
 		goto end;
 
 	/* use internal function from bt-daemon */
@@ -148,13 +146,9 @@ end:
 	self->buxton.uid = uid;
 	if (data && data->type == STRING)
 		free(data->store.d_string.value);
-	if (list) {
-		for (i=0; i < p_count; i++) {
-			if (list[i].type == STRING)
-				free(list[i].store.d_string.value);
-		}
-		free(list);
-	}
+	if (list)
+		buxton_array_free(&list, &buxton_data_free);
+
 	return ret;
 }
 

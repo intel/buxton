@@ -29,6 +29,7 @@
 #include "serialize.h"
 #include "smack.h"
 #include "util.h"
+#include "array.h"
 
 START_TEST(log_write_check)
 {
@@ -431,7 +432,7 @@ START_TEST(buxton_message_serialize_check)
 	BuxtonControlMessage csource;
 	BuxtonControlMessage ctarget;
 	BuxtonData dsource;
-	BuxtonData *dtarget = NULL;
+	BuxtonArray *dtarget = NULL;
 	uint8_t *packed = NULL;
 	size_t ret;
 
@@ -444,16 +445,16 @@ START_TEST(buxton_message_serialize_check)
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize string data");
 	fail_if(ctarget != csource, "Failed to get correct control message for string");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource.type != BD(dtarget, 0)->type,
 		"Source and destination type differ for string");
-	fail_if(strcmp(dsource.store.d_string.value, dtarget[0].store.d_string.value) != 0,
+	fail_if(strcmp(dsource.store.d_string.value, BD(dtarget, 0)->store.d_string.value) != 0,
 		"Source and destination string data differ");
 	free(packed);
 	if (dtarget) {
-		if (dtarget[0].store.d_string.value) {
-			free(dtarget[0].store.d_string.value);
+		if (BD(dtarget, 0)->store.d_string.value) {
+			free(BD(dtarget, 0)->store.d_string.value);
 		}
-		free(dtarget);
+		buxton_array_free(&dtarget, NULL);
 	}
 
 	dsource.type = INT32;
@@ -464,12 +465,12 @@ START_TEST(buxton_message_serialize_check)
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize int data");
 	fail_if(ctarget != csource, "Failed to get correct control message for int");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource.type != BD(dtarget, 0)->type,
 		"Source and destination type differ for int");
-	fail_if(dsource.store.d_int32 != dtarget[0].store.d_int32,
+	fail_if(dsource.store.d_int32 != BD(dtarget, 0)->store.d_int32,
 		"Source and destination int data differ");
 	free(packed);
-	free(dtarget);
+	buxton_array_free(&dtarget, NULL);
 
 	dsource.type = INT64;
 	dsource.store.d_int64 = LONG_MAX;
@@ -479,12 +480,12 @@ START_TEST(buxton_message_serialize_check)
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize long data");
 	fail_if(ctarget != csource, "Failed to get correct control message for long");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource.type != BD(dtarget, 0)->type,
 		"Source and destination type differ for long");
-	fail_if(dsource.store.d_int64 != dtarget[0].store.d_int64,
+	fail_if(dsource.store.d_int64 != BD(dtarget, 0)->store.d_int64,
 		"Source and destination long data differ");
 	free(packed);
-	free(dtarget);
+	buxton_array_free(&dtarget, NULL);
 
 	dsource.type = FLOAT;
 	dsource.store.d_float = 3.14F;
@@ -494,12 +495,12 @@ START_TEST(buxton_message_serialize_check)
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize float data");
 	fail_if(ctarget != csource, "Failed to get correct control message for float");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource.type != BD(dtarget, 0)->type,
 		"Source and destination type differ for float");
-	fail_if(dsource.store.d_float != dtarget[0].store.d_float,
+	fail_if(dsource.store.d_float != BD(dtarget, 0)->store.d_float,
 		"Source and destination float data differ");
 	free(packed);
-	free(dtarget);
+	buxton_array_free(&dtarget, NULL);
 
 	dsource.type = DOUBLE;
 	dsource.store.d_double = 3.1415;
@@ -509,12 +510,12 @@ START_TEST(buxton_message_serialize_check)
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize double data");
 	fail_if(ctarget != csource, "Failed to get correct control message for double");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource.type != BD(dtarget, 0)->type,
 		"Source and destination type differ for double");
-	fail_if(dsource.store.d_double != dtarget[0].store.d_double,
+	fail_if(dsource.store.d_double != BD(dtarget, 0)->store.d_double,
 		"Source and destination double data differ");
 	free(packed);
-	free(dtarget);
+	buxton_array_free(&dtarget, NULL);
 
 	dsource.type = BOOLEAN;
 	dsource.store.d_boolean = true;
@@ -524,12 +525,12 @@ START_TEST(buxton_message_serialize_check)
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize boolean data");
 	fail_if(ctarget != csource, "Failed to get correct control message for boolean");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource.type != BD(dtarget, 0)->type,
 		"Source and destination type differ for boolean");
-	fail_if(dsource.store.d_boolean != dtarget[0].store.d_boolean,
+	fail_if(dsource.store.d_boolean != BD(dtarget, 0)->store.d_boolean,
 		"Source and destination boolean data differ");
 	free(packed);
-	free(dtarget);
+	buxton_array_free(&dtarget, NULL);
 
 	dsource.type = STRING;
 	dsource.store.d_string = buxton_string_pack("test-key");
@@ -573,6 +574,46 @@ START_TEST(buxton_get_message_size_check)
 }
 END_TEST
 
+
+START_TEST(buxton_array_check)
+{
+	BuxtonArray *array = NULL;
+	BuxtonString one, two;
+	char *three = NULL;
+	BuxtonString *test = NULL;
+	bool ret = false;
+
+	array = buxton_array_new();
+	fail_if(array == NULL, "Failed to allocate new BuxtonArray");
+
+	one = buxton_string_pack("one");
+	two = buxton_string_pack("two");
+	asprintf(&three, "three");
+
+	ret = buxton_array_add(array, &one);
+	fail_if(ret == false, "Failed to add string 1 to BuxtonArray");
+	ret = buxton_array_add(array, &two);
+	fail_if(ret == false, "Failed to add string 2 to BuxtonArray");
+	ret = buxton_array_add(array, three);
+	fail_if(ret == false, "Failed to add string 3 (pointer) to BuxtonArray");
+
+	fail_if(array->len != 3, "BuxtonArray doesn't contain 3 elements");
+	ret = buxton_array_remove(array, three, &free);
+	fail_if(ret  == false, "Failed to remove and free pointer");
+
+	ret = buxton_array_remove(array, &one, NULL);
+	fail_if(ret == false, "Failed to remove string 1 from BuxtonArray");
+	fail_if(array->len != 1, "BuxtonArray doesn't contain only 1 element");
+
+	test = (BuxtonString*)array->data[0];
+	fail_if(!test, "Null pointer in array");
+	fail_if(!streq(test->value, two.value), "Corrupted data in BuxtonArray");
+
+	buxton_array_free(&array, NULL);
+	fail_if(array != NULL, "Failed to correctly free BuxtonArray");
+}
+END_TEST
+
 static Suite *
 shared_lib_suite(void)
 {
@@ -590,6 +631,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("array_functions");
+	tcase_add_test(tc, buxton_array_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("smack_access_functions");
