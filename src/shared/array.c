@@ -39,7 +39,7 @@ bool buxton_array_add(BuxtonArray *array,
 	new_len = array->len += 1;
 	if (new_len >= array->len) {
 		/* Resize the array to hold one more pointer */
-		array->data = realloc(array->data, (new_len)*sizeof(void*));
+		array->data = realloc(array->data, (new_len+1)*sizeof(void*));
 		if (!array->data)
 			return false;
 	}
