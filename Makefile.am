@@ -204,6 +204,7 @@ check_shared_lib_CFLAGS = \
 check_shared_lib_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
+	libbuxton.la \
 	libbuxton-shared.la
 
 check_bt_daemon_SOURCES = \

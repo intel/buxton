@@ -276,34 +276,14 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 		     value->label.value);
 
 	if (USE_SMACK) {
-		BuxtonData *data = malloc0(sizeof(BuxtonData));
-		if (!data) {
-			buxton_log("malloc0: %m\n");
+		if (!buxton_check_write_access(&(self->buxton),
+					       layer,
+					       key,
+					       value,
+					       client->smack_label)) {
+			*status = BUXTON_STATUS_FAILED;
 			return;
 		}
-
-		bool valid = buxton_client_get_value_for_layer(&(self->buxton),
-							       layer,
-							       key,
-							       data);
-
-		if (!valid && !buxton_check_smack_access(client->smack_label,
-							 &(value->label),
-							 ACCESS_WRITE)) {
-			buxton_debug("Smack: not permitted to set new value\n");
-			free(data);
-			return;
-		}
-
-		if (valid && !buxton_check_smack_access(client->smack_label,
-							&(data->label),
-							ACCESS_WRITE)) {
-			buxton_debug("Smack: not permitted to modify existing value\n");
-			free(data);
-			return;
-		}
-
-		free(data);
 	}
 
 	/* Use internal library to set value */
@@ -334,26 +314,14 @@ void delete_value(BuxtonDaemon *self, client_list_item *client,
 		     key->value);
 
 	if (USE_SMACK) {
-		BuxtonData *data = malloc0(sizeof(BuxtonData));
-		if (!data) {
-			buxton_log("malloc0: %m\n");
+		if (!buxton_check_write_access(&(self->buxton),
+					       layer,
+					       key,
+					       NULL,
+					       client->smack_label)) {
+			*status = BUXTON_STATUS_FAILED;
 			return;
 		}
-
-		bool valid = buxton_client_get_value_for_layer(&(self->buxton),
-							       layer,
-							       key,
-							       data);
-
-		if (valid && !buxton_check_smack_access(client->smack_label,
-							&(data->label),
-							ACCESS_WRITE)) {
-			buxton_debug("Smack: not permitted to modify existing value\n");
-			free(data);
-			return;
-		}
-
-		free(data);
 	}
 	/* Use internal library to delete value */
 	self->buxton.uid = client->cred.uid;
@@ -399,8 +367,11 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 	}
 
 	if (USE_SMACK) {
-		if (!buxton_check_smack_access(client->smack_label, &(data->label), ACCESS_READ)) {
-			buxton_debug("Smack: not permitted to get value\n");
+		if (!buxton_check_read_access(&(self->buxton),
+					      layer,
+					      key,
+					      data,
+					      client->smack_label)) {
 			goto fail;
 		}
 	}

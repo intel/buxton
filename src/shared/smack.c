@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/inotify.h>
+#include "bt-daemon.h"
 #include "constants.h"
 #include "hashmap.h"
 #include "log.h"
@@ -195,6 +196,73 @@ int buxton_watch_smack_rules(void)
 		return -1;
 	}
 	return fd;
+}
+
+bool buxton_check_read_access(BuxtonClient *client,
+			      BuxtonString *layer,
+			      BuxtonString *key,
+			      BuxtonData *data,
+			      BuxtonString *client_label)
+{
+	assert(client);
+	assert(layer);
+	assert(key);
+	assert(data);
+	assert(client_label);
+
+	if (!buxton_check_smack_access(client_label,
+				       &(data->label),
+				       ACCESS_READ)) {
+		buxton_debug("Smack: not permitted to get value\n");
+		return false;
+	}
+
+	return true;
+
+}
+
+bool buxton_check_write_access(BuxtonClient *client,
+			       BuxtonString *layer,
+			       BuxtonString *key,
+			       BuxtonData *data,
+			       BuxtonString *client_label)
+{
+	/* The data arg may be NULL, in case of a delete */
+	assert(client);
+	assert(layer);
+	assert(key);
+	assert(client_label);
+
+	BuxtonData *curr_data = malloc0(sizeof(BuxtonData));
+	if (!curr_data) {
+		buxton_log("malloc0: %m\n");
+		return false;
+	}
+
+	bool valid = buxton_client_get_value_for_layer(client,
+						       layer,
+						       key,
+						       curr_data);
+
+	if (data && !valid && !buxton_check_smack_access(client_label,
+							 &(data->label),
+							 ACCESS_WRITE)) {
+		buxton_debug("Smack: not permitted to set new value\n");
+		free(curr_data);
+		return false;
+	}
+
+	if (valid && !buxton_check_smack_access(client_label,
+						&(curr_data->label),
+						ACCESS_WRITE)) {
+		buxton_debug("Smack: not permitted to modify existing value\n");
+		free(curr_data);
+		return false;
+	}
+
+	free(curr_data);
+
+	return true;
 }
 
 /*
