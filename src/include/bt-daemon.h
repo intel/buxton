@@ -162,7 +162,7 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client, BuxtonString *key
 _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonData *data);
 
 /**
- * Register for motifications on the given key in all layers
+ * Register for notifications on the given key in all layers
  * @param client An open client connection
  * @param key The key to register interest with
  * @return a boolean value, indicating success of the operation
