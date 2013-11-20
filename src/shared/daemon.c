@@ -355,7 +355,7 @@ void delete_value(BuxtonDaemon *self, client_list_item *client,
 
 		free(data);
 	}
-	/* Use internal library to set value */
+	/* Use internal library to delete value */
 	self->buxton.uid = client->cred.uid;
 	if (!buxton_client_delete_value(&(self->buxton), layer, key))
 		return;
