@@ -250,6 +250,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		if (curSize < size) {
 			if (!(data = greedy_realloc((void**)&data, &curSize, size)))
 				goto fail;
+			memset(data+offset, 0, size - offset);
 		}
 
 		/* Copy data type */
