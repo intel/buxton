@@ -80,8 +80,9 @@ typedef struct BuxtonDaemon {
  * @param list Pointer to empty BuxtonData list (NULL)
  * @return the number of parameters returned, or 0
  */
-size_t buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
-			      BuxtonData **list);
+size_t buxton_wire_get_response(BuxtonClient *client,
+				BuxtonControlMessage *msg,
+				BuxtonData **list);
 /**
  * Send a SET message over the wire protocol, return the response
  * @param client Client connection
@@ -90,8 +91,8 @@ size_t buxton_wire_get_response(BuxtonClient *client, BuxtonControlMessage *msg,
  * @param value A BuxtonData storing the new value
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
-			   BuxtonData *value);
+bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
+			   BuxtonString *key, BuxtonData *value);
 
 /**
  * Send a GET message over the wire protocol, return the data
@@ -101,8 +102,8 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
  * @param value A pointer to store retrieved value in
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, BuxtonString *key,
-			   BuxtonData *value);
+bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
+			   BuxtonString *key, BuxtonData *value);
 
 /**
  * Send a NOTIFY message over the protocol, register for events
@@ -110,7 +111,8 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name, Buxto
  * @param key Key name
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_wire_register_notification(BuxtonClient *client, BuxtonString *key);
+bool buxton_wire_register_notification(BuxtonClient *client,
+				       BuxtonString *key);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
