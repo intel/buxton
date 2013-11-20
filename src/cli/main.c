@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 
 	/* Delete value */
 	c_delete_value = (Command) { "delete-value", "Delete a value by key",
-				  3, 3, "layer group key", &cli_delete_value, STRING };
+				  3, 3, "layer group name", &cli_delete_value, STRING };
 	hashmap_put(commands, c_delete_value.name, &c_delete_value);
 
 	static struct option opts[] = {
