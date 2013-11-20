@@ -53,6 +53,14 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		}
 		break;
+	case BUXTON_CONTROL_DELETE:
+		if (count != 2)
+			return false;
+		if (list[0].type != STRING || list[0].type != STRING)
+			return false;
+		*layer = &(list[0].store.d_string);
+		*key = &(list[1].store.d_string);
+		break;
 	case BUXTON_CONTROL_NOTIFY:
 		if (count != 1)
 			return false;
@@ -110,6 +118,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		break;
 	case BUXTON_CONTROL_GET:
 		data = get_value(self, client, layer, key, &response);
+		break;
+	case BUXTON_CONTROL_DELETE:
+		delete_value(self, client, layer, key, &response);
 		break;
 	case BUXTON_CONTROL_NOTIFY:
 		register_notification(self, client, key, &response);
@@ -304,6 +315,53 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 
 	*status = BUXTON_STATUS_OK;
 	buxton_debug("Daemon set value completed\n");
+}
+
+
+void delete_value(BuxtonDaemon *self, client_list_item *client,
+		  BuxtonString *layer, BuxtonString *key,
+		  BuxtonStatus *status)
+{
+	assert(self);
+	assert(client);
+	assert(key);
+	assert(status);
+
+	*status = BUXTON_STATUS_FAILED;
+
+	buxton_debug("Daemon deleting [%s][%s]\n",
+		     layer->value,
+		     key->value);
+
+	if (USE_SMACK) {
+		BuxtonData *data = malloc0(sizeof(BuxtonData));
+		if (!data) {
+			buxton_log("malloc0: %m\n");
+			return;
+		}
+
+		bool valid = buxton_client_get_value_for_layer(&(self->buxton),
+							       layer,
+							       key,
+							       data);
+
+		if (valid && !buxton_check_smack_access(client->smack_label,
+							&(data->label),
+							ACCESS_WRITE)) {
+			buxton_debug("Smack: not permitted to modify existing value\n");
+			free(data);
+			return;
+		}
+
+		free(data);
+	}
+	/* Use internal library to set value */
+	self->buxton.uid = client->cred.uid;
+	if (!buxton_client_delete_value(&(self->buxton), layer, key))
+		return;
+
+	*status = BUXTON_STATUS_OK;
+	buxton_debug("Daemon delete value completed\n");
 }
 
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,

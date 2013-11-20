@@ -81,6 +81,18 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 		      BuxtonString *key, BuxtonStatus *status);
 
 /**
+ * Buxton daemon function for deleting a value
+ * @param self bt-daemon instance being run
+ * @param client Used to validate smack access
+ * @param layer Layer for the value being deleted
+ * @param key Key for the value being deleted
+ * @param status Will be set with the BuxtonStatus result of the operation
+ */
+void delete_value(BuxtonDaemon *self, client_list_item *client,
+		  BuxtonString *layer, BuxtonString *key,
+		  BuxtonStatus *status);
+
+/**
  * Buxton daemon function for registering notifications on a given key
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
