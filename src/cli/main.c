@@ -44,7 +44,7 @@ static bool print_help(void)
 	printf("buxtonctl: Usage\n\n");
 
 	HASHMAP_FOREACH_KEY(command, key, commands, iterator) {
-		printf("\t%10s - %s\n", key, command->description);
+		printf("\t%12s - %s\n", key, command->description);
 	};
 
 	return true;
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 	hashmap_put(commands, c_set_label.name, &c_set_label);
 
 	/* Delete value */
-	c_delete_value = (Command) { "delete-value", "Delete a value",
+	c_delete_value = (Command) { "delete-value", "Delete a value by key",
 				  3, 3, "layer group key", &cli_delete_value, STRING };
 	hashmap_put(commands, c_delete_value.name, &c_delete_value);
 
