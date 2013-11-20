@@ -246,8 +246,9 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 		break;
 	}
 
-end:
 	ret = true;
+
+end:
 	if (get.type == STRING)
 		free(get.store.d_string.value);
 	free(key->value);
