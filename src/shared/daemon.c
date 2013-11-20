@@ -173,7 +173,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 {
 	notification_list_item *list = NULL;
 	notification_list_item *nitem;
-	uint8_t* response = NULL;
+	_cleanup_free_ uint8_t* response = NULL;
 	size_t response_len;
 	BuxtonData data;
 
@@ -227,7 +227,8 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 					   sizeof(bool));
 				break;
 			default:
-				goto end;
+				buxton_log("Internal state corruption: Notification data type invalid\n");
+				return;
 			}
 		}
 
@@ -248,15 +249,14 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 							&data, value);
 		if (response_len == 0) {
 			buxton_log("Failed to serialize notification\n");
-			goto end;
+			return;
 		}
 		buxton_debug("Notification to %d of key change (%s)\n", nitem->client->fd,
 			     key->value);
 		write(nitem->client->fd, response, response_len);
 	}
-end:
-	free(response);
 }
+
 void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
 		      BuxtonString *key, BuxtonData *value, BuxtonStatus *status)
 {

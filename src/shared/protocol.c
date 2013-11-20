@@ -181,12 +181,11 @@ bool buxton_wire_delete_value(BuxtonClient *client,
 	assert(layer_name);
 	assert(key);
 
-	bool ret = false;
 	size_t count;
-	uint8_t *send = NULL;
+	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
-	BuxtonData *r_list = NULL;
+	_cleanup_free_ BuxtonData *r_list = NULL;
 	BuxtonData d_key, d_layer;
 
 	buxton_string_to_data(key, &d_key);
@@ -199,31 +198,26 @@ bool buxton_wire_delete_value(BuxtonClient *client,
 		2, &d_layer, &d_key);
 
 	if (send_len == 0)
-		goto end;
+		return false;
+
 	/* Now write it off */
 	write(client->fd, send, send_len);
 
 	/* Gain response */
 	count = buxton_wire_get_response(client, &r_msg, &r_list);
-	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-		ret = true;
-end:
-	free(send);
-	free(r_list);
-	return ret;
-
+	return (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK);
 }
+
 bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 {
 	assert(self);
 	assert(key);
 
-	bool ret = false;
 	size_t count;
-	uint8_t *send = NULL;
+	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
-	BuxtonData *r_list = NULL;
+	_cleanup_free_ BuxtonData *r_list = NULL;
 	BuxtonData d_key;
 
 	buxton_string_to_data(key, &d_key);
@@ -233,19 +227,14 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_NOTIFY, 1,
 					    &d_key);
 	if (send_len == 0)
-		goto end;
+		return false;
+
 	/* Now write it off */
 	write(self->fd, send, send_len);
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
-	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-		ret = true;
-end:
-	free(send);
-	free(r_list);
-
-	return ret;
+	return (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK);
 }
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
