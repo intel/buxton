@@ -56,7 +56,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	case BUXTON_CONTROL_DELETE:
 		if (count != 2)
 			return false;
-		if (list[0].type != STRING || list[0].type != STRING)
+		if (list[0].type != STRING || list[1].type != STRING)
 			return false;
 		*layer = &(list[0].store.d_string);
 		*key = &(list[1].store.d_string);
