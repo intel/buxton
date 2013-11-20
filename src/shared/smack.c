@@ -210,11 +210,30 @@ bool buxton_check_read_access(BuxtonClient *client,
 	assert(data);
 	assert(client_label);
 
-	if (!buxton_check_smack_access(client_label,
-				       &(data->label),
-				       ACCESS_READ)) {
-		buxton_debug("Smack: not permitted to get value\n");
+	char *group = buxton_get_group(key);
+	char *name = buxton_get_name(key);
+	if (!group) {
+		buxton_log("Invalid group or key: %s\n", key->value);
 		return false;
+	}
+
+	if (!name) {
+		/* Permit global read access for group labels, so
+		 * do nothing here.
+		 */
+	} else {
+		/* TODO: An additonal check is needed for labels:
+		 * When checking read access for a key label, we
+		 * should treat its group label as the object; if
+		 * the group label is readable, the key label
+		 * should also be readable.
+		 */
+		if (!buxton_check_smack_access(client_label,
+					       &(data->label),
+					       ACCESS_READ)) {
+			buxton_debug("Smack: not permitted to get value\n");
+			return false;
+		}
 	}
 
 	return true;
@@ -233,34 +252,47 @@ bool buxton_check_write_access(BuxtonClient *client,
 	assert(key);
 	assert(client_label);
 
-	BuxtonData *curr_data = malloc0(sizeof(BuxtonData));
-	if (!curr_data) {
-		buxton_log("malloc0: %m\n");
+	char *group = buxton_get_group(key);
+	char *name = buxton_get_name(key);
+	if (!group) {
+		buxton_log("Invalid group or key: %s\n", key->value);
 		return false;
 	}
 
-	bool valid = buxton_client_get_value_for_layer(client,
-						       layer,
-						       key,
-						       curr_data);
+	if (!name) {
+		/* TODO: Once non-direct clients are able to set
+		 * group labels, we need an access check here.
+		 */
+	} else {
+		BuxtonData *curr_data = malloc0(sizeof(BuxtonData));
+		if (!curr_data) {
+			buxton_log("malloc0: %m\n");
+			return false;
+		}
 
-	if (data && !valid && !buxton_check_smack_access(client_label,
-							 &(data->label),
-							 ACCESS_WRITE)) {
-		buxton_debug("Smack: not permitted to set new value\n");
+		bool valid = buxton_client_get_value_for_layer(client,
+							       layer,
+							       key,
+							       curr_data);
+
+		if (data && !valid && !buxton_check_smack_access(client_label,
+								 &(data->label),
+								 ACCESS_WRITE)) {
+			buxton_debug("Smack: not permitted to set new value\n");
+			free(curr_data);
+			return false;
+		}
+
+		if (valid && !buxton_check_smack_access(client_label,
+							&(curr_data->label),
+							ACCESS_WRITE)) {
+			buxton_debug("Smack: not permitted to modify existing value\n");
+			free(curr_data);
+			return false;
+		}
+
 		free(curr_data);
-		return false;
 	}
-
-	if (valid && !buxton_check_smack_access(client_label,
-						&(curr_data->label),
-						ACCESS_WRITE)) {
-		buxton_debug("Smack: not permitted to modify existing value\n");
-		free(curr_data);
-		return false;
-	}
-
-	free(curr_data);
 
 	return true;
 }
