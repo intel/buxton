@@ -403,6 +403,38 @@ bool buxton_client_set_label(BuxtonClient *client,
 	return backend->set_value(layer, key, &data);
 }
 
+bool buxton_client_delete_value(BuxtonClient *client,
+			        BuxtonString *layer_name,
+			        BuxtonString *key)
+{
+
+	assert(client);
+	assert(layer_name);
+	assert(layer_name->value);
+	assert(key);
+	assert(key->value);
+
+
+	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
+		/* Handle direct manipulation */
+		BuxtonBackend *backend;
+		BuxtonLayer *layer;
+		if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
+			return false;
+		}
+		backend = backend_for_layer(layer);
+		if (!backend) {
+			/* Already logged */
+			return false;
+		}
+		layer->uid = client->uid;
+		return backend->delete_value(layer, key, NULL);
+	}
+
+	/* Normal interaction (wire-protocol) (not yet implemented) */
+	return false;
+}
+
 static void destroy_backend(BuxtonBackend *backend)
 {
 
