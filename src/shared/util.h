@@ -64,7 +64,18 @@ bool streq_ptr(const char *a, const char *b) _pure_;
 static inline void freep(void *p) {
 	free(*(void**) p);
 }
+
+static void free_buxton_string(void *p)
+{
+	BuxtonString *s = (BuxtonString*)p;
+	if (!s)
+		return;
+	free(s->value);
+	free(*(void**) p);
+}
+
 #define _cleanup_free_ _cleanup_(freep)
+#define _cleanup_buxton_string_ _cleanup_(free_buxton_string)
 
 #define new(t, n) ((t*) malloc_multiply(sizeof(t), (n)))
 
