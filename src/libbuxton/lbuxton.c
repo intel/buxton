@@ -431,8 +431,8 @@ bool buxton_client_delete_value(BuxtonClient *client,
 		return backend->delete_value(layer, key, NULL);
 	}
 
-	/* Normal interaction (wire-protocol) (not yet implemented) */
-	return false;
+	/* Normal interaction (wire-protocol) */
+	return buxton_wire_delete_value(client, layer_name, key);
 }
 
 static void destroy_backend(BuxtonBackend *backend)
