@@ -105,6 +105,17 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
 bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
 			   BuxtonString *key, BuxtonData *value);
 
+
+/**
+ * Send a DELETE message over the wire protocol, return the response
+ * @param client Client connection
+ * @param layer_name Layer name
+ * @param key Key name
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_delete_value(BuxtonClient *client,
+			      BuxtonString *layer_name,
+			      BuxtonString *key);
 /**
  * Send a NOTIFY message over the protocol, register for events
  * @param client Client connection
