@@ -130,7 +130,9 @@ end:
 	return ret;
 }
 
-static bool delete_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *data)
+static bool delete_value(BuxtonLayer *layer,
+			 BuxtonString *key_name,
+			 __attribute__((unused)) BuxtonData *data)
 {
 	GDBM_FILE db;
 	datum key;

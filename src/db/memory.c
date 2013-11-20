@@ -88,7 +88,9 @@ static bool get_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
 	return true;
 }
 
-static bool delete_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
+static bool delete_value(BuxtonLayer *layer,
+			 BuxtonString *key,
+			 __attribute__((unused)) BuxtonData *data)
 {
 	Hashmap *db;
 	BuxtonData *stored;
