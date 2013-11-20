@@ -147,13 +147,15 @@ AC_ARG_WITH([smack-load-file], AS_HELP_STRING([--with-smack-load-file=SMACKLOADF
 SMACK_LOAD_FILE="${smack_load_file}"
 AC_SUBST(SMACK_LOAD_FILE)
 
-AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [enable debug mode]))
+AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug], [enable debug mode @<:@default=no@:>@]),
+	      [], [enable_debug=no])
 AS_IF([test "x$enable_debug" = "xyes"],
 	[AC_DEFINE([DEBUG], [1], [Debugging mode enabled])],
 	[])
 AM_CONDITIONAL([DEBUG], [test x$enable_debug = x"yes"])
 
-AC_ARG_ENABLE(demos, AS_HELP_STRING([--enable-demos], [enable demos]))
+AC_ARG_ENABLE(demos, AS_HELP_STRING([--enable-demos], [enable demos @<:@default=no@:>@]),
+	      [], [enable_demos=no])
 AS_IF([test "x$enable_demos" = "xyes"],
 	[AC_DEFINE([DEMOS], [1], [Building demos])],
 	[])
