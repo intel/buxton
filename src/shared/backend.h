@@ -81,7 +81,7 @@ typedef struct BuxtonBackend {
 	module_destroy_func destroy; /**<Destroy method */
 	module_value_func set_value; /**<Set value function */
 	module_value_func get_value; /**<Get value function */
-
+	module_value_func delete_value; /**<Delete value function */
 } BuxtonBackend;
 
 /**
