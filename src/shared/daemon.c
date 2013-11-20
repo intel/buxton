@@ -367,6 +367,10 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 	}
 
 	if (USE_SMACK) {
+		/* TODO: Need to move this check to libbuxton
+		 * so that we can do per-layer checks for calls
+		 * to buxton_client_get_value().
+		 */
 		if (!buxton_check_read_access(&(self->buxton),
 					      layer,
 					      key,
