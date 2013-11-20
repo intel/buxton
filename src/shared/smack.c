@@ -29,6 +29,7 @@ bool buxton_cache_smack_rules(void)
 	FILE *load_file = NULL;
 	char *rule_pair = NULL;
 	int ret = true;
+	bool have_rules = false;
 
 	if (_smackrules)
 		hashmap_free(_smackrules);
@@ -48,7 +49,7 @@ bool buxton_cache_smack_rules(void)
 		goto end;
 	}
 
-	while (!feof(load_file)) {
+	do {
 		int r;
 		int chars;
 		BuxtonKeyAccessType *accesstype;
@@ -59,11 +60,25 @@ bool buxton_cache_smack_rules(void)
 
 		/* read contents from load2 */
 		chars = fscanf(load_file, "%s %s %s\n", subject, object, access);
-		if (chars != 3) {
+
+		if (ferror(load_file)) {
 			buxton_log("fscanf(): %m\n");
 			ret = false;
 			goto end;
 		}
+
+		if (!have_rules && chars == EOF && feof(load_file)) {
+			buxton_debug("No loaded Smack rules found\n");
+			goto end;
+		}
+
+		if (chars != 3) {
+			buxton_log("Corrupt load file detected\n");
+			ret = false;
+			goto end;
+		}
+
+		have_rules = true;
 
 		r = asprintf(&rule_pair, "%s %s", subject, object);
 		if (r == -1) {
@@ -88,7 +103,8 @@ bool buxton_cache_smack_rules(void)
 			*accesstype |= ACCESS_WRITE;
 
 		hashmap_put(_smackrules, rule_pair, accesstype);
-	}
+
+	} while (!feof(load_file));
 
 end:
 	if (load_file)
