@@ -68,10 +68,10 @@ static inline void freep(void *p)
 
 static inline void free_buxton_string(void *p)
 {
-	BuxtonString *s = (BuxtonString*)p;
+	BuxtonString *s = (*(void**) p);
 	if (s)
 		free(s->value);
-	free(*(void**) p);
+	free(s);
 }
 
 #define _cleanup_free_ _cleanup_(freep)
