@@ -410,6 +410,7 @@ static void destroy_backend(BuxtonBackend *backend)
 
 	backend->set_value = NULL;
 	backend->get_value = NULL;
+	backend->delete_value = NULL;
 	backend->destroy();
 	dlclose(backend->module);
 	free(backend);
