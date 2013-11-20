@@ -130,6 +130,30 @@ end:
 	return ret;
 }
 
+static bool delete_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *data)
+{
+	GDBM_FILE db;
+	datum key;
+	bool ret = false;
+	int rc;
+
+	assert(layer);
+	assert(key_name);
+
+	key.dptr = key_name->value;
+	key.dsize = (int)key_name->length;
+
+	db = _db_for_resource(layer);
+	if (!db)
+		return false;
+
+	/* Negative value means the key wasn't found */
+	rc = gdbm_delete(db, key);
+	ret = rc == 0 ? true : false;
+
+	return ret;
+}
+
 _bx_export_ void buxton_module_destroy(void)
 {
 	const char *key;
@@ -153,6 +177,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
+	backend->delete_value = &delete_value;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
 	if (!_resources)
