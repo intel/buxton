@@ -97,6 +97,21 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two
  */
 bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two, char *three, __attribute__((unused)) char *four);
 
+/**
+ * Delete a value from Buxton
+ * @param self client instance being run
+ * @param type Type of value (unused)
+ * @param one Layer of data being deleted
+ * @param two Group of key to delete
+ * @param three Key of value to delete
+ * @param four NULL (unused)
+ * @returns bool indicating success or failure
+ */
+bool cli_delete_value(BuxtonClient *self,
+		      __attribute__((unused))BuxtonDataType type,
+		      char *one, char *two, char *three,
+		      __attribute__((unused)) char *four);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
