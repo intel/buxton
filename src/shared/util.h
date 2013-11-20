@@ -61,16 +61,16 @@ size_t page_size(void);
 
 bool streq_ptr(const char *a, const char *b) _pure_;
 
-static inline void freep(void *p) {
+static inline void freep(void *p)
+{
 	free(*(void**) p);
 }
 
-static void free_buxton_string(void *p)
+static inline void free_buxton_string(void *p)
 {
 	BuxtonString *s = (BuxtonString*)p;
-	if (!s)
-		return;
-	free(s->value);
+	if (s)
+		free(s->value);
 	free(*(void**) p);
 }
 
