@@ -173,6 +173,46 @@ end:
 	return ret;
 }
 
+bool buxton_wire_delete_value(BuxtonClient *client,
+			      BuxtonString *layer_name,
+			      BuxtonString *key)
+{
+	assert(client);
+	assert(layer_name);
+	assert(key);
+
+	bool ret = false;
+	size_t count;
+	uint8_t *send = NULL;
+	size_t send_len = 0;
+	BuxtonControlMessage r_msg;
+	BuxtonData *r_list = NULL;
+	BuxtonData d_key, d_layer;
+
+	buxton_string_to_data(key, &d_key);
+	d_key.label = buxton_string_pack("dummy");
+	buxton_string_to_data(layer_name, &d_layer);
+	d_layer.label = buxton_string_pack("dummy");
+
+	/* Attempt to serialize our send message */
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_DELETE,
+		2, &d_layer, &d_key);
+
+	if (send_len == 0)
+		goto end;
+	/* Now write it off */
+	write(client->fd, send, send_len);
+
+	/* Gain response */
+	count = buxton_wire_get_response(client, &r_msg, &r_list);
+	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
+		ret = true;
+end:
+	free(send);
+	free(r_list);
+	return ret;
+
+}
 bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 {
 	assert(self);

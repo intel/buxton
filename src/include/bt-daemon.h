@@ -130,7 +130,10 @@ _bx_export_ void buxton_client_close(BuxtonClient *client);
  * @param label A BuxtonString containing the label to set
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_set_label(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonString *label);
+_bx_export_ bool buxton_client_set_label(BuxtonClient *client,
+					 BuxtonString *layer,
+					 BuxtonString *key,
+					 BuxtonString *label);
 
 /**
  * Set a value within Buxton
@@ -140,7 +143,10 @@ _bx_export_ bool buxton_client_set_label(BuxtonClient *client, BuxtonString *lay
  * @param data A struct containing the data to set
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_set_value(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonData *data);
+_bx_export_ bool buxton_client_set_value(BuxtonClient *client,
+					 BuxtonString *layer,
+					 BuxtonString *key,
+					 BuxtonData *data);
 
 /**
  * Retrieve a value from Buxton
@@ -149,7 +155,9 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client, BuxtonString *lay
  * @param data An empty BuxtonData, where data is stored
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_get_value(BuxtonClient *client, BuxtonString *key, BuxtonData *data);
+_bx_export_ bool buxton_client_get_value(BuxtonClient *client,
+					 BuxtonString *key,
+					 BuxtonData *data);
 
 /**
  * Retrieve a value from Buxton
@@ -159,16 +167,30 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client, BuxtonString *key
  * @param data An empty BuxtonData, where data is stored
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonData *data);
+_bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
+						   BuxtonString *layer,
+						   BuxtonString *key,
+						   BuxtonData *data);
 
 /**
- * Register for motifications on the given key in all layers
+ * Register for notifications on the given key in all layers
  * @param client An open client connection
  * @param key The key to register interest with
  * @return a boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_register_notification(BuxtonClient *client, BuxtonString *key);
+_bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
+						     BuxtonString *key);
 
+/**
+ * Delete a value by key in the given BuxtonLayer
+ * @param client An open client connection
+ * @param layer The layer to remove the value from
+ * @param key The key to remove
+ * @return a boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_delete_value(BuxtonClient *client,
+					    BuxtonString *layer,
+					    BuxtonString *key);
 /**
  * Open a direct connection to Buxton
  *

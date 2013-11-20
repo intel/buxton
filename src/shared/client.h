@@ -31,7 +31,9 @@
  * @param four Pointer to char for fourth parameter
  * @return a boolean value, indicating success of the operation
  */
-typedef bool (*command_method) (BuxtonClient *self, BuxtonDataType type, char *one, char *two, char *three, char *four);
+typedef bool (*command_method) (BuxtonClient *self, BuxtonDataType type,
+				char *one, char *two, char *three,
+				char *four);
 
 /**
  * Defines a command within the buxtonctl cli
@@ -56,7 +58,8 @@ typedef struct Command {
  * @param four Label of the label to set
  * @returns bool indicating success or failure
  */
-bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
+bool cli_set_label(BuxtonClient *self,
+		   __attribute__((unused)) BuxtonDataType type,
 		   char *one, char *two, char *three, char *four);
 
 /**
@@ -69,8 +72,10 @@ bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType ty
  * @param four NULL (unused)
  * @returns bool indicating success or failure
  */
-bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
-		   char *one, char *two, char *three, __attribute__((unused)) char *four);
+bool cli_get_label(BuxtonClient *self,
+		   __attribute__((unused)) BuxtonDataType type,
+		   char *one, char *two, char *three,
+		   __attribute__((unused)) char *four);
 
 /**
  * Set a value in Buxton
@@ -82,8 +87,8 @@ bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType ty
  * @param three Value of the data to set
  * @returns bool indicating success or failure
  */
-bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two,
-		   char *three, char *four);
+bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char *one,
+		   char *two, char *three, char *four);
 
 /**
  * Get a value from Buxton
@@ -95,7 +100,24 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two
  * @param three NULL (unused)
  * @returns bool indicating success or failure
  */
-bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char *one, char *two, char *three, __attribute__((unused)) char *four);
+bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char *one,
+		   char *two, char *three,
+		   __attribute__((unused)) char *four);
+
+/**
+ * Delete a value from Buxton
+ * @param self client instance being run
+ * @param type Type of value (unused)
+ * @param one Layer of data being deleted
+ * @param two Group of key to delete
+ * @param three Key of value to delete
+ * @param four NULL (unused)
+ * @returns bool indicating success or failure
+ */
+bool cli_delete_value(BuxtonClient *self,
+		      __attribute__((unused))BuxtonDataType type,
+		      char *one, char *two, char *three,
+		      __attribute__((unused)) char *four);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

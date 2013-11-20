@@ -49,6 +49,8 @@ bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType ty
 	if (!ret)
 		printf("Failed to update key \'%s:%s\' label in layer '%s'\n",
 		       buxton_get_group(key), buxton_get_name(key), layer.value);
+	free(key->value);
+	free(key);
 	return ret;
 }
 
@@ -73,6 +75,8 @@ bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType ty
 		printf("[%s][%s:%s] = %s\n", layer.value, buxton_get_group(key),
 		       buxton_get_name(key), get.label.value);
 
+	free(key->value);
+	free(key);
 	return ret;
 }
 
@@ -103,28 +107,28 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 		set.store.d_int32 = (int32_t)strtol(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid int32_t value\n");
-			return false;
+			goto end;
 		}
 		break;
 	case INT64:
 		set.store.d_int64 = strtoll(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid int64_t value\n");
-			return false;
+			goto end;
 		}
 		break;
 	case FLOAT:
 		set.store.d_float = strtof(value.value, NULL);
 		if (errno) {
 			printf("Invalid float value\n");
-			return false;
+			goto end;
 		}
 		break;
 	case DOUBLE:
 		set.store.d_double = strtod(value.value, NULL);
 		if (errno) {
 			printf("Invalid double value\n");
-			return false;
+			goto end;
 		}
 		break;
 	case BOOLEAN:
@@ -146,7 +150,7 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 			set.store.d_boolean = false;
 		else {
 			printf("Invalid bool value\n");
-			return false;
+			goto end;
 		}
 		break;
 	default:
@@ -156,6 +160,10 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 	if (!ret)
 		printf("Failed to update key \'%s:%s\' in layer '%s'\n", buxton_get_group(key),
 		       buxton_get_name(key), layer.value);
+end:
+
+	free(key->value);
+	free(key);
 	return ret;
 }
 
@@ -165,6 +173,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 	BuxtonString layer;
 	BuxtonString *key;
 	BuxtonData get;
+	bool ret = false;
 	_cleanup_free_ char *prefix = NULL;
 
 	if (three != NULL) {
@@ -184,13 +193,13 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 		if (!buxton_client_get_value_for_layer(self, &layer, key, &get)) {
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
 			       layer.value, buxton_get_group(key), buxton_get_name(key));
-			return false;
+			goto end;
 		}
 	} else {
 		if (!buxton_client_get_value(self, key, &get)) {
 			printf("Requested key was not found: %s:%s\n", buxton_get_group(key),
 			       buxton_get_name(key));
-			return false;
+			goto end;
 		}
 	}
 
@@ -199,7 +208,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 		type_req = buxton_type_as_string(type);
 		type_got = buxton_type_as_string(get.type);
 		printf("You requested a key with type \'%s\', but value is of type \'%s\'.\n\n", type_req, type_got);
-		return false;
+		goto end;
 	}
 
 	switch (get.type) {
@@ -233,16 +242,41 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 		break;
 	default:
 		printf("unknown type\n");
-		return false;
+		goto end;
 		break;
 	}
 
+end:
+	ret = true;
 	if (get.type == STRING)
 		free(get.store.d_string.value);
-
-	return true;
+	free(key->value);
+	free(key);
+	return ret;
 }
 
+bool cli_delete_value(BuxtonClient *self,
+		      __attribute__((unused))BuxtonDataType type,
+		      char *one, char *two, char *three,
+		      __attribute__((unused)) char *four)
+{
+	BuxtonString layer;
+	BuxtonString *key = NULL;
+	bool ret = false;
+
+	layer.value = one;
+	layer.length = (uint32_t)strlen(one) + 1;
+	key = buxton_make_key(two, three);
+
+	if (!key)
+		return false;
+
+	ret = buxton_client_delete_value(self, &layer, key);
+
+	free(key->value);
+	free(key);
+	return ret;
+}
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
