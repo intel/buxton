@@ -235,6 +235,7 @@ START_TEST(parse_list_check)
 		"Unable to parse valid notify");
 	fail_if(!streq(key->value, l1[0].store.d_string.value),
 		"Failed to set correct notify key");
+
 	l2[0].type = INT32;
 	l2[1].type = STRING;
 	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
@@ -282,6 +283,25 @@ START_TEST(parse_list_check)
 		"Failed to set correct set key 1");
 	fail_if(value->store.d_float != l3[2].store.d_float,
 		"Failed to set correct set value 1");
+
+	l2[0].type = INT32;
+	l2[1].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_DELETE, 2, l2, &key, &layer, &value),
+		"Parsed bad delete type 1");
+	l2[0].type = STRING;
+	l2[1].type = INT32;
+	fail_if(parse_list(BUXTON_CONTROL_DELETE, 2, l2, &key, &layer, &value),
+		"Parsed bad delete type 2");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[0].store.d_string = buxton_string_pack("s6");
+	l2[1].store.d_string = buxton_string_pack("s7");
+	fail_if(!parse_list(BUXTON_CONTROL_DELETE, 2, l2, &key, &layer, &value),
+		"Unable to parse valid get 1");
+	fail_if(!streq(layer->value, l2[0].store.d_string.value),
+		"Failed to set correct delete layer 1");
+	fail_if(!streq(key->value, l2[1].store.d_string.value),
+		"Failed to set correct delete key 1");
 }
 END_TEST
 
