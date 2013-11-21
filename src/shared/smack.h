@@ -55,7 +55,9 @@ bool buxton_cache_smack_rules(void);
  * @param request The buxton access type being queried
  * @return true if the smack access matches the given request, otherwise false
  */
-bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, BuxtonKeyAccessType request);
+bool buxton_check_smack_access(BuxtonString *subject,
+			       BuxtonString *object,
+			       BuxtonKeyAccessType request);
 
 /**
  * Set up inotify to track Smack rule file for changes
@@ -72,7 +74,9 @@ int buxton_watch_smack_rules(void);
  * @param client_label The Smack label of the client
  * @return true if read access is granted, otherwise false
  */
-bool buxton_check_read_access(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonData *data, BuxtonString *client_label);
+bool buxton_check_read_access(BuxtonClient *client, BuxtonString *layer,
+			      BuxtonString *key, BuxtonData *data,
+			      BuxtonString *client_label);
 
 /**
  * Check whether the client has write access for a key in a layer
@@ -83,7 +87,9 @@ bool buxton_check_read_access(BuxtonClient *client, BuxtonString *layer, BuxtonS
  * @param client_label The Smack label of the client
  * @return true if write access is granted, otherwise false
  */
-bool buxton_check_write_access(BuxtonClient *client, BuxtonString *layer, BuxtonString *key, BuxtonData *data, BuxtonString *client_label);
+bool buxton_check_write_access(BuxtonClient *client, BuxtonString *layer,
+			       BuxtonString *key, BuxtonData *data,
+			       BuxtonString *client_label);
 
 
 /*

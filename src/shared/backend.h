@@ -64,7 +64,8 @@ typedef struct BuxtonLayer {
  * @param data Set or get data, dependant on operation
  * @return a boolean value, indicating success of the operation
  */
-typedef bool (*module_value_func) (BuxtonLayer *layer, BuxtonString *key, BuxtonData *data);
+typedef bool (*module_value_func) (BuxtonLayer *layer, BuxtonString *key,
+				   BuxtonData *data);
 
 /**
  * Destroy (or shutdown) a backend module

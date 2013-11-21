@@ -96,7 +96,8 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
  * @param ... Variable argument list of BuxtonData pointers
  * @return a size_t, 0 indicates failure otherwise size of dest
  */
-size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
+size_t buxton_serialize_message(uint8_t **dest,
+				BuxtonControlMessage message,
 				size_t n_params, ...);
 
 /**
@@ -107,7 +108,8 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
  * @param list A pointer that will be filled out as an array of BuxtonData structs
  * @return the length of the array, or 0 if deserialization failed
  */
-size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
+size_t buxton_deserialize_message(uint8_t *data,
+				  BuxtonControlMessage *message,
 				  size_t size, BuxtonData **list);
 
 /**
