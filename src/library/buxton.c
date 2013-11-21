@@ -26,13 +26,27 @@
 /* Keep a global client instead of having the using application
  * refer to yet another client struct. Also consider being
  * able to export this client fd */
-__attribute__((unused)) static BuxtonClient __client = NULL;
+static BuxtonClient __client;
+static bool __setup = false;
 
+
+/**
+ * Ensure client is connected
+ */
+static bool prepare_client(void);
+
+/**
+ * Ensure we close Buxton connection properly
+ */
+static void __cleanup(void);
 
 BuxtonValue* buxton_get_value(char *layer,
 			      char *group,
 			      char *key)
 {
+	if (!prepare_client())
+		return NULL;
+
 	return NULL;
 }
 
@@ -41,6 +55,9 @@ bool buxton_set_value(char *layer,
 		      char *key,
 		      BuxtonValue *data)
 {
+	if (!prepare_client())
+		return false;
+
 	return false;
 }
 
@@ -48,6 +65,9 @@ bool buxton_unset_value(char *layer,
 		        char *group,
 		        char *key)
 {
+	if (!prepare_client())
+		return false;
+
 	return false;
 }
 
@@ -58,6 +78,34 @@ void buxton_free_value(BuxtonValue *p)
 	free(p->store);
 	free(p);
 }
+
+static bool prepare_client(void)
+{
+	bool ret = false;
+
+	if (__setup)
+		return true;
+
+	ret = buxton_client_open(&__client);
+	if (!ret)
+		return false;
+
+	/* Registering our handler after the buxton library ensures
+	 * our one runs first */
+	if (!__setup)
+		atexit(__cleanup);
+	__setup = true;
+	return ret;
+}
+
+static void __cleanup(void)
+{
+	if (!__setup)
+		return;
+
+	buxton_client_close(&__client);
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
