@@ -121,10 +121,21 @@ bool buxton_unset_value(char *layer,
 		        char *group,
 		        char *key)
 {
+	BuxtonString k_layer;
+	_cleanup_buxton_string_ BuxtonString *k_key;
+	bool ret = false;
+
 	if (!prepare_client())
 		return false;
 
-	return false;
+	k_layer = buxton_string_pack(layer);
+	k_key = buxton_make_key(group, key);
+	if (!k_key)
+		return false;
+
+	ret = buxton_client_unset_value(&__client, &k_layer, k_key);
+
+	return ret;
 }
 
 void buxton_free_value(BuxtonValue *p)
