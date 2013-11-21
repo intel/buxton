@@ -417,7 +417,19 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination double data differ");
 	free(packed);
 
-	//FIXME add boolean serialize check
+	dsource.type = BOOLEAN;
+	dsource.store.d_boolean = true;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize boolean data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize boolean data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for boolean");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination boolean labels differ");
+	fail_if(dsource.store.d_boolean != dtarget.store.d_boolean,
+		"Source and destination boolean data differ");
+	free(packed);
 
 	dsource.type = -1;
 	dsource.store.d_boolean = true;
