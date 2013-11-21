@@ -639,7 +639,7 @@ char *buxton_get_name(BuxtonString *key)
 	c = strchr(key->value, 0);
 	if (!c)
 		return NULL;
-	if (c - (key->value + key->length) >= 0)
+	if (c - (key->value + (key->length - 1)) >= 0)
 		return NULL;
 	c++;
 
