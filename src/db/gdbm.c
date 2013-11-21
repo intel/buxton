@@ -59,9 +59,12 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 			return 0;
 		}
 		hashmap_put(_resources, name, db);
+	} else {
+		db = (GDBM_FILE) hashmap_get(_resources, name);
+		free(name);
 	}
 
-	return (GDBM_FILE) hashmap_get(_resources, name);
+	return db;
 }
 
 static bool set_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *data)
