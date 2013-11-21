@@ -66,6 +66,15 @@ static inline void freep(void *p)
 	free(*(void**) p);
 }
 
+static inline void free_buxton_data(void *p)
+{
+	BuxtonData *s = (*(void**) p);
+	if (s)
+		free(s->label.value);
+	if (s && s->type == STRING)
+		free(s->store.d_string.value);
+	free(s);
+}
 static inline void free_buxton_string(void *p)
 {
 	BuxtonString *s = (*(void**) p);
@@ -75,6 +84,7 @@ static inline void free_buxton_string(void *p)
 }
 
 #define _cleanup_free_ _cleanup_(freep)
+#define _cleanup_buxton_data_ _cleanup_(free_buxton_data)
 #define _cleanup_buxton_string_ _cleanup_(free_buxton_string)
 
 #define new(t, n) ((t*) malloc_multiply(sizeof(t), (n)))
