@@ -79,7 +79,9 @@ bt_daemon_LDADD = \
 
 buxtonctl_SOURCES = \
 	src/shared/constants.c \
-	src/cli/main.c
+	src/cli/main.c \
+	src/shared/client.c \
+	src/shared/client.h
 
 buxtonctl_LDADD = \
 	libbuxton.la \
@@ -106,8 +108,6 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/protocol.h \
 	src/shared/daemon.c \
 	src/shared/daemon.h \
-	src/shared/client.c \
-	src/shared/client.h \
 	${NULL}
 
 if USE_LOCAL_INIPARSER
