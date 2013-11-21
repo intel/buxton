@@ -23,7 +23,7 @@
 
 typedef bool (*TestFunction) (BuxtonClient *client);
 
-bool timed_func(TestFunction func, BuxtonClient *client, unsigned long long *elapsed)
+static bool timed_func(TestFunction func, BuxtonClient *client, unsigned long long *elapsed)
 {
 	struct timespec tsi, tsf;
 	bool ret;
@@ -36,7 +36,7 @@ bool timed_func(TestFunction func, BuxtonClient *client, unsigned long long *ela
 	return ret;
 }
 
-bool set_string(BuxtonClient *client)
+static bool set_string(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonString layer, value;
@@ -50,7 +50,7 @@ bool set_string(BuxtonClient *client)
 	return buxton_client_set_value(client, &layer, key, &data);
 }
 
-bool get_string(BuxtonClient *client)
+static bool get_string(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonData data;
@@ -60,7 +60,7 @@ bool get_string(BuxtonClient *client)
 	return buxton_client_get_value(client, key, &data);
 }
 
-bool set_and_delete_string(BuxtonClient *client)
+static bool set_and_delete_string(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonString layer, value;
@@ -75,7 +75,7 @@ bool set_and_delete_string(BuxtonClient *client)
 		buxton_client_delete_value(client, &layer, key));
 }
 
-bool set_string_4k(BuxtonClient *client)
+static bool set_string_4k(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonString layer, value;
@@ -89,7 +89,7 @@ bool set_string_4k(BuxtonClient *client)
 	return buxton_client_set_value(client, &layer, key, &data);
 }
 
-bool get_string_4k(BuxtonClient *client)
+static bool get_string_4k(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonData data;
@@ -99,7 +99,7 @@ bool get_string_4k(BuxtonClient *client)
 	return buxton_client_get_value(client, key, &data);
 }
 
-bool set_and_delete_string_4k(BuxtonClient *client)
+static bool set_and_delete_string_4k(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonString layer, value;
@@ -114,7 +114,7 @@ bool set_and_delete_string_4k(BuxtonClient *client)
 		buxton_client_delete_value(client, &layer, key));
 }
 
-bool set_int32(BuxtonClient *client)
+static bool set_int32(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonString layer;
@@ -128,7 +128,7 @@ bool set_int32(BuxtonClient *client)
 	return buxton_client_set_value(client, &layer, key, &data);
 }
 
-bool get_int32(BuxtonClient *client)
+static bool get_int32(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonData data;
@@ -139,7 +139,7 @@ bool get_int32(BuxtonClient *client)
 	return buxton_client_get_value(client, key, &data);
 }
 
-bool set_and_delete_int32(BuxtonClient *client)
+static bool set_and_delete_int32(BuxtonClient *client)
 {
 	BuxtonString *key;
 	BuxtonString layer;
