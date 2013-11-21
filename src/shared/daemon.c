@@ -157,6 +157,8 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 end:
 	/* Restore our own UID */
 	self->buxton.uid = uid;
+	if (data)
+		free(data->label.value);
 	if (data && data->type == STRING)
 		free(data->store.d_string.value);
 	if (list) {
