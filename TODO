@@ -9,5 +9,11 @@
 - add checks for data consistency, and determine if gdbm needs to be
   "reorganised" to ensure minimal I/O bottlenecking
 
-- before 1.0, define NDEBUG (disables asserts) in config.h unless
-  --enable-debug is passed to configure
+- finish completion of Buxton's public library
+  - rename to "libbuxton"
+  - rename existing buxton library
+
+- Split up existing buxton library into convenience libraries to link
+  against (static archives)
+
+- Provide demonstration (in demo/) to make use of new client library

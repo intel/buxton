@@ -50,7 +50,7 @@ typedef enum BuxtonControlMessage{
 	BUXTON_CONTROL_MIN,
 	BUXTON_CONTROL_SET, /**<Set a value within Buxton */
 	BUXTON_CONTROL_GET, /**<Retrieve a value from Buxton */
-	BUXTON_CONTROL_DELETE, /**<Delete a value from Buxton */
+	BUXTON_CONTROL_UNSET, /**<Unset a value within Buxton */
 	BUXTON_CONTROL_STATUS, /**<Status code follows */
 	BUXTON_CONTROL_NOTIFY, /**<Register for notification */
 	BUXTON_CONTROL_CHANGED, /**<A key changed in Buxton */
@@ -96,7 +96,8 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
  * @param ... Variable argument list of BuxtonData pointers
  * @return a size_t, 0 indicates failure otherwise size of dest
  */
-size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
+size_t buxton_serialize_message(uint8_t **dest,
+				BuxtonControlMessage message,
 				size_t n_params, ...);
 
 /**
@@ -107,7 +108,8 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
  * @param list A pointer that will be filled out as an array of BuxtonData structs
  * @return the length of the array, or 0 if deserialization failed
  */
-size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *message,
+size_t buxton_deserialize_message(uint8_t *data,
+				  BuxtonControlMessage *message,
 				  size_t size, BuxtonData **list);
 
 /**

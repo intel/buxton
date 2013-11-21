@@ -35,7 +35,8 @@
  * @returns bool indicating success of parsing
  */
 bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
-		BuxtonString **key, BuxtonString **layer, BuxtonData **value);
+		BuxtonString **key, BuxtonString **layer,
+		BuxtonData **value);
 
 /**
  * Handle a message within bt-daemon
@@ -44,7 +45,9 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
  * @param size Size of the data being handled
  * @returns bool True if message was successfully handled
  */
-bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size);
+bool bt_daemon_handle_message(BuxtonDaemon *self,
+			      client_list_item *client,
+			      size_t size);
 
 /**
  * Notify clients a value changes in bt-daemon
@@ -65,8 +68,9 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
  * @param value Value being set
  * @param status Will be set with the BuxtonStatus result of the operation
  */
-void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
-	       BuxtonString *key, BuxtonData *value, BuxtonStatus *status);
+void set_value(BuxtonDaemon *self, client_list_item *client,
+	       BuxtonString *layer, BuxtonString *key, BuxtonData *value,
+	       BuxtonStatus *status);
 
 /**
  * Buxton daemon function for getting a value
@@ -77,20 +81,21 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
-BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
-		      BuxtonString *key, BuxtonStatus *status);
+BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
+		      BuxtonString *layer, BuxtonString *key,
+		      BuxtonStatus *status);
 
 /**
- * Buxton daemon function for deleting a value
+ * Buxton daemon function for unsetting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param layer Layer for the value being deleted
- * @param key Key for the value being deleted
+ * @param layer Layer for the value being unset
+ * @param key Key for the value being dunset
  * @param status Will be set with the BuxtonStatus result of the operation
  */
-void delete_value(BuxtonDaemon *self, client_list_item *client,
-		  BuxtonString *layer, BuxtonString *key,
-		  BuxtonStatus *status);
+void unset_value(BuxtonDaemon *self, client_list_item *client,
+		 BuxtonString *layer, BuxtonString *key,
+		 BuxtonStatus *status);
 
 /**
  * Buxton daemon function for registering notifications on a given key

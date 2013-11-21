@@ -242,10 +242,10 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 	return true;
 }
 
-bool cli_delete_value(BuxtonClient *self,
-		      __attribute__((unused))BuxtonDataType type,
-		      char *one, char *two, char *three,
-		      __attribute__((unused)) char *four)
+bool cli_unset_value(BuxtonClient *self,
+		     __attribute__((unused))BuxtonDataType type,
+		     char *one, char *two, char *three,
+		     __attribute__((unused)) char *four)
 {
 	BuxtonString layer;
 	_cleanup_buxton_string_ BuxtonString *key = NULL;
@@ -257,7 +257,7 @@ bool cli_delete_value(BuxtonClient *self,
 	if (!key)
 		return false;
 
-	return buxton_client_delete_value(self, &layer, key);
+	return buxton_client_unset_value(self, &layer, key);
 }
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

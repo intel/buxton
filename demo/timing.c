@@ -60,7 +60,7 @@ bool get_string(BuxtonClient *client)
 	return buxton_client_get_value(client, &key, &data);
 }
 
-bool set_and_delete_string(BuxtonClient *client)
+bool set_and_unset_string(BuxtonClient *client)
 {
 	BuxtonString layer, key, value;
 	BuxtonData data;
@@ -72,7 +72,7 @@ bool set_and_delete_string(BuxtonClient *client)
 	data.label = buxton_string_pack("_");
 
 	return (buxton_client_set_value(client, &layer, &key, &data) &&
-		buxton_client_delete_value(client, &layer, &key));
+		buxton_client_unset_value(client, &layer, &key));
 }
 
 bool set_string_4k(BuxtonClient *client)
@@ -99,7 +99,7 @@ bool get_string_4k(BuxtonClient *client)
 	return buxton_client_get_value(client, &key, &data);
 }
 
-bool set_and_delete_string_4k(BuxtonClient *client)
+bool set_and_unset_string_4k(BuxtonClient *client)
 {
 	BuxtonString layer, key, value;
 	BuxtonData data;
@@ -111,7 +111,7 @@ bool set_and_delete_string_4k(BuxtonClient *client)
 	data.label = buxton_string_pack("_");
 
 	return (buxton_client_set_value(client, &layer, &key, &data) &&
-		buxton_client_delete_value(client, &layer, &key));
+		buxton_client_unset_value(client, &layer, &key));
 }
 
 bool set_int32(BuxtonClient *client)
@@ -139,7 +139,7 @@ bool get_int32(BuxtonClient *client)
 	return buxton_client_get_value(client, &key, &data);
 }
 
-bool set_and_delete_int32(BuxtonClient *client)
+bool set_and_unset_int32(BuxtonClient *client)
 {
 	BuxtonString layer, key;
 	BuxtonData data;
@@ -151,7 +151,7 @@ bool set_and_delete_int32(BuxtonClient *client)
 	data.label = buxton_string_pack("_");
 
 	return (buxton_client_set_value(client, &layer, &key, &data) &&
-		buxton_client_delete_value(client, &layer, &key));
+		buxton_client_unset_value(client, &layer, &key));
 }
 
 static bool test(TestFunction func, const char *name, BuxtonClient *client)
@@ -205,8 +205,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (!set_and_delete_int32(&client)) {
-		error("Unable to set and delete int32\n");
+	if (!set_and_unset_int32(&client)) {
+		error("Unable to set and unset int32\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -220,8 +220,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (!set_and_delete_string(&client)) {
-		error("Unable to set and delete string\n");
+	if (!set_and_unset_string(&client)) {
+		error("Unable to set and unset string\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -235,8 +235,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (!set_and_delete_string_4k(&client)) {
-		error("Unable to set and delete 4k string\n");
+	if (!set_and_unset_string_4k(&client)) {
+		error("Unable to set and unset 4k string\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -246,19 +246,19 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	if (!test(set_int32, "set_int32", &client))
 		exit(EXIT_FAILURE);
-	if (!test(set_and_delete_int32, "set_and_delete_int32", &client))
+	if (!test(set_and_unset_int32, "set_and_unset_int32", &client))
 		exit(EXIT_FAILURE);
 	if (!test(get_string, "get_string", &client))
 		exit(EXIT_FAILURE);
 	if (!test(set_string, "set_string", &client))
 		exit(EXIT_FAILURE);
-	if (!test(set_and_delete_string, "set_and_delete_string", &client))
+	if (!test(set_and_unset_string, "set_and_unset_string", &client))
 		exit(EXIT_FAILURE);
 	if (!test(get_string_4k, "get_string_4k", &client))
 		exit(EXIT_FAILURE);
 	if (!test(set_string_4k, "set_string_4k", &client))
 		exit(EXIT_FAILURE);
-	if (!test(set_and_delete_string_4k, "set_and_delete_string_4k", &client))
+	if (!test(set_and_unset_string_4k, "set_and_unset_string_4k", &client))
 		exit(EXIT_FAILURE);
 
 	buxton_client_close(&client);
