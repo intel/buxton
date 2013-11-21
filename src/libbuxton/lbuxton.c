@@ -392,11 +392,19 @@ bool buxton_client_set_label(BuxtonClient *client,
 		return false;
 	}
 
-	r = buxton_client_get_value_for_layer(client, layer_name, key, &data);
-	if (!r)
-		return false;
+	char *name = buxton_get_name(key);
+	if (name) {
+		r = buxton_client_get_value_for_layer(client, layer_name, key, &data);
+		if (!r)
+			return false;
 
-	free(data.label.value);
+		free(data.label.value);
+	} else {
+		/* we have a group, so initialize the data with a dummy value */
+		data.type = STRING;
+		data.store.d_string = buxton_string_pack("BUXTON_GROUP_VALUE");
+	}
+
 	data.label.length = label->length;
 	data.label.value = label->value;
 
