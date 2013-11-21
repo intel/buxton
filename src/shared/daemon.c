@@ -53,7 +53,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		}
 		break;
-	case BUXTON_CONTROL_DELETE:
+	case BUXTON_CONTROL_UNSET:
 		if (count != 2)
 			return false;
 		if (list[0].type != STRING || list[1].type != STRING)
@@ -119,8 +119,8 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_GET:
 		data = get_value(self, client, layer, key, &response);
 		break;
-	case BUXTON_CONTROL_DELETE:
-		delete_value(self, client, layer, key, &response);
+	case BUXTON_CONTROL_UNSET:
+		unset_value(self, client, layer, key, &response);
 		break;
 	case BUXTON_CONTROL_NOTIFY:
 		register_notification(self, client, key, &response);
@@ -302,9 +302,9 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 }
 
 
-void delete_value(BuxtonDaemon *self, client_list_item *client,
-		  BuxtonString *layer, BuxtonString *key,
-		  BuxtonStatus *status)
+void unset_value(BuxtonDaemon *self, client_list_item *client,
+		 BuxtonString *layer, BuxtonString *key,
+		 BuxtonStatus *status)
 {
 	assert(self);
 	assert(client);
@@ -313,7 +313,7 @@ void delete_value(BuxtonDaemon *self, client_list_item *client,
 
 	*status = BUXTON_STATUS_FAILED;
 
-	buxton_debug("Daemon deleting [%s][%s]\n",
+	buxton_debug("Daemon unsetting [%s][%s]\n",
 		     layer->value,
 		     key->value);
 
@@ -327,13 +327,13 @@ void delete_value(BuxtonDaemon *self, client_list_item *client,
 			return;
 		}
 	}
-	/* Use internal library to delete value */
+	/* Use internal library to unset value */
 	self->buxton.uid = client->cred.uid;
-	if (!buxton_client_delete_value(&(self->buxton), layer, key))
+	if (!buxton_client_unset_value(&(self->buxton), layer, key))
 		return;
 
 	*status = BUXTON_STATUS_OK;
-	buxton_debug("Daemon delete value completed\n");
+	buxton_debug("Daemon unset value completed\n");
 }
 
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,

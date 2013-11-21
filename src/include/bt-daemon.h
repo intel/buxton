@@ -182,15 +182,15 @@ _bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
 						     BuxtonString *key);
 
 /**
- * Delete a value by key in the given BuxtonLayer
+ * Unset a value by key in the given BuxtonLayer
  * @param client An open client connection
  * @param layer The layer to remove the value from
  * @param key The key to remove
  * @return a boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_delete_value(BuxtonClient *client,
-					    BuxtonString *layer,
-					    BuxtonString *key);
+_bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
+					   BuxtonString *layer,
+					   BuxtonString *key);
 /**
  * Open a direct connection to Buxton
  *

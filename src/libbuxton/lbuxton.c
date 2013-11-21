@@ -411,9 +411,9 @@ bool buxton_client_set_label(BuxtonClient *client,
 	return backend->set_value(layer, key, &data);
 }
 
-bool buxton_client_delete_value(BuxtonClient *client,
-			        BuxtonString *layer_name,
-			        BuxtonString *key)
+bool buxton_client_unset_value(BuxtonClient *client,
+			       BuxtonString *layer_name,
+			       BuxtonString *key)
 {
 
 	assert(client);
@@ -436,11 +436,11 @@ bool buxton_client_delete_value(BuxtonClient *client,
 			return false;
 		}
 		layer->uid = client->uid;
-		return backend->delete_value(layer, key, NULL);
+		return backend->unset_value(layer, key, NULL);
 	}
 
 	/* Normal interaction (wire-protocol) */
-	return buxton_wire_delete_value(client, layer_name, key);
+	return buxton_wire_unset_value(client, layer_name, key);
 }
 
 static void destroy_backend(BuxtonBackend *backend)
@@ -450,7 +450,7 @@ static void destroy_backend(BuxtonBackend *backend)
 
 	backend->set_value = NULL;
 	backend->get_value = NULL;
-	backend->delete_value = NULL;
+	backend->unset_value = NULL;
 	backend->destroy();
 	dlclose(backend->module);
 	free(backend);
