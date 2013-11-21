@@ -254,6 +254,8 @@ bool buxton_check_write_access(BuxtonClient *client,
 	assert(key);
 	assert(client_label);
 
+	_cleanup_buxton_data_ BuxtonData *curr_data = NULL;
+
 	char *group = buxton_get_group(key);
 	char *name = buxton_get_name(key);
 	if (!group) {
@@ -266,7 +268,7 @@ bool buxton_check_write_access(BuxtonClient *client,
 		 * group labels, we need an access check here.
 		 */
 	} else {
-		BuxtonData *curr_data = malloc0(sizeof(BuxtonData));
+		curr_data = malloc0(sizeof(BuxtonData));
 		if (!curr_data) {
 			buxton_log("malloc0: %m\n");
 			return false;
@@ -281,7 +283,6 @@ bool buxton_check_write_access(BuxtonClient *client,
 								 &(data->label),
 								 ACCESS_WRITE)) {
 			buxton_debug("Smack: not permitted to set new value\n");
-			free(curr_data);
 			return false;
 		}
 
@@ -290,7 +291,6 @@ bool buxton_check_write_access(BuxtonClient *client,
 						       &(curr_data->label),
 						       ACCESS_WRITE)) {
 				buxton_debug("Smack: not permitted to modify existing value\n");
-				free(curr_data);
 				return false;
 			}
 
@@ -305,8 +305,6 @@ bool buxton_check_write_access(BuxtonClient *client,
 				data->label.length = curr_data->label.length;
 			}
 		}
-
-		free(curr_data);
 	}
 
 	return true;

@@ -81,7 +81,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	BuxtonControlMessage msg;
 	BuxtonStatus response;
 	BuxtonData *list = NULL;
-	BuxtonData *data = NULL;
+	_cleanup_buxton_data_ BuxtonData *data = NULL;
 	int i;
 	size_t p_count;
 	size_t response_len;
@@ -157,11 +157,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 end:
 	/* Restore our own UID */
 	self->buxton.uid = uid;
-	if (data)
-		free(data->label.value);
-	if (data && data->type == STRING)
-		free(data->store.d_string.value);
-	free(data);
 	if (list) {
 		for (i=0; i < p_count; i++) {
 			free(list[i].label.value);
