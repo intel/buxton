@@ -87,6 +87,14 @@ buxtonctl_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la
 
+## TODO: Rename this to libbuxton and break up the existing libbuxton
+libbuxton_client_la_SOURCES = \
+	src/include/buxton.h \
+	src/library/buxton.c
+
+libbuxton_client_la_LIBADD = \
+	libbuxton.la
+
 noinst_LTLIBRARIES += \
 	libbuxton-shared.la
 
@@ -122,7 +130,8 @@ include_HEADERS += \
 	src/include/bt-daemon.h
 
 lib_LTLIBRARIES += \
-	libbuxton.la
+	libbuxton.la \
+	libbuxton-client.la
 
 libbuxton_la_SOURCES = \
 	src/libbuxton/lbuxton.c
