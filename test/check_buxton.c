@@ -182,6 +182,28 @@ START_TEST(buxton_key_check)
 }
 END_TEST
 
+START_TEST(buxton_group_label_check)
+{
+	BuxtonClient c;
+	BuxtonData result;
+	BuxtonString layer = buxton_string_pack("test-gdbm");
+	BuxtonString *key = buxton_make_key("test-group", NULL);
+	BuxtonString label = buxton_string_pack("System");
+
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	fail_if(buxton_client_set_label(&c, &layer, key, &label) == false,
+		"Failed to set group label.");
+	fail_if(buxton_client_get_value_for_layer(&c, &layer, key, &result) == false,
+		"Retrieving group label failed.");
+	fail_if(!streq("System", result.label.value),
+		"Retrieved group label is incorrect.");
+
+	free(key->value);
+	free(key);
+}
+END_TEST
+
 START_TEST(buxton_wire_get_response_check)
 {
 	BuxtonClient client;
@@ -353,6 +375,7 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_direct_get_value_check);
 	tcase_add_test(tc, buxton_memory_backend_check);
 	tcase_add_test(tc, buxton_key_check);
+	tcase_add_test(tc, buxton_group_label_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("buxton_protocol_functions");
