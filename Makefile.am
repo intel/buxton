@@ -127,7 +127,8 @@ libbuxton_shared_la_SOURCES += \
 endif
 
 include_HEADERS += \
-	src/include/bt-daemon.h
+	src/include/bt-daemon.h \
+	src/include/buxton.h
 
 lib_LTLIBRARIES += \
 	libbuxton.la \
