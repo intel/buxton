@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 	Command c_get_double, c_set_double;
 	Command c_get_bool, c_set_bool;
 	Command c_get_label, c_set_label;
-	Command c_delete_value;
+	Command c_unset_value;
 	Command *command;
 	int i = 0;
 	int c;
@@ -147,10 +147,10 @@ int main(int argc, char **argv)
 
 	hashmap_put(commands, c_set_label.name, &c_set_label);
 
-	/* Delete value */
-	c_delete_value = (Command) { "delete-value", "Delete a value by key",
-				  3, 3, "layer group name", &cli_delete_value, STRING };
-	hashmap_put(commands, c_delete_value.name, &c_delete_value);
+	/* Unset value */
+	c_unset_value = (Command) { "unset-value", "Unset a value by key",
+				  3, 3, "layer group name", &cli_unset_value, STRING };
+	hashmap_put(commands, c_unset_value.name, &c_unset_value);
 
 	static struct option opts[] = {
 		{ "direct", 0, NULL, 'd' },

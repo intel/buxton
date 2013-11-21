@@ -90,9 +90,9 @@ static bool get_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
 	return true;
 }
 
-static bool delete_value(BuxtonLayer *layer,
-			 BuxtonString *key,
-			 __attribute__((unused)) BuxtonData *data)
+static bool unset_value(BuxtonLayer *layer,
+			BuxtonString *key,
+			__attribute__((unused)) BuxtonData *data)
 {
 	Hashmap *db;
 	BuxtonData *stored;
@@ -108,7 +108,7 @@ static bool delete_value(BuxtonLayer *layer,
 	stored = (BuxtonData*)hashmap_get(db, key->value);
 	if (!stored)
 		return false;
-	/* Now wipe from the database */
+	/* Now remove value from the database */
 	hashmap_remove(db, key);
 	return true;
 }
@@ -137,7 +137,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
-	backend->delete_value = &delete_value;
+	backend->unset_value = &unset_value;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
 	if (!_resources)

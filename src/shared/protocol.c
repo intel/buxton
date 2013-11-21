@@ -173,9 +173,9 @@ end:
 	return ret;
 }
 
-bool buxton_wire_delete_value(BuxtonClient *client,
-			      BuxtonString *layer_name,
-			      BuxtonString *key)
+bool buxton_wire_unset_value(BuxtonClient *client,
+			     BuxtonString *layer_name,
+			     BuxtonString *key)
 {
 	assert(client);
 	assert(layer_name);
@@ -194,7 +194,7 @@ bool buxton_wire_delete_value(BuxtonClient *client,
 	d_layer.label = buxton_string_pack("dummy");
 
 	/* Attempt to serialize our send message */
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_DELETE,
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNSET,
 		2, &d_layer, &d_key);
 
 	if (send_len == 0)
