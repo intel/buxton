@@ -46,6 +46,12 @@ static void __cleanup(void);
  */
 static BuxtonValue* convert_from_buxton(BuxtonData *data);
 
+/**
+ * Utility, convert BuxtonValue to BuxtonData
+ */
+static bool convert_to_buxton(BuxtonValue *value, BuxtonData *data);
+
+
 BuxtonValue* buxton_get_value(char *layer,
 			      char *group,
 			      char *key)
@@ -85,10 +91,30 @@ bool buxton_set_value(char *layer,
 		      char *key,
 		      BuxtonValue *data)
 {
+	BuxtonString k_layer;
+	_cleanup_buxton_string_ BuxtonString *k_key;
+	BuxtonData set;
+	bool ret = false;
+
 	if (!prepare_client())
 		return false;
 
-	return false;
+	k_layer = buxton_string_pack(layer);
+	k_key = buxton_make_key(group, key);
+	if (!key)
+		return false;
+
+	if (!convert_to_buxton(data, &set))
+		return false;
+
+	/* Check... */
+	ret = buxton_client_set_value(&__client, &k_layer, k_key,
+		&set);
+
+	if (set.type == STRING)
+		free(set.store.d_string.value);
+
+	return ret;
 }
 
 bool buxton_unset_value(char *layer,
@@ -192,6 +218,43 @@ static BuxtonValue* convert_from_buxton(BuxtonData *data)
 			return NULL;
 	}
 	return value;
+}
+
+static bool convert_to_buxton(BuxtonValue *value, BuxtonData *data)
+{
+	if (!value->store)
+		return false;
+
+	switch (value->type)
+	{
+		case BUXTON_STRING:
+			data->type = STRING;
+			data->store.d_string = buxton_string_pack(value->store);
+			break;
+		case BUXTON_INT32:
+			data->type = INT32;
+			data->store.d_int32 = *(int32_t*)value->store;
+			break;
+		case BUXTON_INT64:
+			data->type = INT64;
+			data->store.d_int64 = *(int64_t*)value->store;
+			break;
+		case BUXTON_FLOAT:
+			data->type = FLOAT;
+			data->store.d_float = *(float*)value->store;
+			break;
+		case BUXTON_DOUBLE:
+			value->type = DOUBLE;
+			data->store.d_double = *(double*)value->store;
+			break;
+		case BUXTON_BOOLEAN:
+			value->type = BOOLEAN;
+			data->store.d_boolean = *(bool*)value->store;
+			break;
+		default:
+			return false;
+	}
+	return true;
 }
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
