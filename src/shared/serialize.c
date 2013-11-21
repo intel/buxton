@@ -321,7 +321,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	size_t n_params, c_param, c_length;
 	BuxtonDataType c_type;
 	BuxtonData *k_list = NULL;
-	BuxtonData *c_data = NULL;
+	BuxtonData c_data;
 
 	assert(data);
 	assert(r_message);
@@ -364,6 +364,8 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	if (!k_list)
 		goto end;
 
+	memset(&c_data, 0, sizeof(BuxtonData));
+
 	for (c_param = 0; c_param < n_params; c_param++) {
 		buxton_debug("param: %d\n", c_param + 1);
 		buxton_debug("offset=%lu\n", offset);
@@ -378,18 +380,14 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 		if (c_type >= BUXTON_TYPE_MAX || c_type < STRING)
 			goto end;
 
-		c_data = malloc0(sizeof(BuxtonData));
-		if (!c_data)
-			goto end;
-
 		/* Retrieve the length of the label */
-		c_data->label.length = *(uint32_t*)(data+offset);
-		if (c_data->label.length < 2)
+		c_data.label.length = *(uint32_t*)(data+offset);
+		if (c_data.label.length < 2)
 			goto end;
 		offset += sizeof(uint32_t);
-		buxton_debug("label length: %lu\n", c_data->label.length);
+		buxton_debug("label length: %lu\n", c_data.label.length);
 
-		if (c_data->label.length > SMACK_LABEL_LEN)
+		if (c_data.label.length > SMACK_LABEL_LEN)
 			goto end;
 
 		/* Retrieve the length of the value */
@@ -400,58 +398,57 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 		buxton_debug("value length: %lu\n", c_length);
 
 		/* Don't try to read past the end of our buffer */
-		if (offset + c_length + c_data->label.length > size)
+		if (offset + c_length + c_data.label.length > size)
 			goto end;
 
 		/* Retrieve the label */
-		c_data->label.value = malloc(c_data->label.length);
-		if (!c_data->label.value)
+		c_data.label.value = malloc(c_data.label.length);
+		if (!c_data.label.value)
 			goto end;
-		memcpy(c_data->label.value, data+offset, c_data->label.length);
-		offset += c_data->label.length;
+		memcpy(c_data.label.value, data+offset, c_data.label.length);
+		offset += c_data.label.length;
 
 		switch (c_type) {
 			case STRING:
-				c_data->store.d_string.value = malloc(c_length);
-				if (!c_data->store.d_string.value)
+				c_data.store.d_string.value = malloc(c_length);
+				if (!c_data.store.d_string.value)
 					goto end;
-				memcpy(c_data->store.d_string.value, data+offset, c_length);
-				c_data->store.d_string.length = (uint32_t)c_length;
-				if (c_data->store.d_string.value[c_length-1] != 0x00) {
+				memcpy(c_data.store.d_string.value, data+offset, c_length);
+				c_data.store.d_string.length = (uint32_t)c_length;
+				if (c_data.store.d_string.value[c_length-1] != 0x00) {
 					buxton_debug("buxton_deserialize_message(): Garbage message\n");
 					goto end;
 				}
 				break;
 			case INT32:
-				c_data->store.d_int32 = *(int32_t*)(data+offset);
+				c_data.store.d_int32 = *(int32_t*)(data+offset);
 				break;
 			case INT64:
-				c_data->store.d_int64 = *(int64_t*)(data+offset);
+				c_data.store.d_int64 = *(int64_t*)(data+offset);
 				break;
 			case FLOAT:
-				c_data->store.d_float = *(float*)(data+offset);
+				c_data.store.d_float = *(float*)(data+offset);
 				break;
 			case DOUBLE:
-				c_data->store.d_double = *(double*)(data+offset);
+				c_data.store.d_double = *(double*)(data+offset);
 				break;
 			case BOOLEAN:
-				c_data->store.d_boolean = *(bool*)(data+offset);
+				c_data.store.d_boolean = *(bool*)(data+offset);
 				break;
 			default:
 				goto end;
 		}
-		c_data->type = c_type;
-		k_list[c_param] = *c_data;
-		c_data = NULL;
+		c_data.type = c_type;
+		k_list[c_param] = c_data;
+		memset(&c_data, 0, sizeof(BuxtonData));
 		offset += c_length;
 	}
 	*r_message = message;
 	*list = k_list;
 	ret = n_params;
 end:
-	if (c_data)
-		free(c_data->label.value);
-	free(c_data);
+	if (ret == 0)
+		free(k_list);
 
 	buxton_debug("Deserializing returned:%i\n", ret);
 	return ret;
