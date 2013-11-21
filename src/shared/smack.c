@@ -285,12 +285,25 @@ bool buxton_check_write_access(BuxtonClient *client,
 			return false;
 		}
 
-		if (valid && !buxton_check_smack_access(client_label,
-							&(curr_data->label),
-							ACCESS_WRITE)) {
-			buxton_debug("Smack: not permitted to modify existing value\n");
-			free(curr_data);
-			return false;
+		if (valid) {
+			if (!buxton_check_smack_access(client_label,
+						       &(curr_data->label),
+						       ACCESS_WRITE)) {
+				buxton_debug("Smack: not permitted to modify existing value\n");
+				free(curr_data);
+				return false;
+			}
+
+			if (data) {
+				/* The existing label should be preserved */
+				free(data->label.value);
+				data->label.value = strdup(curr_data->label.value);
+				if (!data->label.value) {
+					buxton_log("strdup: %m\n");
+					return false;
+				}
+				data->label.length = curr_data->label.length;
+			}
 		}
 
 		free(curr_data);
