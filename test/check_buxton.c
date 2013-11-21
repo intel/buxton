@@ -126,8 +126,8 @@ END_TEST
 
 START_TEST(buxton_key_check)
 {
-	char *group = "g";
-	char *name = "n";
+	char *group = "group";
+	char *name = "name";
 	BuxtonString *key;
 	char *g;
 	char *n;
@@ -153,6 +153,7 @@ START_TEST(buxton_key_check)
 	fail_if(buxton_get_group(NULL), "Got group back with invalid key1");
 	fail_if(buxton_get_group(key), "Got group back with invalid key2");
 	key->value = bkey;
+	key->length = 5;
 	bkey[0] = 0;
 	bkey[1] = 'a';
 	bkey[2] = 'a';
