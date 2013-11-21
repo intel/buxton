@@ -161,6 +161,7 @@ end:
 		free(data->store.d_string.value);
 	if (list) {
 		for (i=0; i < p_count; i++) {
+			free(list[i].label.value);
 			if (list[i].type == STRING)
 				free(list[i].store.d_string.value);
 		}
