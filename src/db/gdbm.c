@@ -48,10 +48,13 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 	db = hashmap_get(_resources, name);
 	if (!db) {
 		path = get_layer_path(layer);
-		if (!path)
+		if (!path) {
+			free(name);
 			return 0;
+		}
 		db = gdbm_open(path, 0, GDBM_WRCREAT, 0600, NULL);
 		if (!db) {
+			free(name);
 			buxton_log("Couldn't create db for path: %s\n", path);
 			return 0;
 		}
