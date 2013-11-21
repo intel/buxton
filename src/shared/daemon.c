@@ -569,7 +569,6 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	/* client closed the connection, or some error occurred? */
 	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
 		terminate_client(self, cl, i);
-		free(cl);
 		return;
 	}
 
@@ -627,7 +626,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		l = read(self->pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset);
 		if (l < 0) {
 			terminate_client(self, cl, i);
-			goto cleanup;
+			return;
 		}
 		else if (l == 0)
 			break;
@@ -650,7 +649,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		if (!bt_daemon_handle_message(self, cl, cl->size)) {
 			buxton_log("Communication failed with client %d\n", cl->fd);
 			terminate_client(self, cl, i);
-			goto cleanup;
+			return;
 		}
 
 		/* reset in case there are more messages */
@@ -678,8 +677,11 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	if (USE_SMACK)
 		free(cl->smack_label->value);
 	free(cl->smack_label);
+	free(cl->data);
 	buxton_debug("Closed connection from fd %d\n", cl->fd);
 	LIST_REMOVE(client_list_item, item, self->client_list, cl);
+	free(cl);
+	cl = NULL;
 }
 
 /*
