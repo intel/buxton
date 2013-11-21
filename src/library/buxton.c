@@ -22,6 +22,7 @@
 
 #include "buxton.h"
 #include "bt-daemon.h" /* Rename this part of the library */
+#include "util.h"
 
 /* Keep a global client instead of having the using application
  * refer to yet another client struct. Also consider being
@@ -40,14 +41,43 @@ static bool prepare_client(void);
  */
 static void __cleanup(void);
 
+/**
+ * Utility, convert BuxtonData to BuxtonValue
+ */
+static BuxtonValue* convert_from_buxton(BuxtonData *data);
+
 BuxtonValue* buxton_get_value(char *layer,
 			      char *group,
 			      char *key)
 {
+	BuxtonString k_layer;
+	_cleanup_buxton_string_ BuxtonString *k_key;
+	BuxtonData get;
+	BuxtonValue *value = NULL;
+	bool ret;
+
 	if (!prepare_client())
 		return NULL;
 
-	return NULL;
+	k_layer = buxton_string_pack(layer);
+	k_key = buxton_make_key(group, key);
+	if (!key)
+		return NULL;
+
+	ret = buxton_client_get_value_for_layer(&__client, &k_layer,
+		k_key, &get);
+	if (!ret)
+		return NULL;
+
+	value = convert_from_buxton(&get);
+	if (!value)
+		/* Raise error? */
+		return NULL;
+
+	if (get.type == STRING)
+		free(get.store.d_string.value);
+
+	return value;
 }
 
 bool buxton_set_value(char *layer,
@@ -106,6 +136,63 @@ static void __cleanup(void)
 	buxton_client_close(&__client);
 }
 
+static BuxtonValue* convert_from_buxton(BuxtonData *data)
+{
+	BuxtonValue *value =  NULL;
+
+	value = malloc0(sizeof(BuxtonValue));
+	if (!value)
+		return NULL;
+
+	switch (data->type)
+	{
+		case STRING:
+			value->store = strdup(data->store.d_string.value);
+			if (!value->store)
+				return NULL;
+			free(data->store.d_string.value);
+			value->type = BUXTON_STRING;
+			break;
+		case INT32:
+			value->store = malloc0(sizeof(int32_t));
+			if (!value->store)
+				return NULL;
+			value->type = BUXTON_INT32;
+			*(int32_t*)value->store = data->store.d_int32;
+			break;
+		case INT64:
+			value->store = malloc0(sizeof(int64_t));
+			if (!value->store)
+				return NULL;
+			value->type = BUXTON_INT64;
+			*(int64_t*)value->store = data->store.d_int64;
+			break;
+		case FLOAT:
+			value->store = malloc0(sizeof(float));
+			if (!value->store)
+				return NULL;
+			value->type = BUXTON_FLOAT;
+			*(float*)value->store = data->store.d_float;
+			break;
+		case DOUBLE:
+			value->store = malloc0(sizeof(double));
+			if (!value->store)
+				return NULL;
+			value->type = BUXTON_DOUBLE;
+			*(double*)value->store = data->store.d_double;
+			break;
+		case BOOLEAN:
+			value->store = malloc0(sizeof(bool));
+			if (!value->store)
+				return NULL;
+			value->type = BUXTON_BOOLEAN;
+			*(bool*)value->store = data->store.d_boolean;
+			break;
+		default:
+			return NULL;
+	}
+	return value;
+}
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
