@@ -442,23 +442,23 @@ START_TEST(buxton_message_serialize_check)
 {
 	BuxtonControlMessage csource;
 	BuxtonControlMessage ctarget;
-	BuxtonData dsource;
+	BuxtonData dsource1, dsource2;
 	BuxtonData *dtarget = NULL;
 	uint8_t *packed = NULL;
 	size_t ret;
 
-	dsource.type = STRING;
-	dsource.label = buxton_string_pack("label");
-	dsource.store.d_string = buxton_string_pack("test-key");
+	dsource1.type = STRING;
+	dsource1.label = buxton_string_pack("label");
+	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret == 0, "Failed to serialize string data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize string data");
 	fail_if(ctarget != csource, "Failed to get correct control message for string");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource1.type != dtarget[0].type,
 		"Source and destination type differ for string");
-	fail_if(strcmp(dsource.store.d_string.value, dtarget[0].store.d_string.value) != 0,
+	fail_if(strcmp(dsource1.store.d_string.value, dtarget[0].store.d_string.value) != 0,
 		"Source and destination string data differ");
 	free(packed);
 	if (dtarget) {
@@ -468,97 +468,119 @@ START_TEST(buxton_message_serialize_check)
 		free(dtarget);
 	}
 
-	dsource.type = INT32;
-	dsource.store.d_int32 = INT_MAX;
+	dsource1.type = INT32;
+	dsource1.store.d_int32 = INT_MAX;
 	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret == 0, "Failed to serialize int data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize int data");
 	fail_if(ctarget != csource, "Failed to get correct control message for int");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource1.type != dtarget[0].type,
 		"Source and destination type differ for int");
-	fail_if(dsource.store.d_int32 != dtarget[0].store.d_int32,
+	fail_if(dsource1.store.d_int32 != dtarget[0].store.d_int32,
 		"Source and destination int data differ");
 	free(packed);
 	free(dtarget);
 
-	dsource.type = INT64;
-	dsource.store.d_int64 = LONG_MAX;
+	dsource1.type = INT64;
+	dsource1.store.d_int64 = LONG_MAX;
 	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret == 0, "Failed to serialize long data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize long data");
 	fail_if(ctarget != csource, "Failed to get correct control message for long");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource1.type != dtarget[0].type,
 		"Source and destination type differ for long");
-	fail_if(dsource.store.d_int64 != dtarget[0].store.d_int64,
+	fail_if(dsource1.store.d_int64 != dtarget[0].store.d_int64,
 		"Source and destination long data differ");
 	free(packed);
 	free(dtarget);
 
-	dsource.type = FLOAT;
-	dsource.store.d_float = 3.14F;
+	dsource1.type = FLOAT;
+	dsource1.store.d_float = 3.14F;
 	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret == 0, "Failed to serialize float data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize float data");
 	fail_if(ctarget != csource, "Failed to get correct control message for float");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource1.type != dtarget[0].type,
 		"Source and destination type differ for float");
-	fail_if(dsource.store.d_float != dtarget[0].store.d_float,
+	fail_if(dsource1.store.d_float != dtarget[0].store.d_float,
 		"Source and destination float data differ");
 	free(packed);
 	free(dtarget);
 
-	dsource.type = DOUBLE;
-	dsource.store.d_double = 3.1415;
+	dsource1.type = DOUBLE;
+	dsource1.store.d_double = 3.1415;
 	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret == 0, "Failed to serialize double data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize double data");
 	fail_if(ctarget != csource, "Failed to get correct control message for double");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource1.type != dtarget[0].type,
 		"Source and destination type differ for double");
-	fail_if(dsource.store.d_double != dtarget[0].store.d_double,
+	fail_if(dsource1.store.d_double != dtarget[0].store.d_double,
 		"Source and destination double data differ");
 	free(packed);
 	free(dtarget);
 
-	dsource.type = BOOLEAN;
-	dsource.store.d_boolean = true;
+	dsource1.type = BOOLEAN;
+	dsource1.store.d_boolean = true;
 	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret == 0, "Failed to serialize boolean data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
 		"Failed to deserialize boolean data");
 	fail_if(ctarget != csource, "Failed to get correct control message for boolean");
-	fail_if(dsource.type != dtarget[0].type,
+	fail_if(dsource1.type != dtarget[0].type,
 		"Source and destination type differ for boolean");
-	fail_if(dsource.store.d_boolean != dtarget[0].store.d_boolean,
+	fail_if(dsource1.store.d_boolean != dtarget[0].store.d_boolean,
 		"Source and destination boolean data differ");
 	free(packed);
 	free(dtarget);
 
-	dsource.type = STRING;
-	dsource.store.d_string = buxton_string_pack("test-key");
+	dsource1.type = INT32;
+	dsource1.store.d_int32 = 1;
+	dsource2.type = INT32;
+	dsource2.store.d_int32 = 2;
+	dsource2.label = buxton_string_pack("label2");
+	csource = BUXTON_CONTROL_STATUS;
+	ret = buxton_serialize_message(&packed, csource, 2, &dsource1, &dsource2);
+	fail_if(ret == 0, "Failed to serialize 2arg data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 2,
+		"Failed to deserialize 2arg data");
+	fail_if(ctarget != csource, "Failed to get correct control message for 2arg");
+	fail_if(dsource1.type != dtarget[0].type,
+		"1 Source and destination type differ for 2arg");
+	fail_if(dsource1.store.d_int32 != dtarget[0].store.d_int32,
+		"1 Source and destination differ for 2arg data");
+	fail_if(dsource2.type != dtarget[1].type,
+		"2 Source and destination type differ for 2arg");
+	fail_if(dsource2.store.d_int32 != dtarget[1].store.d_int32,
+		"2 Source and destination differ for 2arg data");
+	free(packed);
+	free(dtarget);
+
+	dsource1.type = STRING;
+	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 2, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 2, &dsource1);
 	fail_if(ret != 0, "Serialized with incorrect parameter count");
 
-	dsource.type = -1;
-	dsource.store.d_string = buxton_string_pack("test-key");
+	dsource1.type = -1;
+	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret != 0, "Serialized with bad data type");
 
-	dsource.type = STRING;
-	dsource.store.d_string = buxton_string_pack("test-key");
+	dsource1.type = STRING;
+	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = -1;
-	ret = buxton_serialize_message(&packed, csource, 1, &dsource);
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret != 0, "Serialized with bad message type");
 }
 END_TEST
