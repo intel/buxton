@@ -238,13 +238,31 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		//FIXME - this assert should likely go away
 		assert(param->label.value);
 
-		if (param->type == STRING) {
-			//FIXME - this assert should likely go away
-			assert(param->store.d_string.value);
-			p_length = param->store.d_string.length;
-		} else {
-			p_length = sizeof(param->store);
-		}
+		switch (param->type) {
+			case STRING:
+				//FIXME - this assert should likely go away
+				assert(param->store.d_string.value);
+				p_length = param->store.d_string.length;
+				break;
+			case INT32:
+				p_length = sizeof(int32_t);
+				break;
+			case INT64:
+				p_length = sizeof(int64_t);
+				break;
+			case FLOAT:
+				p_length = sizeof(float);
+				break;
+			case DOUBLE:
+				p_length = sizeof(double);
+				break;
+			case BOOLEAN:
+				p_length = sizeof(bool);
+				break;
+			default:
+				buxton_log("Invalid parameter type %lu\n", param->type);
+				goto fail;
+		};
 
 		/* Need to allocate enough room to hold this data */
 		size += sizeof(BuxtonDataType) + (sizeof(uint32_t) * 2)
