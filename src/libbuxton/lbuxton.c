@@ -263,6 +263,9 @@ bool buxton_client_get_value(BuxtonClient *client,
 							      key,
 							      &d);
 			if (r) {
+				free(d.label.value);
+				if (d.type == STRING)
+					free(d.store.d_string.value);
 				if (priority <= l->priority) {
 					priority = l->priority;
 					layer.value = l->name.value;
