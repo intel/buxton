@@ -443,6 +443,7 @@ START_TEST(buxton_message_serialize_check)
 	BuxtonControlMessage csource;
 	BuxtonControlMessage ctarget;
 	BuxtonData dsource1, dsource2;
+	uint16_t control, message;
 	BuxtonData *dtarget = NULL;
 	uint8_t *packed = NULL;
 	size_t ret;
@@ -595,6 +596,35 @@ START_TEST(buxton_message_serialize_check)
 	csource = -1;
 	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
 	fail_if(ret != 0, "Serialized with bad message type");
+
+	dsource1.type = INT32;
+	dsource1.store.d_int32 = INT_MAX;
+	csource = BUXTON_CONTROL_GET;
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
+	fail_if(buxton_deserialize_message(packed, &ctarget,
+					   BUXTON_MESSAGE_HEADER_LENGTH - 1,
+					   &dtarget),
+		"Deserialized message with too small a length data");
+
+	control = 0x0000;
+	memcpy(packed, &control, sizeof(uint16_t));
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget),
+		"Deserialized message with invalid control");
+	free(packed);
+
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
+	message = BUXTON_CONTROL_MIN;
+	memcpy(packed+sizeof(uint16_t), &message, sizeof(uint16_t));
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget),
+		"Deserialized message with invalid control");
+	free(packed);
+
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
+	message = BUXTON_CONTROL_MAX;
+	memcpy(packed+sizeof(uint16_t), &message, sizeof(uint16_t));
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget),
+		"Deserialized message with invalid control");
+	free(packed);
 }
 END_TEST
 
