@@ -226,7 +226,11 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	BuxtonData *param;
 	size_t p_length = 0;
 	for (i=0; i<n_params; i++) {
-		/* Every parameter must be a BuxtonData. */
+		/* FIXME: Every parameter must be a BuxtonData, but
+		 * the return value of va_arg is undefined if the
+		 * next parameter is invalid/absent, so checking for
+		 * NULL here is not sufficient.
+		 */
 		param = va_arg(args, BuxtonData*);
 		if (!param)
 			goto fail;
