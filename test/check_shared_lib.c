@@ -447,6 +447,7 @@ START_TEST(buxton_message_serialize_check)
 	BuxtonData *dtarget = NULL;
 	uint8_t *packed = NULL;
 	size_t ret;
+	size_t pcount;
 
 	dsource1.type = STRING;
 	dsource1.label = buxton_string_pack("label");
@@ -624,6 +625,20 @@ START_TEST(buxton_message_serialize_check)
 	memcpy(packed+sizeof(uint16_t), &message, sizeof(uint16_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget),
 		"Deserialized message with invalid control");
+	free(packed);
+
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
+	pcount = 0;
+	memcpy(packed+(2 * sizeof(uint32_t)), &pcount, sizeof(uint32_t));
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget),
+		"Deserialized message with 0 BuxtonData");
+	free(packed);
+
+	ret = buxton_serialize_message(&packed, csource, 1, &dsource1);
+	pcount = BUXTON_MESSAGE_MAX_PARAMS + 1;
+	memcpy(packed+(2 * sizeof(uint32_t)), &pcount, sizeof(uint32_t));
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget),
+		"Deserialized message with 0 BuxtonData");
 	free(packed);
 }
 END_TEST
