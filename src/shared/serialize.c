@@ -264,6 +264,10 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 				goto fail;
 		};
 
+		buxton_debug("offset: %lu\n", offset);
+		buxton_debug("label length: %lu\n", param->label.length);
+		buxton_debug("value length: %lu\n", p_length);
+
 		/* Need to allocate enough room to hold this data */
 		size += sizeof(BuxtonDataType) + (sizeof(uint32_t) * 2)
 			+ param->label.length
