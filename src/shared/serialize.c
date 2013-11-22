@@ -372,7 +372,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	offset += sizeof(uint16_t);
 
 	/* Ensure control message is in valid range */
-	if (message >= BUXTON_CONTROL_MAX)
+	if (message <= BUXTON_CONTROL_MIN || message >= BUXTON_CONTROL_MAX)
 		goto end;
 
 	/* Skip size since our caller got this already */
