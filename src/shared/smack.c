@@ -205,7 +205,9 @@ bool buxton_check_read_access(BuxtonClient *client,
 			      BuxtonString *client_label)
 {
 	assert(client);
-	assert(layer);
+	/* FIXME: reinstate the layer assert after get_value checks
+	 * are in the correct spot
+	 */
 	assert(key);
 	assert(data);
 	assert(client_label);
