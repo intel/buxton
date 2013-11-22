@@ -70,6 +70,8 @@ bin_PROGRAMS = \
 
 bt_daemon_SOURCES = \
 	src/shared/constants.c \
+	src/shared/daemon.c \
+	src/shared/daemon.h \
 	src/core/main.c
 
 bt_daemon_LDADD = \
@@ -106,8 +108,6 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/smack.h \
 	src/shared/protocol.c \
 	src/shared/protocol.h \
-	src/shared/daemon.c \
-	src/shared/daemon.h \
 	${NULL}
 
 if USE_LOCAL_INIPARSER
@@ -211,6 +211,8 @@ check_bt_daemon_SOURCES = \
 	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
+	src/shared/daemon.c \
+	src/shared/daemon.h \
 	src/core/main.c
 check_bt_daemon_CFLAGS = \
 	@CHECK_CFLAGS@ \
@@ -227,6 +229,8 @@ check_daemon_SOURCES = \
 	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
+	src/shared/daemon.c \
+	src/shared/daemon.h \
         test/check_daemon.c
 check_daemon_CFLAGS = \
 	$(AM_CFLAGS) \
