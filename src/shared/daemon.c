@@ -19,10 +19,8 @@
 #include <string.h>
 #include <attr/xattr.h>
 
-#include "bt-daemon.h"
 #include "daemon.h"
 #include "log.h"
-#include "protocol.h"
 #include "smack.h"
 #include "util.h"
 

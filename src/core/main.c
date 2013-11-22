@@ -34,7 +34,6 @@
 #include "daemon.h"
 #include "list.h"
 #include "log.h"
-#include "protocol.h"
 #include "smack.h"
 #include "util.h"
 

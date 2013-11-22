@@ -20,36 +20,11 @@
     #include "config.h"
 #endif
 
-#include <sys/poll.h>
-#include <sys/socket.h>
-
 #include "bt-daemon.h"
 #include "list.h"
 #include "serialize.h"
 #include "smack.h"
 #include "hashmap.h"
-
-/**
- * List for daemon's clients
- */
-typedef struct client_list_item {
-	LIST_FIELDS(struct client_list_item, item); /**<List type */
-	int fd; /**<File descriptor of connected client */
-	struct ucred cred; /**<Credentials of connected client */
-	BuxtonString *smack_label; /**<Smack label of connected client */
-	uint8_t *data; /**<Data buffer for the client */
-	size_t offset; /**<Current position to write to data buffer */
-	size_t size; /**<Size of the data buffer */
-} client_list_item;
-
-/**
- * List of clients interested in a key
- */
-typedef struct notification_list_item {
-	LIST_FIELDS(struct notification_list_item, item); /**<List type */
-	client_list_item *client; /**<Client */
-	BuxtonData *old_data; /**<Old value of a particular key*/
-} notification_list_item;
 
 /**
  * Buxton Status Codes
@@ -58,20 +33,6 @@ typedef enum BuxtonStatus {
 	BUXTON_STATUS_OK = 0, /**<Operation succeeded */
 	BUXTON_STATUS_FAILED /**<Operation failed */
 } BuxtonStatus;
-
-/**
- * Global store of bt-daemon state
- */
-typedef struct BuxtonDaemon {
-	size_t nfds_alloc;
-	size_t accepting_alloc;
-	nfds_t nfds;
-	bool *accepting;
-	struct pollfd *pollfds;
-	client_list_item *client_list;
-	Hashmap *notify_mapping;
-	BuxtonClient buxton;
-} BuxtonDaemon;
 
 /**
  * Wait for and parse a response from bt-daemon
