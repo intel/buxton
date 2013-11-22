@@ -607,6 +607,13 @@ START_TEST(buxton_message_serialize_check)
 					   &dtarget),
 		"Deserialized message with too small a length data");
 
+	fail_if(buxton_deserialize_message(packed, &ctarget,
+					   (sizeof(uint32_t) * 3)
+					   + sizeof(BuxtonDataType)
+					   + (sizeof(uint32_t) * 2),
+					   &dtarget),
+		"Deserialized message size smaller than minimum data length");
+
 	control = 0x0000;
 	memcpy(packed, &control, sizeof(uint16_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget),
