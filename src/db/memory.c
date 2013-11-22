@@ -49,9 +49,11 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 	if (!db) {
 		db = hashmap_new(string_hash_func, string_compare_func);
 		hashmap_put(_resources, name, db);
+	} else {
+		free(name);
 	}
 
-	return (Hashmap*) hashmap_get(_resources, name);
+	return db;
 }
 
 static bool set_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
