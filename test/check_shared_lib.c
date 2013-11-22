@@ -568,6 +568,19 @@ START_TEST(buxton_message_serialize_check)
 	dsource1.type = STRING;
 	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
+	ret = buxton_serialize_message(&packed, csource, 0, &dsource1);
+	fail_if(ret != 0, "Serialized with too few parameters");
+
+	dsource1.type = STRING;
+	dsource1.store.d_string = buxton_string_pack("test-key");
+	csource = BUXTON_CONTROL_GET;
+	ret = buxton_serialize_message(&packed, csource,
+				       BUXTON_MESSAGE_MAX_PARAMS + 1, &dsource1);
+	fail_if(ret != 0, "Serialized with too many parameters");
+
+	dsource1.type = STRING;
+	dsource1.store.d_string = buxton_string_pack("test-key");
+	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, 2, &dsource1);
 	fail_if(ret != 0, "Serialized with incorrect parameter count");
 
