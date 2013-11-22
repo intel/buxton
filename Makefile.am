@@ -82,8 +82,8 @@ bt_daemon_LDADD = \
 buxtonctl_SOURCES = \
 	src/shared/constants.c \
 	src/cli/main.c \
-	src/shared/client.c \
-	src/shared/client.h
+	src/cli/client.c \
+	src/cli/client.h
 
 buxtonctl_LDADD = \
 	libbuxton.la \
