@@ -19,7 +19,7 @@
 
 #define error(...) { printf(__VA_ARGS__); }
 
-#define ITERATIONS 100000
+static int iterations = 100000;
 
 typedef bool (*TestFunction) (BuxtonClient *client);
 
@@ -167,7 +167,7 @@ static bool test(TestFunction func, const char *name, BuxtonClient *client)
 	meansqr = 0.0;
 	mean = 0.0;
 
-	for (i = 0; i < ITERATIONS; i++) {
+	for (i = 0; i < iterations; i++) {
 		if (!timed_func(func, client, &elapsed))
 			return false;
 
@@ -175,8 +175,8 @@ static bool test(TestFunction func, const char *name, BuxtonClient *client)
 		meansqr += (double)elapsed * (double)elapsed;
 		total += elapsed;
 	}
-	mean /= (double)ITERATIONS;
-	meansqr /= (double)ITERATIONS;
+	mean /= (double)iterations;
+	meansqr /= (double)iterations;
 	sigma = sqrt(meansqr - (mean * mean));
 
 	printf("%-24s  %10.3lfus  %10.3lfus\n",
@@ -188,6 +188,15 @@ static bool test(TestFunction func, const char *name, BuxtonClient *client)
 int main(int argc, char **argv)
 {
 	BuxtonClient client;
+
+	if (argc == 2) {
+		iterations = atoi(argv[1]);
+		if (iterations <= 0)
+			exit(EXIT_FAILURE);
+	} else if (argc != 1) {
+		error("Usage: %s [iterations]\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
 
 	if (!buxton_client_open(&client)) {
 		error("Unable to open BuxtonClient\n");
@@ -240,7 +249,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Buxton protocol latency timing tool. Using %i iterations per test.\n", ITERATIONS);
+	printf("Buxton protocol latency timing tool. Using %i iterations per test.\n", iterations);
 	printf("Test Name:                   Average:        Sigma:\n");
 	if (!test(get_int32, "get_int32", &client))
 		exit(EXIT_FAILURE);
