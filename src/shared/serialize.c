@@ -403,7 +403,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 		memcpy(&c_type, data+offset, sizeof(BuxtonDataType));
 		offset += sizeof(BuxtonDataType);
 
-		if (c_type >= BUXTON_TYPE_MAX || c_type < STRING)
+		if (c_type >= BUXTON_TYPE_MAX || c_type <= BUXTON_TYPE_MIN)
 			goto end;
 
 		/* Retrieve the length of the label */
