@@ -10,6 +10,7 @@ endif
 
 AM_CPPFLAGS = \
 	-I $(top_srcdir)/src/include \
+	-I $(top_srcdir)/src/core \
 	-I $(top_srcdir)/src/shared \
 	-D_MODULE_DIRECTORY=\"$(MODULEDIR)\" \
 	-D_DEFAULT_CONFIGURATION_FILE=\"$(CONFPATH)\" \
@@ -70,8 +71,8 @@ bin_PROGRAMS = \
 
 bt_daemon_SOURCES = \
 	src/shared/constants.c \
-	src/shared/daemon.c \
-	src/shared/daemon.h \
+	src/core/daemon.c \
+	src/core/daemon.h \
 	src/core/main.c
 
 bt_daemon_LDADD = \
@@ -211,8 +212,8 @@ check_bt_daemon_SOURCES = \
 	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
-	src/shared/daemon.c \
-	src/shared/daemon.h \
+	src/core/daemon.c \
+	src/core/daemon.h \
 	src/core/main.c
 check_bt_daemon_CFLAGS = \
 	@CHECK_CFLAGS@ \
@@ -229,8 +230,8 @@ check_daemon_SOURCES = \
 	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
-	src/shared/daemon.c \
-	src/shared/daemon.h \
+	src/core/daemon.c \
+	src/core/daemon.h \
         test/check_daemon.c
 check_daemon_CFLAGS = \
 	$(AM_CFLAGS) \
