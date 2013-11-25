@@ -21,6 +21,7 @@
 #endif
 
 #include "bt-daemon.h"
+#include "hashmap.h"
 
 /**
  * Possible backends for Buxton
@@ -84,6 +85,23 @@ typedef struct BuxtonBackend {
 	module_value_func get_value; /**<Get value function */
 	module_value_func unset_value; /**<Unset value function */
 } BuxtonBackend;
+
+/**
+ * Stores internal configuration of Buxton
+ */
+typedef struct BuxtonConfig {
+	Hashmap *_databases;
+	Hashmap *_layers;
+	Hashmap *_backends;
+} BuxtonConfig;
+
+/**
+ * Internal controller for Buxton
+ */
+typedef struct BuxtonControl {
+	BuxtonClient client; /**<Valid client connection */
+	BuxtonConfig config; /**<Valid configuration (unused) */
+} BuxtonControl;
 
 /**
  * Module initialisation function

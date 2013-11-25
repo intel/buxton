@@ -24,6 +24,7 @@
 #include <sys/socket.h>
 
 #include "bt-daemon.h"
+#include "backend.h"
 #include "hashmap.h"
 #include "list.h"
 #include "protocol.h"
@@ -62,7 +63,7 @@ typedef struct BuxtonDaemon {
 	struct pollfd *pollfds;
 	client_list_item *client_list;
 	Hashmap *notify_mapping;
-	BuxtonClient buxton;
+	BuxtonControl buxton;
 } BuxtonDaemon;
 
 /**
