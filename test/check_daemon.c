@@ -313,7 +313,7 @@ START_TEST(set_value_check)
 	BuxtonStatus status;
 	BuxtonDaemon server;
 
-	fail_if(!buxton_direct_open(&(server.buxton.client)),
+	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
 	client.cred.uid = 0;
@@ -339,7 +339,7 @@ START_TEST(get_value_check)
 	BuxtonStatus status;
 	BuxtonDaemon server;
 
-	fail_if(!buxton_direct_open(&(server.buxton.client)),
+	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
 	client.cred.uid = 0;
@@ -384,7 +384,7 @@ START_TEST(register_notification_check)
 	char *k;
 	notification_list_item *n;
 
-	fail_if(!buxton_direct_open(&(server.buxton.client)),
+	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 	server.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!server.notify_mapping, "Failed to allocate hashmap");
