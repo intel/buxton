@@ -7,6 +7,9 @@ AM_CFLAGS = -std=gnu99 -fstack-protector -Wall -pedantic \
 if DEBUG
 AM_CFLAGS += -ggdb3 -O0
 endif
+if COVERAGE
+AM_CFLAGS += --coverage
+endif
 
 AM_CPPFLAGS = \
 	-I $(top_srcdir)/src/include \
@@ -51,6 +54,13 @@ LIBBUXTON_REVISION=1
 LIBBUXTON_AGE=0
 
 TESTS = check_buxton check_shared_lib check_daemon
+
+if COVERAGE
+coverage:
+	mkdir -p coverage
+	lcov --compat-libtool --directory . --capture --output-file coverage/report
+	genhtml -o coverage/ coverage/report
+endif
 
 # set flags
 

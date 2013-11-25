@@ -39,3 +39,6 @@ src/shared/constants.c
 check_daemon
 check_bt_daemon
 bxt_timing
+*.gcda
+*.gcno
+/coverage
