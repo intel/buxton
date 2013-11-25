@@ -313,11 +313,11 @@ START_TEST(set_value_check)
 	BuxtonStatus status;
 	BuxtonDaemon server;
 
-	fail_if(!buxton_direct_open(&(server.buxton)),
+	fail_if(!buxton_direct_open(&(server.buxton.client)),
 		"Failed to open buxton direct connection");
 
 	client.cred.uid = 0;
-	server.buxton.uid = 1;
+	server.buxton.client.uid = 1;
 	layer = buxton_string_pack("test-gdbm");
 	key = buxton_string_pack("key");
 	value.type = FLOAT;
@@ -326,8 +326,8 @@ START_TEST(set_value_check)
 
 	set_value(&server, &client, &layer, &key, &value, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
-	fail_if(server.buxton.uid != client.cred.uid, "Failed to change buxton uid");
-	buxton_client_close(&server.buxton);
+	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
+	buxton_client_close(&server.buxton.client);
 }
 END_TEST
 
@@ -339,11 +339,11 @@ START_TEST(get_value_check)
 	BuxtonStatus status;
 	BuxtonDaemon server;
 
-	fail_if(!buxton_direct_open(&(server.buxton)),
+	fail_if(!buxton_direct_open(&(server.buxton.client)),
 		"Failed to open buxton direct connection");
 
 	client.cred.uid = 0;
-	server.buxton.uid = 2;
+	server.buxton.client.uid = 2;
 	layer = buxton_string_pack("test-gdbm");
 	key = buxton_string_pack("key");
 
@@ -354,11 +354,11 @@ START_TEST(get_value_check)
 	fail_if(!value->label.value, "Failed to get label");
 	fail_if(!streq(value->label.value, "label"), "Failed to get correct label");
 	fail_if(value->store.d_float != 3.14F, "Failed to get correct value");
-	fail_if(server.buxton.uid != client.cred.uid, "Failed to change buxton uid");
+	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
 	free(value->label.value);
 	free(value);
 
-	server.buxton.uid = 3;
+	server.buxton.client.uid = 3;
 	value = get_value(&server, &client, NULL, &key, &status);
 	fail_if(!value, "Failed to get value 2");
 	fail_if(status != BUXTON_STATUS_OK, "Failed to get value 2");
@@ -366,11 +366,11 @@ START_TEST(get_value_check)
 	fail_if(!value->label.value, "Failed to get label 2");
 	fail_if(!streq(value->label.value, "label"), "Failed to get correct label 2");
 	fail_if(value->store.d_float != 3.14F, "Failed to get correct value 2");
-	fail_if(server.buxton.uid != client.cred.uid, "Failed to change buxton uid 2");
+	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid 2");
 	free(value->label.value);
 	free(value);
 
-	buxton_client_close(&server.buxton);
+	buxton_client_close(&server.buxton.client);
 }
 END_TEST
 
@@ -384,7 +384,7 @@ START_TEST(register_notification_check)
 	char *k;
 	notification_list_item *n;
 
-	fail_if(!buxton_direct_open(&(server.buxton)),
+	fail_if(!buxton_direct_open(&(server.buxton.client)),
 		"Failed to open buxton direct connection");
 	server.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!server.notify_mapping, "Failed to allocate hashmap");
@@ -407,7 +407,7 @@ START_TEST(register_notification_check)
 		free(n->old_data);
 		free(n);
 	}
-	buxton_client_close(&server.buxton);
+	buxton_client_close(&server.buxton.client);
 }
 END_TEST
 
