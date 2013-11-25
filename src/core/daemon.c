@@ -533,10 +533,10 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i)
 			 * than long unsigned max int so no loss of
 			 * precision.
 			 */
-			(long unsigned int)(self->nfds - i - 1) * sizeof(struct pollfd));
+			(size_t)(self->nfds - i - 1) * sizeof(struct pollfd));
 		memmove(&(self->accepting[i]),
 			&(self->accepting[i + 1]),
-			(long unsigned int)(self->nfds - i - 1) * sizeof(self->accepting));
+			(size_t)(self->nfds - i - 1) * sizeof(self->accepting));
 	}
 	self->nfds--;
 }
