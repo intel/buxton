@@ -191,13 +191,6 @@ _bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
 _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
 					   BuxtonString *layer,
 					   BuxtonString *key);
-/**
- * Open a direct connection to Buxton
- *
- * @param client The client struct will be used throughout the life of Buxton operations
- * @return a boolean value, indicating success of the operation
- */
-_bx_export_ bool buxton_direct_open(BuxtonClient *client);
 
 /**
  * Create a key for item lookup in buxton

@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 
 	control.client.uid = geteuid();
 	if (control.client.direct) {
-		if (!buxton_direct_open(&(control.client))){
+		if (!buxton_direct_open(&(control))){
 			buxton_log("Failed to directly talk to Buxton\n");
 			ret = false;
 			goto end;

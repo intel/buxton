@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	self.nfds = 0;
 	self.buxton.client.direct = true;
 	self.buxton.client.uid = geteuid();
-	if (!buxton_direct_open(&self.buxton.client))
+	if (!buxton_direct_open(&self.buxton))
 		exit(EXIT_FAILURE);
 
 	/* For client notifications */
