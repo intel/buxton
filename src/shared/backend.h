@@ -110,6 +110,34 @@ typedef struct BuxtonControl {
  */
 typedef bool (*module_init_func) (BuxtonBackend *backend);
 
+/**
+ * Open a direct connection to Buxton
+ *
+ * @param control Valid BuxtonControl instance
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_direct_open(BuxtonControl *control);
+
+/**
+ * Determine if a client is permitted to use direct connections
+ * @param client Valid buxton client connection
+ * @return a boolean value, indicating permission to use direct mode
+ */
+bool buxton_direct_permitted(BuxtonClient *client);
+
+/**
+ * Revoke direct access for client
+ * @param client valid buxton client connection
+ */
+void buxton_direct_revoke(BuxtonClient *client);
+
+
+/**
+ * Initialize layers using the configuration file
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_init_layers(void);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
