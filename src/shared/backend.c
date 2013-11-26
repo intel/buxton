@@ -333,12 +333,42 @@ BuxtonBackend *backend_for_layer(BuxtonConfig *config,
 	return (BuxtonBackend*)hashmap_get(config->databases, layer->name.value);
 }
 
-void buxton_direct_revoke(BuxtonClient *client)
+static void destroy_backend(BuxtonBackend *backend)
 {
-	if (_directPermitted)
-		hashmap_remove(_directPermitted, &(client->pid));
-	client->direct = false;
+
+	assert(backend);
+
+	backend->set_value = NULL;
+	backend->get_value = NULL;
+	backend->unset_value = NULL;
+	backend->destroy();
+	dlclose(backend->module);
+	free(backend);
+	backend = NULL;
 }
+
+void buxton_direct_close(BuxtonControl *control)
+{
+	Iterator iterator;
+	BuxtonBackend *backend;
+
+	if (_directPermitted)
+		hashmap_remove(_directPermitted, &(control->client.pid));
+	control->client.direct = false;
+
+	HASHMAP_FOREACH(backend, control->config.backends, iterator) {
+		destroy_backend(backend);
+	}
+	hashmap_free(control->config.backends);
+	hashmap_free(control->config.databases);
+	hashmap_free(control->config.layers);
+
+	control->client.direct = false;
+	control->config.backends = NULL;
+	control->config.databases = NULL;
+	control->config.layers = NULL;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

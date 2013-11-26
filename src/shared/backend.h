@@ -126,10 +126,10 @@ bool buxton_direct_open(BuxtonControl *control);
 bool buxton_direct_permitted(BuxtonClient *client);
 
 /**
- * Revoke direct access for client
- * @param client valid buxton client connection
+ * Close direct Buxton management connection
+ * @param control Valid BuxtonControl instance
  */
-void buxton_direct_revoke(BuxtonClient *client);
+void buxton_direct_close(BuxtonControl *control);
 
 /**
  * Return the associated configuration for a given client (direct access)
