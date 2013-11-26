@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 		i = j;
 	}
 	hashmap_free(self.notify_mapping);
-	buxton_client_close(&self.buxton.client);
+	buxton_direct_close(&self.buxton);
 	return EXIT_SUCCESS;
 }
 

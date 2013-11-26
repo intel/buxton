@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 
 end:
 	hashmap_free(commands);
-	buxton_client_close(&(control.client));
+	buxton_direct_close(&control);
 	if (ret)
 		return EXIT_SUCCESS;
 	return EXIT_FAILURE;
