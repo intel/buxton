@@ -38,15 +38,9 @@
 #include "protocol.h"
 
 static Hashmap *_databases = NULL;
-static Hashmap *_directPermitted = NULL;
 static Hashmap *_layers = NULL;
 static Hashmap *_backends = NULL;
 
-/**
- * Initialize layers using the configuration file
- * @return a boolean value, indicating success of the operation
- */
-bool buxton_init_layers(void);
 /**
  * Parse a given layer using the buxton configuration file
  * @param ini the configuration dictionary
@@ -94,34 +88,12 @@ void buxton_client_close(BuxtonClient *client)
 {
 	assert(client);
 
-	if (_directPermitted && (hashmap_get(_directPermitted, &(client->pid)) != NULL))
-		hashmap_remove(_directPermitted, &(client->pid));
+	if (buxton_direct_permitted(client))
+		buxton_direct_revoke(client);
 	else
 		close(client->fd);
 	client->direct = 0;
 	client->fd = -1;
-}
-
-bool buxton_direct_open(BuxtonClient *client)
-{
-
-	assert(client);
-
-	if (!_exit_handler_registered) {
-		_exit_handler_registered = true;
-		atexit(exit_handler);
-	}
-
-	if (!_directPermitted)
-		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
-
-	if (!_layers)
-		buxton_init_layers();
-
-	client->direct = true;
-	client->pid = getpid();
-	hashmap_put(_directPermitted, &(client->pid), client);
-	return true;
 }
 
 static bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
@@ -248,7 +220,7 @@ bool buxton_client_get_value(BuxtonClient *client,
 	 * Only for testing, delete after non direct client support
 	 * enabled
 	 */
-	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
+	if (buxton_direct_permitted(client)) {
 		/* Handle direct manipulation */
 		BuxtonLayer *l;
 		BuxtonString layer = (BuxtonString){ NULL, 0 };
@@ -298,7 +270,7 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 	assert(key);
 
 	/* TODO: Implement */
-	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
+	if (buxton_direct_permitted(client)) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend = NULL;
 		BuxtonLayer *layer = NULL;
@@ -323,7 +295,7 @@ bool buxton_client_register_notification(BuxtonClient *client, BuxtonString *key
 	assert(client);
 	assert(key);
 
-	if (_directPermitted && client->direct && hashmap_get(_directPermitted, &(client->pid)) == client) {
+	if (buxton_direct_permitted(client)) {
 		/* Direct notifications not currently supported */
 		return false;
 	}
@@ -344,7 +316,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 	assert(data);
 	assert(data->label.value);
 
-	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
+	if (buxton_direct_permitted(client)) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
 		BuxtonLayer *layer;
@@ -382,7 +354,7 @@ bool buxton_client_set_label(BuxtonClient *client,
 	assert(label);
 	assert(label->value);
 
-	if (!_directPermitted || !client->direct || hashmap_get(_directPermitted, &(client->pid)) != client)
+	if (!buxton_direct_permitted(client))
 		return false;
 
 	/* Handle direct manipulation */
@@ -426,7 +398,7 @@ bool buxton_client_unset_value(BuxtonClient *client,
 	assert(key->value);
 
 
-	if (_directPermitted && client->direct &&  hashmap_get(_directPermitted, &(client->pid)) == client) {
+	if (buxton_direct_permitted(client)) {
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
 		BuxtonLayer *layer;
@@ -463,6 +435,9 @@ static void destroy_backend(BuxtonBackend *backend)
 /* Load layer configurations from disk */
 bool buxton_init_layers(void)
 {
+	if (_layers)
+		return true;
+
 	bool ret = false;
 	dictionary *ini;
 	const char *path = DEFAULT_CONFIGURATION_FILE;
