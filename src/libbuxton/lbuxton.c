@@ -29,7 +29,6 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdint.h>
-#include <iniparser.h>
 
 #include "util.h"
 #include "bt-daemon.h"
@@ -38,17 +37,7 @@
 #include "protocol.h"
 
 static Hashmap *_databases = NULL;
-static Hashmap *_layers = NULL;
 static Hashmap *_backends = NULL;
-
-/**
- * Parse a given layer using the buxton configuration file
- * @param ini the configuration dictionary
- * @param name the layer to query
- * @param out The new BuxtonLayer to store
- * @return a boolean value, indicating success of the operation
- */
-bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 
 /**
  * Runs on exit to ensure all resources are correctly disposed of
@@ -223,13 +212,16 @@ bool buxton_client_get_value(BuxtonClient *client,
 	if (buxton_direct_permitted(client)) {
 		/* Handle direct manipulation */
 		BuxtonLayer *l;
+		BuxtonConfig *config;
 		BuxtonString layer = (BuxtonString){ NULL, 0 };
 		Iterator i;
 		BuxtonData d;
 		int priority = 0;
 		int r;
 
-		HASHMAP_FOREACH(l, _layers, i) {
+		config = buxton_get_config(client);
+
+		HASHMAP_FOREACH(l, config->layers, i) {
 			r = buxton_client_get_value_for_layer(client,
 							      &l->name,
 							      key,
@@ -274,7 +266,10 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 		/* Handle direct manipulation */
 		BuxtonBackend *backend = NULL;
 		BuxtonLayer *layer = NULL;
-		if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
+		BuxtonConfig *config;
+
+		config = buxton_get_config(client);
+		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
 			return false;
 		}
 		backend = backend_for_layer(layer);
@@ -320,7 +315,10 @@ bool buxton_client_set_value(BuxtonClient *client,
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
 		BuxtonLayer *layer;
-		if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
+		BuxtonConfig *config;
+
+		config = buxton_get_config(client);
+		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
 			return false;
 		}
 		backend = backend_for_layer(layer);
@@ -344,6 +342,7 @@ bool buxton_client_set_label(BuxtonClient *client,
 	BuxtonBackend *backend;
 	BuxtonData data;
 	BuxtonLayer *layer;
+	BuxtonConfig *config;
 	bool r;
 
 	assert(client);
@@ -357,8 +356,9 @@ bool buxton_client_set_label(BuxtonClient *client,
 	if (!buxton_direct_permitted(client))
 		return false;
 
+	config = buxton_get_config(client);
 	/* Handle direct manipulation */
-	if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
+	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
 		return false;
 	}
 	backend = backend_for_layer(layer);
@@ -402,7 +402,10 @@ bool buxton_client_unset_value(BuxtonClient *client,
 		/* Handle direct manipulation */
 		BuxtonBackend *backend;
 		BuxtonLayer *layer;
-		if ((layer = hashmap_get(_layers, layer_name->value)) == NULL) {
+		BuxtonConfig *config;
+
+		config = buxton_get_config(client);
+		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
 			return false;
 		}
 		backend = backend_for_layer(layer);
@@ -432,138 +435,9 @@ static void destroy_backend(BuxtonBackend *backend)
 	backend = NULL;
 }
 
-/* Load layer configurations from disk */
-bool buxton_init_layers(void)
-{
-	if (_layers)
-		return true;
-
-	bool ret = false;
-	dictionary *ini;
-	const char *path = DEFAULT_CONFIGURATION_FILE;
-	int nlayers = 0;
-
-	ini = iniparser_load(path);
-	if (ini == NULL) {
-		buxton_log("Failed to load buxton conf file: %s\n", path);
-		goto finish;
-	}
-
-	nlayers = iniparser_getnsec(ini);
-	if (nlayers <= 0) {
-		buxton_log("No layers defined in buxton conf file: %s\n", path);
-		goto end;
-	}
-
-	_layers = hashmap_new(string_hash_func, string_compare_func);
-	if (!_layers)
-		goto end;
-
-	for (int n = 0; n < nlayers; n++) {
-		BuxtonLayer *layer;
-		char *section_name;
-
-		layer = malloc0(sizeof(BuxtonLayer));
-		if (!layer)
-			continue;
-
-		section_name = iniparser_getsecname(ini, n);
-		if (!section_name) {
-			buxton_log("Failed to find section number: %d\n", n);
-			continue;
-		}
-
-		if (!parse_layer(ini, section_name, layer)) {
-			free(layer);
-			buxton_log("Failed to load layer: %s\n", section_name);
-			continue;
-		}
-		hashmap_put(_layers, layer->name.value, layer);
-	}
-	ret = true;
-
-end:
-	iniparser_freedict(ini);
-finish:
-	return ret;
-}
-
-bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
-{
-	int r;
-	_cleanup_free_ char *k_desc = NULL;
-	_cleanup_free_ char *k_backend = NULL;
-	_cleanup_free_ char *k_type = NULL;
-	_cleanup_free_ char *k_priority = NULL;
-	char *_desc = NULL;
-	char *_backend = NULL;
-	char *_type = NULL;
-	int _priority;
-
-	assert(ini);
-	assert(name);
-	assert(out);
-
-	r = asprintf(&k_desc, "%s:description", name);
-	if (r == -1)
-		return false;
-
-	r = asprintf(&k_backend, "%s:backend", name);
-	if (r == -1)
-		return false;
-
-	r = asprintf(&k_type, "%s:type", name);
-	if (r == -1)
-		return false;
-
-	r = asprintf(&k_priority, "%s:priority", name);
-	if (r == -1)
-		return false;
-
-	_type = iniparser_getstring(ini, k_type, NULL);
-	_backend = iniparser_getstring(ini, k_backend, NULL);
-	_priority = iniparser_getint(ini, k_priority, -1);
-	_desc = iniparser_getstring(ini, k_desc, NULL);
-
-	if (!_type || !name || !_backend || _priority < 0)
-		return false;
-
-	out->name.value = strdup(name);
-	if (!out->name.value)
-		goto fail;
-	out->name.length = (uint32_t)strlen(name);
-
-	if (strcmp(_type, "System") == 0)
-		out->type = LAYER_SYSTEM;
-	else if (strcmp(_type, "User") == 0)
-		out->type = LAYER_USER;
-	else {
-		buxton_log("Layer %s has unknown type: %s\n", name, _type);
-		goto fail;
-	}
-
-	if (strcmp(_backend, "gdbm") == 0)
-		out->backend = BACKEND_GDBM;
-	else if(strcmp(_backend, "memory") == 0)
-		out->backend = BACKEND_MEMORY;
-	else
-		goto fail;
-
-	if (_desc != NULL)
-		out->description = strdup(_desc);
-
-	out->priority = _priority;
-	return true;
-
-
-fail:
-	free(out->name.value);
-	free(out->description);
-	return false;
-}
-
 void exit_handler(void)
 {
+	/* TODO: Remove from library, add buxton_direct_close */
 	Iterator iterator;
 	BuxtonBackend *backend;
 
@@ -572,7 +446,7 @@ void exit_handler(void)
 	}
 	hashmap_free(_backends);
 	hashmap_free(_databases);
-	hashmap_free(_layers);
+	/*hashmap_free(_layers);*/
 }
 
 BuxtonString *buxton_make_key(char *group, char *name)
