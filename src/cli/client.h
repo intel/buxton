@@ -20,6 +20,7 @@
     #include "config.h"
 #endif
 
+#include "backend.h"
 #include "hashmap.h"
 
 /**
@@ -31,7 +32,7 @@
  * @param four Pointer to char for fourth parameter
  * @return a boolean value, indicating success of the operation
  */
-typedef bool (*command_method) (BuxtonClient *self, BuxtonDataType type,
+typedef bool (*command_method) (BuxtonControl *control, BuxtonDataType type,
 				char *one, char *two, char *three,
 				char *four);
 
@@ -50,7 +51,7 @@ typedef struct Command {
 
 /**
  * Set a label in Buxton
- * @param self Client instance being run
+ * @param control An initialized control structure
  * @param type Type of label being set (unused)
  * @param one Layer of label being set
  * @param two Group of the label being set
@@ -58,13 +59,13 @@ typedef struct Command {
  * @param four Label of the label to set
  * @returns bool indicating success or failure
  */
-bool cli_set_label(BuxtonClient *self,
+bool cli_set_label(BuxtonControl *control,
 		   __attribute__((unused)) BuxtonDataType type,
 		   char *one, char *two, char *three, char *four);
 
 /**
  * Get a label from Buxton
- * @param self Client instance being run
+ * @param control An initialized control structure
  * @param type Type of label being sought (unused)
  * @param one Layer of the label being sought
  * @param two Group of the label being sought
@@ -72,14 +73,14 @@ bool cli_set_label(BuxtonClient *self,
  * @param four NULL (unused)
  * @returns bool indicating success or failure
  */
-bool cli_get_label(BuxtonClient *self,
+bool cli_get_label(BuxtonControl *control,
 		   __attribute__((unused)) BuxtonDataType type,
 		   char *one, char *two, char *three,
 		   __attribute__((unused)) char *four);
 
 /**
  * Set a value in Buxton
- * @param self Client instance being run
+ * @param control An initialized control structure
  * @param type Type of data being set
  * @param one Layer of data being set
  * @param two Group of the data being set
@@ -87,12 +88,12 @@ bool cli_get_label(BuxtonClient *self,
  * @param three Value of the data to set
  * @returns bool indicating success or failure
  */
-bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char *one,
+bool cli_set_value(BuxtonControl *control, BuxtonDataType type, char *one,
 		   char *two, char *three, char *four);
 
 /**
  * Get a value from Buxton
- * @param self Client instance being run
+ * @param control An initialized control structure
  * @param type Type of data being sought
  * @param one Layer or Group of data being set
  * @param two  or key of data being set
@@ -100,13 +101,13 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type, char *one,
  * @param three NULL (unused)
  * @returns bool indicating success or failure
  */
-bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char *one,
+bool cli_get_value(BuxtonControl *control, BuxtonDataType type, char *one,
 		   char *two, char *three,
 		   __attribute__((unused)) char *four);
 
 /**
  * Unset a value from Buxton
- * @param self client instance being run
+ * @param control An initialized control structure
  * @param type Type of value (unused)
  * @param one Layer of data being unset
  * @param two Group of key to unset
@@ -114,7 +115,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char *one,
  * @param four NULL (unused)
  * @returns bool indicating success or failure
  */
-bool cli_unset_value(BuxtonClient *self,
+bool cli_unset_value(BuxtonControl *control,
 		     __attribute__((unused))BuxtonDataType type,
 		     char *one, char *two, char *three,
 		     __attribute__((unused)) char *four);

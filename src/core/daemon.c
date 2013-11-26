@@ -272,8 +272,9 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 		     key->value,
 		     value->label.value);
 
+	self->buxton.client.uid = client->cred.uid;
 	if (USE_SMACK) {
-		if (!buxton_check_write_access(&(self->buxton.client),
+		if (!buxton_check_write_access(&self->buxton,
 					       layer,
 					       key,
 					       value,
@@ -284,8 +285,7 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 	}
 
 	/* Use internal library to set value */
-	self->buxton.client.uid = client->cred.uid;
-	if (!buxton_client_set_value(&(self->buxton.client), layer, key, value)) {
+	if (!buxton_direct_set_value(&self->buxton, layer, key, value)) {
 		*status = BUXTON_STATUS_FAILED;
 		return;
 	}
@@ -311,7 +311,7 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 		     key->value);
 
 	if (USE_SMACK) {
-		if (!buxton_check_write_access(&(self->buxton.client),
+		if (!buxton_check_write_access(&self->buxton,
 					       layer,
 					       key,
 					       NULL,
@@ -322,7 +322,7 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 	}
 	/* Use internal library to unset value */
 	self->buxton.client.uid = client->cred.uid;
-	if (!buxton_client_unset_value(&(self->buxton.client), layer, key))
+	if (!buxton_direct_unset_value(&self->buxton, layer, key))
 		return;
 
 	*status = BUXTON_STATUS_OK;
@@ -355,11 +355,11 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 	/* Attempt to retrieve key */
 	if (layer) {
 		/* Layer + key */
-		if (!buxton_client_get_value_for_layer(&(self->buxton.client), layer, key, data))
+		if (!buxton_direct_get_value_for_layer(&self->buxton, layer, key, data))
 			goto fail;
 	} else {
 		/* Key only */
-		if (!buxton_client_get_value(&(self->buxton.client), key, data))
+		if (!buxton_direct_get_value(&self->buxton, key, data))
 			goto fail;
 	}
 

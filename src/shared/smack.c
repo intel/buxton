@@ -242,14 +242,14 @@ bool buxton_check_read_access(BuxtonClient *client,
 
 }
 
-bool buxton_check_write_access(BuxtonClient *client,
+bool buxton_check_write_access(BuxtonControl *control,
 			       BuxtonString *layer,
 			       BuxtonString *key,
 			       BuxtonData *data,
 			       BuxtonString *client_label)
 {
 	/* The data arg may be NULL, in case of a delete */
-	assert(client);
+	assert(control);
 	assert(layer);
 	assert(key);
 	assert(client_label);
@@ -274,7 +274,7 @@ bool buxton_check_write_access(BuxtonClient *client,
 			return false;
 		}
 
-		bool valid = buxton_client_get_value_for_layer(client,
+		bool valid = buxton_direct_get_value_for_layer(control,
 							       layer,
 							       key,
 							       curr_data);

@@ -80,6 +80,7 @@ int main(int argc, char **argv)
 	int i = 0;
 	int c;
 	bool help = false;
+	control.client.direct = false;
 
 	/* Build a command list */
 	commands = hashmap_new(string_hash_func, string_compare_func);
@@ -231,7 +232,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Connected to buxton_client, execute method */
-	ret = command->method(&(control.client), command->type,
+	ret = command->method(&control, command->type,
 			      optind + 1 < argc ? argv[optind + 1] : NULL,
 			      optind + 2 < argc ? argv[optind + 2] : NULL,
 			      optind + 3 < argc ? argv[optind + 3] : NULL,
@@ -239,7 +240,7 @@ int main(int argc, char **argv)
 
 end:
 	hashmap_free(commands);
-	buxton_client_close(&(control.client));
+	buxton_direct_close(&control);
 	if (ret)
 		return EXIT_SUCCESS;
 	return EXIT_FAILURE;

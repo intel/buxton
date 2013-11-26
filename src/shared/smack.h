@@ -15,6 +15,7 @@
     #include "config.h"
 #endif
 
+#include "backend.h"
 #include "bt-daemon.h"
 
 /**
@@ -87,7 +88,7 @@ bool buxton_check_read_access(BuxtonClient *client, BuxtonString *layer,
  * @param client_label The Smack label of the client
  * @return true if write access is granted, otherwise false
  */
-bool buxton_check_write_access(BuxtonClient *client, BuxtonString *layer,
+bool buxton_check_write_access(BuxtonControl *control, BuxtonString *layer,
 			       BuxtonString *key, BuxtonData *data,
 			       BuxtonString *client_label);
 

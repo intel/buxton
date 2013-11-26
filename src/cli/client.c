@@ -23,7 +23,7 @@
 #include "hashmap.h"
 #include "util.h"
 
-bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
+bool cli_set_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataType type,
 		   char *one, char *two, char *three, char *four)
 {
 	BuxtonString layer, label;
@@ -45,14 +45,15 @@ bool cli_set_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType ty
 	else
 		label = buxton_string_pack(three);
 
-	ret = buxton_client_set_label(self, &layer, key, &label);
+	ret = buxton_direct_set_label(control, &layer, key, &label);
+
 	if (!ret)
 		printf("Failed to update key \'%s:%s\' label in layer '%s'\n",
 		       buxton_get_group(key), buxton_get_name(key), layer.value);
 	return ret;
 }
 
-bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType type,
+bool cli_get_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataType type,
 		   char *one, char *two, char *three, __attribute__((unused)) char *four)
 {
 	BuxtonString layer;
@@ -65,7 +66,12 @@ bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType ty
 	if (!key)
 		return ret;
 
-	ret = buxton_client_get_value_for_layer(self, &layer, key, &get);
+	if (control->client.direct)
+		ret = buxton_direct_get_value_for_layer(control, &layer, key,
+							&get);
+	else
+		ret = buxton_client_get_value_for_layer(&control->client, &layer,
+							key, &get);
 	if (!ret)
 		printf("Failed to get key \'%s:%s\' in layer '%s'\n", buxton_get_group(key),
 		       buxton_get_name(key), layer.value);
@@ -76,7 +82,7 @@ bool cli_get_label(BuxtonClient *self, __attribute__((unused)) BuxtonDataType ty
 	return ret;
 }
 
-bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
+bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, char *four)
 {
 	BuxtonString layer, value;
@@ -152,20 +158,25 @@ bool cli_set_value(BuxtonClient *self, BuxtonDataType type,
 	default:
 		break;
 	}
-	ret = buxton_client_set_value(self, &layer, key, &set);
+	if (control->client.direct)
+		ret = buxton_direct_set_value(control, &layer, key, &set);
+	else
+		ret = buxton_client_set_value(&control->client, &layer, key,
+					      &set);
 	if (!ret)
 		printf("Failed to update key \'%s:%s\' in layer '%s'\n", buxton_get_group(key),
 		       buxton_get_name(key), layer.value);
 	return ret;
 }
 
-bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
+bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, __attribute__((unused)) char * four)
 {
 	BuxtonString layer;
 	_cleanup_buxton_string_ BuxtonString *key = NULL;
 	BuxtonData get;
 	_cleanup_free_ char *prefix = NULL;
+	bool ret = false;
 
 	if (three != NULL) {
 		layer.value = one;
@@ -181,13 +192,25 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 		return false;
 
 	if (three != NULL) {
-		if (!buxton_client_get_value_for_layer(self, &layer, key, &get)) {
+		if (control->client.direct)
+			ret = buxton_direct_get_value_for_layer(control, &layer,
+								key, &get);
+		else
+			ret = buxton_client_get_value_for_layer(&control->client,
+								&layer, key,
+								&get);
+		if (!ret) {
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
 			       layer.value, buxton_get_group(key), buxton_get_name(key));
 			return false;
 		}
 	} else {
-		if (!buxton_client_get_value(self, key, &get)) {
+		if (control->client.direct)
+			ret = buxton_direct_get_value(control, key, &get);
+		else
+			ret = buxton_client_get_value(&control->client, key,
+						      &get);
+		if (!ret) {
 			printf("Requested key was not found: %s:%s\n", buxton_get_group(key),
 			       buxton_get_name(key));
 			return false;
@@ -242,7 +265,7 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 	return true;
 }
 
-bool cli_unset_value(BuxtonClient *self,
+bool cli_unset_value(BuxtonControl *control,
 		     __attribute__((unused))BuxtonDataType type,
 		     char *one, char *two, char *three,
 		     __attribute__((unused)) char *four)
@@ -257,7 +280,10 @@ bool cli_unset_value(BuxtonClient *self,
 	if (!key)
 		return false;
 
-	return buxton_client_unset_value(self, &layer, key);
+	if (control->client.direct)
+		return buxton_direct_unset_value(control, &layer, key);
+	else
+		return buxton_client_unset_value(&control->client, &layer, key);
 }
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
