@@ -40,7 +40,8 @@ bool buxton_client_open(BuxtonClient *client)
 	int bx_socket, r;
 	struct sockaddr_un remote;
 
-	assert(client);
+	if (!client)
+		return false;
 
 	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		return false;
@@ -60,7 +61,8 @@ bool buxton_client_open(BuxtonClient *client)
 
 void buxton_client_close(BuxtonClient *client)
 {
-	assert(client);
+	if (!client)
+		return;
 
 	close(client->fd);
 	client->direct = 0;
@@ -71,52 +73,6 @@ bool buxton_client_get_value(BuxtonClient *client,
 			      BuxtonString *key,
 			      BuxtonData *data)
 {
-
-	assert(client);
-	assert(key);
-
-	/*
-	 * Only for testing, delete after non direct client support
-	 * enabled
-	 */
-	if (buxton_direct_permitted(client)) {
-		/* Handle direct manipulation */
-		BuxtonLayer *l;
-		BuxtonConfig *config;
-		BuxtonString layer = (BuxtonString){ NULL, 0 };
-		Iterator i;
-		BuxtonData d;
-		int priority = 0;
-		int r;
-
-		config = buxton_get_config(client);
-
-		HASHMAP_FOREACH(l, config->layers, i) {
-			r = buxton_client_get_value_for_layer(client,
-							      &l->name,
-							      key,
-							      &d);
-			if (r) {
-				free(d.label.value);
-				if (d.type == STRING)
-					free(d.store.d_string.value);
-				if (priority <= l->priority) {
-					priority = l->priority;
-					layer.value = l->name.value;
-					layer.length = l->name.length;
-				}
-			}
-		}
-		if (layer.value) {
-			return buxton_client_get_value_for_layer(client,
-								 &layer,
-								 key,
-								 data);
-		}
-		return false;
-	}
-
-	/* Normal interaction (wire-protocol) */
 	return buxton_wire_get_value(client, NULL, key, data);
 }
 
@@ -125,45 +81,11 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 			      BuxtonString *key,
 			      BuxtonData *data)
 {
-
-	assert(client);
-	assert(layer_name);
-	assert(layer_name->value);
-	assert(key);
-
-	/* TODO: Implement */
-	if (buxton_direct_permitted(client)) {
-		/* Handle direct manipulation */
-		BuxtonBackend *backend = NULL;
-		BuxtonLayer *layer = NULL;
-		BuxtonConfig *config;
-
-		config = buxton_get_config(client);
-		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
-			return false;
-		}
-		backend = backend_for_layer(config, layer);
-		if (!backend) {
-			/* Already logged */
-			return false;
-		}
-		layer->uid = client->uid;
-		return backend->get_value(layer, key, data);
-	}
-
-	/* Normal interaction (wire-protocol) */
 	return buxton_wire_get_value(client, layer_name, key, data);
 }
 
 bool buxton_client_register_notification(BuxtonClient *client, BuxtonString *key)
 {
-	assert(client);
-	assert(key);
-
-	if (buxton_direct_permitted(client)) {
-		/* Direct notifications not currently supported */
-		return false;
-	}
 	return buxton_wire_register_notification(client, key);
 }
 
@@ -172,122 +94,13 @@ bool buxton_client_set_value(BuxtonClient *client,
 			      BuxtonString *key,
 			      BuxtonData *data)
 {
-
-	assert(client);
-	assert(layer_name);
-	assert(layer_name->value);
-	assert(key);
-	assert(key->value);
-	assert(data);
-	assert(data->label.value);
-
-	if (buxton_direct_permitted(client)) {
-		/* Handle direct manipulation */
-		BuxtonBackend *backend;
-		BuxtonLayer *layer;
-		BuxtonConfig *config;
-
-		config = buxton_get_config(client);
-		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
-			return false;
-		}
-		backend = backend_for_layer(config, layer);
-		if (!backend) {
-			/* Already logged */
-			return false;
-		}
-		layer->uid = client->uid;
-		return backend->set_value(layer, key, data);
-	}
-
-	/* Normal interaction (wire-protocol) */
 	return buxton_wire_set_value(client, layer_name, key, data);
-}
-
-bool buxton_client_set_label(BuxtonClient *client,
-			      BuxtonString *layer_name,
-			      BuxtonString *key,
-			      BuxtonString *label)
-{
-	BuxtonBackend *backend;
-	BuxtonData data;
-	BuxtonLayer *layer;
-	BuxtonConfig *config;
-	bool r;
-
-	assert(client);
-	assert(layer_name);
-	assert(layer_name->value);
-	assert(key);
-	assert(key->value);
-	assert(label);
-	assert(label->value);
-
-	if (!buxton_direct_permitted(client))
-		return false;
-
-	config = buxton_get_config(client);
-	/* Handle direct manipulation */
-	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
-		return false;
-	}
-	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		/* Already logged */
-		return false;
-	}
-
-	char *name = buxton_get_name(key);
-	if (name) {
-		r = buxton_client_get_value_for_layer(client, layer_name, key, &data);
-		if (!r)
-			return false;
-
-		free(data.label.value);
-	} else {
-		/* we have a group, so initialize the data with a dummy value */
-		data.type = STRING;
-		data.store.d_string = buxton_string_pack("BUXTON_GROUP_VALUE");
-	}
-
-	data.label.length = label->length;
-	data.label.value = label->value;
-
-	return backend->set_value(layer, key, &data);
 }
 
 bool buxton_client_unset_value(BuxtonClient *client,
 			       BuxtonString *layer_name,
 			       BuxtonString *key)
 {
-
-	assert(client);
-	assert(layer_name);
-	assert(layer_name->value);
-	assert(key);
-	assert(key->value);
-
-
-	if (buxton_direct_permitted(client)) {
-		/* Handle direct manipulation */
-		BuxtonBackend *backend;
-		BuxtonLayer *layer;
-		BuxtonConfig *config;
-
-		config = buxton_get_config(client);
-		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
-			return false;
-		}
-		backend = backend_for_layer(config, layer);
-		if (!backend) {
-			/* Already logged */
-			return false;
-		}
-		layer->uid = client->uid;
-		return backend->unset_value(layer, key, NULL);
-	}
-
-	/* Normal interaction (wire-protocol) */
 	return buxton_wire_unset_value(client, layer_name, key);
 }
 
