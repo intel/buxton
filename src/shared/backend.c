@@ -50,6 +50,7 @@ bool buxton_direct_open(BuxtonControl *control)
 	if (!_directPermitted)
 		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
 
+	memset(&(control->config), 0, sizeof(BuxtonConfig));
 	buxton_init_layers(&(control->config));
 
 	control->client.direct = true;
