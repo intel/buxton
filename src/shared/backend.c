@@ -19,6 +19,7 @@
     #include "config.h"
 #endif
 
+#include <dlfcn.h>
 #include <iniparser.h>
 
 #include "backend.h"
@@ -49,6 +50,7 @@ bool buxton_direct_open(BuxtonControl *control)
 	if (!_directPermitted)
 		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
 
+	memset(&(control->config), 0, sizeof(BuxtonConfig));
 	buxton_init_layers(&(control->config));
 
 	control->client.direct = true;
@@ -214,6 +216,121 @@ fail:
 	free(out->name.value);
 	free(out->description);
 	return false;
+}
+
+static bool init_backend(BuxtonConfig *config,
+			 BuxtonLayer *layer,
+			 BuxtonBackend **backend)
+{
+	void *handle, *cast;
+	_cleanup_free_ char *path = NULL;
+	const char *name;
+	char *error;
+	int r;
+	bool rb;
+	module_init_func i_func;
+	module_destroy_func d_func;
+	BuxtonBackend *backend_tmp;
+
+	assert(layer);
+	assert(backend);
+
+	if (layer->backend == BACKEND_GDBM)
+		name = "gdbm";
+	else if (layer->backend == BACKEND_MEMORY)
+		name = "memory";
+	else
+		return false;
+
+	backend_tmp = hashmap_get(config->backends, name);
+
+	if (backend_tmp) {
+		*backend = backend_tmp;
+		return true;
+	}
+
+	backend_tmp = malloc0(sizeof(BuxtonBackend));
+	if (!backend_tmp)
+		return false;
+
+	r = asprintf(&path, "%s/%s.so", MODULE_DIRECTORY, name);
+	if (r == -1)
+		return false;
+
+	/* Load the module */
+	handle = dlopen(path, RTLD_LAZY);
+
+	if (!handle) {
+		buxton_log("dlopen(): %s\n", dlerror());
+		return false;
+	}
+
+	dlerror();
+	cast = dlsym(handle, "buxton_module_init");
+	if ((error = dlerror()) != NULL || !cast) {
+		buxton_log("dlsym(): %s\n", error);
+		dlclose(handle);
+		return false;
+	}
+	memcpy(&i_func, &cast, sizeof(i_func));
+	dlerror();
+
+	cast = dlsym(handle, "buxton_module_destroy");
+	if ((error = dlerror()) != NULL || !cast) {
+		buxton_log("dlsym(): %s\n", error);
+		dlclose(handle);
+		return false;
+	}
+	memcpy(&d_func, &cast, sizeof(d_func));
+
+	rb = i_func(backend_tmp);
+	if (!rb) {
+		buxton_log("buxton_module_init failed\n");
+		dlclose(handle);
+		return false;
+	}
+
+	if (!config->backends) {
+		config->backends = hashmap_new(trivial_hash_func, trivial_compare_func);
+		if (!config->backends) {
+			dlclose(handle);
+			return false;
+		}
+	}
+
+	r = hashmap_put(config->backends, name, backend_tmp);
+	if (r != 1) {
+		dlclose(handle);
+		return false;
+	}
+
+	backend_tmp->module = handle;
+	backend_tmp->destroy = d_func;
+
+	*backend = backend_tmp;
+
+	return true;
+}
+
+BuxtonBackend *backend_for_layer(BuxtonConfig *config,
+				 BuxtonLayer *layer)
+{
+	BuxtonBackend *backend;
+
+	assert(layer);
+
+	if (!config->databases)
+		config->databases = hashmap_new(string_hash_func, string_compare_func);
+	if ((backend = (BuxtonBackend*)hashmap_get(config->databases, layer->name.value)) == NULL) {
+		/* attempt load of backend */
+		if (!init_backend(config, layer, &backend)) {
+			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
+			free(backend);
+			return NULL;
+		}
+		hashmap_put(config->databases, layer->name.value, backend);
+	}
+	return (BuxtonBackend*)hashmap_get(config->databases, layer->name.value);
 }
 
 void buxton_direct_revoke(BuxtonClient *client)
