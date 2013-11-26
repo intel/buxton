@@ -154,6 +154,67 @@ BuxtonBackend *backend_for_layer(BuxtonConfig *config,
  */
 bool buxton_init_layers(BuxtonConfig *config);
 
+/**
+ * Set a value within Buxton
+ * @param control An initialized control structure
+ * @param layer The layer to manipulate
+ * @param key The key name
+ * @param label A BuxtonString containing the label to set
+ * @return A boolean value, indicating success of the operation
+ */
+bool buxton_direct_set_label(BuxtonControl *control,
+			     BuxtonString *layer,
+			     BuxtonString *key,
+			     BuxtonString *label);
+
+/**
+ * Set a value within Buxton
+ * @param control An initialized control structure
+ * @param layer The layer to manipulate
+ * @param key The key name
+ * @param data A struct containing the data to set
+ * @return A boolean value, indicating success of the operation
+ */
+bool buxton_direct_set_value(BuxtonControl *control,
+			     BuxtonString *layer_name,
+			     BuxtonString *key,
+			     BuxtonData *data);
+
+/**
+ * Retrieve a value from Buxton
+ * @param control An initialized control structure
+ * @param key The key to retrieve
+ * @param data An empty BuxtonData, where data is stored
+ * @return A boolean value, indicating success of the operation
+ */
+bool buxton_direct_get_value(BuxtonControl *control,
+			     BuxtonString *key,
+			     BuxtonData *data);
+
+/**
+ * Retrieve a value from Buxton
+ * @param control An initialized control structure
+ * @param layer The layer where the key is set
+ * @param key The key to retrieve
+ * @param data An empty BuxtonData, where data is stored
+ * @return A boolean value, indicating success of the operation
+ */
+bool buxton_direct_get_value_for_layer(BuxtonControl *control,
+				       BuxtonString *layer,
+				       BuxtonString *key,
+				       BuxtonData *data);
+
+/**
+ * Unset a value by key in the given BuxtonLayer
+ * @param control An initialized control structure
+ * @param layer The layer to remove the value from
+ * @param key The key to remove
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_direct_unset_value(BuxtonControl *control,
+			       BuxtonString *layer,
+			       BuxtonString *key);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

@@ -89,6 +89,169 @@ BuxtonConfig *buxton_get_config(BuxtonClient *client)
 	return &(control->config);
 }
 
+bool buxton_direct_get_value(BuxtonControl *control, BuxtonString *key,
+			     BuxtonData *data)
+{
+	/* Handle direct manipulation */
+	BuxtonLayer *l;
+	BuxtonConfig *config;
+	BuxtonString layer = (BuxtonString){ NULL, 0 };
+	Iterator i;
+	BuxtonData d;
+	int priority = 0;
+	int r;
+
+	assert(control);
+	assert(key);
+
+	config = &control->config;
+
+	HASHMAP_FOREACH(l, config->layers, i) {
+		r = buxton_direct_get_value_for_layer(control,
+						      &l->name,
+						      key,
+						      &d);
+		if (r) {
+			free(d.label.value);
+			if (d.type == STRING)
+				free(d.store.d_string.value);
+			if (priority <= l->priority) {
+				priority = l->priority;
+				layer.value = l->name.value;
+				layer.length = l->name.length;
+			}
+		}
+	}
+	if (layer.value) {
+		return buxton_direct_get_value_for_layer(control,
+							 &layer,
+							 key,
+							 data);
+	}
+	return false;
+}
+
+bool buxton_direct_get_value_for_layer(BuxtonControl *control,
+				       BuxtonString *layer_name,
+				       BuxtonString *key,
+				       BuxtonData *data)
+{
+	/* Handle direct manipulation */
+	BuxtonBackend *backend = NULL;
+	BuxtonLayer *layer = NULL;
+	BuxtonConfig *config;
+
+	config = &control->config;
+	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+		return false;
+	}
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		/* Already logged */
+		return false;
+	}
+	layer->uid = control->client.uid;
+	return backend->get_value(layer, key, data);
+}
+
+bool buxton_direct_set_value(BuxtonControl *control,
+			     BuxtonString *layer_name,
+			     BuxtonString *key,
+			     BuxtonData *data)
+{
+	BuxtonBackend *backend;
+	BuxtonLayer *layer;
+	BuxtonConfig *config;
+
+	assert(control);
+	assert(layer_name);
+	assert(key);
+	assert(data);
+
+	config = &control->config;
+	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+		return false;
+	}
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		/* Already logged */
+		return false;
+	}
+	layer->uid = control->client.uid;
+	return backend->set_value(layer, key, data);
+}
+
+bool buxton_direct_set_label(BuxtonControl *control,
+			     BuxtonString *layer_name,
+			     BuxtonString *key,
+			     BuxtonString *label)
+{
+	BuxtonBackend *backend;
+	BuxtonData data;
+	BuxtonLayer *layer;
+	BuxtonConfig *config;
+	bool r;
+
+	assert(control);
+	assert(layer_name);
+	assert(key);
+	assert(label);
+
+	config = &control->config;
+
+	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+		return false;
+	}
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		/* Already logged */
+		return false;
+	}
+
+	char *name = buxton_get_name(key);
+	if (name) {
+		r = buxton_direct_get_value_for_layer(control, layer_name, key, &data);
+		if (!r)
+			return false;
+
+		free(data.label.value);
+	} else {
+		/* we have a group, so initialize the data with a dummy value */
+		data.type = STRING;
+		data.store.d_string = buxton_string_pack("BUXTON_GROUP_VALUE");
+	}
+
+	data.label.length = label->length;
+	data.label.value = label->value;
+
+	return backend->set_value(layer, key, &data);
+}
+
+bool buxton_direct_unset_value(BuxtonControl *control,
+			       BuxtonString *layer_name,
+			       BuxtonString *key)
+{
+	BuxtonBackend *backend;
+	BuxtonLayer *layer;
+	BuxtonConfig *config;
+
+	assert(control);
+	assert(layer_name);
+	assert(key);
+
+	config = &control->config;
+	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+		return false;
+	}
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		/* Already logged */
+		return false;
+	}
+	layer->uid = control->client.uid;
+	return backend->unset_value(layer, key, NULL);
+}
+
 /* Load layer configurations from disk */
 bool buxton_init_layers(BuxtonConfig *config)
 {
