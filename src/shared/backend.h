@@ -131,6 +131,12 @@ bool buxton_direct_permitted(BuxtonClient *client);
  */
 void buxton_direct_revoke(BuxtonClient *client);
 
+/**
+ * Return the associated configuration for a given client (direct access)
+ * @param client The client to query
+ * @return a valid BuxtonConfig, or NULL if none is found
+ */
+BuxtonConfig *buxton_get_config(BuxtonClient *client);
 
 /**
  * Initialize layers using the configuration file
