@@ -90,9 +90,9 @@ typedef struct BuxtonBackend {
  * Stores internal configuration of Buxton
  */
 typedef struct BuxtonConfig {
-	Hashmap *_databases; /**<Unused */
+	Hashmap *databases; /**<Database mapping */
 	Hashmap *layers; /**<Global layer configuration */
-	Hashmap *_backends; /**<Unused */
+	Hashmap *backends; /**<Backend mapping */
 } BuxtonConfig;
 
 /**
@@ -137,6 +137,15 @@ void buxton_direct_revoke(BuxtonClient *client);
  * @return a valid BuxtonConfig, or NULL if none is found
  */
 BuxtonConfig *buxton_get_config(BuxtonClient *client);
+
+/**
+ * Return a valid backend for the given configuration and layer
+ * @param config A BuxtonControl's configuration
+ * @param layer The layer to query
+ * @return an initialised backend, or NULL if the layer is not found
+ */
+BuxtonBackend *backend_for_layer(BuxtonConfig *config,
+				 BuxtonLayer *layer);
 
 /**
  * Initialize layers using the configuration file

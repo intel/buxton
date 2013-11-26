@@ -19,7 +19,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
-#include <dlfcn.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -35,9 +34,6 @@
 #include "log.h"
 #include "hashmap.h"
 #include "protocol.h"
-
-static Hashmap *_databases = NULL;
-static Hashmap *_backends = NULL;
 
 /**
  * Runs on exit to ensure all resources are correctly disposed of
@@ -83,118 +79,6 @@ void buxton_client_close(BuxtonClient *client)
 		close(client->fd);
 	client->direct = 0;
 	client->fd = -1;
-}
-
-static bool init_backend(BuxtonLayer *layer, BuxtonBackend **backend)
-{
-	void *handle, *cast;
-	_cleanup_free_ char *path = NULL;
-	const char *name;
-	char *error;
-	int r;
-	bool rb;
-	module_init_func i_func;
-	module_destroy_func d_func;
-	BuxtonBackend *backend_tmp;
-
-	assert(layer);
-	assert(backend);
-
-	if (layer->backend == BACKEND_GDBM)
-		name = "gdbm";
-	else if (layer->backend == BACKEND_MEMORY)
-		name = "memory";
-	else
-		return false;
-
-	backend_tmp = hashmap_get(_backends, name);
-
-	if (backend_tmp) {
-		*backend = backend_tmp;
-		return true;
-	}
-
-	backend_tmp = malloc0(sizeof(BuxtonBackend));
-	if (!backend_tmp)
-		return false;
-
-	r = asprintf(&path, "%s/%s.so", MODULE_DIRECTORY, name);
-	if (r == -1)
-		return false;
-
-	/* Load the module */
-	handle = dlopen(path, RTLD_LAZY);
-
-	if (!handle) {
-		buxton_log("dlopen(): %s\n", dlerror());
-		return false;
-	}
-
-	dlerror();
-	cast = dlsym(handle, "buxton_module_init");
-	if ((error = dlerror()) != NULL || !cast) {
-		buxton_log("dlsym(): %s\n", error);
-		dlclose(handle);
-		return false;
-	}
-	memcpy(&i_func, &cast, sizeof(i_func));
-	dlerror();
-
-	cast = dlsym(handle, "buxton_module_destroy");
-	if ((error = dlerror()) != NULL || !cast) {
-		buxton_log("dlsym(): %s\n", error);
-		dlclose(handle);
-		return false;
-	}
-	memcpy(&d_func, &cast, sizeof(d_func));
-
-	rb = i_func(backend_tmp);
-	if (!rb) {
-		buxton_log("buxton_module_init failed\n");
-		dlclose(handle);
-		return false;
-	}
-
-	if (!_backends) {
-		_backends = hashmap_new(trivial_hash_func, trivial_compare_func);
-		if (!_backends) {
-			dlclose(handle);
-			return false;
-		}
-	}
-
-	r = hashmap_put(_backends, name, backend_tmp);
-	if (r != 1) {
-		dlclose(handle);
-		return false;
-	}
-
-	backend_tmp->module = handle;
-	backend_tmp->destroy = d_func;
-
-	*backend = backend_tmp;
-
-	return true;
-}
-
-static BuxtonBackend *backend_for_layer(BuxtonLayer *layer)
-{
-	BuxtonBackend *backend;
-
-	assert(layer);
-
-	if (!_databases)
-		_databases = hashmap_new(string_hash_func, string_compare_func);
-	if ((backend = (BuxtonBackend*)hashmap_get(_databases, layer->name.value)) == NULL) {
-		/* attempt load of backend */
-		if (!init_backend(layer, &backend)) {
-			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
-			free(backend);
-			return NULL;
-		}
-		hashmap_put(_databases, layer->name.value, backend);
-	}
-	return (BuxtonBackend*)hashmap_get(_databases, layer->name.value);
 }
 
 bool buxton_client_get_value(BuxtonClient *client,
@@ -272,7 +156,7 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
 			return false;
 		}
-		backend = backend_for_layer(layer);
+		backend = backend_for_layer(config, layer);
 		if (!backend) {
 			/* Already logged */
 			return false;
@@ -321,7 +205,7 @@ bool buxton_client_set_value(BuxtonClient *client,
 		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
 			return false;
 		}
-		backend = backend_for_layer(layer);
+		backend = backend_for_layer(config, layer);
 		if (!backend) {
 			/* Already logged */
 			return false;
@@ -361,7 +245,7 @@ bool buxton_client_set_label(BuxtonClient *client,
 	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
 		return false;
 	}
-	backend = backend_for_layer(layer);
+	backend = backend_for_layer(config, layer);
 	if (!backend) {
 		/* Already logged */
 		return false;
@@ -408,7 +292,7 @@ bool buxton_client_unset_value(BuxtonClient *client,
 		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
 			return false;
 		}
-		backend = backend_for_layer(layer);
+		backend = backend_for_layer(config, layer);
 		if (!backend) {
 			/* Already logged */
 			return false;
@@ -421,31 +305,17 @@ bool buxton_client_unset_value(BuxtonClient *client,
 	return buxton_wire_unset_value(client, layer_name, key);
 }
 
-static void destroy_backend(BuxtonBackend *backend)
-{
-
-	assert(backend);
-
-	backend->set_value = NULL;
-	backend->get_value = NULL;
-	backend->unset_value = NULL;
-	backend->destroy();
-	dlclose(backend->module);
-	free(backend);
-	backend = NULL;
-}
-
 void exit_handler(void)
 {
 	/* TODO: Remove from library, add buxton_direct_close */
 	Iterator iterator;
 	BuxtonBackend *backend;
 
-	HASHMAP_FOREACH(backend, _backends, iterator) {
+	/*HASHMAP_FOREACH(backend, _backends, iterator) {
 		destroy_backend(backend);
 	}
 	hashmap_free(_backends);
-	hashmap_free(_databases);
+	hashmap_free(_databases);*/
 	/*hashmap_free(_layers);*/
 }
 
