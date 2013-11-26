@@ -40,14 +40,19 @@ bool buxton_direct_open(BuxtonControl *control)
 
 	control->client.direct = true;
 	control->client.pid = getpid();
-	hashmap_put(_directPermitted, &(control->client.pid), &(control->client));
+	hashmap_put(_directPermitted, &(control->client.pid), control);
 	return true;
 }
 
 bool buxton_direct_permitted(BuxtonClient *client)
 {
-	if (_directPermitted && client->direct && hashmap_get(_directPermitted, &(client->pid)) == client)
-		return true;
+	BuxtonControl *control = NULL;
+
+	if (_directPermitted && client->direct) {
+		control = hashmap_get(_directPermitted, &(client->pid));
+		if (&(control->client) == client)
+			return true;
+	}
 
 	return false;
 }
