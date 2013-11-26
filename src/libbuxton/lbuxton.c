@@ -50,7 +50,6 @@ static Hashmap *_backends = NULL;
  */
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 
-
 /**
  * Runs on exit to ensure all resources are correctly disposed of
  */
