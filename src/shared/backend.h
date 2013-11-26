@@ -90,9 +90,9 @@ typedef struct BuxtonBackend {
  * Stores internal configuration of Buxton
  */
 typedef struct BuxtonConfig {
-	Hashmap *_databases;
-	Hashmap *_layers;
-	Hashmap *_backends;
+	Hashmap *_databases; /**<Unused */
+	Hashmap *layers; /**<Global layer configuration */
+	Hashmap *_backends; /**<Unused */
 } BuxtonConfig;
 
 /**
@@ -140,9 +140,10 @@ BuxtonConfig *buxton_get_config(BuxtonClient *client);
 
 /**
  * Initialize layers using the configuration file
+ * @param config A BuxtonControl's configuration
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_init_layers(void);
+bool buxton_init_layers(BuxtonConfig *config);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
