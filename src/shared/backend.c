@@ -57,6 +57,23 @@ bool buxton_direct_permitted(BuxtonClient *client)
 	return false;
 }
 
+BuxtonConfig *buxton_get_config(BuxtonClient *client)
+{
+	assert(client != NULL);
+	BuxtonControl *control = NULL;
+
+	if (!_directPermitted)
+		return NULL;
+	control = hashmap_get(_directPermitted, &(client->pid));
+	if (!control)
+		return NULL;
+	/* Safety */
+	if (&(control->client) != client || !client->direct)
+		return NULL;
+
+	return &(control->config);
+}
+
 void buxton_direct_revoke(BuxtonClient *client)
 {
 	if (_directPermitted)
