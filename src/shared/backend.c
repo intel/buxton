@@ -346,13 +346,28 @@ static void destroy_backend(BuxtonBackend *backend)
 	backend = NULL;
 }
 
-
-void buxton_direct_revoke(BuxtonClient *client)
+void buxton_direct_close(BuxtonControl *control)
 {
+	Iterator iterator;
+	BuxtonBackend *backend;
+
 	if (_directPermitted)
-		hashmap_remove(_directPermitted, &(client->pid));
-	client->direct = false;
+		hashmap_remove(_directPermitted, &(control->client.pid));
+	control->client.direct = false;
+
+	HASHMAP_FOREACH(backend, control->config.backends, iterator) {
+		destroy_backend(backend);
+	}
+	hashmap_free(control->config.backends);
+	hashmap_free(control->config.databases);
+	hashmap_free(control->config.layers);
+
+	control->client.direct = false;
+	control->config.backends = NULL;
+	control->config.databases = NULL;
+	control->config.layers = NULL;
 }
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

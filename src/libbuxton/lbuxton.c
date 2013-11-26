@@ -35,23 +35,12 @@
 #include "hashmap.h"
 #include "protocol.h"
 
-/**
- * Runs on exit to ensure all resources are correctly disposed of
- */
-void exit_handler(void);
-static bool _exit_handler_registered = false;
-
 bool buxton_client_open(BuxtonClient *client)
 {
 	int bx_socket, r;
 	struct sockaddr_un remote;
 
 	assert(client);
-
-	if (!_exit_handler_registered) {
-		_exit_handler_registered = true;
-		atexit(exit_handler);
-	}
 
 	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		return false;
@@ -73,10 +62,7 @@ void buxton_client_close(BuxtonClient *client)
 {
 	assert(client);
 
-	if (buxton_direct_permitted(client))
-		buxton_direct_revoke(client);
-	else
-		close(client->fd);
+	close(client->fd);
 	client->direct = 0;
 	client->fd = -1;
 }
@@ -303,20 +289,6 @@ bool buxton_client_unset_value(BuxtonClient *client,
 
 	/* Normal interaction (wire-protocol) */
 	return buxton_wire_unset_value(client, layer_name, key);
-}
-
-void exit_handler(void)
-{
-	/* TODO: Remove from library, add buxton_direct_close */
-	Iterator iterator;
-	BuxtonBackend *backend;
-
-	/*HASHMAP_FOREACH(backend, _backends, iterator) {
-		destroy_backend(backend);
-	}
-	hashmap_free(_backends);
-	hashmap_free(_databases);*/
-	/*hashmap_free(_layers);*/
 }
 
 BuxtonString *buxton_make_key(char *group, char *name)
