@@ -125,20 +125,20 @@ typedef bool (*module_init_func) (BuxtonBackend *backend);
  * @param control Valid BuxtonControl instance
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_direct_open(BuxtonControl *control);
+_bx_export_ bool buxton_direct_open(BuxtonControl *control);
 
 /**
  * Determine if a client is permitted to use direct connections
  * @param client Valid buxton client connection
  * @return a boolean value, indicating permission to use direct mode
  */
-bool buxton_direct_permitted(BuxtonClient *client);
+_bx_export_ bool buxton_direct_permitted(BuxtonClient *client);
 
 /**
  * Close direct Buxton management connection
  * @param control Valid BuxtonControl instance
  */
-void buxton_direct_close(BuxtonControl *control);
+_bx_export_ void buxton_direct_close(BuxtonControl *control);
 
 /**
  * Return the associated configuration for a given client (direct access)

@@ -2,6 +2,9 @@ BUXTON_1 {
         global:
                 buxton_client_open;
                 buxton_client_close;
+                buxton_direct_open;
+                buxton_direct_permitted;
+                buxton_direct_close;
                 buxton_client_set_value;
                 buxton_client_set_label;
                 buxton_client_get_value;
