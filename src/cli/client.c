@@ -244,7 +244,9 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type,
 
 bool cli_list_keys(BuxtonClient *self,
 		   __attribute__((unused))BuxtonDataType type,
-		   char *one, char *two, char *three,
+		   char *one,
+		   __attribute__((unused)) char *two,
+		   __attribute__((unused)) char *three,
 		   __attribute__((unused)) char *four)
 {
 	BuxtonString layer;
