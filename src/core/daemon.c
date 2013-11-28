@@ -341,6 +341,8 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 	if (!buxton_direct_unset_value(&self->buxton, layer, key))
 		return;
 
+	buxton_debug("unset value returned successfully from db\n");
+
 	*status = BUXTON_STATUS_OK;
 	buxton_debug("Daemon unset value completed\n");
 }
@@ -378,6 +380,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 		if (!buxton_direct_get_value(&self->buxton, key, data))
 			goto fail;
 	}
+	buxton_debug("get value returned successfully from db\n");
 
 	if (USE_SMACK) {
 		/* TODO: Need to move this check to libbuxton
@@ -391,11 +394,13 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 					      client->smack_label)) {
 			goto fail;
 		}
+		buxton_debug("SMACK check succeeded for get_value\n");
 	}
 
 	*status = BUXTON_STATUS_OK;
 	goto end;
 fail:
+	buxton_debug("get value failed\n");
 	free(data);
 	data = NULL;
 end:
