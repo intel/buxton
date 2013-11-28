@@ -69,6 +69,14 @@ typedef bool (*module_value_func) (BuxtonLayer *layer, BuxtonString *key,
 				   BuxtonData *data);
 
 /**
+ * Backend key list function
+ * @param layer The layer to query
+ * @param data Pointer to store BuxtonArray in
+ * @return a boolean value, indicating success of the operation
+ */
+typedef bool (*module_list_func) (BuxtonLayer *layer, BuxtonArray **data);
+
+/**
  * Destroy (or shutdown) a backend module
  */
 typedef void (*module_destroy_func) (void);
@@ -83,6 +91,7 @@ typedef struct BuxtonBackend {
 	module_destroy_func destroy; /**<Destroy method */
 	module_value_func set_value; /**<Set value function */
 	module_value_func get_value; /**<Get value function */
+	module_list_func list_keys; /**<List keys function */
 	module_value_func unset_value; /**<Unset value function */
 } BuxtonBackend;
 

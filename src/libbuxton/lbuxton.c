@@ -256,6 +256,37 @@ bool buxton_client_set_label(BuxtonClient *client,
 	return backend->set_value(layer, key, &data);
 }
 
+bool buxton_client_list_keys(BuxtonClient *client,
+			     BuxtonString *layer_name,
+			     BuxtonArray **list)
+{
+	assert(client);
+	assert(layer_name);
+	assert(layer_name->value);
+
+	if (buxton_direct_permitted(client)) {
+		/* Handle direct manipulation */
+		BuxtonBackend *backend = NULL;
+		BuxtonLayer *layer;
+		BuxtonConfig *config;
+
+		config = buxton_get_config(client);
+		if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+			return false;
+		}
+		backend = backend_for_layer(config, layer);
+		if (!backend) {
+			/* Already logged */
+			return false;
+		}
+		layer->uid = client->uid;
+		return backend->list_keys(layer, list);
+	}
+
+	/* Normal interaction (wire-protocol) - not yet implemented */
+	return false;
+}
+
 bool buxton_client_unset_value(BuxtonClient *client,
 			       BuxtonString *layer_name,
 			       BuxtonString *key)
