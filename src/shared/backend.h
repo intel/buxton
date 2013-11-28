@@ -21,6 +21,7 @@
 #endif
 
 #include "bt-daemon.h"
+#include "hashmap.h"
 
 /**
  * Possible backends for Buxton
@@ -68,6 +69,14 @@ typedef bool (*module_value_func) (BuxtonLayer *layer, BuxtonString *key,
 				   BuxtonData *data);
 
 /**
+ * Backend key list function
+ * @param layer The layer to query
+ * @param data Pointer to store BuxtonArray in
+ * @return a boolean value, indicating success of the operation
+ */
+typedef bool (*module_list_func) (BuxtonLayer *layer, BuxtonArray **data);
+
+/**
  * Destroy (or shutdown) a backend module
  */
 typedef void (*module_destroy_func) (void);
@@ -82,8 +91,26 @@ typedef struct BuxtonBackend {
 	module_destroy_func destroy; /**<Destroy method */
 	module_value_func set_value; /**<Set value function */
 	module_value_func get_value; /**<Get value function */
+	module_list_func list_keys; /**<List keys function */
 	module_value_func unset_value; /**<Unset value function */
 } BuxtonBackend;
+
+/**
+ * Stores internal configuration of Buxton
+ */
+typedef struct BuxtonConfig {
+	Hashmap *databases; /**<Database mapping */
+	Hashmap *layers; /**<Global layer configuration */
+	Hashmap *backends; /**<Backend mapping */
+} BuxtonConfig;
+
+/**
+ * Internal controller for Buxton
+ */
+typedef struct BuxtonControl {
+	BuxtonClient client; /**<Valid client connection */
+	BuxtonConfig config; /**<Valid configuration (unused) */
+} BuxtonControl;
 
 /**
  * Module initialisation function
@@ -91,6 +118,50 @@ typedef struct BuxtonBackend {
  * @return A boolean value, representing the success of the operation
  */
 typedef bool (*module_init_func) (BuxtonBackend *backend);
+
+/**
+ * Open a direct connection to Buxton
+ *
+ * @param control Valid BuxtonControl instance
+ * @return a boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_direct_open(BuxtonControl *control);
+
+/**
+ * Determine if a client is permitted to use direct connections
+ * @param client Valid buxton client connection
+ * @return a boolean value, indicating permission to use direct mode
+ */
+_bx_export_ bool buxton_direct_permitted(BuxtonClient *client);
+
+/**
+ * Close direct Buxton management connection
+ * @param control Valid BuxtonControl instance
+ */
+_bx_export_ void buxton_direct_close(BuxtonControl *control);
+
+/**
+ * Return the associated configuration for a given client (direct access)
+ * @param client The client to query
+ * @return a valid BuxtonConfig, or NULL if none is found
+ */
+BuxtonConfig *buxton_get_config(BuxtonClient *client);
+
+/**
+ * Return a valid backend for the given configuration and layer
+ * @param config A BuxtonControl's configuration
+ * @param layer The layer to query
+ * @return an initialised backend, or NULL if the layer is not found
+ */
+BuxtonBackend *backend_for_layer(BuxtonConfig *config,
+				 BuxtonLayer *layer);
+
+/**
+ * Initialize layers using the configuration file
+ * @param config A BuxtonControl's configuration
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_init_layers(BuxtonConfig *config);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

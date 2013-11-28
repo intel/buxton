@@ -26,7 +26,7 @@
 
 START_TEST(buxton_direct_open_check)
 {
-	BuxtonClient c;
+	BuxtonControl c;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 }
@@ -34,7 +34,7 @@ END_TEST
 
 START_TEST(buxton_direct_set_value_check)
 {
-	BuxtonClient c;
+	BuxtonControl c;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	BuxtonData data;
@@ -43,20 +43,20 @@ START_TEST(buxton_direct_set_value_check)
 	data.type = STRING;
 	data.label = buxton_string_pack("label");
 	data.store.d_string = buxton_string_pack("bxt_test_value");
-	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
+	fail_if(buxton_client_set_value(&c.client, &layer, &key, &data) == false,
 		"Setting value in buxton directly failed.");
 }
 END_TEST
 
 START_TEST(buxton_direct_get_value_for_layer_check)
 {
-	BuxtonClient c;
+	BuxtonControl c;
 	BuxtonData result;
 	BuxtonString layer = buxton_string_pack("test-gdbm");
 	BuxtonString key = buxton_string_pack("bxt_test");
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
-	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result) == false,
+	fail_if(buxton_client_get_value_for_layer(&c.client, &layer, &key, &result) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
@@ -73,7 +73,7 @@ END_TEST
 
 START_TEST(buxton_direct_get_value_check)
 {
-	BuxtonClient c;
+	BuxtonControl c;
 	BuxtonData data, result;
 	BuxtonString layer = buxton_string_pack("test-gdbm-user");
 	BuxtonString key = buxton_string_pack("bxt_test");
@@ -85,9 +85,9 @@ START_TEST(buxton_direct_get_value_check)
 	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(data.store.d_string.value == NULL,
 		"Failed to allocate test string.");
-	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
+	fail_if(buxton_client_set_value(&c.client, &layer, &key, &data) == false,
 		"Failed to set second value.");
-	fail_if(buxton_client_get_value(&c, &key, &result) == false,
+	fail_if(buxton_client_get_value(&c.client, &key, &result) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
@@ -104,7 +104,7 @@ END_TEST
 
 START_TEST(buxton_memory_backend_check)
 {
-	BuxtonClient c;
+	BuxtonControl c;
 	BuxtonString layer = buxton_string_pack("temp");
 	BuxtonString key = buxton_string_pack("bxt_mem_test");
 	fail_if(buxton_direct_open(&c) == false,
@@ -113,9 +113,9 @@ START_TEST(buxton_memory_backend_check)
 	data.type = STRING;
 	data.label = buxton_string_pack("label");
 	data.store.d_string = buxton_string_pack("bxt_test_value");
-	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
+	fail_if(buxton_client_set_value(&c.client, &layer, &key, &data) == false,
 		"Setting value in buxton memory backend directly failed.");
-	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result) == false,
+	fail_if(buxton_client_get_value_for_layer(&c.client, &layer, &key, &result) == false,
 		"Retrieving value from buxton memory backend directly failed.");
 	fail_if(!streq(result.label.value, "label"),
 		"Buxton memory returned a different label to that set.");
@@ -184,7 +184,7 @@ END_TEST
 
 START_TEST(buxton_group_label_check)
 {
-	BuxtonClient c;
+	BuxtonControl c;
 	BuxtonData result;
 	BuxtonString layer = buxton_string_pack("test-gdbm");
 	BuxtonString *key = buxton_make_key("test-group", NULL);
@@ -192,9 +192,9 @@ START_TEST(buxton_group_label_check)
 
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
-	fail_if(buxton_client_set_label(&c, &layer, key, &label) == false,
+	fail_if(buxton_client_set_label(&c.client, &layer, key, &label) == false,
 		"Failed to set group label.");
-	fail_if(buxton_client_get_value_for_layer(&c, &layer, key, &result) == false,
+	fail_if(buxton_client_get_value_for_layer(&c.client, &layer, key, &result) == false,
 		"Retrieving group label failed.");
 	fail_if(!streq("System", result.label.value),
 		"Retrieved group label is incorrect.");

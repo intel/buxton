@@ -108,6 +108,9 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/list.h \
 	src/shared/log.c \
 	src/shared/log.h \
+	src/shared/array.c \
+	src/shared/buxton-array.h \
+	src/shared/backend.c \
 	src/shared/backend.h \
 	src/shared/hashmap.c \
 	src/shared/hashmap.h \
@@ -130,7 +133,8 @@ libbuxton_shared_la_SOURCES += \
 endif
 
 include_HEADERS += \
-	src/include/bt-daemon.h
+	src/include/bt-daemon.h \
+	src/include/buxton-array.h
 
 lib_LTLIBRARIES += \
 	libbuxton.la

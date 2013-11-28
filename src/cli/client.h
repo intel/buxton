@@ -105,6 +105,23 @@ bool cli_get_value(BuxtonClient *self, BuxtonDataType type, char *one,
 		   __attribute__((unused)) char *four);
 
 /**
+ * List keys for a layer in Buxton
+ * @param self Client instance being run
+ * @param type Type of data (unused)
+ * @param one Layer to query
+ * @param two NULL (unused)
+ * @param three NULL (unusued)
+ * @param four NULL (unused)
+ * @returns bool indicating success or failure
+ */
+bool cli_list_keys(BuxtonClient *self,
+		   __attribute__((unused))BuxtonDataType type,
+		   char *one,
+		   __attribute__((unused)) char *two,
+		   __attribute__((unused)) char *three,
+		   __attribute__((unused)) char *four);
+
+/**
  * Unset a value from Buxton
  * @param self client instance being run
  * @param type Type of value (unused)

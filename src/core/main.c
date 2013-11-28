@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
 	self.nfds_alloc = 0;
 	self.accepting_alloc = 0;
 	self.nfds = 0;
-	self.buxton.direct = true;
-	self.buxton.uid = geteuid();
+	self.buxton.client.direct = true;
+	self.buxton.client.uid = geteuid();
 	if (!buxton_direct_open(&self.buxton))
 		exit(EXIT_FAILURE);
 
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 		i = j;
 	}
 	hashmap_free(self.notify_mapping);
-	buxton_client_close(&self.buxton);
+	buxton_direct_close(&self.buxton);
 	return EXIT_SUCCESS;
 }
 

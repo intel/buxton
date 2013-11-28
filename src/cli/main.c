@@ -27,13 +27,14 @@
 #include <getopt.h>
 
 #include "bt-daemon.h"
+#include "backend.h"
 #include "client.h"
 #include "hashmap.h"
 #include "log.h"
 #include "util.h"
 
 static Hashmap *commands;
-static BuxtonClient client;
+static BuxtonControl control;
 
 static bool print_help(void)
 {
@@ -74,6 +75,7 @@ int main(int argc, char **argv)
 	Command c_get_double, c_set_double;
 	Command c_get_bool, c_set_bool;
 	Command c_get_label, c_set_label;
+	Command c_list_keys;
 	Command c_unset_value;
 	Command *command;
 	int i = 0;
@@ -147,6 +149,12 @@ int main(int argc, char **argv)
 
 	hashmap_put(commands, c_set_label.name, &c_set_label);
 
+	/* List keys */
+	c_list_keys = (Command) { "list-keys", "List keys in the given layer",
+				  1, 1, "layer", &cli_list_keys, STRING };
+
+	hashmap_put(commands, c_list_keys.name, &c_list_keys);
+
 	/* Unset value */
 	c_unset_value = (Command) { "unset-value", "Unset a value by key",
 				  3, 3, "layer group name", &cli_unset_value, STRING };
@@ -170,7 +178,7 @@ int main(int argc, char **argv)
 				printf("Only root may use --direct\n");
 				goto end;
 			}
-			client.direct = true;
+			control.client.direct = true;
 			break;
 		case 'h':
 			help = true;
@@ -188,7 +196,7 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	if (streq(command->name, "set-label") && !client.direct) {
+	if (streq(command->name, "set-label") && !control.client.direct) {
 		printf("Must use direct to set a label\n");
 		goto end;
 	}
@@ -214,15 +222,15 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	client.uid = geteuid();
-	if (client.direct) {
-		if (!buxton_direct_open(&client)){
+	control.client.uid = geteuid();
+	if (control.client.direct) {
+		if (!buxton_direct_open(&control)) {
 			buxton_log("Failed to directly talk to Buxton\n");
 			ret = false;
 			goto end;
 		}
 	} else {
-		if (!buxton_client_open(&client)) {
+		if (!buxton_client_open(&(control.client))) {
 			buxton_log("Failed to talk to Buxton\n");
 			ret = false;
 			goto end;
@@ -230,7 +238,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Connected to buxton_client, execute method */
-	ret = command->method(&client, command->type,
+	ret = command->method(&(control.client), command->type,
 			      optind + 1 < argc ? argv[optind + 1] : NULL,
 			      optind + 2 < argc ? argv[optind + 2] : NULL,
 			      optind + 3 < argc ? argv[optind + 3] : NULL,
@@ -238,7 +246,7 @@ int main(int argc, char **argv)
 
 end:
 	hashmap_free(commands);
-	buxton_client_close(&client);
+	buxton_direct_close(&control);
 	if (ret)
 		return EXIT_SUCCESS;
 	return EXIT_FAILURE;
