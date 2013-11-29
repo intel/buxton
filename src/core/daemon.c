@@ -103,7 +103,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	}
 
 	/* Check valid range */
-	if (msg < BUXTON_CONTROL_SET || msg > BUXTON_CONTROL_MAX)
+	if (msg <= BUXTON_CONTROL_MIN || msg >= BUXTON_CONTROL_MAX)
 		goto end;
 
 	if (!parse_list(msg, p_count, list, &key, &layer, &value))
