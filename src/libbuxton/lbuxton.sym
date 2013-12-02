@@ -6,6 +6,7 @@ BUXTON_1 {
                 buxton_client_set_label;
                 buxton_client_get_value;
                 buxton_client_get_value_for_layer;
+                buxton_client_list_keys;
                 buxton_client_unset_value;
                 buxton_client_register_notification;
 		buxton_get_group;

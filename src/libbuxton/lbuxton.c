@@ -104,6 +104,14 @@ bool buxton_client_unset_value(BuxtonClient *client,
 	return buxton_wire_unset_value(client, layer_name, key);
 }
 
+bool buxton_client_list_keys(BuxtonClient *client,
+			     BuxtonString *layer_name,
+			     BuxtonArray **list)
+{
+	/* Not yet implemented */
+	return false;
+}
+
 BuxtonString *buxton_make_key(char *group, char *name)
 {
 	BuxtonString *key;

@@ -265,6 +265,39 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	return true;
 }
 
+bool cli_list_keys(BuxtonControl *control,
+		   __attribute__((unused))BuxtonDataType type,
+		   char *one, char *two, char *three,
+		   __attribute__((unused)) char *four)
+{
+	BuxtonString layer;
+	BuxtonArray *results = NULL;
+	BuxtonData *current = NULL;
+	int i;
+	bool ret = false;
+
+	layer.value = one;
+	layer.length = (uint32_t)strlen(one) + 1;
+
+	if (control->client.direct)
+		ret = buxton_direct_list_keys(control, &layer, &results);
+	else
+		ret = buxton_client_list_keys(&control->client, &layer, &results);
+	if (!ret) {
+		printf("No keys found for layer \'%s\'\n", one);
+		return false;
+	}
+	/* Print all of the keys in this layer */
+	printf("%d keys found in layer \'%s\'\n", results->len, one);
+	for (i = 0; i < results->len; i++) {
+		current = (BuxtonData*)results->data[i];
+		printf("%s\n", current->store.d_string.value);
+	}
+
+	buxton_array_free(&results, &free_buxton_data);
+	return true;
+}
+
 bool cli_unset_value(BuxtonControl *control,
 		     __attribute__((unused))BuxtonDataType type,
 		     char *one, char *two, char *three,
