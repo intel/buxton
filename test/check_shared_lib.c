@@ -447,6 +447,7 @@ START_TEST(buxton_message_serialize_check)
 	uint16_t control, message;
 	BuxtonData *dtarget = NULL;
 	uint8_t *packed = NULL;
+	BuxtonArray *array;
 	size_t ret;
 	size_t pcount;
 
@@ -470,6 +471,32 @@ START_TEST(buxton_message_serialize_check)
 		}
 		free(dtarget);
 	}
+
+	array = buxton_array_new();
+	dsource1.type = INT32;
+	dsource1.store.d_int32 = INT_MAX;
+	dsource2.type = BOOLEAN;
+	dsource2.store.d_boolean = true;
+	dsource2.label = buxton_string_pack("label");
+	csource = BUXTON_CONTROL_LIST;
+	buxton_array_add(array, &dsource1);
+	buxton_array_add(array, &dsource2);
+	ret = buxton_serialize_message(&packed, csource, 1, array);
+	fail_if(ret == 0, "Failed to serialize list message");
+	buxton_array_free(&array, NULL);
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 2,
+		"Failed to deserialize list message data");
+	fail_if(ctarget != csource, "Failed to get correct control message for list");
+	fail_if(dsource1.type != dtarget[0].type,
+		"Source and destination type differ for list member int");
+	fail_if(dsource1.store.d_int32 != dtarget[0].store.d_int32,
+		"Source and destination int data differ in list");
+	fail_if(dsource2.type != dtarget[1].type,
+		"Source and destination type differ for list member boolean");
+	fail_if(dsource2.store.d_boolean != dtarget[1].store.d_boolean,
+		"Source and destination bool data differ in list");
+	free(packed);
+	free(dtarget);
 
 	dsource1.type = INT32;
 	dsource1.store.d_int32 = INT_MAX;
