@@ -105,6 +105,21 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type, char *one,
 		   char *two, char *three,
 		   __attribute__((unused)) char *four);
 
+/*
+ * List keys for a layer in Buxton
+ * @param control An initialized control structure
+ * @param type Type of data (unused)
+ * @param one Layer to query
+ * @param two NULL (unused)
+ * @param three NULL (unusued)
+ * @param four NULL (unused)
+ * @returns bool indicating success or failure
+ */
+bool cli_list_keys(BuxtonControl *self,
+		   __attribute__((unused))BuxtonDataType type,
+		   char *one, char *two, char *three,
+		   __attribute__((unused)) char *four);
+
 /**
  * Unset a value from Buxton
  * @param control An initialized control structure
