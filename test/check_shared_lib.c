@@ -29,7 +29,7 @@
 #include "serialize.h"
 #include "smack.h"
 #include "util.h"
-#include "array.h"
+#include "buxton-array.h"
 
 START_TEST(log_write_check)
 {
