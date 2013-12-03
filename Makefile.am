@@ -137,6 +137,9 @@ libbuxton_security_la_SOURCES = \
 	src/security/smack.c \
 	src/security/smack.h
 
+libbuxton_security_la_LIBADD = \
+	libbuxton.la
+
 include_HEADERS += \
 	src/include/bt-daemon.h
 
