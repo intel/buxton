@@ -175,6 +175,49 @@ end:
 	return ret;
 }
 
+bool buxton_wire_list_keys(BuxtonClient *client, BuxtonString *layer_name,
+			   BuxtonArray **array)
+{
+	assert(client);
+	assert(layer_name);
+
+	size_t count;
+	_cleanup_free_ uint8_t *send = NULL;
+	size_t send_len = 0;
+	BuxtonControlMessage r_msg;
+	_cleanup_free_ BuxtonData *r_list = NULL;
+	BuxtonArray *ret = NULL;
+	int i;
+	BuxtonData d_layer;
+
+	buxton_string_to_data(layer_name, &d_layer);
+	d_layer.label = buxton_string_pack("dummy");
+
+	/* Attempt to serialize our send message */
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_LIST_KEYS,
+		1, &d_layer);
+
+	if (send_len == 0)
+		return false;
+
+	/* Now write it off */
+	write(client->fd, send, send_len);
+
+	/* Gain response */
+	count = buxton_wire_get_response(client, &r_msg, &r_list);
+	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK) {
+		ret = buxton_array_new();
+		/* Success */
+		for (i = 1; i < count; i++) {
+			buxton_array_add(ret, &r_list[i]);
+		}
+		*array = ret;
+		return true;
+
+	}
+	return false;
+}
+
 bool buxton_wire_unset_value(BuxtonClient *client,
 			     BuxtonString *layer_name,
 			     BuxtonString *key)
