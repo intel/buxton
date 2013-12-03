@@ -21,7 +21,6 @@
 
 #include "daemon.h"
 #include "log.h"
-#include "smack.h"
 #include "util.h"
 #include "buxtonlist.h"
 
@@ -415,15 +414,6 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 
 	self->buxton.client.uid = client->cred.uid;
 
-	if (!buxton_check_write_access(&self->buxton,
-				       layer,
-				       key,
-				       value,
-				       client->smack_label)) {
-		*status = BUXTON_STATUS_FAILED;
-		return;
-	}
-
 	//FIXME move direct functions to daemon only file
 	/* Use internal library to set value */
 	if (!buxton_direct_set_value(&self->buxton, layer, key, value, client->smack_label)) {
@@ -451,14 +441,6 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 		     layer->value,
 		     key->value);
 
-	if (!buxton_check_write_access(&self->buxton,
-				       layer,
-				       key,
-				       NULL,
-				       client->smack_label)) {
-		*status = BUXTON_STATUS_FAILED;
-		return;
-	}
 	/* Use internal library to unset value */
 	self->buxton.client.uid = client->cred.uid;
 	if (!buxton_direct_unset_value(&self->buxton, layer, key, client->smack_label))
@@ -504,19 +486,6 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 			goto fail;
 	}
 	buxton_debug("get value returned successfully from db\n");
-
-	/* TODO: Need to move this check to
-	 * buxton_direct_get_value_for_layer() so that we
-	 * can do per-layer access checks.
-	 */
-	if (!buxton_check_read_access(&self->buxton,
-				      layer,
-				      key,
-				      data,
-				      client->smack_label)) {
-		goto fail;
-	}
-	buxton_debug("SMACK check succeeded for get_value\n");
 
 	*status = BUXTON_STATUS_OK;
 	goto end;

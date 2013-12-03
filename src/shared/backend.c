@@ -28,6 +28,7 @@
 #include "util.h"
 #include "log.h"
 #include "buxton-array.h"
+#include "smack.h"
 
 /**
  * Create a BuxtonLayer out of a ConfigLayer
@@ -121,7 +122,19 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 		return false;
 	}
 	layer->uid = control->client.uid;
-	return backend->get_value(layer, key, data);
+
+	if (backend->get_value(layer, key, data)) {
+		/* Access checks are not needed for direct clients, where label is NULL */
+		if (label && !buxton_check_read_access(control, layer_name,
+						       key, data, label)) {
+			/* Client lacks permission to read the value */
+			return false;
+		}
+		buxton_debug("SMACK check succeeded for get_value for layer %s\n", layer_name->value);
+		return true;
+	} else {
+		return false;
+	}
 }
 
 bool buxton_direct_set_value(BuxtonControl *control,
@@ -138,6 +151,13 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	assert(layer_name);
 	assert(key);
 	assert(data);
+
+	/* Access checks are not needed for direct clients, where label is NULL */
+	if (label) {
+		if (!buxton_check_write_access(control, layer_name, key, data, label)) {
+			return false;
+		}
+	}
 
 	config = &control->config;
 	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
@@ -236,6 +256,13 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	assert(control);
 	assert(layer_name);
 	assert(key);
+
+	/* Access checks are not needed for direct clients, where label is NULL */
+	if (label) {
+		if (!buxton_check_write_access(control, layer_name, key, NULL, label)) {
+			return false;
+		}
+	}
 
 	config = &control->config;
 	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
