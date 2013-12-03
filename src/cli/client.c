@@ -293,9 +293,11 @@ bool cli_list_keys(BuxtonControl *control,
 		current = (BuxtonData*)results->data[i];
 		printf("%s\n", current->store.d_string.value);
 		free(current->store.d_string.value);
+		if (current->label.value)
+			free(current->label.value);
 	}
 
-	buxton_array_free(&results, &free);
+	buxton_array_free(&results, NULL);
 	return true;
 }
 

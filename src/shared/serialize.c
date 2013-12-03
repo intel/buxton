@@ -190,6 +190,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	size_t curSize = 0;
 	uint16_t control, msg;
 	BuxtonArray *array = NULL;
+	bool type_sent = false;
 
 	assert(dest);
 
@@ -210,6 +211,9 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	offset += sizeof(uint16_t);
 
 	msg = (uint16_t)message;
+	/* Send a status message first with lists */
+	if (message == BUXTON_CONTROL_LIST)
+		msg = (uint16_t)BUXTON_CONTROL_STATUS;
 	memcpy(data+offset, &msg, sizeof(uint16_t));
 	offset += sizeof(uint16_t);
 
@@ -223,9 +227,10 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	if (message == BUXTON_CONTROL_LIST) {
 		/* Dealing with a BuxtonArray */
 		array = va_arg(args, BuxtonArray*);
-		n_params = array->len;
-	}
-	memcpy(data+offset, &n_params, sizeof(uint32_t));
+		n_params = array->len+1;
+		memcpy(data+offset, &n_params, sizeof(uint32_t));
+	} else
+		memcpy(data+offset, &n_params, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
 	size = offset;
@@ -238,10 +243,17 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		 * next parameter is invalid/absent, so checking for
 		 * NULL here is not sufficient.
 		 */
-		if (message == BUXTON_CONTROL_LIST)
-			param = (BuxtonData*)array->data[i];
-		else
+		if (message == BUXTON_CONTROL_LIST) {
+			if (!type_sent) {
+				param = va_arg(args, BuxtonData*);
+				type_sent = true;
+			} else {
+				param = (BuxtonData*)array->data[i-1];
+			}
+		} else {
 			param = va_arg(args, BuxtonData*);
+		}
+
 		if (!param)
 			goto fail;
 
@@ -451,7 +463,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 					goto end;
 				memcpy(c_data.store.d_string.value, data+offset, c_length);
 				c_data.store.d_string.length = (uint32_t)c_length;
-				if (c_data.store.d_string.value[c_length-1] != 0x00) {
+				if (c_data.store.d_string.value[c_length] != 0x00) {
 					buxton_debug("buxton_deserialize_message(): Garbage message\n");
 					goto end;
 				}

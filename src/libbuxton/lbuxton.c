@@ -109,7 +109,7 @@ bool buxton_client_list_keys(BuxtonClient *client,
 			     BuxtonArray **list)
 {
 	/* Not yet implemented */
-	return false;
+	return buxton_wire_list_keys(client, layer_name, list);
 }
 
 BuxtonString *buxton_make_key(char *group, char *name)
