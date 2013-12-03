@@ -227,6 +227,8 @@ START_TEST(parse_list_check)
 	BuxtonString *layer = NULL;
 	BuxtonData *value = NULL;
 
+	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 2, l1, &key, &layer, &value),
+		"Parsed bad notify argument count");
 	l1[0].type = INT32;
 	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 1, l1, &key, &layer, &value),
 		"Parsed bad notify type");
@@ -237,6 +239,8 @@ START_TEST(parse_list_check)
 	fail_if(!streq(key->value, l1[0].store.d_string.value),
 		"Failed to set correct notify key");
 
+	fail_if(parse_list(BUXTON_CONTROL_GET, 3, l2, &key, &layer, &value),
+		"Parsed bad get argument count");
 	l2[0].type = INT32;
 	l2[1].type = STRING;
 	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
@@ -259,7 +263,12 @@ START_TEST(parse_list_check)
 		"Unable to parse valid get 2");
 	fail_if(!streq(key->value, l2[0].store.d_string.value),
 		"Failed to set correct get key 2");
+	l2[0].type = INT32;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 1, l2, &key, &layer, &value),
+		"Unable to parse valid get 2");
 
+	fail_if(parse_list(BUXTON_CONTROL_SET, 1, l3, &key, &layer, &value),
+		"Parsed bad set argument count");
 	l3[0].type = INT32;
 	l3[1].type = STRING;
 	l3[2].type = FLOAT;
@@ -285,6 +294,8 @@ START_TEST(parse_list_check)
 	fail_if(value->store.d_float != l3[2].store.d_float,
 		"Failed to set correct set value 1");
 
+	fail_if(parse_list(BUXTON_CONTROL_UNSET, 1, l2, &key, &layer, &value),
+		"Parsed bad unset argument count");
 	l2[0].type = INT32;
 	l2[1].type = STRING;
 	fail_if(parse_list(BUXTON_CONTROL_UNSET, 2, l2, &key, &layer, &value),
