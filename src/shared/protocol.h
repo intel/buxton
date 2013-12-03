@@ -23,7 +23,6 @@
 #include "bt-daemon.h"
 #include "list.h"
 #include "serialize.h"
-#include "smack.h"
 #include "hashmap.h"
 
 /**
