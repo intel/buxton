@@ -30,6 +30,7 @@
 #include "smack.h"
 #include "util.h"
 #include "buxton-array.h"
+#include "protocol.h"
 
 START_TEST(log_write_check)
 {
@@ -443,7 +444,7 @@ START_TEST(buxton_message_serialize_check)
 {
 	BuxtonControlMessage csource;
 	BuxtonControlMessage ctarget;
-	BuxtonData dsource1, dsource2;
+	BuxtonData dsource1, dsource2, dsource3;
 	uint16_t control, message;
 	BuxtonData *dtarget = NULL;
 	uint8_t *packed = NULL;
@@ -478,22 +479,26 @@ START_TEST(buxton_message_serialize_check)
 	dsource2.type = BOOLEAN;
 	dsource2.store.d_boolean = true;
 	dsource2.label = buxton_string_pack("label");
+	dsource3.type = INT32;
+	dsource3.store.d_int32 = BUXTON_STATUS_OK;
+	dsource3.label = buxton_string_pack("label");
 	csource = BUXTON_CONTROL_LIST;
 	buxton_array_add(array, &dsource1);
 	buxton_array_add(array, &dsource2);
-	ret = buxton_serialize_message(&packed, csource, 1, array);
+	ret = buxton_serialize_message(&packed, csource, 2, array, &dsource3);
 	fail_if(ret == 0, "Failed to serialize list message");
 	buxton_array_free(&array, NULL);
-	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 2,
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 3,
 		"Failed to deserialize list message data");
-	fail_if(ctarget != csource, "Failed to get correct control message for list");
-	fail_if(dsource1.type != dtarget[0].type,
+	fail_if(ctarget != BUXTON_CONTROL_STATUS, "Failed to get correct control code for list");
+	fail_if(dtarget[0].store.d_int32 != BUXTON_STATUS_OK, "Failed to get correct status message for list");
+	fail_if(dsource1.type != dtarget[1].type,
 		"Source and destination type differ for list member int");
-	fail_if(dsource1.store.d_int32 != dtarget[0].store.d_int32,
+	fail_if(dsource1.store.d_int32 != dtarget[1].store.d_int32,
 		"Source and destination int data differ in list");
-	fail_if(dsource2.type != dtarget[1].type,
+	fail_if(dsource2.type != dtarget[2].type,
 		"Source and destination type differ for list member boolean");
-	fail_if(dsource2.store.d_boolean != dtarget[1].store.d_boolean,
+	fail_if(dsource2.store.d_boolean != dtarget[2].store.d_boolean,
 		"Source and destination bool data differ in list");
 	free(packed);
 	free(dtarget);
