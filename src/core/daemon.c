@@ -426,7 +426,7 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 
 	//FIXME move direct functions to daemon only file
 	/* Use internal library to set value */
-	if (!buxton_direct_set_value(&self->buxton, layer, key, value)) {
+	if (!buxton_direct_set_value(&self->buxton, layer, key, value, client->smack_label)) {
 		*status = BUXTON_STATUS_FAILED;
 		return;
 	}
@@ -461,7 +461,7 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 	}
 	/* Use internal library to unset value */
 	self->buxton.client.uid = client->cred.uid;
-	if (!buxton_direct_unset_value(&self->buxton, layer, key))
+	if (!buxton_direct_unset_value(&self->buxton, layer, key, client->smack_label))
 		return;
 
 	buxton_debug("unset value returned successfully from db\n");
@@ -496,11 +496,11 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 	/* Attempt to retrieve key */
 	if (layer) {
 		/* Layer + key */
-		if (!buxton_direct_get_value_for_layer(&self->buxton, layer, key, data))
+		if (!buxton_direct_get_value_for_layer(&self->buxton, layer, key, data, client->smack_label))
 			goto fail;
 	} else {
 		/* Key only */
-		if (!buxton_direct_get_value(&self->buxton, key, data))
+		if (!buxton_direct_get_value(&self->buxton, key, data, client->smack_label))
 			goto fail;
 	}
 	buxton_debug("get value returned successfully from db\n");

@@ -1001,7 +1001,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	key.length = string->length;
 	layer = buxton_string_pack("base");
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
-				    &value1);
+				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
@@ -1046,7 +1046,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	key.length = string->length;
 	layer = buxton_string_pack("base");
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
-				    &value1);
+				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
@@ -1085,7 +1085,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	key.length = string->length;
 	layer = buxton_string_pack("base");
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
-				    &value1);
+				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
@@ -1124,7 +1124,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	key.length = string->length;
 	layer = buxton_string_pack("base");
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
-				    &value1);
+				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
@@ -1163,7 +1163,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	key.length = string->length;
 	layer = buxton_string_pack("base");
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
-				    &value1);
+				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
@@ -1202,7 +1202,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	key.length = string->length;
 	layer = buxton_string_pack("base");
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
-				    &value1);
+				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,

@@ -314,10 +314,15 @@ bool buxton_check_write_access(BuxtonControl *control,
 			return false;
 		}
 
+		/* Avoid the read access permissions check here
+		 * (by passing NULL for the client label), since
+		 * this is an internal daemon operation.
+		 */
 		bool valid = buxton_direct_get_value_for_layer(control,
 							       layer,
 							       key,
-							       curr_data);
+							       curr_data,
+							       NULL);
 
 		if (data && !valid && !buxton_check_smack_access(client_label,
 								 &(data->label),

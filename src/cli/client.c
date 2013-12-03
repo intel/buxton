@@ -69,7 +69,7 @@ bool cli_get_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataTyp
 
 	if (control->client.direct)
 		ret = buxton_direct_get_value_for_layer(control, &layer, key,
-							&get);
+							&get, NULL);
 	else
 		ret = buxton_client_get_value_for_layer(&control->client, &layer,
 							key, NULL, NULL, true);
@@ -160,7 +160,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		break;
 	}
 	if (control->client.direct)
-		ret = buxton_direct_set_value(control, &layer, key, &set);
+		ret = buxton_direct_set_value(control, &layer, key, &set, NULL);
 	else
 		ret = buxton_client_set_value(&control->client, &layer, key,
 					      &set, NULL, NULL, true);
@@ -195,7 +195,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	if (three != NULL) {
 		if (control->client.direct)
 			ret = buxton_direct_get_value_for_layer(control, &layer,
-								key, &get);
+								key, &get, NULL);
 		else
 			ret = buxton_client_get_value_for_layer(&control->client,
 								&layer, key,
@@ -207,7 +207,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		}
 	} else {
 		if (control->client.direct)
-			ret = buxton_direct_get_value(control, key, &get);
+			ret = buxton_direct_get_value(control, key, &get, NULL);
 		else
 			ret = buxton_client_get_value(&control->client, key,
 						      NULL, NULL, true);
@@ -319,7 +319,7 @@ bool cli_unset_value(BuxtonControl *control,
 		return false;
 
 	if (control->client.direct)
-		return buxton_direct_unset_value(control, &layer, key);
+		return buxton_direct_unset_value(control, &layer, key, NULL);
 	else
 		return buxton_client_unset_value(&control->client, &layer,
 						 key, NULL, NULL, true);

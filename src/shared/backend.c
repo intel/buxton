@@ -57,7 +57,7 @@ bool buxton_direct_open(BuxtonControl *control)
 }
 
 bool buxton_direct_get_value(BuxtonControl *control, BuxtonString *key,
-			     BuxtonData *data)
+			     BuxtonData *data, BuxtonString *label)
 {
 	/* Handle direct manipulation */
 	BuxtonLayer *l;
@@ -77,7 +77,8 @@ bool buxton_direct_get_value(BuxtonControl *control, BuxtonString *key,
 		r = buxton_direct_get_value_for_layer(control,
 						      &l->name,
 						      key,
-						      &d);
+						      &d,
+						      label);
 		if (r) {
 			free(d.label.value);
 			if (d.type == STRING)
@@ -93,7 +94,8 @@ bool buxton_direct_get_value(BuxtonControl *control, BuxtonString *key,
 		return buxton_direct_get_value_for_layer(control,
 							 &layer,
 							 key,
-							 data);
+							 data,
+							 label);
 	}
 	return false;
 }
@@ -101,7 +103,8 @@ bool buxton_direct_get_value(BuxtonControl *control, BuxtonString *key,
 bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 				       BuxtonString *layer_name,
 				       BuxtonString *key,
-				       BuxtonData *data)
+				       BuxtonData *data,
+				       BuxtonString *label)
 {
 	/* Handle direct manipulation */
 	BuxtonBackend *backend = NULL;
@@ -124,7 +127,8 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 bool buxton_direct_set_value(BuxtonControl *control,
 			     BuxtonString *layer_name,
 			     BuxtonString *key,
-			     BuxtonData *data)
+			     BuxtonData *data,
+			     BuxtonString *label)
 {
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
@@ -177,7 +181,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 
 	char *name = get_name(key);
 	if (name) {
-		r = buxton_direct_get_value_for_layer(control, layer_name, key, &data);
+		r = buxton_direct_get_value_for_layer(control, layer_name, key, &data, label);
 		if (!r)
 			return false;
 
@@ -222,7 +226,8 @@ bool buxton_direct_list_keys(BuxtonControl *control,
 
 bool buxton_direct_unset_value(BuxtonControl *control,
 			       BuxtonString *layer_name,
-			       BuxtonString *key)
+			       BuxtonString *key,
+			       BuxtonString *label)
 {
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
