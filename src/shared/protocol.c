@@ -205,6 +205,7 @@ bool buxton_wire_list_keys(BuxtonClient *client, BuxtonString *layer_name,
 	count = buxton_wire_get_response(client, &r_msg, &r_list);
 	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK) {
 		ret = buxton_array_new();
+		free(r_list[0].label.value);
 		/* Success */
 		for (i = 1; i < count; i++) {
 			buxton_array_add(ret, &r_list[i]);
