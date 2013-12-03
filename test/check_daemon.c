@@ -26,6 +26,7 @@
 #include <time.h>
 
 #include "bt-daemon.h"
+#include "check_utils.h"
 #include "daemon.h"
 #include "log.h"
 #include "util.h"
@@ -411,8 +412,369 @@ START_TEST(register_notification_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_check)
+START_TEST(bt_daemon_handle_message_error_check)
 {
+	pid_t pid;
+	int client, server;
+
+	setup_socket_pair(&client, &server);
+	pid = fork();
+	if (pid == 0) {
+		/* child (server) */
+		BuxtonDaemon daemon;
+		BuxtonString *string;
+		size_t size;
+		BuxtonData data1;
+		client_list_item cl;
+		bool r;
+		uint16_t control;
+
+		close(client);
+		cl.fd = server;
+		daemon.buxton.client.uid = 1001;
+		buxton_direct_open(&daemon.buxton);
+
+		cl.data = malloc(4);
+		fail_if(!cl.data, "Couldn't allocate blank message");
+		cl.data[0] = 0;
+		cl.data[1]= 0;
+		cl.data[2] = 0;
+		cl.data[3] = 0;
+		size = 100;
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		fail_if(r, "Failed to detect invalid message data");
+		free(cl.data);
+
+		data1.type = STRING;
+		string = buxton_make_key("group", "name");
+		fail_if(!string, "Failed to allocate key");
+		data1.store.d_string.value = string->value;
+		data1.store.d_string.length = string->length;
+		data1.label = buxton_string_pack("dummy");
+		size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 1,
+						&data1);
+		fail_if(size == 0, "Failed to serialize message");
+		control = BUXTON_CONTROL_MIN;
+		memcpy(cl.data, &control, sizeof(uint16_t));
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		fail_if(r, "Failed to detect min control size");
+		control = BUXTON_CONTROL_MAX;
+		memcpy(cl.data, &control, sizeof(uint16_t));
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		free(cl.data);
+		fail_if(r, "Failed to detect max control size");
+		free(string);
+
+		buxton_direct_close(&daemon.buxton);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (client) */
+		close(server);
+		close(client);
+	}
+}
+END_TEST
+
+START_TEST(bt_daemon_handle_message_set_check)
+{
+	pid_t pid;
+	int client, server;
+
+	setup_socket_pair(&client, &server);
+	pid = fork();
+	if (pid == 0) {
+		/* child (server) */
+		BuxtonDaemon daemon;
+		BuxtonString *string;
+		size_t size;
+		BuxtonData data1, data2, data3;
+		client_list_item cl;
+		bool r;
+
+		close(client);
+		cl.fd = server;
+		daemon.buxton.client.uid = 1001;
+		buxton_direct_open(&daemon.buxton);
+
+		data1.type = STRING;
+		string = buxton_make_key("group", "name");
+		fail_if(!string, "Failed to allocate key");
+		data1.label = buxton_string_pack("dummy");
+		data1.store.d_string = buxton_string_pack("base");
+		data2.type = STRING;
+		data2.store.d_string.value = string->value;
+		data2.store.d_string.length = string->length;
+		data2.label = buxton_string_pack("dummy");
+		data3.type = INT32;
+		data3.store.d_int32 = 1;
+		data3.label = buxton_string_pack("dummy");
+		size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 3,
+						&data1, &data2, &data3);
+		fail_if(size == 0, "Failed to serialize message");
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		free(cl.data);
+		fail_if(r, "Failed to detect parse_list failure");
+
+		size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET, 3,
+						&data1, &data2, &data3);
+		fail_if(size == 0, "Failed to serialize message");
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		free(cl.data);
+		fail_if(!r, "Failed to set message");
+		free(string);
+
+		buxton_direct_close(&daemon.buxton);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 1, "Failed to get correct response to set");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to set");
+		free(list[0].label.value);
+		free(list);
+		close(cl.fd);
+	}
+}
+END_TEST
+
+START_TEST(bt_daemon_handle_message_get_check)
+{
+	pid_t pid;
+	int client, server;
+
+	setup_socket_pair(&client, &server);
+	pid = fork();
+	if (pid == 0) {
+		/* child (server) */
+		BuxtonDaemon daemon;
+		BuxtonString *string;
+		size_t size;
+		BuxtonData data1, data2;
+		client_list_item cl;
+		bool r;
+
+		close(client);
+		cl.fd = server;
+		daemon.buxton.client.uid = 1001;
+		buxton_direct_open(&daemon.buxton);
+
+		data1.type = STRING;
+		string = buxton_make_key("group", "name");
+		fail_if(!string, "Failed to allocate key");
+		data1.label = buxton_string_pack("dummy");
+		data1.store.d_string = buxton_string_pack("base");
+		data2.type = STRING;
+		data2.store.d_string.value = string->value;
+		data2.store.d_string.length = string->length;
+		data2.label = buxton_string_pack("dummy");
+		size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, 2,
+						&data1, &data2);
+		fail_if(size == 0, "Failed to serialize message");
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		free(cl.data);
+		fail_if(!r, "Failed to get message 1");
+
+		size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, 1,
+						&data2);
+		fail_if(size == 0, "Failed to serialize message");
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		free(cl.data);
+		fail_if(!r, "Failed to get message 2");
+		free(string);
+
+		buxton_direct_close(&daemon.buxton);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2, "Failed to get correct response to get 1");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to get 1");
+		fail_if(list[1].store.d_int32 != 1,
+			"Failed to get correct value 1");
+		free(list[0].label.value);
+		free(list[1].label.value);
+		free(list);
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2, "Failed to get correct response to get 2");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to get 2");
+		fail_if(list[1].store.d_int32 != 1,
+			"Failed to get correct value 2");
+		free(list[0].label.value);
+		free(list[1].label.value);
+		free(list);
+
+		close(cl.fd);
+	}
+}
+END_TEST
+
+START_TEST(bt_daemon_handle_message_notify_check)
+{
+	pid_t pid;
+	int client, server;
+
+	setup_socket_pair(&client, &server);
+	pid = fork();
+	if (pid == 0) {
+		/* child (server) */
+		BuxtonDaemon daemon;
+		BuxtonString *string;
+		size_t size;
+		BuxtonData data2;
+		client_list_item cl;
+		bool r;
+		Iterator i;
+		char *k;
+		notification_list_item *n;
+
+		close(client);
+		cl.fd = server;
+		daemon.buxton.client.uid = 1001;
+		daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+		fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+		buxton_direct_open(&daemon.buxton);
+
+		string = buxton_make_key("group", "name");
+		fail_if(!string, "Failed to allocate key");
+		data2.type = STRING;
+		data2.store.d_string.value = string->value;
+		data2.store.d_string.length = string->length;
+		data2.label = buxton_string_pack("dummy");
+		size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 1,
+						&data2);
+		fail_if(size == 0, "Failed to serialize message");
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		free(cl.data);
+		fail_if(!r, "Failed to register for notification");
+		free(data2.store.d_string.value);
+		free(string);
+
+		buxton_direct_close(&daemon.buxton);
+		HASHMAP_FOREACH_KEY(n, k, daemon.notify_mapping, i) {
+			free(k);
+			free(n->old_data->label.value);
+			if (n->old_data->type == STRING)
+				free(n->old_data->store.d_string.value);
+			free(n->old_data);
+			free(n);
+		}
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 1, "Failed to get correct response to notify");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to register notification");
+		free(list[0].label.value);
+		free(list);
+
+		close(cl.fd);
+	}
+}
+END_TEST
+
+START_TEST(bt_daemon_handle_message_unset_check)
+{
+	pid_t pid;
+	int client, server;
+
+	setup_socket_pair(&client, &server);
+	pid = fork();
+	if (pid == 0) {
+		/* child (server) */
+		BuxtonDaemon daemon;
+		BuxtonString *string;
+		size_t size;
+		BuxtonData data1, data2;
+		client_list_item cl;
+		bool r;
+
+		close(client);
+		cl.fd = server;
+		daemon.buxton.client.uid = 1001;
+		buxton_direct_open(&daemon.buxton);
+
+		data1.type = STRING;
+		string = buxton_make_key("group", "name");
+		fail_if(!string, "Failed to allocate key");
+		data1.label = buxton_string_pack("dummy");
+		data1.store.d_string = buxton_string_pack("base");
+		data2.type = STRING;
+		data2.store.d_string.value = string->value;
+		data2.store.d_string.length = string->length;
+		data2.label = buxton_string_pack("dummy");
+		size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNSET,
+						2, &data1, &data2);
+		fail_if(size == 0, "Failed to serialize message");
+		r = bt_daemon_handle_message(&daemon, &cl, size);
+		free(cl.data);
+		fail_if(!r, "Failed to unset message");
+		free(string);
+
+		buxton_direct_close(&daemon.buxton);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 1, "Failed to get correct response to unset");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to unset");
+		free(list[0].label.value);
+		free(list);
+
+		close(cl.fd);
+	}
 }
 END_TEST
 
@@ -519,7 +881,11 @@ daemon_suite(void)
 	tcase_add_test(tc, set_value_check);
 	tcase_add_test(tc, get_value_check);
 	tcase_add_test(tc, register_notification_check);
-	tcase_add_test(tc, bt_daemon_handle_message_check);
+	tcase_add_test(tc, bt_daemon_handle_message_error_check);
+	tcase_add_test(tc, bt_daemon_handle_message_set_check);
+	tcase_add_test(tc, bt_daemon_handle_message_get_check);
+	tcase_add_test(tc, bt_daemon_handle_message_notify_check);
+	tcase_add_test(tc, bt_daemon_handle_message_unset_check);
 	tcase_add_test(tc, identify_client_check);
 	tcase_add_test(tc, add_pollfd_check);
 	tcase_add_test(tc, del_pollfd_check);
