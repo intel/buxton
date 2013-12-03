@@ -14,6 +14,7 @@ endif
 AM_CPPFLAGS = \
 	-I $(top_srcdir)/src/include \
 	-I $(top_srcdir)/src/core \
+	-I $(top_srcdir)/src/security \
 	-I $(top_srcdir)/src/shared \
 	-D_MODULE_DIRECTORY=\"$(MODULEDIR)\" \
 	-D_DEFAULT_CONFIGURATION_FILE=\"$(CONFPATH)\" \
@@ -88,6 +89,7 @@ bt_daemon_SOURCES = \
 bt_daemon_LDADD = \
 	$(SYSTEMD_LIBS) \
 	libbuxton.la \
+	libbuxton-security.la \
 	libbuxton-shared.la
 
 buxtonctl_SOURCES = \
@@ -116,8 +118,6 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/util.h \
 	src/shared/serialize.c \
 	src/shared/serialize.h \
-	src/shared/smack.c \
-	src/shared/smack.h \
 	src/shared/protocol.c \
 	src/shared/protocol.h \
 	${NULL}
@@ -129,6 +129,13 @@ libbuxton_shared_la_SOURCES += \
 	src/shared/iniparser.c \
 	src/shared/iniparser.h
 endif
+
+noinst_LTLIBRARIES += \
+	libbuxton-security.la
+
+libbuxton_security_la_SOURCES = \
+	src/security/smack.c \
+	src/security/smack.h
 
 include_HEADERS += \
 	src/include/bt-daemon.h
@@ -217,6 +224,7 @@ check_shared_lib_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
 	libbuxton.la \
+	libbuxton-security.la \
 	libbuxton-shared.la
 
 check_bt_daemon_SOURCES = \
@@ -235,6 +243,7 @@ check_bt_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	$(SYSTEMD_LIBS) \
 	libbuxton.la \
+	libbuxton-security.la \
 	libbuxton-shared.la
 
 check_daemon_SOURCES = \
@@ -253,6 +262,7 @@ check_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
 	libbuxton.la \
+	libbuxton-security.la \
 	libbuxton-shared.la
 
 check_DATA = \
