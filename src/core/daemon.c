@@ -248,7 +248,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		if (!c) {
 			continue;
 		}
-		if (nitem->old_data->type == STRING)
+		if (nitem->old_data && (nitem->old_data->type == STRING))
 			free(nitem->old_data->store.d_string.value);
 		free(nitem->old_data);
 
