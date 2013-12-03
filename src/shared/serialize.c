@@ -463,7 +463,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 					goto end;
 				memcpy(c_data.store.d_string.value, data+offset, c_length);
 				c_data.store.d_string.length = (uint32_t)c_length;
-				if (c_data.store.d_string.value[c_length] != 0x00) {
+				if (c_data.store.d_string.value[c_length-1] != 0x00) {
 					buxton_debug("buxton_deserialize_message(): Garbage message\n");
 					goto end;
 				}
