@@ -29,6 +29,7 @@
 #include "check_utils.h"
 #include "daemon.h"
 #include "log.h"
+#include "smack.h"
 #include "util.h"
 
 static pid_t daemon_pid;
@@ -434,6 +435,7 @@ START_TEST(bt_daemon_handle_message_error_check)
 		/* child (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
+		BuxtonString slabel;
 		size_t size;
 		BuxtonData data1;
 		client_list_item cl;
@@ -442,7 +444,10 @@ START_TEST(bt_daemon_handle_message_error_check)
 
 		close(client);
 		cl.fd = server;
+		slabel = buxton_string_pack("_");
+		cl.smack_label = &slabel;
 		daemon.buxton.client.uid = 1001;
+		fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 		buxton_direct_open(&daemon.buxton);
 
 		cl.data = malloc(4);
@@ -500,6 +505,7 @@ START_TEST(bt_daemon_handle_message_set_check)
 		/* child (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
+		BuxtonString slabel;
 		size_t size;
 		BuxtonData data1, data2, data3;
 		client_list_item cl;
@@ -507,7 +513,10 @@ START_TEST(bt_daemon_handle_message_set_check)
 
 		close(client);
 		cl.fd = server;
+		slabel = buxton_string_pack("_");
+		cl.smack_label = &slabel;
 		daemon.buxton.client.uid = 1001;
+		fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 		buxton_direct_open(&daemon.buxton);
 
 		data1.type = STRING;
@@ -574,6 +583,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 		/* child (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
+		BuxtonString slabel;
 		size_t size;
 		BuxtonData data1, data2;
 		client_list_item cl;
@@ -581,7 +591,10 @@ START_TEST(bt_daemon_handle_message_get_check)
 
 		close(client);
 		cl.fd = server;
+		slabel = buxton_string_pack("_");
+		cl.smack_label = &slabel;
 		daemon.buxton.client.uid = 1001;
+		fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 		buxton_direct_open(&daemon.buxton);
 
 		data1.type = STRING;
@@ -659,6 +672,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 		/* child (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
+		BuxtonString slabel;
 		size_t size;
 		BuxtonData data2;
 		client_list_item cl;
@@ -669,9 +683,12 @@ START_TEST(bt_daemon_handle_message_notify_check)
 
 		close(client);
 		cl.fd = server;
+		slabel = buxton_string_pack("_");
+		cl.smack_label = &slabel;
 		daemon.buxton.client.uid = 1001;
 		daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 		fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+		fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 		buxton_direct_open(&daemon.buxton);
 
 		string = buxton_make_key("group", "name");
@@ -735,6 +752,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 		/* child (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
+		BuxtonString slabel;
 		size_t size;
 		BuxtonData data1, data2;
 		client_list_item cl;
@@ -742,7 +760,10 @@ START_TEST(bt_daemon_handle_message_unset_check)
 
 		close(client);
 		cl.fd = server;
+		slabel = buxton_string_pack("_");
+		cl.smack_label = &slabel;
 		daemon.buxton.client.uid = 1001;
+		fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 		buxton_direct_open(&daemon.buxton);
 
 		data1.type = STRING;
