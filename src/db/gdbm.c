@@ -186,7 +186,7 @@ static bool list_keys(BuxtonLayer *layer,
 
 		current->type = STRING;
 		current->store.d_string.value = strdup((char*)key.dptr);
-		current->store.d_string.length = (uint32_t)key.dsize;
+		current->store.d_string.length = (uint32_t)key.dsize+1;
 		current->label = buxton_string_pack("dummy");
 		buxton_array_add(k_list, current);
 
