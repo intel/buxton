@@ -13,6 +13,7 @@
     #include "config.h"
 #endif
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/inotify.h>
@@ -24,9 +25,16 @@
 #include "util.h"
 
 static Hashmap *_smackrules = NULL;
+/* set to true unless Smack support is not detected by the daemon */
+static bool have_smack = true;
+
+#define smack_check() do { if (!have_smack) return true; } while (0);
+
 
 bool buxton_cache_smack_rules(void)
 {
+	smack_check();
+
 	FILE *load_file = NULL;
 	char *rule_pair = NULL;
 	int ret = true;
@@ -45,9 +53,16 @@ bool buxton_cache_smack_rules(void)
 	load_file = fopen(SMACK_LOAD_FILE, "r");
 
 	if (!load_file) {
-		buxton_log("fopen(): %m\n");
-		ret = false;
-		goto end;
+		switch (errno) {
+		case ENOENT:
+			buxton_log("Smack support not detected; disabling Smack checks\n");
+			have_smack = false;
+			goto end;
+		default:
+			buxton_log("fopen(): %m\n");
+			ret = false;
+			goto end;
+		}
 	}
 
 	do {
@@ -116,6 +131,8 @@ end:
 
 bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, BuxtonKeyAccessType request)
 {
+	smack_check();
+
 	_cleanup_free_ char *key = NULL;
 	int r;
 	BuxtonKeyAccessType *access;
@@ -184,6 +201,11 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 
 int buxton_watch_smack_rules(void)
 {
+	if (!have_smack) {
+		errno = 0;
+		return -1;
+	}
+
 	int fd;
 
 	fd = inotify_init1(IN_NONBLOCK);
@@ -204,6 +226,8 @@ bool buxton_check_read_access(BuxtonClient *client,
 			      BuxtonData *data,
 			      BuxtonString *client_label)
 {
+	smack_check();
+
 	assert(client);
 	/* FIXME: reinstate the layer assert after get_value checks
 	 * are in the correct spot
@@ -248,6 +272,8 @@ bool buxton_check_write_access(BuxtonControl *control,
 			       BuxtonData *data,
 			       BuxtonString *client_label)
 {
+	smack_check();
+
 	/* The data arg may be NULL, in case of a delete */
 	assert(control);
 	assert(layer);

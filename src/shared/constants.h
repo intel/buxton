@@ -20,7 +20,6 @@ extern const char *DEFAULT_CONFIGURATION_FILE;
 extern const char *DB_PATH;
 extern const char *BUXTON_SOCKET;
 extern const char *SMACK_LOAD_FILE;
-extern const int USE_SMACK;
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

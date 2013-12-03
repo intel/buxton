@@ -289,15 +289,14 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 		     value->label.value);
 
 	self->buxton.client.uid = client->cred.uid;
-	if (USE_SMACK) {
-		if (!buxton_check_write_access(&self->buxton,
-					       layer,
-					       key,
-					       value,
-					       client->smack_label)) {
-			*status = BUXTON_STATUS_FAILED;
-			return;
-		}
+
+	if (!buxton_check_write_access(&self->buxton,
+				       layer,
+				       key,
+				       value,
+				       client->smack_label)) {
+		*status = BUXTON_STATUS_FAILED;
+		return;
 	}
 
 	/* Use internal library to set value */
@@ -326,15 +325,13 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 		     layer->value,
 		     key->value);
 
-	if (USE_SMACK) {
-		if (!buxton_check_write_access(&self->buxton,
-					       layer,
-					       key,
-					       NULL,
-					       client->smack_label)) {
-			*status = BUXTON_STATUS_FAILED;
-			return;
-		}
+	if (!buxton_check_write_access(&self->buxton,
+				       layer,
+				       key,
+				       NULL,
+				       client->smack_label)) {
+		*status = BUXTON_STATUS_FAILED;
+		return;
 	}
 	/* Use internal library to unset value */
 	self->buxton.client.uid = client->cred.uid;
@@ -382,20 +379,18 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 	}
 	buxton_debug("get value returned successfully from db\n");
 
-	if (USE_SMACK) {
-		/* TODO: Need to move this check to libbuxton
-		 * so that we can do per-layer checks for calls
-		 * to buxton_client_get_value().
-		 */
-		if (!buxton_check_read_access(&(self->buxton.client),
-					      layer,
-					      key,
-					      data,
-					      client->smack_label)) {
-			goto fail;
-		}
-		buxton_debug("SMACK check succeeded for get_value\n");
+	/* TODO: Need to move this check to libbuxton
+	 * so that we can do per-layer checks for calls
+	 * to buxton_client_get_value().
+	 */
+	if (!buxton_check_read_access(&(self->buxton.client),
+				      layer,
+				      key,
+				      data,
+				      client->smack_label)) {
+		goto fail;
 	}
+	buxton_debug("SMACK check succeeded for get_value\n");
 
 	*status = BUXTON_STATUS_OK;
 	goto end;
@@ -562,6 +557,52 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i)
 	self->nfds--;
 }
 
+static void handle_smack_label(client_list_item *cl)
+{
+	ssize_t slabel_len;
+	char *buf = NULL;
+	BuxtonString *slabel = NULL;
+
+	slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, buf, 0);
+	if (slabel_len <= 0) {
+		switch (errno) {
+		case ENOATTR:
+			/* If Smack is not enabled, do not set the client label */
+			cl->smack_label = NULL;
+			return;
+		default:
+			buxton_log("fgetxattr(): %m\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	slabel = malloc0(sizeof(BuxtonString));
+	if (!slabel) {
+		buxton_log("malloc0() for BuxtonString: %m\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/* already checked slabel_len positive above */
+	buf = malloc0((size_t)slabel_len + 1);
+	if (!buf) {
+		buxton_log("malloc0() for string value: %m\n");
+		exit(EXIT_FAILURE);
+	}
+
+	slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, buf, SMACK_LABEL_LEN);
+	if (slabel_len <= 0) {
+		buxton_log("fgetxattr(): %m\n");
+		exit(EXIT_FAILURE);
+	}
+
+	slabel->value = buf;
+	slabel->length = (uint32_t)slabel_len;
+
+	buxton_debug("fgetxattr(): label=\"%s\"\n", slabel->value);
+
+	cl->smack_label = slabel;
+}
+
 /**
  * Handle a client connection
  * @param cl The currently activate client
@@ -570,9 +611,6 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i)
 void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 {
 	ssize_t l;
-	ssize_t slabel_len;
-	char *buf = NULL;
-	BuxtonString *slabel = NULL;
 
 	assert(self);
 	assert(cl);
@@ -597,40 +635,9 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 			return;
 		}
 
-		if (USE_SMACK) {
-			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, buf, 0);
-			if (slabel_len <= 0) {
-				buxton_log("fgetxattr(): no " SMACK_ATTR_NAME " label\n");
-				exit(EXIT_FAILURE);
-			}
-
-			slabel = malloc0(sizeof(BuxtonString));
-			if (!slabel) {
-				buxton_log("malloc0() for BuxtonString: %m\n");
-				exit(EXIT_FAILURE);
-			}
-
-			/* already checked slabel_len positive above */
-			buf = malloc0((size_t)slabel_len + 1);
-			if (!buf) {
-				buxton_log("malloc0() for string value: %m\n");
-				exit(EXIT_FAILURE);
-			}
-
-			slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, buf, SMACK_LABEL_LEN);
-			if (slabel_len <= 0) {
-				buxton_log("fgetxattr(): %m\n");
-				exit(EXIT_FAILURE);
-			}
-
-			slabel->value = buf;
-			slabel->length = (uint32_t)slabel_len;
-
-			buxton_debug("fgetxattr(): label=\"%s\"\n", slabel->value);
-
-			cl->smack_label = slabel;
-		}
+		handle_smack_label(cl);
 	}
+
 	buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
 
 	/* Hand off any read data */
@@ -692,7 +699,7 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 {
 	del_pollfd(self, i);
 	close(cl->fd);
-	if (USE_SMACK)
+	if (cl->smack_label)
 		free(cl->smack_label->value);
 	free(cl->smack_label);
 	free(cl->data);

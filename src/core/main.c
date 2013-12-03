@@ -57,13 +57,11 @@ int main(int argc, char *argv[])
 	int ret;
 	bool manual_start = false;
 
-	if (USE_SMACK) {
-		if (!buxton_cache_smack_rules())
-			exit(EXIT_FAILURE);
-		smackfd = buxton_watch_smack_rules();
-		if (smackfd < 0)
-			exit(EXIT_FAILURE);
-	}
+	if (!buxton_cache_smack_rules())
+		exit(EXIT_FAILURE);
+	smackfd = buxton_watch_smack_rules();
+	if (smackfd < 0 && errno)
+		exit(EXIT_FAILURE);
 
 	self.nfds_alloc = 0;
 	self.accepting_alloc = 0;
@@ -134,7 +132,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (USE_SMACK) {
+	if (smackfd >= 0) {
 		/* add Smack rule fd to pollfds */
 		add_pollfd(&self, smackfd, POLLIN | POLLPRI, false);
 	}
@@ -166,7 +164,7 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			if (USE_SMACK) {
+			if (smackfd >= 0) {
 				if (self.pollfds[i].fd == smackfd) {
 					if (!buxton_cache_smack_rules())
 						exit(EXIT_FAILURE);
@@ -221,7 +219,7 @@ int main(int argc, char *argv[])
 			}
 
 			assert(self.accepting[i] == 0);
-			if (USE_SMACK)
+			if (smackfd >= 0)
 				assert(self.pollfds[i].fd != smackfd);
 
 			/* handle data on any connection */
