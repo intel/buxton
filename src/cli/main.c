@@ -84,6 +84,9 @@ int main(int argc, char **argv)
 
 	/* Build a command list */
 	commands = hashmap_new(string_hash_func, string_compare_func);
+	if (!commands) {
+		exit(EXIT_FAILURE);
+	}
 
 	/* Strings */
 	c_get_string = (Command) { "get-string", "Get a string value by key",
