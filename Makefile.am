@@ -88,7 +88,6 @@ bt_daemon_SOURCES = \
 
 bt_daemon_LDADD = \
 	$(SYSTEMD_LIBS) \
-	libbuxton.la \
 	libbuxton-security.la \
 	libbuxton-shared.la
 
@@ -136,9 +135,6 @@ noinst_LTLIBRARIES += \
 libbuxton_security_la_SOURCES = \
 	src/security/smack.c \
 	src/security/smack.h
-
-libbuxton_security_la_LIBADD = \
-	libbuxton.la
 
 include_HEADERS += \
 	src/include/bt-daemon.h
