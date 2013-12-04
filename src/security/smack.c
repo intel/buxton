@@ -236,8 +236,8 @@ bool buxton_check_read_access(BuxtonClient *client,
 	assert(data);
 	assert(client_label);
 
-	char *group = buxton_get_group(key);
-	char *name = buxton_get_name(key);
+	char *group = get_group(key);
+	char *name = get_name(key);
 	if (!group) {
 		buxton_log("Invalid group or key: %s\n", key->value);
 		return false;
@@ -282,8 +282,8 @@ bool buxton_check_write_access(BuxtonControl *control,
 
 	_cleanup_buxton_data_ BuxtonData *curr_data = NULL;
 
-	char *group = buxton_get_group(key);
-	char *name = buxton_get_name(key);
+	char *group = get_group(key);
+	char *name = get_name(key);
 	if (!group) {
 		buxton_log("Invalid group or key: %s\n", key->value);
 		return false;

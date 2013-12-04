@@ -49,7 +49,7 @@ bool cli_set_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataTyp
 
 	if (!ret)
 		printf("Failed to update key \'%s:%s\' label in layer '%s'\n",
-		       buxton_get_group(key), buxton_get_name(key), layer.value);
+		       get_group(key), get_name(key), layer.value);
 	return ret;
 }
 
@@ -73,11 +73,11 @@ bool cli_get_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataTyp
 		ret = buxton_client_get_value_for_layer(&control->client, &layer,
 							key, &get);
 	if (!ret)
-		printf("Failed to get key \'%s:%s\' in layer '%s'\n", buxton_get_group(key),
-		       buxton_get_name(key), layer.value);
+		printf("Failed to get key \'%s:%s\' in layer '%s'\n", get_group(key),
+		       get_name(key), layer.value);
 	else
-		printf("[%s][%s:%s] = %s\n", layer.value, buxton_get_group(key),
-		       buxton_get_name(key), get.label.value);
+		printf("[%s][%s:%s] = %s\n", layer.value, get_group(key),
+		       get_name(key), get.label.value);
 
 	return ret;
 }
@@ -164,8 +164,8 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		ret = buxton_client_set_value(&control->client, &layer, key,
 					      &set);
 	if (!ret)
-		printf("Failed to update key \'%s:%s\' in layer '%s'\n", buxton_get_group(key),
-		       buxton_get_name(key), layer.value);
+		printf("Failed to update key \'%s:%s\' in layer '%s'\n", get_group(key),
+		       get_name(key), layer.value);
 	return ret;
 }
 
@@ -201,7 +201,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 								&get);
 		if (!ret) {
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
-			       layer.value, buxton_get_group(key), buxton_get_name(key));
+			       layer.value, get_group(key), get_name(key));
 			return false;
 		}
 	} else {
@@ -211,8 +211,8 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 			ret = buxton_client_get_value(&control->client, key,
 						      &get);
 		if (!ret) {
-			printf("Requested key was not found: %s:%s\n", buxton_get_group(key),
-			       buxton_get_name(key));
+			printf("Requested key was not found: %s:%s\n", get_group(key),
+			       get_name(key));
 			return false;
 		}
 	}
@@ -227,32 +227,32 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 
 	switch (get.type) {
 	case STRING:
-		printf("%s%s:%s = %s\n", prefix, buxton_get_group(key), buxton_get_name(key),
+		printf("%s%s:%s = %s\n", prefix, get_group(key), get_name(key),
 		       get.store.d_string.value);
 		break;
 	case INT32:
-		printf("%s%s:%s = %" PRId32 "\n", prefix, buxton_get_group(key),
-		       buxton_get_name(key), get.store.d_int32);
+		printf("%s%s:%s = %" PRId32 "\n", prefix, get_group(key),
+		       get_name(key), get.store.d_int32);
 		break;
 	case INT64:
-		printf("%s%s:%s = %" PRId64 "\n", prefix, buxton_get_group(key),
-		       buxton_get_name(key), get.store.d_int64);
+		printf("%s%s:%s = %" PRId64 "\n", prefix, get_group(key),
+		       get_name(key), get.store.d_int64);
 		break;
 	case FLOAT:
-		printf("%s%s:%s = %f\n", prefix, buxton_get_group(key),
-		       buxton_get_name(key), get.store.d_float);
+		printf("%s%s:%s = %f\n", prefix, get_group(key),
+		       get_name(key), get.store.d_float);
 		break;
 	case DOUBLE:
-		printf("%s%s:%s = %f\n", prefix, buxton_get_group(key),
-		       buxton_get_name(key), get.store.d_double);
+		printf("%s%s:%s = %f\n", prefix, get_group(key),
+		       get_name(key), get.store.d_double);
 		break;
 	case BOOLEAN:
 		if (get.store.d_boolean == true)
-			printf("%s%s:%s = true\n", prefix, buxton_get_group(key),
-			       buxton_get_name(key));
+			printf("%s%s:%s = true\n", prefix, get_group(key),
+			       get_name(key));
 		else
-			printf("%s%s:%s = false\n", prefix, buxton_get_group(key),
-			       buxton_get_name(key));
+			printf("%s%s:%s = false\n", prefix, get_group(key),
+			       get_name(key));
 		break;
 	default:
 		printf("unknown type\n");

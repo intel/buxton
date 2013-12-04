@@ -159,6 +159,31 @@ const char* buxton_type_as_string(BuxtonDataType type)
 	}
 }
 
+char *get_group(BuxtonString *key)
+{
+	if (!key || !(key->value) || !(*(key->value)))
+		return NULL;
+
+	return key->value;
+}
+
+char *get_name(BuxtonString *key)
+{
+	char *c;
+
+	if (!key || !(key->value))
+		return NULL;
+
+	c = strchr(key->value, 0);
+	if (!c)
+		return NULL;
+	if (c - (key->value + (key->length - 1)) >= 0)
+		return NULL;
+	c++;
+
+	return c;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

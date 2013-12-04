@@ -125,3 +125,17 @@ char* get_layer_path(BuxtonLayer *layer);
  * @param copy Pointer where original should be copied to
  */
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
+
+/**
+ * Get the group portion of a buxton key
+ * @param key Pointer to BuxtonString representing a buxton key
+ * @return A pointer to a character string containing the key's group
+ */
+char *get_group(BuxtonString *key);
+
+/**
+ * Get the name portion of a buxton key
+ * @param key Pointer to BuxtonString representing a buxton key
+ * @return A pointer to a character string containing the key's name
+ */
+char *get_name(BuxtonString *key);

@@ -208,7 +208,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 		return false;
 	}
 
-	char *name = buxton_get_name(key);
+	char *name = get_name(key);
 	if (name) {
 		r = buxton_direct_get_value_for_layer(control, layer_name, key, &data);
 		if (!r)
