@@ -432,7 +432,15 @@ START_TEST(bt_daemon_handle_message_error_check)
 	setup_socket_pair(&client, &server);
 	pid = fork();
 	if (pid == 0) {
-		/* child (server) */
+		/* child (client) */
+		close(server);
+		close(client);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
 		BuxtonString slabel;
@@ -482,14 +490,6 @@ START_TEST(bt_daemon_handle_message_error_check)
 		free(string);
 
 		buxton_direct_close(&daemon.buxton);
-		_exit(EXIT_SUCCESS);
-	} else if (pid == -1) {
-		/* error */
-		fail("Failed to fork for get check");
-	} else {
-		/* parent (client) */
-		close(server);
-		close(client);
 	}
 }
 END_TEST
@@ -502,7 +502,28 @@ START_TEST(bt_daemon_handle_message_set_check)
 	setup_socket_pair(&client, &server);
 	pid = fork();
 	if (pid == 0) {
-		/* child (server) */
+		/* child (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 1, "Failed to get correct response to set");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to set");
+		free(list[0].label.value);
+		free(list);
+		close(cl.fd);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
 		BuxtonString slabel;
@@ -547,27 +568,6 @@ START_TEST(bt_daemon_handle_message_set_check)
 		free(string);
 
 		buxton_direct_close(&daemon.buxton);
-		_exit(EXIT_SUCCESS);
-	} else if (pid == -1) {
-		/* error */
-		fail("Failed to fork for get check");
-	} else {
-		/* parent (client) */
-		BuxtonClient cl;
-		BuxtonData *list;
-		BuxtonControlMessage msg;
-		size_t size;
-
-		close(server);
-		cl.fd = client;
-
-		size = buxton_wire_get_response(&cl, &msg, &list);
-		fail_if(size != 1, "Failed to get correct response to set");
-		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
-			"Failed to set");
-		free(list[0].label.value);
-		free(list);
-		close(cl.fd);
 	}
 }
 END_TEST
@@ -580,7 +580,42 @@ START_TEST(bt_daemon_handle_message_get_check)
 	setup_socket_pair(&client, &server);
 	pid = fork();
 	if (pid == 0) {
-		/* child (server) */
+		/* child (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2, "Failed to get correct response to get 1");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to get 1");
+		fail_if(list[1].store.d_int32 != 1,
+			"Failed to get correct value 1");
+		free(list[0].label.value);
+		free(list[1].label.value);
+		free(list);
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2, "Failed to get correct response to get 2");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to get 2");
+		fail_if(list[1].store.d_int32 != 1,
+			"Failed to get correct value 2");
+		free(list[0].label.value);
+		free(list[1].label.value);
+		free(list);
+
+		close(cl.fd);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
 		BuxtonString slabel;
@@ -622,41 +657,6 @@ START_TEST(bt_daemon_handle_message_get_check)
 		free(string);
 
 		buxton_direct_close(&daemon.buxton);
-		_exit(EXIT_SUCCESS);
-	} else if (pid == -1) {
-		/* error */
-		fail("Failed to fork for get check");
-	} else {
-		/* parent (client) */
-		BuxtonClient cl;
-		BuxtonData *list;
-		BuxtonControlMessage msg;
-		size_t size;
-
-		close(server);
-		cl.fd = client;
-
-		size = buxton_wire_get_response(&cl, &msg, &list);
-		fail_if(size != 2, "Failed to get correct response to get 1");
-		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
-			"Failed to get 1");
-		fail_if(list[1].store.d_int32 != 1,
-			"Failed to get correct value 1");
-		free(list[0].label.value);
-		free(list[1].label.value);
-		free(list);
-
-		size = buxton_wire_get_response(&cl, &msg, &list);
-		fail_if(size != 2, "Failed to get correct response to get 2");
-		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
-			"Failed to get 2");
-		fail_if(list[1].store.d_int32 != 1,
-			"Failed to get correct value 2");
-		free(list[0].label.value);
-		free(list[1].label.value);
-		free(list);
-
-		close(cl.fd);
 	}
 }
 END_TEST
@@ -669,7 +669,29 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	setup_socket_pair(&client, &server);
 	pid = fork();
 	if (pid == 0) {
-		/* child (server) */
+		/* child (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 1, "Failed to get correct response to notify");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to register notification");
+		free(list[0].label.value);
+		free(list);
+
+		close(cl.fd);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
 		BuxtonString slabel;
@@ -715,28 +737,6 @@ START_TEST(bt_daemon_handle_message_notify_check)
 			free(n->old_data);
 			free(n);
 		}
-		_exit(EXIT_SUCCESS);
-	} else if (pid == -1) {
-		/* error */
-		fail("Failed to fork for get check");
-	} else {
-		/* parent (client) */
-		BuxtonClient cl;
-		BuxtonData *list;
-		BuxtonControlMessage msg;
-		size_t size;
-
-		close(server);
-		cl.fd = client;
-
-		size = buxton_wire_get_response(&cl, &msg, &list);
-		fail_if(size != 1, "Failed to get correct response to notify");
-		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
-			"Failed to register notification");
-		free(list[0].label.value);
-		free(list);
-
-		close(cl.fd);
 	}
 }
 END_TEST
@@ -749,7 +749,29 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	setup_socket_pair(&client, &server);
 	pid = fork();
 	if (pid == 0) {
-		/* child (server) */
+		/* child (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 1, "Failed to get correct response to unset");
+		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+			"Failed to unset");
+		free(list[0].label.value);
+		free(list);
+
+		close(cl.fd);
+		_exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (server) */
 		BuxtonDaemon daemon;
 		BuxtonString *string;
 		BuxtonString slabel;
@@ -784,28 +806,6 @@ START_TEST(bt_daemon_handle_message_unset_check)
 		free(string);
 
 		buxton_direct_close(&daemon.buxton);
-		_exit(EXIT_SUCCESS);
-	} else if (pid == -1) {
-		/* error */
-		fail("Failed to fork for get check");
-	} else {
-		/* parent (client) */
-		BuxtonClient cl;
-		BuxtonData *list;
-		BuxtonControlMessage msg;
-		size_t size;
-
-		close(server);
-		cl.fd = client;
-
-		size = buxton_wire_get_response(&cl, &msg, &list);
-		fail_if(size != 1, "Failed to get correct response to unset");
-		fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
-			"Failed to unset");
-		free(list[0].label.value);
-		free(list);
-
-		close(cl.fd);
 	}
 }
 END_TEST
