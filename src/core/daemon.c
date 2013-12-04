@@ -559,19 +559,21 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i)
 
 static void handle_smack_label(client_list_item *cl)
 {
-	ssize_t slabel_len;
+	socklen_t slabel_len = 1;
 	char *buf = NULL;
 	BuxtonString *slabel = NULL;
+	int ret;
 
-	slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, buf, 0);
-	if (slabel_len <= 0) {
+	ret = getsockopt(cl->fd, SOL_SOCKET, SO_PEERSEC, NULL, &slabel_len);
+	/* libsmack ignores ERANGE here, so we ignore it too */
+	if (ret < 0 && errno != ERANGE) {
 		switch (errno) {
-		case ENOATTR:
+		case ENOPROTOOPT:
 			/* If Smack is not enabled, do not set the client label */
 			cl->smack_label = NULL;
 			return;
 		default:
-			buxton_log("fgetxattr(): %m\n");
+			buxton_log("getsockopt(): %m\n");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -589,16 +591,16 @@ static void handle_smack_label(client_list_item *cl)
 		exit(EXIT_FAILURE);
 	}
 
-	slabel_len = fgetxattr(cl->fd, SMACK_ATTR_NAME, buf, SMACK_LABEL_LEN);
-	if (slabel_len <= 0) {
-		buxton_log("fgetxattr(): %m\n");
+	ret = getsockopt(cl->fd, SOL_SOCKET, SO_PEERSEC, buf, &slabel_len);
+	if (ret < 0) {
+		buxton_log("getsockopt(): %m\n");
 		exit(EXIT_FAILURE);
 	}
 
 	slabel->value = buf;
 	slabel->length = (uint32_t)slabel_len;
 
-	buxton_debug("fgetxattr(): label=\"%s\"\n", slabel->value);
+	buxton_debug("getsockopt(): label=\"%s\"\n", slabel->value);
 
 	cl->smack_label = slabel;
 }
