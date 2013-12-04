@@ -29,6 +29,8 @@
 #include "serialize.h"
 #include "smack.h"
 #include "util.h"
+#include "buxton-array.h"
+#include "protocol.h"
 
 START_TEST(log_write_check)
 {
@@ -442,10 +444,11 @@ START_TEST(buxton_message_serialize_check)
 {
 	BuxtonControlMessage csource;
 	BuxtonControlMessage ctarget;
-	BuxtonData dsource1, dsource2;
+	BuxtonData dsource1, dsource2, dsource3;
 	uint16_t control, message;
 	BuxtonData *dtarget = NULL;
 	uint8_t *packed = NULL;
+	BuxtonArray *array;
 	size_t ret;
 	size_t pcount;
 
@@ -469,6 +472,36 @@ START_TEST(buxton_message_serialize_check)
 		}
 		free(dtarget);
 	}
+
+	array = buxton_array_new();
+	dsource1.type = INT32;
+	dsource1.store.d_int32 = INT_MAX;
+	dsource2.type = BOOLEAN;
+	dsource2.store.d_boolean = true;
+	dsource2.label = buxton_string_pack("label");
+	dsource3.type = INT32;
+	dsource3.store.d_int32 = BUXTON_STATUS_OK;
+	dsource3.label = buxton_string_pack("label");
+	csource = BUXTON_CONTROL_LIST;
+	buxton_array_add(array, &dsource1);
+	buxton_array_add(array, &dsource2);
+	ret = buxton_serialize_message(&packed, csource, 2, array, &dsource3);
+	fail_if(ret == 0, "Failed to serialize list message");
+	buxton_array_free(&array, NULL);
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 3,
+		"Failed to deserialize list message data");
+	fail_if(ctarget != BUXTON_CONTROL_STATUS, "Failed to get correct control code for list");
+	fail_if(dtarget[0].store.d_int32 != BUXTON_STATUS_OK, "Failed to get correct status message for list");
+	fail_if(dsource1.type != dtarget[1].type,
+		"Source and destination type differ for list member int");
+	fail_if(dsource1.store.d_int32 != dtarget[1].store.d_int32,
+		"Source and destination int data differ in list");
+	fail_if(dsource2.type != dtarget[2].type,
+		"Source and destination type differ for list member boolean");
+	fail_if(dsource2.store.d_boolean != dtarget[2].store.d_boolean,
+		"Source and destination bool data differ in list");
+	free(packed);
+	free(dtarget);
 
 	dsource1.type = INT32;
 	dsource1.store.d_int32 = INT_MAX;
@@ -672,6 +705,46 @@ START_TEST(buxton_get_message_size_check)
 }
 END_TEST
 
+
+START_TEST(buxton_array_check)
+{
+	BuxtonArray *array = NULL;
+	BuxtonString one, two;
+	char *three = NULL;
+	BuxtonString *test = NULL;
+	bool ret = false;
+
+	array = buxton_array_new();
+	fail_if(array == NULL, "Failed to allocate new BuxtonArray");
+
+	one = buxton_string_pack("one");
+	two = buxton_string_pack("two");
+	asprintf(&three, "three");
+
+	ret = buxton_array_add(array, &one);
+	fail_if(ret == false, "Failed to add string 1 to BuxtonArray");
+	ret = buxton_array_add(array, &two);
+	fail_if(ret == false, "Failed to add string 2 to BuxtonArray");
+	ret = buxton_array_add(array, three);
+	fail_if(ret == false, "Failed to add string 3 (pointer) to BuxtonArray");
+
+	fail_if(array->len != 3, "BuxtonArray doesn't contain 3 elements");
+	ret = buxton_array_remove(array, three, &free);
+	fail_if(ret  == false, "Failed to remove and free pointer");
+
+	ret = buxton_array_remove(array, &one, NULL);
+	fail_if(ret == false, "Failed to remove string 1 from BuxtonArray");
+	fail_if(array->len != 1, "BuxtonArray doesn't contain only 1 element");
+
+	test = (BuxtonString*)array->data[0];
+	fail_if(!test, "Null pointer in array");
+	fail_if(!streq(test->value, two.value), "Corrupted data in BuxtonArray");
+
+	buxton_array_free(&array, NULL);
+	fail_if(array != NULL, "Failed to correctly free BuxtonArray");
+}
+END_TEST
+
 static Suite *
 shared_lib_suite(void)
 {
@@ -689,6 +762,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("array_functions");
+	tcase_add_test(tc, buxton_array_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("smack_access_functions");

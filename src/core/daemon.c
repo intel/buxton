@@ -51,6 +51,13 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		}
 		break;
+	case BUXTON_CONTROL_LIST_KEYS:
+		if (count != 1)
+			return false;
+		if (list[0].type != STRING)
+			return false;
+		*layer = &(list[0].store.d_string);
+		break;
 	case BUXTON_CONTROL_UNSET:
 		if (count != 2)
 			return false;
@@ -80,6 +87,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	BuxtonStatus response;
 	BuxtonData *list = NULL;
 	_cleanup_buxton_data_ BuxtonData *data = NULL;
+	BuxtonArray *array = NULL;
 	int i;
 	size_t p_count;
 	size_t response_len;
@@ -117,6 +125,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_GET:
 		data = get_value(self, client, layer, key, &response);
 		break;
+	case BUXTON_CONTROL_LIST_KEYS:
+		array = list_keys(self, client, layer, &response);
+		break;
 	case BUXTON_CONTROL_UNSET:
 		unset_value(self, client, layer, key, &response);
 		break;
@@ -143,6 +154,13 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 2, &response_data, data);
 		if (response_len == 0) {
 			buxton_log("Failed to serialize get response message\n");
+			goto end;
+		}
+		break;
+	case BUXTON_CONTROL_LIST_KEYS:
+		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_LIST, 2, array, &response_data);
+		if (response_len == 0) {
+			buxton_log("Failed to serialize list response message\n");
 			goto end;
 		}
 		break;
@@ -401,6 +419,31 @@ fail:
 end:
 
 	return data;
+}
+
+BuxtonArray* list_keys(BuxtonDaemon *self, client_list_item *client,
+		       BuxtonString *layer, BuxtonStatus *status)
+{
+	assert(self);
+	assert(client);
+	assert(layer);
+	assert(status);
+	BuxtonArray *array = NULL;
+
+	*status = BUXTON_STATUS_FAILED;
+
+	buxton_debug("Daemon listing [%s]\n", layer->value);
+
+	/* Use internal library to list keys */
+	self->buxton.client.uid = client->cred.uid;
+	if (!buxton_direct_list_keys(&self->buxton, layer, &array))
+		return NULL;
+
+	buxton_debug("list keys returned successfully from db\n");
+
+	*status = BUXTON_STATUS_OK;
+	buxton_debug("Daemon list keys completed\n");
+	return array;
 }
 
 void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonString *key,

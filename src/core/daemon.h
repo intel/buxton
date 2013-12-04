@@ -141,6 +141,18 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 		 BuxtonStatus *status);
 
 /**
+ * Buxton daemon function for listing keys in a layer
+ * @param self bt-daemon instance being run
+ * @param client Used to validate smack access
+ * @param layer Layer to query
+ * @param status Will be set with the BuxtonStatus result of the operation
+ * @returns BuxtonArray Array of all keys in the layer
+ */
+BuxtonArray* list_keys(BuxtonDaemon *self, client_list_item *client,
+		       BuxtonString *layer, BuxtonStatus *status);
+
+
+/**
  * Buxton daemon function for registering notifications on a given key
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
