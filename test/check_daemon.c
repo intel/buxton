@@ -522,15 +522,15 @@ START_TEST(bt_daemon_handle_message_set_check)
 		data1.type = STRING;
 		string = buxton_make_key("group", "name");
 		fail_if(!string, "Failed to allocate key");
-		data1.label = buxton_string_pack("dummy");
+		data1.label = buxton_string_pack("base/sample/key");
 		data1.store.d_string = buxton_string_pack("base");
 		data2.type = STRING;
 		data2.store.d_string.value = string->value;
 		data2.store.d_string.length = string->length;
-		data2.label = buxton_string_pack("dummy");
+		data2.label = buxton_string_pack("base/sample/key");
 		data3.type = INT32;
 		data3.store.d_int32 = 1;
-		data3.label = buxton_string_pack("dummy");
+		data3.label = buxton_string_pack("base/sample/key");
 		size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 3,
 						&data1, &data2, &data3);
 		fail_if(size == 0, "Failed to serialize message");
