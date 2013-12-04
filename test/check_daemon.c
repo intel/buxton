@@ -435,7 +435,7 @@ START_TEST(bt_daemon_handle_message_error_check)
 		/* child (client) */
 		close(server);
 		close(client);
-		_exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for get check");
@@ -518,7 +518,7 @@ START_TEST(bt_daemon_handle_message_set_check)
 		free(list[0].label.value);
 		free(list);
 		close(cl.fd);
-		_exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for get check");
@@ -610,7 +610,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 		free(list);
 
 		close(cl.fd);
-		_exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for get check");
@@ -686,7 +686,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 		free(list);
 
 		close(cl.fd);
-		_exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for get check");
@@ -766,7 +766,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 		free(list);
 
 		close(cl.fd);
-		_exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for get check");

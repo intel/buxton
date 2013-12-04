@@ -234,7 +234,7 @@ START_TEST(buxton_wire_get_response_check)
 		fail_if(size == 0, "Failed to serialize message");
 		write(server, dest, size);
 		close(server);
-		_exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for response check");
@@ -287,7 +287,7 @@ START_TEST(buxton_wire_set_value_check)
 		write(server, dest, size);
 		close(server);
 		free(dest);
-		_exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for set check");
@@ -341,7 +341,7 @@ START_TEST(buxton_wire_get_value_check)
 		write(server, dest, size);
 		close(server);
 		free(dest);
-		_exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 	} else if (pid == -1) {
 		/* error */
 		fail("Failed to fork for get check");
