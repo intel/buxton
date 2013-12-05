@@ -810,6 +810,300 @@ START_TEST(bt_daemon_handle_message_unset_check)
 }
 END_TEST
 
+START_TEST(bt_daemon_notify_clients_check)
+{
+	pid_t pid;
+	int client, server;
+
+	setup_socket_pair(&client, &server);
+	pid = fork();
+	if (pid == 0) {
+		/* child (client) */
+		BuxtonClient cl;
+		BuxtonData *list;
+		BuxtonControlMessage msg;
+		size_t size;
+
+		close(server);
+		cl.fd = client;
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2,
+			"Failed to get correct response to notify string");
+		fail_if(!streq(get_group(&list[0].store.d_string), "group"),
+			"Failed to get correct notification group string");
+		fail_if(!streq(get_name(&list[0].store.d_string), "name"),
+			"Failed to get correct notification name string");
+		fail_if(!streq(list[0].label.value, "dummy"),
+			"Failed to get correct notification key label string");
+		fail_if(!streq(list[1].label.value, "dummy2"),
+			"Failed to get correct notification value label string");
+		fail_if(list[1].type != STRING,
+			"Failed to get correct notification value type string");
+		fail_if(!streq(list[1].store.d_string.value, "new value"),
+			"Failed to get correct notification value data string");
+		free(list[0].label.value);
+		free(list[0].store.d_string.value);
+		free(list[1].label.value);
+		free(list[1].store.d_string.value);
+		free(list);
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2,
+			"Failed to get correct response to notify int32");
+		fail_if(!streq(get_group(&list[0].store.d_string), "group32"),
+			"Failed to get correct notification group int32");
+		fail_if(!streq(get_name(&list[0].store.d_string), "name32"),
+			"Failed to get correct notification name int32");
+		fail_if(!streq(list[0].label.value, "dummy"),
+			"Failed to get correct notification key label int32");
+		fail_if(!streq(list[1].label.value, "dummy2"),
+			"Failed to get correct notification value label int32");
+		fail_if(list[1].type != INT32,
+			"Failed to get correct notification value type int32");
+		fail_if(list[1].store.d_int32 != 2,
+			"Failed to get correct notification value data int32");
+		free(list[0].label.value);
+		free(list[0].store.d_string.value);
+		free(list[1].label.value);
+		free(list);
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2,
+			"Failed to get correct response to notify int64");
+		fail_if(!streq(get_group(&list[0].store.d_string), "group64"),
+			"Failed to get correct notification group int64");
+		fail_if(!streq(get_name(&list[0].store.d_string), "name64"),
+			"Failed to get correct notification name int64");
+		fail_if(!streq(list[0].label.value, "dummy"),
+			"Failed to get correct notification key label int64");
+		fail_if(!streq(list[1].label.value, "dummy2"),
+			"Failed to get correct notification value label int64");
+		fail_if(list[1].type != INT64,
+			"Failed to get correct notification value type int 64");
+		fail_if(list[1].store.d_int64 != 3,
+			"Failed to get correct notification value data int64");
+		free(list[0].label.value);
+		free(list[0].store.d_string.value);
+		free(list[1].label.value);
+		free(list);
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2,
+			"Failed to get correct response to notify float");
+		fail_if(!streq(get_group(&list[0].store.d_string), "groupf"),
+			"Failed to get correct notification group float");
+		fail_if(!streq(get_name(&list[0].store.d_string), "namef"),
+			"Failed to get correct notification name float");
+		fail_if(!streq(list[0].label.value, "dummy"),
+			"Failed to get correct notification key label float");
+		fail_if(!streq(list[1].label.value, "dummy2"),
+			"Failed to get correct notification value label float");
+		fail_if(list[1].type != FLOAT,
+			"Failed to get correct notification value type float");
+		fail_if(list[1].store.d_float != 3.14F,
+			"Failed to get correct notification value data float");
+		free(list[0].label.value);
+		free(list[0].store.d_string.value);
+		free(list[1].label.value);
+		free(list);
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2,
+			"Failed to get correct response to notify double");
+		fail_if(!streq(get_group(&list[0].store.d_string), "groupd"),
+			"Failed to get correct notification group double");
+		fail_if(!streq(get_name(&list[0].store.d_string), "named"),
+			"Failed to get correct notification name double");
+		fail_if(!streq(list[0].label.value, "dummy"),
+			"Failed to get correct notification key label double");
+		fail_if(!streq(list[1].label.value, "dummy2"),
+			"Failed to get correct notification value label double");
+		fail_if(list[1].type != DOUBLE,
+			"Failed to get correct notification value type double");
+		fail_if(list[1].store.d_double != 3.1415F,
+			"Failed to get correct notification value data double");
+		free(list[0].label.value);
+		free(list[0].store.d_string.value);
+		free(list[1].label.value);
+		free(list);
+
+		size = buxton_wire_get_response(&cl, &msg, &list);
+		fail_if(size != 2,
+			"Failed to get correct response to notify bool");
+		fail_if(!streq(get_group(&list[0].store.d_string), "groupb"),
+			"Failed to get correct notification group bool");
+		fail_if(!streq(get_name(&list[0].store.d_string), "nameb"),
+			"Failed to get correct notification name bool");
+		fail_if(!streq(list[0].label.value, "dummy"),
+			"Failed to get correct notification key label bool");
+		fail_if(!streq(list[1].label.value, "dummy2"),
+			"Failed to get correct notification value label bool");
+		fail_if(list[1].type != BOOLEAN,
+			"Failed to get correct notification value type bool");
+		fail_if(list[1].store.d_boolean != true,
+			"Failed to get correct notification value data bool");
+		free(list[0].label.value);
+		free(list[0].store.d_string.value);
+		free(list[1].label.value);
+		free(list);
+
+		close(cl.fd);
+		exit(EXIT_SUCCESS);
+	} else if (pid == -1) {
+		/* error */
+		fail("Failed to fork for get check");
+	} else {
+		/* parent (server) */
+		BuxtonDaemon daemon;
+		BuxtonString key;
+		BuxtonString slabel;
+		BuxtonString layer;
+		BuxtonString *string;
+		BuxtonData value1, value2;
+		client_list_item cl;
+		BuxtonStatus status;
+		bool r;
+
+		close(client);
+		cl.fd = server;
+		slabel = buxton_string_pack("_");
+		cl.smack_label = &slabel;
+		daemon.notify_mapping = hashmap_new(string_hash_func,
+						    string_compare_func);
+		fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+		fail_if(!buxton_cache_smack_rules(),
+			"Failed to cache Smack rules");
+		string = buxton_make_key("group", "name");
+		fail_if(!string, "Failed to allocate key");
+		buxton_direct_open(&daemon.buxton);
+
+		value1.type = STRING;
+		value1.store.d_string = buxton_string_pack("dummy value");
+		value1.label = buxton_string_pack("dummy");
+		key = buxton_string_pack("dummy key");
+		bt_daemon_notify_clients(&daemon, &cl, &key, &value1);
+
+		value1.store.d_string = buxton_string_pack("real value");
+		value1.label = buxton_string_pack("base/sample/key");
+		key.value = string->value;
+		key.length = string->length;
+		layer = buxton_string_pack("base");
+		r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+					    &value1);
+		fail_if(!r, "Failed to set value for notify");
+		register_notification(&daemon, &cl, &key, &status);
+		fail_if(status != BUXTON_STATUS_OK,
+			"Failed to register notification for notify");
+		bt_daemon_notify_clients(&daemon, &cl, &key, &value1);
+
+		value2.type = STRING;
+		value2.store.d_string = buxton_string_pack("new value");
+		value2.label = buxton_string_pack("dummy2");
+		bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+		free(string->value);
+		free(string);
+
+		value1.type = INT32;
+		value1.store.d_int32 = 1;
+		value2.type = INT32;
+		value2.store.d_int32 = 2;
+		string = buxton_make_key("group32", "name32");
+		fail_if(!string, "Failed to allocate key");
+		key.value = string->value;
+		key.length = string->length;
+		layer = buxton_string_pack("base");
+		r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+					    &value1);
+		fail_if(!r, "Failed to set value for notify");
+		register_notification(&daemon, &cl, &key, &status);
+		fail_if(status != BUXTON_STATUS_OK,
+			"Failed to register notification for notify");
+		bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+		free(string->value);
+		free(string);
+
+		value1.type = INT64;
+		value1.store.d_int64 = 2;
+		value2.type = INT64;
+		value2.store.d_int64 = 3;
+		string = buxton_make_key("group64", "name64");
+		fail_if(!string, "Failed to allocate key");
+		key.value = string->value;
+		key.length = string->length;
+		layer = buxton_string_pack("base");
+		r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+					    &value1);
+		fail_if(!r, "Failed to set value for notify");
+		register_notification(&daemon, &cl, &key, &status);
+		fail_if(status != BUXTON_STATUS_OK,
+			"Failed to register notification for notify");
+		bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+		free(string->value);
+		free(string);
+
+		value1.type = FLOAT;
+		value1.store.d_float = 3.1F;
+		value2.type = FLOAT;
+		value2.store.d_float = 3.14F;
+		string = buxton_make_key("groupf", "namef");
+		fail_if(!string, "Failed to allocate key");
+		key.value = string->value;
+		key.length = string->length;
+		layer = buxton_string_pack("base");
+		r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+					    &value1);
+		fail_if(!r, "Failed to set value for notify");
+		register_notification(&daemon, &cl, &key, &status);
+		fail_if(status != BUXTON_STATUS_OK,
+			"Failed to register notification for notify");
+		bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+		free(string->value);
+		free(string);
+
+		value1.type = DOUBLE;
+		value1.store.d_double = 3.141F;
+		value2.type = DOUBLE;
+		value2.store.d_double = 3.1415F;
+		string = buxton_make_key("groupd", "named");
+		fail_if(!string, "Failed to allocate key");
+		key.value = string->value;
+		key.length = string->length;
+		layer = buxton_string_pack("base");
+		r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+					    &value1);
+		fail_if(!r, "Failed to set value for notify");
+		register_notification(&daemon, &cl, &key, &status);
+		fail_if(status != BUXTON_STATUS_OK,
+			"Failed to register notification for notify");
+		bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+		free(string->value);
+		free(string);
+
+		value1.type = BOOLEAN;
+		value1.store.d_boolean = false;
+		value2.type = BOOLEAN;
+		value2.store.d_int32 = true;
+		string = buxton_make_key("groupb", "nameb");
+		fail_if(!string, "Failed to allocate key");
+		key.value = string->value;
+		key.length = string->length;
+		layer = buxton_string_pack("base");
+		r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+					    &value1);
+		fail_if(!r, "Failed to set value for notify");
+		register_notification(&daemon, &cl, &key, &status);
+		fail_if(status != BUXTON_STATUS_OK,
+			"Failed to register notification for notify");
+		bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+		free(string->value);
+		free(string);
+
+		buxton_direct_close(&daemon.buxton);
+	}
+}
+END_TEST
+
 START_TEST(identify_client_check)
 {
 }
@@ -918,6 +1212,7 @@ daemon_suite(void)
 	tcase_add_test(tc, bt_daemon_handle_message_get_check);
 	tcase_add_test(tc, bt_daemon_handle_message_notify_check);
 	tcase_add_test(tc, bt_daemon_handle_message_unset_check);
+	tcase_add_test(tc, bt_daemon_notify_clients_check);
 	tcase_add_test(tc, identify_client_check);
 	tcase_add_test(tc, add_pollfd_check);
 	tcase_add_test(tc, del_pollfd_check);
