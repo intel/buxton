@@ -31,6 +31,11 @@ static bool have_smack = true;
 #define smack_check() do { if (!have_smack) return true; } while (0);
 
 
+bool buxton_smack_enabled(void)
+{
+	return have_smack;
+}
+
 bool buxton_cache_smack_rules(void)
 {
 	smack_check();

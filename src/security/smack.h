@@ -49,6 +49,12 @@ typedef enum BuxtonKeyAccessType {
 } BuxtonKeyAccessType;
 
 /**
+ * Check whether Smack is enabled in bt-daemon
+ * @return a boolean value, indicating whether Smack is enabled
+ */
+bool buxton_smack_enabled(void);
+
+/**
  * Load Smack rules from the kernel
  * @return a boolean value, indicating success of the operation
  */

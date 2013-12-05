@@ -691,9 +691,12 @@ shared_lib_suite(void)
 	tcase_add_test(tc, hashmap_check);
 	suite_add_tcase(s, tc);
 
-	tc = tcase_create("smack_access_functions");
-	tcase_add_test(tc, smack_access_check);
-	suite_add_tcase(s, tc);
+	buxton_cache_smack_rules();
+	if (buxton_smack_enabled()) {
+		tc = tcase_create("smack_access_functions");
+		tcase_add_test(tc, smack_access_check);
+		suite_add_tcase(s, tc);
+	}
 
 	tc = tcase_create("util_functions");
 	tcase_add_test(tc, get_layer_path_check);
