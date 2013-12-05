@@ -1106,6 +1106,21 @@ END_TEST
 
 START_TEST(identify_client_check)
 {
+	int sender;
+	client_list_item client;
+	bool r;
+	int32_t msg = 5;
+
+	setup_socket_pair(&client.fd, &sender);
+	r = identify_client(&client);
+	fail_if(r, "Identified client without message");
+
+	write(sender, &msg, sizeof(int32_t));
+	r = identify_client(&client);
+	fail_if(!r, "Identify client failed");
+
+	close(client.fd);
+	close(sender);
 }
 END_TEST
 
