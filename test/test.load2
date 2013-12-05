@@ -7,3 +7,6 @@ system user/sample/key r
 user base/sample/key r
 user system/sample/key r
 user user/sample/key rw
+_ System w
+User System w
+System User rw
