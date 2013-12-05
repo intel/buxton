@@ -1152,6 +1152,49 @@ END_TEST
 
 START_TEST(del_pollfd_check)
 {
+	BuxtonDaemon daemon;
+	int fd;
+	short events;
+	bool a;
+
+	fd = 3;
+	daemon.nfds_alloc = 0;
+	daemon.accepting_alloc = 0;
+	daemon.nfds = 0;
+	daemon.pollfds = NULL;
+	daemon.accepting = NULL;
+	events = 1;
+	a = true;
+	add_pollfd(&daemon, fd, events, a);
+	fail_if(daemon.nfds != 1, "Failed to add pollfd");
+	del_pollfd(&daemon, 0);
+	fail_if(daemon.nfds != 0, "Failed to decrease nfds 1");
+
+	fd = 4;
+	events = 2;
+	a = false;
+	add_pollfd(&daemon, fd, events, a);
+	fail_if(daemon.nfds != 1, "Failed to increase nfds after del");
+	fail_if(daemon.pollfds[0].fd != fd, "Failed to set pollfd after del");
+	fail_if(daemon.pollfds[0].events != events,
+		"Failed to set events after del");
+	fail_if(daemon.pollfds[0].revents != 0,
+		"Failed to set revents after del");
+	fail_if(daemon.accepting[0] != a,
+		"Failed to set accepting status after del");
+	fd = 5;
+	events = 3;
+	a = true;
+	add_pollfd(&daemon, fd, events, a);
+	del_pollfd(&daemon, 0);
+	fail_if(daemon.nfds != 1, "Failed to delete fd 2");
+	fail_if(daemon.pollfds[0].fd != fd, "Failed to set pollfd after del2");
+	fail_if(daemon.pollfds[0].events != events,
+		"Failed to set events after del2");
+	fail_if(daemon.pollfds[0].revents != 0,
+		"Failed to set revents after del2");
+	fail_if(daemon.accepting[0] != a,
+		"Failed to set accepting status after del2");
 }
 END_TEST
 
