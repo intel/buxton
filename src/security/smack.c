@@ -39,6 +39,7 @@ bool buxton_cache_smack_rules(void)
 	char *rule_pair = NULL;
 	int ret = true;
 	bool have_rules = false;
+	struct stat buf;
 
 	if (_smackrules)
 		hashmap_free(_smackrules);
@@ -50,12 +51,19 @@ bool buxton_cache_smack_rules(void)
 		return false;
 	}
 
+	/* FIXME: should check for a proper mount point instead */
+	if ((stat(SMACK_MOUNT_DIR, &buf) == -1) && !S_ISDIR(buf.st_mode)) {
+		buxton_log("Smack filesystem not detected; disabling Smack checks\n");
+		have_smack = false;
+		goto end;
+	}
+
 	load_file = fopen(SMACK_LOAD_FILE, "r");
 
 	if (!load_file) {
 		switch (errno) {
 		case ENOENT:
-			buxton_log("Smack support not detected; disabling Smack checks\n");
+			buxton_log("Smackfs load2 file not found; disabling Smack checks\n");
 			have_smack = false;
 			goto end;
 		default:

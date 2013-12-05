@@ -29,6 +29,11 @@
 #define SMACK_ATTR_NAME "security.SMACK64"
 
 /**
+ * Smackfs mount directory
+ */
+#define SMACK_MOUNT_DIR "/sys/fs/smackfs"
+
+/**
  * Maximum length of a Smack rule access string
  */
 #define ACC_LEN 5
