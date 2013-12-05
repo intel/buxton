@@ -210,6 +210,72 @@ START_TEST(buxton_group_label_check)
 }
 END_TEST
 
+START_TEST(buxton_name_label_check)
+{
+	BuxtonControl c;
+	BuxtonData data, result;
+	BuxtonString layer, label;
+	BuxtonString *group, *key;
+
+	/* create the group first, and validate the label */
+	layer = buxton_string_pack("test-gdbm");
+	group = buxton_make_key("group-foo", NULL);
+	label = buxton_string_pack("System");
+
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	fail_if(buxton_direct_set_label(&c, &layer, group, &label) == false,
+		"Failed to set group label.");
+	fail_if(buxton_direct_get_value_for_layer(&c, &layer, group, &result) == false,
+		"Retrieving group label failed.");
+	fail_if(!streq("System", result.label.value),
+		"Retrieved group label is incorrect.");
+	free(group->value);
+	free(group);
+	if (result.label.value)
+		free(result.label.value);
+	if (result.store.d_string.value)
+		free(result.store.d_string.value);
+
+	/* then create the name (key), and validate the label */
+	key = buxton_make_key("group-foo", "name-foo");
+	data.type = STRING;
+	data.label = buxton_string_pack("System");
+	data.store.d_string = buxton_string_pack("value1-foo");
+	fail_if(buxton_direct_set_value(&c, &layer, key, &data) == false,
+		"Failed to set key name-foo.");
+	fail_if(buxton_direct_get_value_for_layer(&c, &layer, key, &result) == false,
+		"Failed to get value for name-foo.");
+	fail_if(!streq("value1-foo", result.store.d_string.value),
+		"Retrieved key value is incorrect.");
+	fail_if(!streq("System", result.label.value),
+		"Retrieved key label is incorrect.");
+	if (result.label.value)
+		free(result.label.value);
+	if (result.store.d_string.value)
+		free(result.store.d_string.value);
+
+	/* modify the same key, with a new value, and validate the label */
+	data.store.d_string = buxton_string_pack("value2-foo");
+	fail_if(buxton_direct_set_value(&c, &layer, key, &data) == false,
+		"Failed to modify key name-foo.");
+	fail_if(buxton_direct_get_value_for_layer(&c, &layer, key, &result) == false,
+		"Failed to get new value for name-foo.");
+	fail_if(!streq("value2-foo", result.store.d_string.value),
+		"New key value is incorrect.");
+	fail_if(!streq("System", result.label.value),
+		"Key label has been modified.");
+	free(key->value);
+	free(key);
+	if (result.label.value)
+		free(result.label.value);
+	if (result.store.d_string.value)
+		free(result.store.d_string.value);
+
+	buxton_direct_close(&c);
+}
+END_TEST
+
 START_TEST(buxton_wire_get_response_check)
 {
 	BuxtonClient client;
@@ -382,6 +448,7 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_memory_backend_check);
 	tcase_add_test(tc, buxton_key_check);
 	tcase_add_test(tc, buxton_group_label_check);
+	tcase_add_test(tc, buxton_name_label_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("buxton_protocol_functions");
