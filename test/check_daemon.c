@@ -1126,6 +1126,27 @@ END_TEST
 
 START_TEST(add_pollfd_check)
 {
+	BuxtonDaemon daemon;
+	int fd;
+	short events;
+	bool a;
+
+	fd = 3;
+	daemon.nfds_alloc = 0;
+	daemon.accepting_alloc = 0;
+	daemon.nfds = 0;
+	daemon.pollfds = NULL;
+	daemon.accepting = NULL;
+	events = 1;
+	a = true;
+	add_pollfd(&daemon, fd, events, a);
+	fail_if(daemon.nfds != 1, "Failed to increase nfds");
+	fail_if(daemon.pollfds[0].fd != fd, "Failed to set pollfd");
+	fail_if(daemon.pollfds[0].events != events, "Failed to set events");
+	fail_if(daemon.pollfds[0].revents != 0, "Failed to set revents");
+	fail_if(daemon.accepting[0] != a, "Failed to set accepting status");
+	free(daemon.pollfds);
+	free(daemon.accepting);
 }
 END_TEST
 
