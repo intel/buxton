@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 
 	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = 0;
+	sa.sa_flags = SA_RESTART;
 	sa.sa_handler = my_handler;
 	ret = sigaction(SIGINT, &sa, NULL);
 	if (ret == -1)
@@ -163,10 +163,13 @@ int main(int argc, char *argv[])
 
 		if (ret < 0) {
 			buxton_log("poll(): %m\n");
-			if (errno == EINTR)
+			if (errno == EINTR) {
 				if (do_shutdown)
 					break;
-			continue;
+				else
+					continue;
+			}
+			break;
 		}
 		if (ret == 0)
 			continue;
