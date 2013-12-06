@@ -62,7 +62,9 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 		count = buxton_deserialize_message(response, &r_msg, size, &r_list);
 		if (count == 0)
 			return 0;
-		if (r_msg != BUXTON_CONTROL_STATUS || r_list[0].type != INT32) {
+		if (!(r_msg == BUXTON_CONTROL_STATUS && r_list[0].type == INT32)
+		    && !(r_msg == BUXTON_CONTROL_CHANGED &&
+			 r_list[0].type == STRING)) {
 			buxton_log("Critical error: Invalid response\n");
 			return 0;
 		}
