@@ -20,6 +20,7 @@
 
 #include <errno.h>
 #include <poll.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <systemd/sd-daemon.h>
@@ -39,7 +40,13 @@
 
 #define SOCKET_TIMEOUT 5
 
+static volatile bool do_shutdown = false;
 static BuxtonDaemon self;
+
+void my_handler(int sig)
+{
+	do_shutdown = true;
+}
 
 /**
  * Entry point into bt-daemon
@@ -56,6 +63,7 @@ int main(int argc, char *argv[])
 	int descriptors;
 	int ret;
 	bool manual_start = false;
+	struct sigaction sa;
 
 	if (!buxton_cache_smack_rules())
 		exit(EXIT_FAILURE);
@@ -69,6 +77,16 @@ int main(int argc, char *argv[])
 	self.buxton.client.direct = true;
 	self.buxton.client.uid = geteuid();
 	if (!buxton_direct_open(&self.buxton))
+		exit(EXIT_FAILURE);
+
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sa.sa_handler = my_handler;
+	ret = sigaction(SIGINT, &sa, NULL);
+	if (ret == -1)
+		exit(EXIT_FAILURE);
+	ret = sigaction(SIGTERM, &sa, NULL);
+	if (ret == -1)
 		exit(EXIT_FAILURE);
 
 	/* For client notifications */
@@ -145,7 +163,10 @@ int main(int argc, char *argv[])
 
 		if (ret < 0) {
 			buxton_log("poll(): %m\n");
-			break;
+			if (errno == EINTR)
+				if (do_shutdown)
+					break;
+			continue;
 		}
 		if (ret == 0)
 			continue;
