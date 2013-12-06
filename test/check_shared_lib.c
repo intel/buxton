@@ -180,6 +180,16 @@ START_TEST(smack_access_check)
 	object = buxton_string_pack("foo");
 	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
 	fail_if(!ret, "Read access denied for ^ subject");
+
+	subject = buxton_string_pack("subjecttest");
+	object = buxton_string_pack("objecttest");
+	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
+	fail_if(ret, "Read access granted for unrecognized subject/object");
+
+	subject = buxton_string_pack("subjecttest");
+	object = buxton_string_pack("objecttest");
+	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
+	fail_if(ret, "Write access granted for unrecognized subject/object");
 }
 END_TEST
 
