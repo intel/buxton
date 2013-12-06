@@ -113,86 +113,6 @@ START_TEST(hashmap_check)
 }
 END_TEST
 
-START_TEST(smack_access_check)
-{
-	bool ret;
-	BuxtonString subject;
-	BuxtonString object;
-
-	ret = buxton_cache_smack_rules();
-	fail_if(!ret, "Failed to cache Smack rules");
-
-	subject = buxton_string_pack("system");
-	object = buxton_string_pack("base/sample/key");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(!ret, "Read access was denied, but should have been granted");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
-	fail_if(ret, "Write access was granted, but should have been denied");
-
-	subject = buxton_string_pack("system");
-	object = buxton_string_pack("system/sample/key");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(!ret, "Read access was denied");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
-	fail_if(!ret, "Write access was denied");
-
-	subject = buxton_string_pack("*");
-	object = buxton_string_pack("foo");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(ret, "Read access granted for * subject");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
-	fail_if(ret, "Write access granted for * subject");
-
-	subject = buxton_string_pack("foo");
-	object = buxton_string_pack("@");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(!ret, "Read access denied for @ object");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
-	fail_if(!ret, "Write access denied for @ object");
-
-	subject = buxton_string_pack("@");
-	object = buxton_string_pack("foo");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(!ret, "Read access denied for @ subject");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
-	fail_if(!ret, "Write access denied for @ subject");
-
-	subject = buxton_string_pack("foo");
-	object = buxton_string_pack("*");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(!ret, "Read access denied for * object");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
-	fail_if(!ret, "Write access denied for * object");
-
-	subject = buxton_string_pack("foo");
-	object = buxton_string_pack("foo");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(!ret, "Read access denied for matching subject/object");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
-	fail_if(!ret, "Write access denied for matching subject/object");
-
-	subject = buxton_string_pack("foo");
-	object = buxton_string_pack("_");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(!ret, "Read access denied for _ object");
-
-	subject = buxton_string_pack("^");
-	object = buxton_string_pack("foo");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(!ret, "Read access denied for ^ subject");
-
-	subject = buxton_string_pack("subjecttest");
-	object = buxton_string_pack("objecttest");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_READ);
-	fail_if(ret, "Read access granted for unrecognized subject/object");
-
-	subject = buxton_string_pack("subjecttest");
-	object = buxton_string_pack("objecttest");
-	ret = buxton_check_smack_access(&subject, &object, ACCESS_WRITE);
-	fail_if(ret, "Write access granted for unrecognized subject/object");
-}
-END_TEST
-
 START_TEST(get_layer_path_check)
 {
 	BuxtonLayer layer;
@@ -700,13 +620,6 @@ shared_lib_suite(void)
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
 	suite_add_tcase(s, tc);
-
-	buxton_cache_smack_rules();
-	if (buxton_smack_enabled()) {
-		tc = tcase_create("smack_access_functions");
-		tcase_add_test(tc, smack_access_check);
-		suite_add_tcase(s, tc);
-	}
 
 	tc = tcase_create("util_functions");
 	tcase_add_test(tc, get_layer_path_check);

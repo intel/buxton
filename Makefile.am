@@ -54,7 +54,11 @@ LIBBUXTON_CURRENT=0
 LIBBUXTON_REVISION=1
 LIBBUXTON_AGE=0
 
-TESTS = check_buxton check_shared_lib check_daemon
+TESTS = \
+	check_buxton \
+	check_shared_lib \
+	check_daemon \
+	check_smack
 
 if COVERAGE
 coverage:
@@ -193,7 +197,8 @@ check_PROGRAMS = \
 	check_buxton \
 	check_shared_lib \
 	check_bt_daemon \
-	check_daemon
+	check_daemon \
+	check_smack
 
 check_buxton_SOURCES = \
 	src/shared/constants.c \
@@ -258,6 +263,23 @@ check_daemon_CFLAGS = \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK
 check_daemon_LDADD = \
+	@CHECK_LIBS@ \
+	@INIPARSER_LIBS@ \
+	libbuxton.la \
+	libbuxton-security.la \
+	libbuxton-shared.la
+
+check_smack_SOURCES = \
+	src/shared/constants.c \
+	test/check_utils.c \
+	test/check_utils.h \
+	test/check_smack.c
+check_smack_CFLAGS = \
+	$(AM_CFLAGS) \
+	@CHECK_CFLAGS@ \
+	@INIPARSER_CFLAGS@ \
+	-DMAKE_CHECK
+check_smack_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
 	libbuxton.la \

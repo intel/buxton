@@ -38,6 +38,7 @@ test/*.ini
 src/shared/constants.c
 check_daemon
 check_bt_daemon
+check_smack
 bxt_timing
 *.gcda
 *.gcno
