@@ -329,8 +329,8 @@ START_TEST(set_value_check)
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
-	client.cred.uid = 0;
-	server.buxton.client.uid = 1;
+	client.cred.uid = getuid();
+	server.buxton.client.uid = 0;
 	layer = buxton_string_pack("test-gdbm");
 	key = buxton_string_pack("key");
 	value.type = FLOAT;
@@ -355,8 +355,8 @@ START_TEST(get_value_check)
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
-	client.cred.uid = 0;
-	server.buxton.client.uid = 2;
+	client.cred.uid = getuid();
+	server.buxton.client.uid = 0;
 	layer = buxton_string_pack("test-gdbm");
 	key = buxton_string_pack("key");
 
@@ -371,7 +371,7 @@ START_TEST(get_value_check)
 	free(value->label.value);
 	free(value);
 
-	server.buxton.client.uid = 3;
+	server.buxton.client.uid = 0;
 	value = get_value(&server, &client, NULL, &key, &status);
 	fail_if(!value, "Failed to get value 2");
 	fail_if(status != BUXTON_STATUS_OK, "Failed to get value 2");

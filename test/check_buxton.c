@@ -41,6 +41,8 @@ START_TEST(buxton_direct_set_value_check)
 	BuxtonData data;
 	BuxtonString layer = buxton_string_pack("test-gdbm");
 	BuxtonString key = buxton_string_pack("bxt_test");
+
+	c.client.uid = getuid();
 	data.type = STRING;
 	data.label = buxton_string_pack("label");
 	data.store.d_string = buxton_string_pack("bxt_test_value");
@@ -56,6 +58,8 @@ START_TEST(buxton_direct_get_value_for_layer_check)
 	BuxtonData result;
 	BuxtonString layer = buxton_string_pack("test-gdbm");
 	BuxtonString key = buxton_string_pack("bxt_test");
+
+	c.client.uid = getuid();
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &layer, &key, &result) == false,
@@ -83,6 +87,7 @@ START_TEST(buxton_direct_get_value_check)
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 
+	c.client.uid = getuid();
 	data.type = STRING;
 	data.label = buxton_string_pack("label2");
 	data.store.d_string = buxton_string_pack("bxt_test_value2");
@@ -114,6 +119,8 @@ START_TEST(buxton_memory_backend_check)
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	BuxtonData data, result;
+
+	c.client.uid = getuid();
 	data.type = STRING;
 	data.label = buxton_string_pack("label");
 	data.store.d_string = buxton_string_pack("bxt_test_value");
@@ -195,6 +202,7 @@ START_TEST(buxton_group_label_check)
 	BuxtonString *key = buxton_make_key("test-group", NULL);
 	BuxtonString label = buxton_string_pack("System");
 
+	c.client.uid = getuid();
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	fail_if(buxton_direct_set_label(&c, &layer, key, &label) == false,
