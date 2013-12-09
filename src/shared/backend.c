@@ -227,6 +227,30 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	return backend->set_value(layer, key, &data);
 }
 
+bool buxton_direct_list_keys(BuxtonControl *control,
+			     BuxtonString *layer_name,
+			     BuxtonArray **list)
+{
+	BuxtonBackend *backend = NULL;
+	BuxtonLayer *layer;
+	BuxtonConfig *config;
+
+	assert(control);
+	assert(layer_name);
+
+	config = &control->config;
+	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+		return false;
+	}
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		/* Already logged */
+		return false;
+	}
+	layer->uid = control->client.uid;
+	return backend->list_keys(layer, list);
+}
+
 bool buxton_direct_unset_value(BuxtonControl *control,
 			       BuxtonString *layer_name,
 			       BuxtonString *key)
@@ -503,6 +527,7 @@ static void destroy_backend(BuxtonBackend *backend)
 
 	backend->set_value = NULL;
 	backend->get_value = NULL;
+	backend->list_keys = NULL;
 	backend->unset_value = NULL;
 	backend->destroy();
 	dlclose(backend->module);

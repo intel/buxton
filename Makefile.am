@@ -85,7 +85,6 @@ bin_PROGRAMS = \
 	buxtonctl
 
 bt_daemon_SOURCES = \
-	src/shared/constants.c \
 	src/core/daemon.c \
 	src/core/daemon.h \
 	src/core/main.c
@@ -96,7 +95,6 @@ bt_daemon_LDADD = \
 	libbuxton-shared.la
 
 buxtonctl_SOURCES = \
-	src/shared/constants.c \
 	src/cli/main.c \
 	src/cli/client.c \
 	src/cli/client.h
@@ -113,6 +111,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/list.h \
 	src/shared/log.c \
 	src/shared/log.h \
+	src/shared/array.c \
+	src/shared/buxton-array.h \
 	src/shared/backend.c \
 	src/shared/backend.h \
 	src/shared/hashmap.c \
@@ -123,6 +123,7 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/serialize.h \
 	src/shared/protocol.c \
 	src/shared/protocol.h \
+	src/shared/constants.c \
 	${NULL}
 
 if USE_LOCAL_INIPARSER
@@ -141,7 +142,8 @@ libbuxton_security_la_SOURCES = \
 	src/security/smack.h
 
 include_HEADERS += \
-	src/include/bt-daemon.h
+	src/include/bt-daemon.h \
+	src/include/buxton-array.h
 
 lib_LTLIBRARIES += \
 	libbuxton.la
@@ -299,8 +301,7 @@ bin_PROGRAMS += \
 
 # Timing test
 bxt_timing_SOURCES = \
-	demo/timing.c \
-	src/shared/constants.c
+	demo/timing.c
 bxt_timing_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la \

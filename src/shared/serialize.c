@@ -189,6 +189,8 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	size_t size = 0;
 	size_t curSize = 0;
 	uint16_t control, msg;
+	BuxtonArray *array = NULL;
+	bool type_sent = false;
 
 	assert(dest);
 
@@ -209,20 +211,30 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	offset += sizeof(uint16_t);
 
 	msg = (uint16_t)message;
+	/* Send a status message first with lists */
+	if (message == BUXTON_CONTROL_LIST)
+		msg = (uint16_t)BUXTON_CONTROL_STATUS;
 	memcpy(data+offset, &msg, sizeof(uint16_t));
 	offset += sizeof(uint16_t);
 
 	/* Save room for final size */
 	offset += sizeof(uint32_t);
 
+	/* Deal with parameters */
+	va_start(args, n_params);
+
 	/* Now write the parameter count */
-	memcpy(data+offset, &n_params, sizeof(uint32_t));
+	if (message == BUXTON_CONTROL_LIST) {
+		/* Dealing with a BuxtonArray */
+		array = va_arg(args, BuxtonArray*);
+		n_params = array->len+1;
+		memcpy(data+offset, &n_params, sizeof(uint32_t));
+	} else
+		memcpy(data+offset, &n_params, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
 	size = offset;
 
-	/* Deal with parameters */
-	va_start(args, n_params);
 	BuxtonData *param;
 	size_t p_length = 0;
 	for (i=0; i<n_params; i++) {
@@ -231,7 +243,17 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		 * next parameter is invalid/absent, so checking for
 		 * NULL here is not sufficient.
 		 */
-		param = va_arg(args, BuxtonData*);
+		if (message == BUXTON_CONTROL_LIST) {
+			if (!type_sent) {
+				param = va_arg(args, BuxtonData*);
+				type_sent = true;
+			} else {
+				param = (BuxtonData*)array->data[i-1];
+			}
+		} else {
+			param = va_arg(args, BuxtonData*);
+		}
+
 		if (!param)
 			goto fail;
 

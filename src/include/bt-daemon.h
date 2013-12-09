@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <buxton-array.h>
 
 #if (__GNUC__ >= 4)
 /* Export symbols */
@@ -158,6 +159,16 @@ _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 						   BuxtonString *layer,
 						   BuxtonString *key,
 						   BuxtonData *data);
+/*
+ * List all keys within a given layer in Buxon
+ * @param client An open client connection
+ * @param layer_name The layer to query
+ * @param list Pointer to store a BuxtonArray in
+ * @return A boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
+					 BuxtonString *layer_name,
+					 BuxtonArray **list);
 
 /**
  * Register for notifications on the given key in all layers

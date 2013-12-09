@@ -67,6 +67,16 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
 
 
 /**
+ * Send a LIST message over the wire protocol, return the data
+ * @param client Client connection
+ * @param layer_name Layer name
+ * @param array Array to store keys from the given layer
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_list_keys(BuxtonClient *client, BuxtonString *layer_name,
+			   BuxtonArray **array);
+
+/**
  * Send an UNSET message over the wire protocol, return the response
  * @param client Client connection
  * @param layer_name Layer name
