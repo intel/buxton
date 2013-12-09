@@ -85,7 +85,6 @@ bin_PROGRAMS = \
 	buxtonctl
 
 bt_daemon_SOURCES = \
-	src/shared/constants.c \
 	src/core/daemon.c \
 	src/core/daemon.h \
 	src/core/main.c
@@ -96,7 +95,6 @@ bt_daemon_LDADD = \
 	libbuxton-shared.la
 
 buxtonctl_SOURCES = \
-	src/shared/constants.c \
 	src/cli/main.c \
 	src/cli/client.c \
 	src/cli/client.h
@@ -125,6 +123,7 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/serialize.h \
 	src/shared/protocol.c \
 	src/shared/protocol.h \
+	src/shared/constants.c \
 	${NULL}
 
 if USE_LOCAL_INIPARSER
@@ -303,7 +302,6 @@ bin_PROGRAMS += \
 # Timing test
 bxt_timing_SOURCES = \
 	demo/timing.c \
-	src/shared/constants.c
 bxt_timing_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la \
