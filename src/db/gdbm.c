@@ -169,6 +169,8 @@ static bool list_keys(BuxtonLayer *layer,
 	datum key, nextkey;
 	BuxtonArray *k_list = NULL;
 	BuxtonData *current = NULL;
+	char *name = NULL;
+	BuxtonString key_name;
 
 	assert(layer);
 
@@ -184,9 +186,15 @@ static bool list_keys(BuxtonLayer *layer,
 		if (!current)
 			return false;
 
+		/* Split the actual key */
 		current->type = STRING;
-		current->store.d_string.value = strdup((char*)key.dptr);
-		current->store.d_string.length = (uint32_t)key.dsize;
+		key_name.value = (char*)key.dptr;
+		key_name.length = key.dsize;
+		name = get_name(&key_name);
+
+		/* Copy the key in */
+		current->store.d_string.value = strdup(name);
+		current->store.d_string.length = strlen(name)+1;
 		current->label = buxton_string_pack("dummy");
 		buxton_array_add(k_list, current);
 
