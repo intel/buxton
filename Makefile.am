@@ -301,7 +301,7 @@ bin_PROGRAMS += \
 
 # Timing test
 bxt_timing_SOURCES = \
-	demo/timing.c \
+	demo/timing.c
 bxt_timing_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la \
