@@ -151,6 +151,16 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 			   BuxtonString *key, BuxtonStatus *status);
 
 /**
+ * Buxton daemon function for unregistering notifications from the given key
+ * @param self bt-daemon instance being run
+ * @param client Used to validate smack access
+ * @param key Key to no longer recieve notifications for
+ * @param status Will be set with the BuxtonStatus result of the operation
+ */
+void unregister_notification(BuxtonDaemon *self, client_list_item *client,
+			     BuxtonString *key, BuxtonStatus *status);
+
+/**
  * Verify credentials for the client socket
  * @param cl Client to check the credentials of
  * @return bool indicating credentials where found or not
