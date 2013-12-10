@@ -396,6 +396,7 @@ START_TEST(register_notification_check)
 	Iterator i;
 	char *k;
 	notification_list_item *n;
+	int count = 0;
 
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
@@ -405,6 +406,8 @@ START_TEST(register_notification_check)
 	key = buxton_string_pack("key");
 	register_notification(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
+	unregister_notification(&server, &client, &key, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Unable to unregister from notifications");
 	register_notification(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
 	//FIXME: Figure out what to do with duplicates
@@ -413,6 +416,8 @@ START_TEST(register_notification_check)
 	fail_if(status == BUXTON_STATUS_OK, "Registered notification with key not in db");
 
 	HASHMAP_FOREACH_KEY(n, k, server.notify_mapping, i) {
+		count += 1;
+		fail_if(count > 1, "Too many keys, unregister_notification failed");
 		free(k);
 		free(n->old_data->label.value);
 		if (n->old_data->type == STRING)

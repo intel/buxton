@@ -53,6 +53,7 @@ typedef enum BuxtonControlMessage{
 	BUXTON_CONTROL_UNSET, /**<Unset a value within Buxton */
 	BUXTON_CONTROL_STATUS, /**<Status code follows */
 	BUXTON_CONTROL_NOTIFY, /**<Register for notification */
+	BUXTON_CONTROL_UNNOTIFY, /**<Opt out of notifications */
 	BUXTON_CONTROL_CHANGED, /**<A key changed in Buxton */
 	BUXTON_CONTROL_MAX
 } BuxtonControlMessage;

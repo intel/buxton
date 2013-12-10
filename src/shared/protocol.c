@@ -238,6 +238,36 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
 	return (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK);
 }
+
+bool buxton_wire_unregister_notification(BuxtonClient *self, BuxtonString *key)
+{
+	assert(self);
+	assert(key);
+
+	size_t count;
+	_cleanup_free_ uint8_t *send = NULL;
+	size_t send_len = 0;
+	BuxtonControlMessage r_msg;
+	_cleanup_free_ BuxtonData *r_list = NULL;
+	BuxtonData d_key;
+
+	buxton_string_to_data(key, &d_key);
+	d_key.label = buxton_string_pack("dummy");
+
+	/* Attempt to serialize our send message */
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNNOTIFY, 1,
+					    &d_key);
+	if (send_len == 0)
+		return false;
+
+	/* Now write it off */
+	write(self->fd, send, send_len);
+
+	/* Gain response */
+	count = buxton_wire_get_response(self, &r_msg, &r_list);
+	return (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK);
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
