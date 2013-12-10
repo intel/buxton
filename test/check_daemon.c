@@ -240,6 +240,18 @@ START_TEST(parse_list_check)
 	fail_if(!streq(key->value, l1[0].store.d_string.value),
 		"Failed to set correct notify key");
 
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 2, l1, &key, &layer, &value),
+		"Parsed bad unnotify argument count");
+	l1[0].type = INT32;
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &layer, &value),
+		"Parsed bad unnotify type");
+	l1[0].type = STRING;
+	l1[0].store.d_string = buxton_string_pack("s1");
+	fail_if(!parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &layer, &value),
+		"Unable to parse valid unnotify");
+	fail_if(!streq(key->value, l1[0].store.d_string.value),
+		"Failed to set correct unnotify key");
+
 	fail_if(parse_list(BUXTON_CONTROL_GET, 3, l2, &key, &layer, &value),
 		"Parsed bad get argument count");
 	l2[0].type = INT32;
@@ -390,13 +402,12 @@ END_TEST
 START_TEST(register_notification_check)
 {
 	BuxtonString key;
-	client_list_item client;
+	client_list_item client, no_client;
+	BuxtonString clabel;
 	BuxtonStatus status;
 	BuxtonDaemon server;
-	Iterator i;
-	char *k;
-	notification_list_item *n;
 
+	client.smack_label = &clabel;
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 	server.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
@@ -408,18 +419,22 @@ START_TEST(register_notification_check)
 	register_notification(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
 	//FIXME: Figure out what to do with duplicates
+	key = buxton_string_pack("no-key");
+	unregister_notification(&server, &client, &key, &status);
+	fail_if(status != BUXTON_STATUS_FAILED,
+		"Unregistered from notifications with invalid key");
+	key = buxton_string_pack("key");
+	unregister_notification(&server, &no_client, &key, &status);
+	fail_if(status != BUXTON_STATUS_FAILED,
+		"Unregistered from notifications with invalid client");
+	unregister_notification(&server, &client, &key, &status);
+	fail_if(status != BUXTON_STATUS_OK,
+		"Unable to unregister from notifications");
 	key = buxton_string_pack("key2");
 	register_notification(&server, &client, &key, &status);
 	fail_if(status == BUXTON_STATUS_OK, "Registered notification with key not in db");
 
-	HASHMAP_FOREACH_KEY(n, k, server.notify_mapping, i) {
-		free(k);
-		free(n->old_data->label.value);
-		if (n->old_data->type == STRING)
-			free(n->old_data->store.d_string.value);
-		free(n->old_data);
-		free(n);
-	}
+	hashmap_free(server.notify_mapping);
 	buxton_client_close(&server.buxton.client);
 }
 END_TEST
@@ -628,9 +643,6 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	BuxtonData data2;
 	client_list_item cl;
 	bool r;
-	Iterator i;
-	char *k;
-	notification_list_item *n;
 	BuxtonClient bclient;
 	BuxtonData *list;
 	BuxtonControlMessage msg;
@@ -670,16 +682,33 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	free(list[0].label.value);
 	free(list);
 
+	/* UNNOTIFY */
+	string = buxton_make_key("group", "name");
+	fail_if(!string, "Failed to allocate key");
+	data2.type = STRING;
+	data2.store.d_string.value = string->value;
+	data2.store.d_string.length = string->length;
+	data2.label = buxton_string_pack("dummy");
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNNOTIFY, 1,
+					&data2);
+	fail_if(size == 0, "Failed to serialize message");
+	r = bt_daemon_handle_message(&daemon, &cl, size);
+	free(cl.data);
+	fail_if(!r, "Failed to unregister from notification");
+	free(data2.store.d_string.value);
+	free(string);
+
+	bclient.fd = client;
+	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	fail_if(csize != 1, "Failed to get correct response to unnotify");
+	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+		"Failed to unregister from notification");
+	free(list[0].label.value);
+	free(list);
+
 	close(client);
+	hashmap_free(daemon.notify_mapping);
 	buxton_direct_close(&daemon.buxton);
-	HASHMAP_FOREACH_KEY(n, k, daemon.notify_mapping, i) {
-		free(k);
-		free(n->old_data->label.value);
-		if (n->old_data->type == STRING)
-			free(n->old_data->store.d_string.value);
-		free(n->old_data);
-		free(n);
-	}
 }
 END_TEST
 
