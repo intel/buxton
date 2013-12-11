@@ -85,6 +85,15 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 bool buxton_wire_register_notification(BuxtonClient *client,
 				       BuxtonString *key);
 
+/**
+ * Send an UNNOTIFY message over the protocol, no longer recieve events
+ * @param client Client connection
+ * @param key Key name
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_unregister_notification(BuxtonClient *client,
+				         BuxtonString *key);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

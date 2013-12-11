@@ -66,6 +66,13 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		*key = &(list[0].store.d_string);
 		break;
+	case BUXTON_CONTROL_UNNOTIFY:
+		if (count != 1)
+			return false;
+		if (list[0].type != STRING)
+			return false;
+		*key = &(list[0].store.d_string);
+		break;
 	default:
 		return false;
 		break;
@@ -123,6 +130,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_NOTIFY:
 		register_notification(self, client, key, &response);
 		break;
+	case BUXTON_CONTROL_UNNOTIFY:
+		unregister_notification(self, client, key, &response);
+		break;
 	default:
 		goto end;
 	}
@@ -157,6 +167,13 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 1, &response_data);
 		if (response_len == 0) {
 			buxton_log("Failed to serialize notify response message\n");
+			goto end;
+		}
+		break;
+	case BUXTON_CONTROL_UNNOTIFY:
+		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, 1, &response_data);
+		if (response_len == 0) {
+			buxton_log("Failed to serialize unnotify response message\n");
 			goto end;
 		}
 		break;
@@ -449,6 +466,48 @@ void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonS
 	} else {
 		LIST_PREPEND(notification_list_item, item, n_list, nitem);
 	}
+	*status = BUXTON_STATUS_OK;
+}
+
+void unregister_notification(BuxtonDaemon *self, client_list_item *client,
+			     BuxtonString *key, BuxtonStatus *status)
+{
+	notification_list_item *n_list = NULL;
+	notification_list_item *nitem, *citem = NULL;
+	int length = 0;
+
+	assert(self);
+	assert(client);
+	assert(key);
+	assert(status);
+
+	*status = BUXTON_STATUS_FAILED;
+	n_list = hashmap_get(self->notify_mapping, key->value);
+	/* This key isn't actually registered for notifications */
+	if (!n_list)
+		return;
+
+	LIST_FOREACH(item, nitem, n_list) {
+		/* Find the list item for this client */
+		if (nitem->client == client)
+			citem = nitem;
+		length++;
+	};
+
+	/* Client hasn't registered for notifications on this key */
+	if (!citem)
+		return;
+
+	/* Remove client from notifications */
+	LIST_REMOVE(notification_list_item, item, n_list, citem);
+	free_buxton_data(&(citem->old_data));
+	citem->client = NULL;
+	free(citem);
+
+	/* If we removed the last item, remove the mapping too */
+	if (length == 1)
+		hashmap_remove(self->notify_mapping, key->value);
+
 	*status = BUXTON_STATUS_OK;
 }
 

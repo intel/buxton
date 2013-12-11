@@ -169,6 +169,16 @@ _bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
 						     BuxtonString *key);
 
 /**
+ * Unregister from notifications on the given key in all layers
+ * @param client An open client connection
+ * @param key The key to remove registered interest from
+ * @return a boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
+						       BuxtonString *key);
+
+
+/**
  * Unset a value by key in the given BuxtonLayer
  * @param client An open client connection
  * @param layer The layer to remove the value from
