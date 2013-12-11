@@ -337,11 +337,13 @@ START_TEST(set_value_check)
 	client_list_item client;
 	BuxtonStatus status;
 	BuxtonDaemon server;
+	BuxtonString clabel;
 
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
 	client.cred.uid = getuid();
+	client.smack_label = &clabel;
 	server.buxton.client.uid = 0;
 	layer = buxton_string_pack("test-gdbm");
 	key = buxton_string_pack("key");
@@ -363,11 +365,13 @@ START_TEST(get_value_check)
 	client_list_item client;
 	BuxtonStatus status;
 	BuxtonDaemon server;
+	BuxtonString clabel;
 
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
 	client.cred.uid = getuid();
+	client.smack_label = &clabel;
 	server.buxton.client.uid = 0;
 	layer = buxton_string_pack("test-gdbm");
 	key = buxton_string_pack("key");
