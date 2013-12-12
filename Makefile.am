@@ -133,12 +133,20 @@ libbuxton_shared_la_SOURCES += \
 	src/shared/iniparser.h
 endif
 
+libbuxton_shared_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-static
+
 noinst_LTLIBRARIES += \
 	libbuxton-security.la
 
 libbuxton_security_la_SOURCES = \
 	src/security/smack.c \
 	src/security/smack.h
+
+libbuxton_security_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-static
 
 include_HEADERS += \
 	src/include/bt-daemon.h
