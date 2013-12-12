@@ -83,8 +83,8 @@ bool buxton_cache_smack_rules(void)
 		int chars;
 		BuxtonKeyAccessType *accesstype;
 
-		char subject[SMACK_LABEL_LEN] = { 0, };
-		char object[SMACK_LABEL_LEN] = { 0, };
+		char subject[SMACK_LABEL_LEN+1] = { 0, };
+		char object[SMACK_LABEL_LEN+1] = { 0, };
 		char access[ACC_LEN] = { 0, };
 
 		/* read contents from load2 */
