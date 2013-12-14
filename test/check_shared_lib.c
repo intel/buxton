@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <iniparser.h>
 #include <limits.h>
 
 #include "backend.h"
@@ -29,6 +28,7 @@
 #include "serialize.h"
 #include "smack.h"
 #include "util.h"
+#include "configurator.h"
 
 START_TEST(log_write_check)
 {
@@ -64,27 +64,6 @@ START_TEST(log_write_check)
 }
 END_TEST
 
-START_TEST(ini_parse_check)
-{
-	char ini_good[] = "test/test-pass.ini";
-	char ini_bad[] = "test/test-fail.ini";
-	dictionary *ini = NULL;
-
-        ini = iniparser_load(ini_good);
-	fail_if(ini == NULL,
-		"Failed to parse ini file");
-
-	iniparser_dump(ini, stdout);
-	iniparser_freedict(ini);
-
-        ini = iniparser_load(ini_bad);
-	fail_if(ini != NULL,
-		"Failed to catch bad ini file");
-
-	iniparser_dump(ini, stdout);
-	iniparser_freedict(ini);
-}
-END_TEST
 
 START_TEST(hashmap_check)
 {
@@ -167,7 +146,7 @@ START_TEST(get_layer_path_check)
 	memset(&layer, 0, sizeof(BuxtonLayer));
 	layer.name = buxton_string_pack("path-test");
 	layer.type = LAYER_SYSTEM;
-	r = asprintf(&real_path, "%s/%s", DB_PATH, "path-test.db");
+	r = asprintf(&real_path, "%s/%s", buxton_db_path(), "path-test.db");
 	fail_if(r == -1, "Failed to set real path for system layer");
 
 	path = get_layer_path(&layer);
@@ -181,7 +160,7 @@ START_TEST(get_layer_path_check)
 	layer.name = buxton_string_pack("user-path-test");
 	layer.type = LAYER_USER;
 	layer.uid = 1000;
-	r = asprintf(&real_path, "%s/%s", DB_PATH, "user-path-test-1000.db");
+	r = asprintf(&real_path, "%s/%s", buxton_db_path(), "user-path-test-1000.db");
 	fail_if(r == -1, "Failed to set real path for user layer");
 
 	path = get_layer_path(&layer);
@@ -677,10 +656,6 @@ shared_lib_suite(void)
 	tcase_add_test(tc, log_write_check);
 	suite_add_tcase(s, tc);
 
-	tc = tcase_create("ini_functions");
-	tcase_add_test(tc, ini_parse_check);
-	suite_add_tcase(s, tc);
-
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
 	suite_add_tcase(s, tc);
@@ -710,6 +685,7 @@ int main(void)
 	Suite *s;
 	SRunner *sr;
 
+	putenv("BUXTON_CONF_FILE=" ABS_TOP_BUILDDIR "/test/test.conf");
 	s = shared_lib_suite();
 	sr = srunner_create(s);
 	srunner_run_all(sr, CK_VERBOSE);

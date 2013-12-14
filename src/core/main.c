@@ -37,6 +37,7 @@
 #include "log.h"
 #include "smack.h"
 #include "util.h"
+#include "configurator.h"
 
 #define POLL_TIMEOUT 250
 #define SOCKET_TIMEOUT 5
@@ -116,7 +117,7 @@ int main(int argc, char *argv[])
 
 		memset(&sa, 0, sizeof(sa));
 		sa.un.sun_family = AF_UNIX;
-		strncpy(sa.un.sun_path, BUXTON_SOCKET, sizeof(sa.un.sun_path) - 1);
+		strncpy(sa.un.sun_path, buxton_socket(), sizeof(sa.un.sun_path) - 1);
 		sa.un.sun_path[sizeof(sa.un.sun_path)-1] = 0;
 
 		ret = unlink(sa.un.sun_path);
@@ -142,7 +143,7 @@ int main(int argc, char *argv[])
 			if (sd_is_fifo(fd, NULL)) {
 				add_pollfd(&self, fd, POLLIN, false);
 				buxton_debug("Added fd %d type FIFO\n", fd);
-			} else if (sd_is_socket_unix(fd, SOCK_STREAM, -1, BUXTON_SOCKET, 0)) {
+			} else if (sd_is_socket_unix(fd, SOCK_STREAM, -1, buxton_socket(), 0)) {
 				add_pollfd(&self, fd, POLLIN | POLLPRI, true);
 				buxton_debug("Added fd %d type UNIX\n", fd);
 			} else if (sd_is_socket(fd, AF_UNSPEC, 0, -1)) {
@@ -266,7 +267,7 @@ int main(int argc, char *argv[])
 	buxton_log("%s: Closing all connections\n", argv[0]);
 
 	if (manual_start)
-		unlink(BUXTON_SOCKET);
+		unlink(buxton_socket());
 	for (int i = 0; i < self.nfds; i++) {
 		close(self.pollfds[i].fd);
 	}

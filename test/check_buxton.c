@@ -486,6 +486,7 @@ int main(void)
 	Suite *s;
 	SRunner *sr;
 
+	putenv("BUXTON_CONF_FILE=" ABS_TOP_BUILDDIR "/test/test.conf");
 	s = buxton_suite();
 	sr = srunner_create(s);
 	srunner_run_all(sr, CK_VERBOSE);
