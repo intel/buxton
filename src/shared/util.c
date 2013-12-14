@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include "configurator.h"
 #include "hashmap.h"
 #include "log.h"
 #include "util.h"
@@ -66,14 +67,14 @@ char* get_layer_path(BuxtonLayer *layer)
 
 	switch (layer->type) {
 		case LAYER_SYSTEM:
-			r = asprintf(&path, "%s/%s.db", DB_PATH, layer->name.value);
+			r = asprintf(&path, "%s/%s.db", buxton_db_path(), layer->name.value);
 			if (r == -1)
 				return NULL;
 			break;
 		case LAYER_USER:
 			/* uid must already be set in layer before calling */
 			sprintf(uid, "%d", (int)layer->uid);
-			r = asprintf(&path, "%s/%s-%s.db", DB_PATH, layer->name.value, uid);
+			r = asprintf(&path, "%s/%s-%s.db", buxton_db_path(), layer->name.value, uid);
 			if (r == -1)
 				return NULL;
 			break;
