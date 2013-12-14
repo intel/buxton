@@ -124,6 +124,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/serialize.h \
 	src/shared/protocol.c \
 	src/shared/protocol.h \
+	src/shared/configurator.c \
+	src/shared/configurator.h \
 	${NULL}
 
 if USE_LOCAL_INIPARSER
