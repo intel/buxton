@@ -23,6 +23,7 @@
 #include <stdint.h>
 
 #include "bt-daemon.h"
+#include "buxton-array.h"
 
 /**
  * Magic for Buxton messages
@@ -93,13 +94,12 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
  * Serialize an internal buxton message for wire communication
  * @param dest Pointer to store serialized message in
  * @param message The type of message to be serialized
- * @param n_params Number of parameters in va_args list
- * @param ... Variable argument list of BuxtonData pointers
+ * @param list An array of BuxtonData's to be serialized
  * @return a size_t, 0 indicates failure otherwise size of dest
  */
 size_t buxton_serialize_message(uint8_t **dest,
 				BuxtonControlMessage message,
-				size_t n_params, ...);
+				BuxtonArray *list);
 
 /**
  * Deserialize the given data into an array of BuxtonData structs
