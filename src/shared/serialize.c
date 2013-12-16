@@ -179,10 +179,9 @@ end:
 }
 
 size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
-			        size_t n_params, ...)
+			        BuxtonArray *list)
 {
-	va_list args;
-	int i = 0;
+	uint16_t i = 0;
 	uint8_t *data = NULL;
 	size_t ret = 0;
 	size_t offset = 0;
@@ -194,7 +193,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 	buxton_debug("Serializing message...\n");
 
-	if (n_params == 0 || n_params > BUXTON_MESSAGE_MAX_PARAMS)
+	if (list->len == 0 || list->len > BUXTON_MESSAGE_MAX_PARAMS)
 		return ret;
 
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
@@ -216,22 +215,16 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	offset += sizeof(uint32_t);
 
 	/* Now write the parameter count */
-	memcpy(data+offset, &n_params, sizeof(uint32_t));
+	memcpy(data+offset, &(list->len), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
 	size = offset;
 
 	/* Deal with parameters */
-	va_start(args, n_params);
 	BuxtonData *param;
 	size_t p_length = 0;
-	for (i=0; i<n_params; i++) {
-		/* FIXME: Every parameter must be a BuxtonData, but
-		 * the return value of va_arg is undefined if the
-		 * next parameter is invalid/absent, so checking for
-		 * NULL here is not sufficient.
-		 */
-		param = va_arg(args, BuxtonData*);
+	for (i=0; i < list->len; i++) {
+		param = buxton_array_get(list, i);
 		if (!param)
 			goto fail;
 
@@ -331,7 +324,6 @@ fail:
 	/* Clean up */
 	if (ret == 0)
 		free(data);
-	va_end(args);
 end:
 	buxton_debug("Serializing returned:%lu\n", ret);
 	return ret;

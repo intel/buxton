@@ -88,10 +88,12 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	assert(value->label.value);
 
 	_cleanup_free_ uint8_t *send = NULL;
+	bool ret = false;
 	size_t count;
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
 	_cleanup_free_ BuxtonData *r_list = NULL;
+	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_key;
 
@@ -100,11 +102,17 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	d_layer.label = buxton_string_pack("dummy");
 	d_key.label = buxton_string_pack("dummy");
 
+	list = buxton_array_new();
+	if (!buxton_array_add(list, &d_layer) ||
+		!buxton_array_add(list, &d_key) ||
+		!buxton_array_add(list, value)) {
+		buxton_log("Failed to prepare set_value message\n");
+		goto end;
+	}
 	/* Attempt to serialize our send message */
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, 3,
-					    &d_layer, &d_key, value);
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, list);
 	if (send_len == 0)
-		return false;
+		goto end;
 
 	/* Now write it off */
 	write(self->fd, send, send_len);
@@ -112,9 +120,11 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
 	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-		return true;
+		ret = true;
 
-	return false;
+end:
+	buxton_array_free(&list, NULL);
+	return ret;
 }
 
 bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonString *key,
@@ -131,6 +141,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	_cleanup_free_ uint8_t *send = NULL;
 	BuxtonControlMessage r_msg;
 	BuxtonData *r_list = NULL;
+	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_key;
 
@@ -138,15 +149,21 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	d_key.label = buxton_string_pack("dummy");
 
 	/* Attempt to serialize our send message */
+	list = buxton_array_new();
 	if (layer_name != NULL) {
 		buxton_string_to_data(layer_name, &d_layer);
 		d_layer.label = buxton_string_pack("dummy");
-		send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, 2,
-						    &d_layer, &d_key);
-	} else {
-		send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, 1,
-						    &d_key);
+		if (!buxton_array_add(list, &d_layer)) {
+			buxton_log("Unable to prepare get_value message\n");
+			goto end;
+		}
 	}
+	if (!buxton_array_add(list, &d_key)) {
+		buxton_log("Unable to prepare get_value message\n");
+		goto end;
+	}
+
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, list);
 
 	if (send_len == 0)
 		goto end;
@@ -172,6 +189,7 @@ end:
 		}
 		free(r_list);
 	}
+	buxton_array_free(&list, NULL);
 	return ret;
 }
 
@@ -188,6 +206,7 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
 	_cleanup_free_ BuxtonData *r_list = NULL;
+	BuxtonArray *list = NULL;
 	BuxtonData d_key, d_layer;
 
 	buxton_string_to_data(key, &d_key);
@@ -196,14 +215,20 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 	d_layer.label = buxton_string_pack("dummy");
 
 	/* Attempt to serialize our send message */
+	list = buxton_array_new();
+	buxton_array_add(list, &d_layer);
+	buxton_array_add(list, &d_key);
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNSET,
-		2, &d_layer, &d_key);
+		list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
+		buxton_array_free(&list, NULL);
 		return false;
+	}
 
 	/* Now write it off */
 	write(client->fd, send, send_len);
+	buxton_array_free(&list, NULL);
 
 	/* Gain response */
 	count = buxton_wire_get_response(client, &r_msg, &r_list);
@@ -220,19 +245,25 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
 	_cleanup_free_ BuxtonData *r_list = NULL;
+	BuxtonArray *list = NULL;
 	BuxtonData d_key;
 
 	buxton_string_to_data(key, &d_key);
 	d_key.label = buxton_string_pack("dummy");
 
 	/* Attempt to serialize our send message */
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_NOTIFY, 1,
-					    &d_key);
-	if (send_len == 0)
+	list = buxton_array_new();
+	buxton_array_add(list, &d_key);
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_NOTIFY, list);
+	if (send_len == 0) {
+		buxton_array_free(&list, NULL);
 		return false;
+	}
 
 	/* Now write it off */
 	write(self->fd, send, send_len);
+
+	buxton_array_free(&list, NULL);
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
@@ -249,19 +280,26 @@ bool buxton_wire_unregister_notification(BuxtonClient *self, BuxtonString *key)
 	size_t send_len = 0;
 	BuxtonControlMessage r_msg;
 	_cleanup_free_ BuxtonData *r_list = NULL;
+	BuxtonArray *list = NULL;
 	BuxtonData d_key;
 
 	buxton_string_to_data(key, &d_key);
 	d_key.label = buxton_string_pack("dummy");
 
 	/* Attempt to serialize our send message */
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNNOTIFY, 1,
-					    &d_key);
-	if (send_len == 0)
+	list = buxton_array_new();
+	buxton_array_add(list, &d_key);
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNNOTIFY, list);
+
+	if (send_len == 0) {
+		buxton_array_free(&list, NULL);
 		return false;
+	}
 
 	/* Now write it off */
 	write(self->fd, send, send_len);
+
+	buxton_array_free(&list, NULL);
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
