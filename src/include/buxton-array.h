@@ -20,14 +20,6 @@
 #include <bt-daemon.h>
 
 /**
- * A dynamic array
- */
-typedef struct BuxtonArray {
-	void **data; /**<Dynamic array contents */
-	uint len; /**<Length of the array */
-} BuxtonArray;
-
-/**
  * Valid function prototype for 'free' method
  * @param p Pointer to free
  */

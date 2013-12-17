@@ -100,6 +100,14 @@ typedef struct BuxtonData {
 	BuxtonString label; /**<SMACK label for data */
 } BuxtonData;
 
+/**
+ * A dynamic array
+ */
+typedef struct BuxtonArray {
+	void **data; /**<Dynamic array contents */
+	uint len; /**<Length of the array */
+} BuxtonArray;
+
 static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)
 {
 	d->type = STRING;
@@ -158,6 +166,17 @@ _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 						   BuxtonString *layer,
 						   BuxtonString *key,
 						   BuxtonData *data);
+
+/**
+ * List all keys within a given layer in Buxon
+ * @param client An open client connection
+ * @param layer_name The layer to query
+ * @param list Pointer to store a BuxtonArray in
+ * @return A boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
+					 BuxtonString *layer_name,
+					 BuxtonArray **list);
 
 /**
  * Register for notifications on the given key in all layers
