@@ -28,6 +28,7 @@
  * @note This is work in progress.
  */
 
+
 /**
  * Section name in ini file for our configuration
  */
@@ -88,7 +89,7 @@ static const char* COMPILE_DEFAULT[CONFIG_MAX] = {
  * wrap strdup and die if malloc fails
  *
  * @note This may seem lame and stupid at first glance.  The former is
- * right the latter is not.
+ * right the latter is not.  This function may abort()
  *
  * @return pointer to dup'd string
  */
@@ -103,6 +104,57 @@ static inline char* _strdup(const char* string)
 	return s;
 }
 
+/**
+ * @internal
+ * grab a string from the ini file
+ *
+ * @param section the section of the ini file
+ * @param name the name of the key
+ *
+ * @note This function may abort()
+ *
+ * @return The value as a string.  The the string is internal to
+ * libini, and if at this stage of the game it is null, just die.
+ * Somethign is really wrong and even if we could recover, the system
+ * is not working correctly.
+ */
+static char* get_ini_string(char *section, char *name)
+{
+	char buf[PATH_MAX];
+	char *s;
+
+	assert(conf.ini);
+	snprintf(buf, sizeof(buf), "%s:%s", section, name);
+	s = iniparser_getstring(conf.ini, buf, NULL);
+	if (s == NULL)
+		abort();
+	return s;
+}
+
+/**
+ * analagous method to get_ini_string()
+ *
+ * @param section the section of the ini file
+ * @param name the name of the key
+ *
+ * @note inlined b/c only used once and why not.
+ *
+ * @return the value
+ */
+static inline int get_ini_int(char *section, char *name)
+{
+	char buf[PATH_MAX];
+
+	assert(conf.ini);
+	snprintf(buf, sizeof(buf), "%s:%s", section, name);
+	return iniparser_getint(conf.ini, buf, -1);
+}
+
+/**
+ * @internal
+ * Initialize conf
+ *
+ */
 static void initialize(void)
 {
 	if (conf.initialized)
@@ -210,6 +262,42 @@ char* buxton_socket(void)
 	initialize();
 	return conf.keys[CONFIG_BUXTON_SOCKET];
 }
+
+ConfigLayer* buxton_get_layers(int *numlayers)
+{
+	ConfigLayer* layers;
+	int n;
+	int j = 0;
+
+	initialize();
+	if (conf.ini == NULL) {
+		buxton_log("config file not loaded when calling buxton_get_layers()");
+		return NULL;
+	}
+	n = iniparser_getnsec(conf.ini);
+	layers = (ConfigLayer*)calloc((size_t)n, sizeof(ConfigLayer));
+	if (layers == NULL)
+	        abort();
+	for (int i= 0; i < n; i++) {
+		char *section_name;
+
+		section_name = iniparser_getsecname(conf.ini, i);
+		if (!section_name)
+			abort();
+		if (!strcasecmp(section_name, CONFIG_SECTION))
+			continue;
+		layers[j].name = section_name;
+		layers[j].description = get_ini_string(section_name, "Description");
+		layers[j].backend = get_ini_string(section_name, "Backend");
+		layers[j].type = get_ini_string(section_name, "Type");
+		layers[j].priority = get_ini_int(section_name, "Priority");
+		j++;
+	}
+	if (numlayers)
+		*numlayers = j;
+	return layers;
+}
+
 
 
 /*

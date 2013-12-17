@@ -18,19 +18,37 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include <stdbool.h>
 #include "configurator.h"
 #include "constants.h"
 
+static void fail_strne(char *value, char *correct_value, bool casecmp)
+{
+	char buf[PATH_MAX];
+	int ret;
+
+	snprintf(buf, sizeof(buf), "%s was not %s", value, correct_value);
+	if (casecmp)
+		ret = strcasecmp(value, correct_value);
+	 else
+		ret = strcmp(value, correct_value);
+	fail_unless(ret == 0, buf);
+}
+
+static void fail_ne(int a, int b)
+{
+	fail_unless(a == b, "%d is not %d", a, b);
+}
 
 static void default_test(char *value, char* correct_value, char *symbolname)
 {
-	char buf[255];
+	char buf[PATH_MAX];
 
 	snprintf(buf, sizeof(buf), "%s returned null!", symbolname);
 	fail_if(value == NULL, buf);
 
 	snprintf(buf, sizeof(buf), "%s was not %s", value, correct_value);
-	fail_unless(strcmp(value, correct_value) == 0, buf);
+	fail_strne(value, correct_value, true);
 
 	free(value);
 }
@@ -189,6 +207,41 @@ START_TEST(configurator_conf_module_dir)
 }
 END_TEST
 
+START_TEST(configurator_get_layers)
+{
+	ConfigLayer *layers;
+	int numlayers = -1;
+
+	putenv("BUXTON_CONF_FILE=" TOP_SRCDIR "/test/test-configurator.conf");
+	layers = buxton_get_layers(&numlayers);
+	fail_if(layers == NULL, "buxton_get_layers returned NULL");
+	fail_if(numlayers != 7, "num layers is %d instead of %d", numlayers, 7);
+
+	fail_strne(layers[0].name, "base", false);
+	fail_strne(layers[0].type, "System", false);
+	fail_strne(layers[0].backend, "gdbm", false);
+	fail_strne(layers[0].description, "Operating System configuration layer", false);
+	fail_ne(layers[0].priority, 0);
+
+	fail_strne(layers[1].name, "isp", false);
+	fail_strne(layers[1].type, "System", false);
+	fail_strne(layers[1].backend, "gdbm", false);
+	fail_strne(layers[1].description, "ISP specific settings", false);
+	fail_ne(layers[1].priority, 1);
+
+	/* ... */
+
+	fail_strne(layers[6].name, "test-gdbm-user", false);
+	fail_strne(layers[6].type, "User", false);
+	fail_strne(layers[6].backend, "gdbm", false);
+	fail_strne(layers[6].description, "GDBM test db for user", false);
+	fail_ne(layers[6].priority, 6000);
+
+
+
+}
+END_TEST
+
 
 static Suite *
 configurator_suite(void)
@@ -223,11 +276,15 @@ configurator_suite(void)
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("config file works");
-	suite_add_tcase(s, tc);
 	tcase_add_test(tc, configurator_conf_module_dir);
 	tcase_add_test(tc, configurator_conf_db_path);
 	tcase_add_test(tc, configurator_conf_smack_load_file);
 	tcase_add_test(tc, configurator_conf_buxton_socket);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("config file works");
+	tcase_add_test(tc, configurator_get_layers);
+	suite_add_tcase(s, tc);
 
 	return s;
 }

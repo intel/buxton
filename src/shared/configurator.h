@@ -31,6 +31,19 @@ typedef enum ConfigKey {
 	} ConfigKey;
 
 /**
+ * Slightly duplicative of BuxtonLayer, but defined here instead of
+ * there.  This will probably be deprecated for BuxtonLayer once
+ * things are integrated.
+ */
+typedef struct ConfigLayer_t {
+	char *name;
+	char *type;
+	char *backend;
+	char *description;
+	int priority;
+} ConfigLayer;
+
+/**
  * @internal
  * @brief Add command line data
  *
@@ -85,6 +98,15 @@ char* buxton_smack_load_file(void);
  * It belongs to configurator.
  */
 char* buxton_socket(void);
+
+/**
+ * @internal
+ * @brief Get an array of ConfigLayers from the conf file
+ *
+ * @param numlayers a pointer to an integer to store the number of layers.
+ * @return an array of ConfigLayers with the layer data
+ */
+ConfigLayer* buxton_get_layers(int *numlayers);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
