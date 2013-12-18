@@ -633,6 +633,7 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 
 	buxton_array_free(&list, NULL);
+	buxton_array_free(&list2, NULL);
 }
 END_TEST
 
