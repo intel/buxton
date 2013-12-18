@@ -124,7 +124,7 @@ START_TEST(array_check)
 	r = buxton_array_add(array, "test");
 	fail_if(r  == false, "Failed to add element to BuxtonArray");
 
-	value = buxton_array_get(array, 0);
+	value = (char *)buxton_array_get(array, 0);
 
 	fail_if(value == NULL,
 		"Failed to get value from BuxtonArray");
