@@ -53,7 +53,7 @@ BuxtonData *buxton_array_get(BuxtonArray *array, uint16_t index)
 {
 	if (!array)
 		return NULL;
-	if (index < 0 || index > array->len)
+	if (index > array->len)
 		return NULL;
 	return (BuxtonData*) array->data[index];
 }
