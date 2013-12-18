@@ -48,6 +48,7 @@ uninstall-hook: systemdsystemunit-uninstall-hook
 
 distclean-local:
 	rm -f log-check-stderr-file
+	rm -f test/databases/*.db
 
 # set library version info
 LIBBUXTON_CURRENT=0
@@ -74,7 +75,8 @@ EXTRA_DIST = \
 	src/libbuxton/lbuxton.sym \
 	src/shared/constants.h \
 	test/test.load2 \
-	test/test.conf
+	test/test.conf \
+	test/test-configurator.conf
 
 dist_sysconf_DATA = \
 	data/buxton.conf
@@ -222,7 +224,9 @@ check_buxton_SOURCES = \
 check_buxton_CFLAGS = \
 	$(AM_CFLAGS) \
 	@CHECK_CFLAGS@ \
-	-DMAKE_CHECK
+	-DMAKE_CHECK \
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_buxton_LDADD = \
 	@CHECK_LIBS@ \
 	libbuxton.la \
@@ -237,7 +241,9 @@ check_shared_lib_CFLAGS = \
 	$(AM_CFLAGS) \
 	@CHECK_CFLAGS@ \
 	@INIPARSER_CFLAGS@ \
-	-DMAKE_CHECK
+	-DMAKE_CHECK \
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_shared_lib_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
@@ -256,7 +262,9 @@ check_bt_daemon_CFLAGS = \
 	@CHECK_CFLAGS@ \
 	$(AM_CFLAGS) \
 	@INIPARSER_CFLAGS@ \
-	-DMAKE_CHECK
+	-DMAKE_CHECK \
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_bt_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	$(SYSTEMD_LIBS) \
@@ -275,7 +283,9 @@ check_daemon_CFLAGS = \
 	$(AM_CFLAGS) \
 	@CHECK_CFLAGS@ \
 	@INIPARSER_CFLAGS@ \
-	-DMAKE_CHECK
+	-DMAKE_CHECK \
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
@@ -292,7 +302,9 @@ check_smack_CFLAGS = \
 	$(AM_CFLAGS) \
 	@CHECK_CFLAGS@ \
 	@INIPARSER_CFLAGS@ \
-	-DMAKE_CHECK
+	-DMAKE_CHECK \
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_smack_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
@@ -310,7 +322,8 @@ check_configurator_CFLAGS = \
 	@CHECK_CFLAGS@ \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK \
-	-DTOP_SRCDIR=\"$(abs_top_srcdir)\"
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_configurator_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \

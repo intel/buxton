@@ -175,7 +175,7 @@ START_TEST(configurator_conf_db_path)
 {
 	char *correct = "/you/are/so/suck";
 
-	putenv("BUXTON_CONF_FILE=" TOP_SRCDIR "/test/test-configurator.conf");
+	putenv("BUXTON_CONF_FILE=" ABS_TOP_SRCDIR "/test/test-configurator.conf");
 	default_test(buxton_db_path(), correct, "buxton_db_path()");
 }
 END_TEST
@@ -184,7 +184,7 @@ START_TEST(configurator_conf_smack_load_file)
 {
 	char *correct = "/smack/smack/smack";
 
-	putenv("BUXTON_CONF_FILE=" TOP_SRCDIR "/test/test-configurator.conf");
+	putenv("BUXTON_CONF_FILE=" ABS_TOP_SRCDIR "/test/test-configurator.conf");
 	default_test(buxton_smack_load_file(), correct, "smack_load_file()");
 }
 END_TEST
@@ -193,7 +193,7 @@ START_TEST(configurator_conf_buxton_socket)
 {
 	char *correct = "/hurp/durp/durp";
 
-	putenv("BUXTON_CONF_FILE=" TOP_SRCDIR "/test/test-configurator.conf");
+	putenv("BUXTON_CONF_FILE=" ABS_TOP_SRCDIR "/test/test-configurator.conf");
 	default_test(buxton_socket(), correct, "buxton_socket()");
 }
 END_TEST
@@ -202,7 +202,7 @@ START_TEST(configurator_conf_module_dir)
 {
 	char *correct = "/shut/your/mouth";
 
-	putenv("BUXTON_CONF_FILE=" TOP_SRCDIR "/test/test-configurator.conf");
+	putenv("BUXTON_CONF_FILE=" ABS_TOP_SRCDIR "/test/test-configurator.conf");
 	default_test(buxton_module_dir(), correct, "buxton_module_dir()");
 }
 END_TEST
@@ -212,7 +212,7 @@ START_TEST(configurator_get_layers)
 	ConfigLayer *layers = NULL;
 	int numlayers;
 
-	putenv("BUXTON_CONF_FILE=" TOP_SRCDIR "/test/test-configurator.conf");
+	putenv("BUXTON_CONF_FILE=" ABS_TOP_SRCDIR "/test/test-configurator.conf");
 	numlayers = buxton_get_layers(&layers);
 	fail_if(layers == NULL, "buxton_get_layers returned NULL");
 	fail_if(numlayers != 7, "num layers is %d instead of %d", numlayers, 7);

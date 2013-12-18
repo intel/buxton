@@ -43,3 +43,4 @@ bxt_timing
 *.gcda
 *.gcno
 /coverage
+test/databases/*.db
