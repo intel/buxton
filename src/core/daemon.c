@@ -315,9 +315,12 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		data.store.d_string.value = key->value;
 		data.store.d_string.length = key->length;
 		out_list = buxton_array_new();
+		if (!out_list)
+			return;
 		if (!buxton_array_add(out_list, &data) ||
 			!buxton_array_add(out_list, value)) {
 			buxton_log("Failed to prepare array data\n");
+			buxton_array_free(&out_list, NULL);
 			return;
 		}
 		response_len = buxton_serialize_message(&response,
