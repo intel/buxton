@@ -113,6 +113,31 @@ START_TEST(hashmap_check)
 }
 END_TEST
 
+START_TEST(array_check)
+{
+	BuxtonArray *array = NULL;
+	char *value;
+	bool r;
+
+	array = buxton_array_new();
+	fail_if(array == NULL, "Failed to allocate memory for BuxtonArray");
+	r = buxton_array_add(array, "test");
+	fail_if(r  == false, "Failed to add element to BuxtonArray");
+
+	value = buxton_array_get(array, 0);
+
+	fail_if(value == NULL,
+		"Failed to get value from BuxtonArray");
+
+	fail_if(strcmp(value, "test") != 0,
+		"Failed to retrieve the stored value");
+
+	buxton_array_free(&array, NULL);
+	fail_if(array != NULL,
+		"Failed to free BuxtonArray");
+}
+END_TEST
+
 START_TEST(get_layer_path_check)
 {
 	BuxtonLayer layer;
@@ -610,6 +635,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("array_functions");
+	tcase_add_test(tc, array_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("util_functions");
