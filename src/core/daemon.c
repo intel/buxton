@@ -152,6 +152,8 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	response_data.store.d_int32 = response;
 	response_data.label = buxton_string_pack("dummy");
 	out_list = buxton_array_new();
+	if (!out_list)
+		goto end;
 	if (!buxton_array_add(out_list, &response_data)) {
 		buxton_log("Failed to prepare response\n");
 		goto end;
