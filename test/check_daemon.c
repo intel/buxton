@@ -442,7 +442,6 @@ START_TEST(register_notification_check)
 	buxton_client_close(&server.buxton.client);
 }
 END_TEST
-
 START_TEST(bt_daemon_handle_message_error_check)
 {
 	int client, server;
@@ -586,11 +585,13 @@ START_TEST(bt_daemon_handle_message_get_check)
 	BuxtonClient bclient;
 	BuxtonData *list;
 	BuxtonArray *out_list;
+	BuxtonArray *out_list2;
 	BuxtonControlMessage msg;
 	size_t csize;
 
 	setup_socket_pair(&client, &server);
 	out_list = buxton_array_new();
+	fail_if(!out_list, "Failed to allocate list");
 
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
@@ -608,8 +609,10 @@ START_TEST(bt_daemon_handle_message_get_check)
 	data2.store.d_string.value = string->value;
 	data2.store.d_string.length = string->length;
 	data2.label = buxton_string_pack("dummy");
-	buxton_array_add(out_list, &data1);
-	buxton_array_add(out_list, &data2);
+	r = buxton_array_add(out_list, &data1);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data2);
+	fail_if(!r, "Failed to add element to array");
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
@@ -627,7 +630,11 @@ START_TEST(bt_daemon_handle_message_get_check)
 	free(list[1].label.value);
 	free(list);
 
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, out_list);
+	out_list2 = buxton_array_new();
+	fail_if(!out_list2, "Failed to allocate list");
+	r = buxton_array_add(out_list2, &data2);
+	fail_if(!r, "Failed to add element to array");
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, out_list2);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
@@ -647,6 +654,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 	close(client);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list, NULL);
+	buxton_array_free(&out_list2, NULL);
 }
 END_TEST
 
