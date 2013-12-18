@@ -128,24 +128,10 @@ typedef bool (*module_init_func) (BuxtonBackend *backend);
 bool buxton_direct_open(BuxtonControl *control);
 
 /**
- * Determine if a client is permitted to use direct connections
- * @param client Valid buxton client connection
- * @return a boolean value, indicating permission to use direct mode
- */
-bool buxton_direct_permitted(BuxtonClient *client);
-
-/**
  * Close direct Buxton management connection
  * @param control Valid BuxtonControl instance
  */
 void buxton_direct_close(BuxtonControl *control);
-
-/**
- * Return the associated configuration for a given client (direct access)
- * @param client The client to query
- * @return a valid BuxtonConfig, or NULL if none is found
- */
-BuxtonConfig *buxton_get_config(BuxtonClient *client);
 
 /**
  * Return a valid backend for the given configuration and layer

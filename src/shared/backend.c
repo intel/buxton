@@ -60,36 +60,6 @@ bool buxton_direct_open(BuxtonControl *control)
 	return true;
 }
 
-bool buxton_direct_permitted(BuxtonClient *client)
-{
-	BuxtonControl *control = NULL;
-
-	if (_directPermitted && client->direct) {
-		control = hashmap_get(_directPermitted, &(client->pid));
-		if (&(control->client) == client)
-			return true;
-	}
-
-	return false;
-}
-
-BuxtonConfig *buxton_get_config(BuxtonClient *client)
-{
-	assert(client != NULL);
-	BuxtonControl *control = NULL;
-
-	if (!_directPermitted)
-		return NULL;
-	control = hashmap_get(_directPermitted, &(client->pid));
-	if (!control)
-		return NULL;
-	/* Safety */
-	if (&(control->client) != client || !client->direct)
-		return NULL;
-
-	return &(control->config);
-}
-
 bool buxton_direct_get_value(BuxtonControl *control, BuxtonString *key,
 			     BuxtonData *data)
 {
