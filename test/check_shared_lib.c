@@ -421,6 +421,7 @@ START_TEST(buxton_message_serialize_check)
 	BuxtonData *dtarget = NULL;
 	uint8_t *packed = NULL;
 	BuxtonArray *list = NULL;
+	BuxtonArray *list2 = NULL;
 	size_t ret;
 	size_t pcount;
 
@@ -544,6 +545,24 @@ START_TEST(buxton_message_serialize_check)
 		"2 Source and destination differ for 2arg data");
 	free(packed);
 	free(dtarget);
+
+	list2 = buxton_array_new();
+	buxton_array_add(list2, &dsource1);
+	list2->len = 0;
+
+	dsource1.type = STRING;
+	dsource1.store.d_string = buxton_string_pack("test-key");
+	csource = BUXTON_CONTROL_GET;
+	ret = buxton_serialize_message(&packed, csource, list2);
+	fail_if(ret != 0, "Serialized with too few parameters");
+
+	list2->len = BUXTON_MESSAGE_MAX_PARAMS + 1;
+	ret = buxton_serialize_message(&packed, csource, list2);
+	fail_if(ret != 0, "Serialized with too many parameters");
+
+	list2->len = 2;
+	ret = buxton_serialize_message(&packed, csource, list2);
+	fail_if(ret != 0, "Serialized with incorrect parameter count");
 
 	dsource1.type = -1;
 	dsource1.store.d_string = buxton_string_pack("test-key");
