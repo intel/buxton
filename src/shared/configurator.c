@@ -263,20 +263,21 @@ char* buxton_socket(void)
 	return conf.keys[CONFIG_BUXTON_SOCKET];
 }
 
-ConfigLayer* buxton_get_layers(int *numlayers)
+int buxton_get_layers(ConfigLayer **layers)
 {
-	ConfigLayer* layers;
+	ConfigLayer* _layers;
 	int n;
 	int j = 0;
 
+	assert(layers);
 	initialize();
 	if (conf.ini == NULL) {
 		buxton_log("config file not loaded when calling buxton_get_layers()");
-		return NULL;
+		abort();
 	}
 	n = iniparser_getnsec(conf.ini);
-	layers = (ConfigLayer*)calloc((size_t)n, sizeof(ConfigLayer));
-	if (layers == NULL)
+	_layers = (ConfigLayer*)calloc((size_t)n, sizeof(ConfigLayer));
+	if (_layers == NULL)
 	        abort();
 	for (int i= 0; i < n; i++) {
 		char *section_name;
@@ -286,16 +287,15 @@ ConfigLayer* buxton_get_layers(int *numlayers)
 			abort();
 		if (!strcasecmp(section_name, CONFIG_SECTION))
 			continue;
-		layers[j].name = section_name;
-		layers[j].description = get_ini_string(section_name, "Description");
-		layers[j].backend = get_ini_string(section_name, "Backend");
-		layers[j].type = get_ini_string(section_name, "Type");
-		layers[j].priority = get_ini_int(section_name, "Priority");
+		_layers[j].name = section_name;
+		_layers[j].description = get_ini_string(section_name, "Description");
+		_layers[j].backend = get_ini_string(section_name, "Backend");
+		_layers[j].type = get_ini_string(section_name, "Type");
+		_layers[j].priority = get_ini_int(section_name, "Priority");
 		j++;
 	}
-	if (numlayers)
-		*numlayers = j;
-	return layers;
+	*layers = _layers;
+	return j;
 }
 
 

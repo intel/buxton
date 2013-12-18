@@ -35,7 +35,7 @@ typedef enum ConfigKey {
  * there.  This will probably be deprecated for BuxtonLayer once
  * things are integrated.
  */
-typedef struct ConfigLayer_t {
+typedef struct ConfigLayer {
 	char *name;
 	char *type;
 	char *backend;
@@ -103,10 +103,13 @@ char* buxton_socket(void);
  * @internal
  * @brief Get an array of ConfigLayers from the conf file
  *
- * @param numlayers a pointer to an integer to store the number of layers.
- * @return an array of ConfigLayers with the layer data
+ * @param layers pointer to a pointer where the array of ConfigLayers
+ * will be stored.  Callers should free this pointer with free when
+ * they are done with it.
+ *
+ * @return an integer that indicates the number of layers.
  */
-ConfigLayer* buxton_get_layers(int *numlayers);
+int buxton_get_layers(ConfigLayer **layers);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

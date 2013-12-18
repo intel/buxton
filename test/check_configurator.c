@@ -209,11 +209,11 @@ END_TEST
 
 START_TEST(configurator_get_layers)
 {
-	ConfigLayer *layers;
-	int numlayers = -1;
+	ConfigLayer *layers = NULL;
+	int numlayers;
 
 	putenv("BUXTON_CONF_FILE=" TOP_SRCDIR "/test/test-configurator.conf");
-	layers = buxton_get_layers(&numlayers);
+	numlayers = buxton_get_layers(&layers);
 	fail_if(layers == NULL, "buxton_get_layers returned NULL");
 	fail_if(numlayers != 7, "num layers is %d instead of %d", numlayers, 7);
 
