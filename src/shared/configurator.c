@@ -53,7 +53,7 @@ static struct _conf {
  * config keys as in environment
  * @fixme name sucks
  */
-static const char* KS[CONFIG_MAX] = {
+static const char *KS[CONFIG_MAX] = {
         NULL,
 	"BUXTON_CONF_FILE",
 	"BUXTON_MODULE_DIR",
@@ -66,7 +66,7 @@ static const char* KS[CONFIG_MAX] = {
  * @internal
  * keys as they are used in config file
  */
-static const char* config_keys[CONFIG_MAX] = {
+static const char *config_keys[CONFIG_MAX] = {
 	NULL,
 	NULL,			/**< conf file entry in config file is meaningless */
 	"ModuleDirectory",
@@ -75,7 +75,7 @@ static const char* config_keys[CONFIG_MAX] = {
 	"SocketPath"
 };
 
-static const char* COMPILE_DEFAULT[CONFIG_MAX] = {
+static const char *COMPILE_DEFAULT[CONFIG_MAX] = {
 	NULL,
 	_DEFAULT_CONFIGURATION_FILE,
 	_MODULE_DIRECTORY,
@@ -94,7 +94,7 @@ static const char* COMPILE_DEFAULT[CONFIG_MAX] = {
  * @return pointer to dup'd string
  */
 __attribute__ ((pure))
-static inline char* _strdup(const char* string)
+static inline char *_strdup(const char* string)
 {
 	char* s;
 
@@ -118,7 +118,7 @@ static inline char* _strdup(const char* string)
  * Somethign is really wrong and even if we could recover, the system
  * is not working correctly.
  */
-static char* get_ini_string(char *section, char *name)
+static char *get_ini_string(char *section, char *name)
 {
 	char buf[PATH_MAX];
 	char *s;
@@ -265,7 +265,7 @@ char* buxton_socket(void)
 
 int buxton_get_layers(ConfigLayer **layers)
 {
-	ConfigLayer* _layers;
+	ConfigLayer *_layers;
 	int n;
 	int j = 0;
 

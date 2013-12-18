@@ -58,7 +58,7 @@ void buxton_add_cmd_line(ConfigKey confkey, char* data);
  * @return the path to the plugin module.  Do not free this pointer.
  * It belongs to configurator.
  */
-char* buxton_module_dir(void);
+char *buxton_module_dir(void);
 
 /**
  * @internal
@@ -67,7 +67,7 @@ char* buxton_module_dir(void);
  * @return the path of the config file.  Do not free this pointer.
  * It belongs to configurator.
  */
-char* buxton_conf_file(void);
+char *buxton_conf_file(void);
 
 /**
  * @internal
@@ -77,7 +77,7 @@ char* buxton_conf_file(void);
  * @return the path of the database file.  Do not free this pointer.
  * It belongs to configurator.
  */
-char* buxton_db_path(void);
+char *buxton_db_path(void);
 
 /**
  * @internal
@@ -87,7 +87,7 @@ char* buxton_db_path(void);
  * @return the path of the smack load file.  Do not free this pointer.
  * It belongs to configurator.
  */
-char* buxton_smack_load_file(void);
+char *buxton_smack_load_file(void);
 
 /**
  * @internal
@@ -97,7 +97,7 @@ char* buxton_smack_load_file(void);
  * @return the path of the buxton socket.  Do not free this pointer.
  * It belongs to configurator.
  */
-char* buxton_socket(void);
+char *buxton_socket(void);
 
 /**
  * @internal

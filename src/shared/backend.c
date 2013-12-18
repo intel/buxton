@@ -262,7 +262,7 @@ bool buxton_init_layers(BuxtonConfig *config)
 	nlayers = buxton_get_layers(&config_layers);
 	layers = hashmap_new(string_hash_func, string_compare_func);
 	if (!layers)
-		goto out;
+		goto end;
 
 	for (int n = 0; n < nlayers; n++) {
 		BuxtonLayer *layer;
@@ -276,14 +276,19 @@ bool buxton_init_layers(BuxtonConfig *config)
 	ret = true;
 	config->layers = layers;
 
- out:
+ end:
 	free(config_layers);
 	return ret;
 }
 
 static BuxtonLayer* buxton_layer_new(ConfigLayer *conf_layer)
 {
-	BuxtonLayer *out = malloc0(sizeof(BuxtonLayer));
+	BuxtonLayer *out;
+
+	assert(conf_layer);
+	out= malloc0(sizeof(BuxtonLayer));
+	if (!out)
+		abort();
 
 	if (conf_layer->priority < 0)
 		goto fail;
@@ -292,21 +297,23 @@ static BuxtonLayer* buxton_layer_new(ConfigLayer *conf_layer)
 		goto fail;
 	out->name.length = (uint32_t)strlen(conf_layer->name);
 
-	if (strcmp(conf_layer->type, "System") == 0)
+	if (strcmp(conf_layer->type, "System") == 0) {
 		out->type = LAYER_SYSTEM;
-	else if (strcmp(conf_layer->type, "User") == 0)
+	} else if (strcmp(conf_layer->type, "User") == 0) {
 		out->type = LAYER_USER;
-	else {
+	} else {
 		buxton_log("Layer %s has unknown type: %s\n", conf_layer->name, conf_layer->type);
 		goto fail;
 	}
 
-	if (strcmp(conf_layer->backend, "gdbm") == 0)
+	if (strcmp(conf_layer->backend, "gdbm") == 0) {
 		out->backend = BACKEND_GDBM;
-	else if(strcmp(conf_layer->backend, "memory") == 0)
+	} else if(strcmp(conf_layer->backend, "memory") == 0) {
 		out->backend = BACKEND_MEMORY;
-	else
+	} else {
+		buxton_log("Layer %s has unknown database: %s\n", conf_layer->name, conf_layer->backend);
 		goto fail;
+	}
 
 	if (conf_layer->description != NULL)
 		out->description = strdup(conf_layer->description);
