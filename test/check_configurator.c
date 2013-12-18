@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <linux/limits.h>
 #include <stdbool.h>
+#include <iniparser.h>
 #include "configurator.h"
 #include "constants.h"
 
@@ -242,6 +243,27 @@ START_TEST(configurator_get_layers)
 }
 END_TEST
 
+START_TEST(ini_parse_check)
+{
+	char ini_good[] = "test/test-pass.ini";
+	char ini_bad[] = "test/test-fail.ini";
+	dictionary *ini = NULL;
+
+        ini = iniparser_load(ini_good);
+	fail_if(ini == NULL,
+		"Failed to parse ini file");
+
+	iniparser_dump(ini, stdout);
+	iniparser_freedict(ini);
+
+        ini = iniparser_load(ini_bad);
+	fail_if(ini != NULL,
+		"Failed to catch bad ini file");
+
+	iniparser_dump(ini, stdout);
+	iniparser_freedict(ini);
+}
+END_TEST
 
 static Suite *
 configurator_suite(void)
@@ -284,6 +306,10 @@ configurator_suite(void)
 
 	tc = tcase_create("config file works");
 	tcase_add_test(tc, configurator_get_layers);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("ini_functions");
+	tcase_add_test(tc, ini_parse_check);
 	suite_add_tcase(s, tc);
 
 	return s;

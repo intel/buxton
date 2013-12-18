@@ -22,6 +22,7 @@
 #include <dlfcn.h>
 #include <iniparser.h>
 
+#include "configurator.h"
 #include "backend.h"
 #include "bt-daemon.h"
 #include "hashmap.h"
@@ -42,6 +43,7 @@ static Hashmap *_directPermitted = NULL;
  * @return a boolean value, indicating success of the operation
  */
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
+static BuxtonLayer* buxton_layer_new(ConfigLayer *conf_layer);
 
 bool buxton_direct_open(BuxtonControl *control)
 {
@@ -254,54 +256,68 @@ bool buxton_init_layers(BuxtonConfig *config)
 {
 	Hashmap *layers = NULL;
 	bool ret = false;
-	dictionary *ini;
-	const char *path = DEFAULT_CONFIGURATION_FILE;
 	int nlayers = 0;
+	ConfigLayer *config_layers = NULL;
 
-	ini = iniparser_load(path);
-	if (ini == NULL) {
-		buxton_log("Failed to load buxton conf file: %s\n", path);
-		goto finish;
-	}
-
-	nlayers = iniparser_getnsec(ini);
-	if (nlayers <= 0) {
-		buxton_log("No layers defined in buxton conf file: %s\n", path);
-		goto end;
-	}
-
+	nlayers = buxton_get_layers(&config_layers);
 	layers = hashmap_new(string_hash_func, string_compare_func);
 	if (!layers)
-		goto end;
+		goto out;
 
 	for (int n = 0; n < nlayers; n++) {
 		BuxtonLayer *layer;
-		char *section_name;
 
-		layer = malloc0(sizeof(BuxtonLayer));
+		layer = buxton_layer_new(&(config_layers[n]));
 		if (!layer)
 			continue;
 
-		section_name = iniparser_getsecname(ini, n);
-		if (!section_name) {
-			buxton_log("Failed to find section number: %d\n", n);
-			continue;
-		}
-
-		if (!parse_layer(ini, section_name, layer)) {
-			free(layer);
-			buxton_log("Failed to load layer: %s\n", section_name);
-			continue;
-		}
 		hashmap_put(layers, layer->name.value, layer);
 	}
 	ret = true;
 	config->layers = layers;
 
-end:
-	iniparser_freedict(ini);
-finish:
+ out:
+	free(config_layers);
 	return ret;
+}
+
+static BuxtonLayer* buxton_layer_new(ConfigLayer *conf_layer)
+{
+	BuxtonLayer *out = malloc0(sizeof(BuxtonLayer));
+
+	if (conf_layer->priority < 0)
+		goto fail;
+	out->name.value = strdup(conf_layer->name);
+	if (!out->name.value)
+		goto fail;
+	out->name.length = (uint32_t)strlen(conf_layer->name);
+
+	if (strcmp(conf_layer->type, "System") == 0)
+		out->type = LAYER_SYSTEM;
+	else if (strcmp(conf_layer->type, "User") == 0)
+		out->type = LAYER_USER;
+	else {
+		buxton_log("Layer %s has unknown type: %s\n", conf_layer->name, conf_layer->type);
+		goto fail;
+	}
+
+	if (strcmp(conf_layer->backend, "gdbm") == 0)
+		out->backend = BACKEND_GDBM;
+	else if(strcmp(conf_layer->backend, "memory") == 0)
+		out->backend = BACKEND_MEMORY;
+	else
+		goto fail;
+
+	if (conf_layer->description != NULL)
+		out->description = strdup(conf_layer->description);
+
+	out->priority = conf_layer->priority;
+	return out;
+ fail:
+	free(out->name.value);
+	free(out->description);
+	free(out);
+	return NULL;
 }
 
 bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
@@ -413,7 +429,7 @@ static bool init_backend(BuxtonConfig *config,
 	if (!backend_tmp)
 		return false;
 
-	r = asprintf(&path, "%s/%s.so", MODULE_DIRECTORY, name);
+	r = asprintf(&path, "%s/%s.so", buxton_module_dir(), name);
 	if (r == -1)
 		return false;
 
