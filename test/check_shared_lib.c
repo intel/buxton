@@ -426,6 +426,7 @@ START_TEST(buxton_message_serialize_check)
 	size_t pcount;
 
 	list = buxton_array_new();
+	fail_if(!list, "Failed to allocate list");
 	dsource1.type = STRING;
 	dsource1.label = buxton_string_pack("label");
 	dsource1.store.d_string = buxton_string_pack("test-key");
@@ -547,6 +548,7 @@ START_TEST(buxton_message_serialize_check)
 	free(dtarget);
 
 	list2 = buxton_array_new();
+	fail_if(!list, "Failed to allocate list");
 	buxton_array_add(list2, &dsource1);
 	list2->len = 0;
 
@@ -639,6 +641,7 @@ START_TEST(buxton_get_message_size_check)
 	size_t ret;
 
 	list = buxton_array_new();
+	fail_if(!list, "Failed to allocate list");
 	dsource.type = STRING;
 	dsource.label = buxton_string_pack("label");
 	dsource.store.d_string = buxton_string_pack("test-key");
