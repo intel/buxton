@@ -75,6 +75,7 @@ int main(int argc, char **argv)
 	Command c_get_double, c_set_double;
 	Command c_get_bool, c_set_bool;
 	Command c_get_label, c_set_label;
+	Command c_list_keys;
 	Command c_unset_value;
 	Command *command;
 	int i = 0;
@@ -151,6 +152,12 @@ int main(int argc, char **argv)
 				  3, 4, "layer group [name] label", &cli_set_label, STRING };
 
 	hashmap_put(commands, c_set_label.name, &c_set_label);
+
+	/* List keys */
+	c_list_keys = (Command) { "list-keys", "List keys in the given layer",
+				  1, 1, "layer", &cli_list_keys, STRING };
+
+	hashmap_put(commands, c_list_keys.name, &c_list_keys);
 
 	/* Unset value */
 	c_unset_value = (Command) { "unset-value", "Unset a value by key",

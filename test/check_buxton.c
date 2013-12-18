@@ -287,12 +287,14 @@ END_TEST
 START_TEST(buxton_wire_get_response_check)
 {
 	BuxtonClient client;
+	BuxtonArray *out_list = NULL;
 	BuxtonData *list = NULL;
 	BuxtonControlMessage msg;
 	pid_t pid;
 	int server;
 
 	setup_socket_pair(&(client.fd), &server);
+	out_list = buxton_array_new();
 
 	pid = fork();
 	if (pid == 0) {
@@ -304,7 +306,9 @@ START_TEST(buxton_wire_get_response_check)
 		data.type = INT32;
 		data.store.d_int32 = 0;
 		data.label = buxton_string_pack("dummy");
-		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 1, &data);
+		buxton_array_add(out_list, &data);
+		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, out_list);
+		buxton_array_free(&out_list, NULL);
 		fail_if(size == 0, "Failed to serialize message");
 		write(server, dest, size);
 		close(server);
@@ -338,8 +342,10 @@ START_TEST(buxton_wire_set_value_check)
 	BuxtonClient client;
 	pid_t pid;
 	int server;
+	BuxtonArray *list = NULL;
 
 	setup_socket_pair(&(client.fd), &server);
+	list = buxton_array_new();
 
 	pid = fork();
 	if (pid == 0) {
@@ -354,7 +360,9 @@ START_TEST(buxton_wire_set_value_check)
 		data.type = INT32;
 		data.store.d_int32 = 0;
 		data.label = buxton_string_pack("dummy");
-		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 1, &data);
+		buxton_array_add(list, &data);
+		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, list);
+		buxton_array_free(&list, NULL);
 		fail_if(size == 0, "Failed to serialize message");
 		r = read(server, buf, 4096);
 		fail_if(r < 0, "Read failed from buxton_wire_set_value");
@@ -388,8 +396,10 @@ START_TEST(buxton_wire_get_value_check)
 	BuxtonClient client;
 	pid_t pid;
 	int server;
+	BuxtonArray *list = NULL;
 
 	setup_socket_pair(&(client.fd), &server);
+	list = buxton_array_new();
 
 	pid = fork();
 	if (pid == 0) {
@@ -407,8 +417,10 @@ START_TEST(buxton_wire_get_value_check)
 		data2.type = INT32;
 		data2.store.d_int32 = 1;
 		data2.label = buxton_string_pack("label");
-		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 2, &data1,
-						&data2);
+		buxton_array_add(list, &data1);
+		buxton_array_add(list, &data2);
+		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, list);
+		buxton_array_free(&list, NULL);
 		fail_if(size == 0, "Failed to serialize message");
 		r = read(server, buf, 4096);
 		fail_if(r < 0, "Read failed from buxton_wire_get_value");

@@ -27,6 +27,7 @@
 #include "hashmap.h"
 #include "util.h"
 #include "log.h"
+#include "buxton-array.h"
 
 /**
  * Eventually this will be dropped
@@ -225,6 +226,32 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	data.label.value = label->value;
 
 	return backend->set_value(layer, key, &data);
+}
+
+bool buxton_direct_list_keys(BuxtonControl *control,
+			     BuxtonString *layer_name,
+			     BuxtonArray **list)
+{
+	assert(control);
+	assert(layer_name);
+	assert(layer_name->value);
+
+	/* Handle direct manipulation */
+	BuxtonBackend *backend = NULL;
+	BuxtonLayer *layer;
+	BuxtonConfig *config;
+
+	config = &control->config;
+	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+		return false;
+	}
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		/* Already logged */
+		return false;
+	}
+	layer->uid = control->client.uid;
+	return backend->list_keys(layer, list);
 }
 
 bool buxton_direct_unset_value(BuxtonControl *control,
@@ -503,6 +530,7 @@ static void destroy_backend(BuxtonBackend *backend)
 
 	backend->set_value = NULL;
 	backend->get_value = NULL;
+	backend->list_keys = NULL;
 	backend->unset_value = NULL;
 	backend->destroy();
 	dlclose(backend->module);

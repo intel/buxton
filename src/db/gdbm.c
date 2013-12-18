@@ -162,6 +162,51 @@ static bool unset_value(BuxtonLayer *layer,
 	return ret;
 }
 
+static bool list_keys(BuxtonLayer *layer,
+		      BuxtonArray **list)
+{
+	GDBM_FILE db;
+	datum key, nextkey;
+	BuxtonArray *k_list = NULL;
+	BuxtonData *current = NULL;
+	BuxtonString in_key;
+	char *real_key;
+
+	assert(layer);
+
+	db = _db_for_resource(layer);
+	if (!db)
+		return false;
+
+	k_list = buxton_array_new();
+	key = gdbm_firstkey(db);
+	/* Iterate through all of the keys */
+	while (key.dptr) {
+		current = malloc0(sizeof(BuxtonData));
+		if (!current)
+			return false;
+
+		/* Split the key name from the rest of the key */
+		current->type = STRING;
+		in_key.value = (char*)key.dptr;
+		in_key.length = (uint32_t)key.dsize;
+		real_key = buxton_get_name(&in_key);
+		current->store.d_string.value = strdup(real_key);
+		current->store.d_string.length = (uint32_t)strlen(real_key);
+		buxton_array_add(k_list, current);
+
+		/* Visit the next key */
+		nextkey = gdbm_nextkey(db, key);
+		free(key.dptr);
+		key = nextkey;
+	}
+
+	/* Pass ownership of the array to the caller */
+	*list = k_list;
+
+	return true;
+}
+
 _bx_export_ void buxton_module_destroy(void)
 {
 	const char *key;
@@ -185,6 +230,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
+	backend->list_keys = &list_keys;
 	backend->unset_value = &unset_value;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
