@@ -106,8 +106,7 @@ bool buxton_client_list_keys(BuxtonClient *client,
 			     BuxtonString *layer_name,
 			     BuxtonArray **list)
 {
-	/*Not yet implemented */
-	return false;
+	return buxton_wire_list_keys(client, layer_name, list);
 }
 
 bool buxton_client_unset_value(BuxtonClient *client,

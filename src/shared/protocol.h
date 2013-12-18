@@ -86,6 +86,17 @@ bool buxton_wire_register_notification(BuxtonClient *client,
 				       BuxtonString *key);
 
 /**
+ * Send a LIST message over the protocol, retrieve key list
+ * @param client Client connection
+ * @param layer Layer name
+ * @param array An empty array pointer to store results
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_list_keys(BuxtonClient *client,
+			   BuxtonString *layer,
+			   BuxtonArray **array);
+
+/**
  * Send an UNNOTIFY message over the protocol, no longer recieve events
  * @param client Client connection
  * @param key Key name

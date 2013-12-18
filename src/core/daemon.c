@@ -51,6 +51,13 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		}
 		break;
+	case BUXTON_CONTROL_LIST:
+		if (count != 1)
+			return false;
+		if (list[0].type != STRING)
+			return false;
+		*layer = &(list[0].store.d_string);
+		break;
 	case BUXTON_CONTROL_UNSET:
 		if (count != 2)
 			return false;
@@ -87,14 +94,14 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	BuxtonStatus response;
 	BuxtonData *list = NULL;
 	_cleanup_buxton_data_ BuxtonData *data = NULL;
-	int i;
+	uint16_t i;
 	size_t p_count;
 	size_t response_len;
 	BuxtonData response_data;
 	BuxtonData *value = NULL;
 	BuxtonString *key = NULL;
 	BuxtonString *layer = NULL;
-	BuxtonArray *out_list = NULL;
+	BuxtonArray *out_list = NULL, *key_list = NULL;
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
 	bool ret = false;
@@ -127,6 +134,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		break;
 	case BUXTON_CONTROL_UNSET:
 		unset_value(self, client, layer, key, &response);
+		break;
+	case BUXTON_CONTROL_LIST:
+		key_list = list_keys(self, client, layer, &response);
 		break;
 	case BUXTON_CONTROL_NOTIFY:
 		register_notification(self, client, key, &response);
@@ -171,6 +181,19 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, out_list);
 		if (response_len == 0) {
 			buxton_log("Failed to serialize unset response message\n");
+			goto end;
+		}
+		break;
+	case BUXTON_CONTROL_LIST:
+		if (key_list) {
+			for (i = 0; i < key_list->len; i++) {
+				buxton_array_add(out_list, buxton_array_get(key_list, i));
+			}
+			buxton_array_free(&key_list, NULL);
+		}
+		response_len = buxton_serialize_message(&response_store, BUXTON_CONTROL_STATUS, out_list);
+		if (response_len == 0) {
+			buxton_log("Failed to serialize list response message\n");
 			goto end;
 		}
 		break;
@@ -439,6 +462,21 @@ fail:
 end:
 
 	return data;
+}
+
+BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
+		       BuxtonString *layer, BuxtonStatus *status)
+{
+	BuxtonArray *ret_list = NULL;
+	assert(self);
+	assert(client);
+	assert(layer);
+	assert(status);
+
+	*status = BUXTON_STATUS_FAILED;
+	if (buxton_direct_list_keys(&self->buxton, layer, &ret_list))
+		*status = BUXTON_STATUS_OK;
+	return ret_list;
 }
 
 void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonString *key,
