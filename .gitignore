@@ -44,3 +44,6 @@ bxt_timing
 *.gcno
 /coverage
 test/databases/*.db
+test/test.conf
+check_configurator
+
