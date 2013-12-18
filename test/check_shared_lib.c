@@ -424,6 +424,7 @@ START_TEST(buxton_message_serialize_check)
 	BuxtonArray *list2 = NULL;
 	size_t ret;
 	size_t pcount;
+	bool r;
 
 	list = buxton_array_new();
 	fail_if(!list, "Failed to allocate list");
@@ -431,7 +432,8 @@ START_TEST(buxton_message_serialize_check)
 	dsource1.label = buxton_string_pack("label");
 	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
-	buxton_array_add(list, &dsource1);
+	r = buxton_array_add(list, &dsource1);
+	fail_if(!r, "Failed to add element to array");
 	ret = buxton_serialize_message(&packed, csource, list);
 	fail_if(ret == 0, "Failed to serialize string data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 1,
@@ -530,7 +532,8 @@ START_TEST(buxton_message_serialize_check)
 	dsource2.store.d_int32 = 2;
 	dsource2.label = buxton_string_pack("label2");
 	csource = BUXTON_CONTROL_STATUS;
-	buxton_array_add(list, &dsource2);
+	r = buxton_array_add(list, &dsource2);
+	fail_if(!r, "Failed to add element to array");
 	ret = buxton_serialize_message(&packed, csource, list);
 	fail_if(ret == 0, "Failed to serialize 2arg data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &dtarget) != 2,
@@ -549,7 +552,8 @@ START_TEST(buxton_message_serialize_check)
 
 	list2 = buxton_array_new();
 	fail_if(!list, "Failed to allocate list");
-	buxton_array_add(list2, &dsource1);
+	r = buxton_array_add(list2, &dsource1);
+	fail_if(!r, "Failed to add element to array");
 	list2->len = 0;
 
 	dsource1.type = STRING;
@@ -639,6 +643,7 @@ START_TEST(buxton_get_message_size_check)
 	uint8_t *packed = NULL;
 	BuxtonArray *list = NULL;
 	size_t ret;
+	bool r;
 
 	list = buxton_array_new();
 	fail_if(!list, "Failed to allocate list");
@@ -646,7 +651,8 @@ START_TEST(buxton_get_message_size_check)
 	dsource.label = buxton_string_pack("label");
 	dsource.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
-	buxton_array_add(list, &dsource);
+	r = buxton_array_add(list, &dsource);
+	fail_if(!r, "Failed to add element to array");
 	ret = buxton_serialize_message(&packed, csource, list);
 	fail_if(ret == 0, "Failed to serialize string data for size");
 	fail_if(ret != buxton_get_message_size(packed, ret),
