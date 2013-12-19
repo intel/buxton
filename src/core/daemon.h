@@ -200,8 +200,9 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i);
  * @param self bt-daemon instance being run
  * @param cl The currently activate client
  * @param i The currently active file descriptor
+ * @return bool indicating more data to process
  */
-void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
+bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
 
 /**
  * Terminate client connectoin

@@ -733,14 +733,12 @@ static void handle_smack_label(client_list_item *cl)
 	cl->smack_label = slabel;
 }
 
-/**
- * Handle a client connection
- * @param cl The currently activate client
- * @param i The currently active file descriptor
- */
-void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
+bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 {
 	ssize_t l;
+	uint16_t peek;
+	bool more_data = false;
+	int message_limit = 32;
 
 	assert(self);
 	assert(cl);
@@ -751,19 +749,15 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	}
 	if (!cl->data)
-		return;
+		goto cleanup;
 	/* client closed the connection, or some error occurred? */
-	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
-		terminate_client(self, cl, i);
-		return;
-	}
+	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0)
+		goto terminate;
 
 	/* need to authenticate the client? */
 	if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
-		if (!identify_client(cl)) {
-			terminate_client(self, cl, i);
-			return;
-		}
+		if (!identify_client(cl))
+			goto terminate;
 
 		handle_smack_label(cl);
 	}
@@ -771,20 +765,19 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	buxton_debug("New packet from UID %ld, PID %ld\n", cl->cred.uid, cl->cred.pid);
 
 	/* Hand off any read data */
-	/*
-	 * TODO: Need to handle partial messages, read total message
-	 * size of the data, keep reading until we get that amount.
-	 * Probably need a timer to stop waiting and just move to the
-	 * next client at some point as well.
-	 */
 	do {
 		l = read(self->pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset);
-		if (l < 0) {
-			terminate_client(self, cl, i);
-			return;
-		}
+
+		/*
+		* Close clients with read errors. If there isn't more
+		* data and we don't have a complete message just
+		* cleanup and let the client resend their request.
+		*/
+		if (l < 0)
+			goto terminate;
 		else if (l == 0)
-			break;
+			goto cleanup;
+
 		cl->offset += (size_t)l;
 		if (cl->offset < BUXTON_MESSAGE_HEADER_LENGTH) {
 			continue;
@@ -792,7 +785,7 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		if (cl->size == BUXTON_MESSAGE_HEADER_LENGTH) {
 			cl->size = buxton_get_message_size(cl->data, cl->offset);
 			if (cl->size == 0 || cl->size > BUXTON_MESSAGE_MAX_LENGTH)
-				goto cleanup;
+				goto terminate;
 		}
 		if (cl->size != BUXTON_MESSAGE_HEADER_LENGTH) {
 			cl->data = realloc(cl->data, cl->size);
@@ -803,26 +796,27 @@ void handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 			continue;
 		if (!bt_daemon_handle_message(self, cl, cl->size)) {
 			buxton_log("Communication failed with client %d\n", cl->fd);
-			terminate_client(self, cl, i);
-			return;
+			goto terminate;
 		}
 
-		/* reset in case there are more messages */
-		cl->data = realloc(cl->data, BUXTON_MESSAGE_HEADER_LENGTH);
-		if (!cl->data)
-			goto cleanup;
-		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
-		cl->offset = 0;
+		message_limit--;
+		if (message_limit)
+			continue;
+		if (recv(cl->fd, &peek, sizeof(uint16_t), MSG_PEEK | MSG_DONTWAIT) > 0)
+			more_data = true;
+		goto cleanup;
 	} while (l > 0);
 
-	/* Not done with this message so don't cleanup */
-	if (l == 0 && cl->offset < cl->size)
-		return;
 cleanup:
 	free(cl->data);
 	cl->data = NULL;
 	cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	cl->offset = 0;
+	return more_data;
+
+terminate:
+	terminate_client(self, cl, i);
+	return more_data;
 }
 
 void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)

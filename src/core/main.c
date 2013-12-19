@@ -38,6 +38,7 @@
 #include "smack.h"
 #include "util.h"
 
+#define POLL_TIMEOUT 250
 #define SOCKET_TIMEOUT 5
 
 static volatile bool do_shutdown = false;
@@ -64,6 +65,7 @@ int main(int argc, char *argv[])
 	int ret;
 	bool manual_start = false;
 	struct sigaction sa;
+	bool leftover_messages = false;
 
 	if (!buxton_cache_smack_rules())
 		exit(EXIT_FAILURE);
@@ -159,7 +161,7 @@ int main(int argc, char *argv[])
 
 	/* Enter loop to accept clients */
 	for (;;) {
-		ret = poll(self.pollfds, self.nfds, -1);
+		ret = poll(self.pollfds, self.nfds, leftover_messages ? 0 : POLL_TIMEOUT);
 
 		if (ret < 0) {
 			buxton_log("poll(): %m\n");
@@ -172,7 +174,10 @@ int main(int argc, char *argv[])
 			break;
 		}
 		if (ret == 0)
-			continue;
+			if (!leftover_messages)
+				continue;
+
+		leftover_messages = false;
 
 		for (nfds_t i=0; i<self.nfds; i++) {
 			client_list_item *cl = NULL;
@@ -253,7 +258,8 @@ int main(int argc, char *argv[])
 					break;
 
 			assert(cl);
-			handle_client(&self, cl, i);
+			if(handle_client(&self, cl, i))
+				leftover_messages = true;
 		}
 	}
 
