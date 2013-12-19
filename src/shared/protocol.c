@@ -274,7 +274,7 @@ bool buxton_wire_list_keys(BuxtonClient *client,
 	/* Attempt to serialize our send message */
 	list = buxton_array_new();
 	if (!buxton_array_add(list, &d_layer)) {
-		buxton_log("Unable to add layer to list_keys array");
+		buxton_log("Unable to add layer to list_keys array\n");
 		goto end;
 	}
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_LIST, list);
@@ -294,7 +294,7 @@ bool buxton_wire_list_keys(BuxtonClient *client,
 	ret_list = buxton_array_new();
 	for (i = 1; i < count; i ++) {
 		if (!buxton_array_add(ret_list, &r_list[i])) {
-			buxton_log("Unable to send list-keys response");
+			buxton_log("Unable to send list-keys response\n");
 			goto end;
 		}
 	}
