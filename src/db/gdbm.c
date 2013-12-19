@@ -171,12 +171,13 @@ static bool list_keys(BuxtonLayer *layer,
 	BuxtonData *current = NULL;
 	BuxtonString in_key;
 	char *real_key;
+	bool ret = false;
 
 	assert(layer);
 
 	db = _db_for_resource(layer);
 	if (!db)
-		return false;
+		goto end;
 
 	k_list = buxton_array_new();
 	key = gdbm_firstkey(db);
@@ -184,7 +185,7 @@ static bool list_keys(BuxtonLayer *layer,
 	while (key.dptr) {
 		current = malloc0(sizeof(BuxtonData));
 		if (!current)
-			return false;
+			goto end;
 
 		/* Split the key name from the rest of the key */
 		current->type = STRING;
@@ -193,7 +194,10 @@ static bool list_keys(BuxtonLayer *layer,
 		real_key = buxton_get_name(&in_key);
 		current->store.d_string.value = strdup(real_key);
 		current->store.d_string.length = (uint32_t)strlen(real_key);
-		buxton_array_add(k_list, current);
+		if (!buxton_array_add(k_list, current)) {
+			buxton_log("Unable to add key to to gdbm list\n");
+			goto end;
+		}
 
 		/* Visit the next key */
 		nextkey = gdbm_nextkey(db, key);
@@ -203,8 +207,12 @@ static bool list_keys(BuxtonLayer *layer,
 
 	/* Pass ownership of the array to the caller */
 	*list = k_list;
+	ret = true;
 
-	return true;
+end:
+	if (!ret)
+		buxton_array_free(&k_list, NULL);
+	return ret;
 }
 
 _bx_export_ void buxton_module_destroy(void)
