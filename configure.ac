@@ -206,4 +206,8 @@ AC_MSG_RESULT([
         compiler:               ${CC}
         cflags:                 ${CFLAGS}
         ldflags:                ${LDFLAGS}
+
+        debug:                  ${enable_debug}
+        demos:                  ${enable_demos}
+        coverage:               ${have_coverage}
 ])
