@@ -25,11 +25,6 @@
 #include <iniparser.h>
 
 /**
- * @note This is work in progress.
- */
-
-
-/**
  * Section name in ini file for our configuration
  */
 #define CONFIG_SECTION "Configuration"
