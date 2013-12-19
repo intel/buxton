@@ -249,14 +249,14 @@ START_TEST(ini_parse_check)
 	char ini_bad[] = "test/test-fail.ini";
 	dictionary *ini = NULL;
 
-        ini = iniparser_load(ini_good);
+	ini = iniparser_load(ini_good);
 	fail_if(ini == NULL,
 		"Failed to parse ini file");
 
 	iniparser_dump(ini, stdout);
 	iniparser_freedict(ini);
 
-        ini = iniparser_load(ini_bad);
+	ini = iniparser_load(ini_bad);
 	fail_if(ini != NULL,
 		"Failed to catch bad ini file");
 
@@ -274,14 +274,14 @@ configurator_suite(void)
 	s = suite_create("configurator");
 
 	tc = tcase_create("compilation defaults");
-        tcase_add_test(tc, configurator_default_conf_file);
-        tcase_add_test(tc, configurator_default_module_dir);
+	tcase_add_test(tc, configurator_default_conf_file);
+	tcase_add_test(tc, configurator_default_module_dir);
 	tcase_add_test(tc, configurator_default_db_path);
 	tcase_add_test(tc, configurator_default_smack_load_file);
 	tcase_add_test(tc, configurator_default_buxton_socket);
 	suite_add_tcase(s, tc);
 
-        tc = tcase_create("env clobbers defaults");
+	tc = tcase_create("env clobbers defaults");
 	tcase_add_test(tc, configurator_env_conf_file);
 	tcase_add_test(tc, configurator_env_module_dir);
 	tcase_add_test(tc, configurator_env_db_path);
@@ -289,7 +289,7 @@ configurator_suite(void)
 	tcase_add_test(tc, configurator_env_buxton_socket);
 	suite_add_tcase(s, tc);
 
-        tc = tcase_create("command line clobbers all");
+	tc = tcase_create("command line clobbers all");
 	tcase_add_test(tc, configurator_cmd_conf_file);
 	tcase_add_test(tc, configurator_cmd_module_dir);
 	tcase_add_test(tc, configurator_cmd_db_path);
