@@ -317,9 +317,13 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		out_list = buxton_array_new();
 		if (!out_list)
 			return;
-		if (!buxton_array_add(out_list, &data) ||
-			!buxton_array_add(out_list, value)) {
-			buxton_log("Failed to prepare array data\n");
+		if (!buxton_array_add(out_list, &data)) {
+			buxton_log("Failed to add notify array data\n");
+			buxton_array_free(&out_list, NULL);
+			return;
+		}
+		if (!buxton_array_add(out_list, value)) {
+			buxton_log("Failed to add notify array value\n");
 			buxton_array_free(&out_list, NULL);
 			return;
 		}
