@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <iniparser.h>
 #include <limits.h>
 
 #include "backend.h"

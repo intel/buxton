@@ -20,7 +20,6 @@
 #endif
 
 #include <dlfcn.h>
-#include <iniparser.h>
 
 #include "configurator.h"
 #include "backend.h"
@@ -36,13 +35,15 @@
 static Hashmap *_directPermitted = NULL;
 
 /**
- * Parse a given layer using the buxton configuration file
- * @param ini the configuration dictionary
- * @param name the layer to query
- * @param out The new BuxtonLayer to store
- * @return a boolean value, indicating success of the operation
+ * Create a BuxtonLayer out of a ConfigLayer
+ *
+ * Validates the data from the config file and creates BuxtonLayer.
+ *
+ * @param conf_layer the ConfigLayer to validate
+ *
+ * @return a new BuxtonLayer.  Callers are responsible for managing
+ * this memory
  */
-bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out);
 static BuxtonLayer* buxton_layer_new(ConfigLayer *conf_layer);
 
 bool buxton_direct_open(BuxtonControl *control)
@@ -325,80 +326,6 @@ static BuxtonLayer* buxton_layer_new(ConfigLayer *conf_layer)
 	free(out->description);
 	free(out);
 	return NULL;
-}
-
-bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
-{
-	int r;
-	_cleanup_free_ char *k_desc = NULL;
-	_cleanup_free_ char *k_backend = NULL;
-	_cleanup_free_ char *k_type = NULL;
-	_cleanup_free_ char *k_priority = NULL;
-	char *_desc = NULL;
-	char *_backend = NULL;
-	char *_type = NULL;
-	int _priority;
-
-	assert(ini);
-	assert(name);
-	assert(out);
-
-	r = asprintf(&k_desc, "%s:description", name);
-	if (r == -1)
-		return false;
-
-	r = asprintf(&k_backend, "%s:backend", name);
-	if (r == -1)
-		return false;
-
-	r = asprintf(&k_type, "%s:type", name);
-	if (r == -1)
-		return false;
-
-	r = asprintf(&k_priority, "%s:priority", name);
-	if (r == -1)
-		return false;
-
-	_type = iniparser_getstring(ini, k_type, NULL);
-	_backend = iniparser_getstring(ini, k_backend, NULL);
-	_priority = iniparser_getint(ini, k_priority, -1);
-	_desc = iniparser_getstring(ini, k_desc, NULL);
-
-	if (!_type || !name || !_backend || _priority < 0)
-		return false;
-
-	out->name.value = strdup(name);
-	if (!out->name.value)
-		goto fail;
-	out->name.length = (uint32_t)strlen(name)+1;
-
-	if (strcmp(_type, "System") == 0)
-		out->type = LAYER_SYSTEM;
-	else if (strcmp(_type, "User") == 0)
-		out->type = LAYER_USER;
-	else {
-		buxton_log("Layer %s has unknown type: %s\n", name, _type);
-		goto fail;
-	}
-
-	if (strcmp(_backend, "gdbm") == 0)
-		out->backend = BACKEND_GDBM;
-	else if(strcmp(_backend, "memory") == 0)
-		out->backend = BACKEND_MEMORY;
-	else
-		goto fail;
-
-	if (_desc != NULL)
-		out->description = strdup(_desc);
-
-	out->priority = _priority;
-	return true;
-
-
-fail:
-	free(out->name.value);
-	free(out->description);
-	return false;
 }
 
 static bool init_backend(BuxtonConfig *config,
