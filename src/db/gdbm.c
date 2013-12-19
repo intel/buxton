@@ -210,8 +210,16 @@ static bool list_keys(BuxtonLayer *layer,
 	ret = true;
 
 end:
-	if (!ret)
+	if (!ret && k_list) {
+		for (uint16_t i = 0; i < k_list->len; i++) {
+			current = buxton_array_get(k_list, i);
+			if (!current)
+				break;
+			free(current->store.d_string.value);
+			free(current);
+		}
 		buxton_array_free(&k_list, NULL);
+	}
 	return ret;
 }
 
