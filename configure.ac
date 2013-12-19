@@ -14,6 +14,7 @@ LT_INIT([disable-static])
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
+AC_PROG_MKDIR_P
 
 # Checks for libraries.
 AC_CHECK_LIB([dl], [dlopen])
@@ -180,11 +181,13 @@ AS_IF([test "x$enable_demos" = "xyes"],
 	[])
 AM_CONDITIONAL([BUILD_DEMOS], [test x$enable_demos = x"yes"])
 
+AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P test/databases])
 AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket
 test/test-pass.ini
 test/test-fail.ini
+test/test.conf
 src/shared/constants.c
 ])
 AC_OUTPUT

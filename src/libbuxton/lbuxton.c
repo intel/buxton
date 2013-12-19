@@ -34,6 +34,7 @@
 #include "log.h"
 #include "hashmap.h"
 #include "protocol.h"
+#include "configurator.h"
 
 bool buxton_client_open(BuxtonClient *client)
 {
@@ -48,7 +49,7 @@ bool buxton_client_open(BuxtonClient *client)
 	}
 
 	remote.sun_family = AF_UNIX;
-	strncpy(remote.sun_path, BUXTON_SOCKET, sizeof(remote.sun_path));
+	strncpy(remote.sun_path, buxton_socket(), sizeof(remote.sun_path));
 	r = connect(bx_socket, (struct sockaddr *)&remote, sizeof(remote));
 	client->fd = bx_socket;
 	if ( r == -1) {
