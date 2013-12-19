@@ -189,7 +189,8 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_LIST:
 		if (key_list) {
 			for (i = 0; i < key_list->len; i++) {
-				buxton_array_add(out_list, buxton_array_get(key_list, i));
+				if (!buxton_array_add(out_list, buxton_array_get(key_list, i)))
+					goto end;
 			}
 			buxton_array_free(&key_list, NULL);
 		}
