@@ -370,7 +370,7 @@ bool parse_layer(dictionary *ini, char *name, BuxtonLayer *out)
 	out->name.value = strdup(name);
 	if (!out->name.value)
 		goto fail;
-	out->name.length = (uint32_t)strlen(name);
+	out->name.length = (uint32_t)strlen(name)+1;
 
 	if (strcmp(_type, "System") == 0)
 		out->type = LAYER_SYSTEM;
