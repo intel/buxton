@@ -188,7 +188,6 @@ static void initialize(void)
 		if (i == CONFIG_CONF_FILE) {
 			char *path = conf.keys[CONFIG_CONF_FILE];
 
-			assert(conf.ini == NULL);
 			conf.ini = iniparser_load(path);
 			if (conf.ini == NULL) {
 				buxton_log("Failed to load buxton conf file: %s\n", path);
