@@ -30,11 +30,6 @@
 #include "buxton-array.h"
 
 /**
- * Eventually this will be dropped
- */
-static Hashmap *_directPermitted = NULL;
-
-/**
  * Create a BuxtonLayer out of a ConfigLayer
  *
  * Validates the data from the config file and creates BuxtonLayer.
@@ -51,15 +46,13 @@ bool buxton_direct_open(BuxtonControl *control)
 
 	assert(control);
 
-	if (!_directPermitted)
-		_directPermitted = hashmap_new(trivial_hash_func, trivial_compare_func);
-
 	memset(&(control->config), 0, sizeof(BuxtonConfig));
-	buxton_init_layers(&(control->config));
+	if(!buxton_init_layers(&(control->config)))
+		return false;
 
 	control->client.direct = true;
 	control->client.pid = getpid();
-	hashmap_put(_directPermitted, &(control->client.pid), control);
+
 	return true;
 }
 
@@ -464,8 +457,6 @@ void buxton_direct_close(BuxtonControl *control)
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
 
-	if (_directPermitted)
-		hashmap_remove(_directPermitted, &(control->client.pid));
 	control->client.direct = false;
 
 	HASHMAP_FOREACH(backend, control->config.backends, iterator) {
