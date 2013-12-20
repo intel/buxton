@@ -177,10 +177,11 @@ daemon_suite(void)
 {
 	Suite *s;
 	TCase *tc;
+	bool __attribute__((unused))dummy;
 
 	s = suite_create("smack");
 
-	buxton_cache_smack_rules();
+	dummy = buxton_cache_smack_rules();
 	if (buxton_smack_enabled()) {
 		tc = tcase_create("smack access test functions");
 		tcase_add_checked_fixture(tc, setup, teardown);

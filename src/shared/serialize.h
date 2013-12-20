@@ -81,7 +81,8 @@ typedef enum BuxtonControlMessage{
  * @param dest Pointer to store serialized data in
  * @return a size_t value, indicating the size of serialized data
  */
-size_t buxton_serialize(BuxtonData *source, uint8_t **dest);
+size_t buxton_serialize(BuxtonData *source, uint8_t **dest)
+	__attribute__((warn_unused_result));
 
 /**
  * Deserialize internal data for client consumption
@@ -89,7 +90,8 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **dest);
  * @param dest A pointer where the deserialize data will be stored
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
+bool buxton_deserialize(uint8_t *source, BuxtonData *dest)
+	__attribute__((warn_unused_result));
 
 /**
  * Serialize an internal buxton message for wire communication
@@ -100,7 +102,8 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *dest);
  */
 size_t buxton_serialize_message(uint8_t **dest,
 				BuxtonControlMessage message,
-				BuxtonArray *list);
+				BuxtonArray *list)
+	__attribute__((warn_unused_result));
 
 /**
  * Deserialize the given data into an array of BuxtonData structs
@@ -112,7 +115,8 @@ size_t buxton_serialize_message(uint8_t **dest,
  */
 size_t buxton_deserialize_message(uint8_t *data,
 				  BuxtonControlMessage *message,
-				  size_t size, BuxtonData **list);
+				  size_t size, BuxtonData **list)
+	__attribute__((warn_unused_result));
 
 /**
  * Get size of a buxton message data stream
@@ -120,7 +124,8 @@ size_t buxton_deserialize_message(uint8_t *data,
  * @param size The size of the data stream (from read)
  * @return a size_t length of the complete message or 0
  */
-size_t buxton_get_message_size(uint8_t *data, size_t size);
+size_t buxton_get_message_size(uint8_t *data, size_t size)
+	__attribute__((warn_unused_result));
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

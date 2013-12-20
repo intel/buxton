@@ -310,7 +310,8 @@ START_TEST(buxton_wire_get_response_check)
 		data.type = INT32;
 		data.store.d_int32 = 0;
 		data.label = buxton_string_pack("dummy");
-		buxton_array_add(out_list, &data);
+		fail_if(!buxton_array_add(out_list, &data),
+			"Failed to add response to array");
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, out_list);
 		buxton_array_free(&out_list, NULL);
 		fail_if(size == 0, "Failed to serialize message");
@@ -364,7 +365,8 @@ START_TEST(buxton_wire_set_value_check)
 		data.type = INT32;
 		data.store.d_int32 = 0;
 		data.label = buxton_string_pack("dummy");
-		buxton_array_add(list, &data);
+		fail_if(!buxton_array_add(list, &data),
+			"Failed to add response to array");
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, list);
 		buxton_array_free(&list, NULL);
 		fail_if(size == 0, "Failed to serialize message");
@@ -421,8 +423,10 @@ START_TEST(buxton_wire_get_value_check)
 		data2.type = INT32;
 		data2.store.d_int32 = 1;
 		data2.label = buxton_string_pack("label");
-		buxton_array_add(list, &data1);
-		buxton_array_add(list, &data2);
+		fail_if(!buxton_array_add(list, &data1),
+			"Failed to add first element to response");
+		fail_if(!buxton_array_add(list, &data2),
+			"Failed to add first element to response");
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, list);
 		buxton_array_free(&list, NULL);
 		fail_if(size == 0, "Failed to serialize message");

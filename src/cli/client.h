@@ -61,7 +61,8 @@ typedef struct Command {
  */
 bool cli_set_label(BuxtonControl *control,
 		   __attribute__((unused)) BuxtonDataType type,
-		   char *one, char *two, char *three, char *four);
+		   char *one, char *two, char *three, char *four)
+	__attribute__((warn_unused_result));
 
 /**
  * Get a label from Buxton
@@ -76,7 +77,8 @@ bool cli_set_label(BuxtonControl *control,
 bool cli_get_label(BuxtonControl *control,
 		   __attribute__((unused)) BuxtonDataType type,
 		   char *one, char *two, char *three,
-		   __attribute__((unused)) char *four);
+		   __attribute__((unused)) char *four)
+	__attribute__((warn_unused_result));
 
 /**
  * Set a value in Buxton
@@ -89,7 +91,8 @@ bool cli_get_label(BuxtonControl *control,
  * @returns bool indicating success or failure
  */
 bool cli_set_value(BuxtonControl *control, BuxtonDataType type, char *one,
-		   char *two, char *three, char *four);
+		   char *two, char *three, char *four)
+	__attribute__((warn_unused_result));
 
 /**
  * Get a value from Buxton
@@ -103,7 +106,8 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type, char *one,
  */
 bool cli_get_value(BuxtonControl *control, BuxtonDataType type, char *one,
 		   char *two, char *three,
-		   __attribute__((unused)) char *four);
+		   __attribute__((unused)) char *four)
+	__attribute__((warn_unused_result));
 
 /*
  * List keys for a layer in Buxton
@@ -118,7 +122,8 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type, char *one,
 bool cli_list_keys(BuxtonControl *control,
 		   __attribute__((unused))BuxtonDataType type,
 		   char *one, char *two, char *three,
-		   __attribute__((unused)) char *four);
+		   __attribute__((unused)) char *four)
+	__attribute__((warn_unused_result));
 
 /**
  * Unset a value from Buxton
@@ -133,7 +138,8 @@ bool cli_list_keys(BuxtonControl *control,
 bool cli_unset_value(BuxtonControl *control,
 		     __attribute__((unused))BuxtonDataType type,
 		     char *one, char *two, char *three,
-		     __attribute__((unused)) char *four);
+		     __attribute__((unused)) char *four)
+	__attribute__((warn_unused_result));
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

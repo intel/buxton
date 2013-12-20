@@ -29,7 +29,8 @@ typedef void (*buxton_free_func) (void* p);
  * Create a new BuxtonArray
  * @returns BuxtonArray a newly allocated BuxtonArray
  */
-BuxtonArray *buxton_array_new(void);
+BuxtonArray *buxton_array_new(void)
+	__attribute__((warn_unused_result));
 
 /**
  * Append data to BuxtonArray
@@ -38,7 +39,8 @@ BuxtonArray *buxton_array_new(void);
  * @returns bool true if the data was added to the array
  */
 bool buxton_array_add(BuxtonArray *array,
-		      void *data);
+		      void *data)
+	__attribute__((warn_unused_result));
 
 /**
  * Free an array, and optionally its members
@@ -55,7 +57,8 @@ void buxton_array_free(BuxtonArray **array,
  * @param index index of the element in the array
  * @return a BuxtonData refered to by index, or NULL
  */
-BuxtonData *buxton_array_get(BuxtonArray *array, uint16_t index);
+BuxtonData *buxton_array_get(BuxtonArray *array, uint16_t index)
+	__attribute__((warn_unused_result));
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

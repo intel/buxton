@@ -117,7 +117,8 @@ typedef struct BuxtonControl {
  * @param backend The backend to initialise
  * @return A boolean value, representing the success of the operation
  */
-typedef bool (*module_init_func) (BuxtonBackend *backend);
+typedef bool (*module_init_func) (BuxtonBackend *backend)
+	__attribute__((warn_unused_result));
 
 /**
  * Open a direct connection to Buxton
@@ -125,7 +126,8 @@ typedef bool (*module_init_func) (BuxtonBackend *backend);
  * @param control Valid BuxtonControl instance
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_direct_open(BuxtonControl *control);
+bool buxton_direct_open(BuxtonControl *control)
+	__attribute__((warn_unused_result));
 
 /**
  * Close direct Buxton management connection
@@ -140,14 +142,16 @@ void buxton_direct_close(BuxtonControl *control);
  * @return an initialised backend, or NULL if the layer is not found
  */
 BuxtonBackend *backend_for_layer(BuxtonConfig *config,
-				 BuxtonLayer *layer);
+				 BuxtonLayer *layer)
+	__attribute__((warn_unused_result));
 
 /**
  * Initialize layers using the configuration file
  * @param config A BuxtonControl's configuration
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_init_layers(BuxtonConfig *config);
+bool buxton_init_layers(BuxtonConfig *config)
+	__attribute__((warn_unused_result));
 
 /**
  * Set a value within Buxton
@@ -160,7 +164,8 @@ bool buxton_init_layers(BuxtonConfig *config);
 bool buxton_direct_set_label(BuxtonControl *control,
 			     BuxtonString *layer,
 			     BuxtonString *key,
-			     BuxtonString *label);
+			     BuxtonString *label)
+	__attribute__((warn_unused_result));
 
 /**
  * Set a value within Buxton
@@ -173,7 +178,8 @@ bool buxton_direct_set_label(BuxtonControl *control,
 bool buxton_direct_set_value(BuxtonControl *control,
 			     BuxtonString *layer_name,
 			     BuxtonString *key,
-			     BuxtonData *data);
+			     BuxtonData *data)
+	__attribute__((warn_unused_result));
 
 /**
  * Retrieve a value from Buxton
@@ -184,7 +190,8 @@ bool buxton_direct_set_value(BuxtonControl *control,
  */
 bool buxton_direct_get_value(BuxtonControl *control,
 			     BuxtonString *key,
-			     BuxtonData *data);
+			     BuxtonData *data)
+	__attribute__((warn_unused_result));
 
 /**
  * Retrieve a value from Buxton
@@ -197,7 +204,8 @@ bool buxton_direct_get_value(BuxtonControl *control,
 bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 				       BuxtonString *layer,
 				       BuxtonString *key,
-				       BuxtonData *data);
+				       BuxtonData *data)
+	__attribute__((warn_unused_result));
 
 /**
  * Retrieve a list of keys from Buxton
@@ -208,7 +216,8 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
  */
 bool buxton_direct_list_keys(BuxtonControl *control,
 			     BuxtonString *layer,
-			     BuxtonArray **list);
+			     BuxtonArray **list)
+	__attribute__((warn_unused_result));
 
 /**
  * Unset a value by key in the given BuxtonLayer
@@ -219,7 +228,8 @@ bool buxton_direct_list_keys(BuxtonControl *control,
  */
 bool buxton_direct_unset_value(BuxtonControl *control,
 			       BuxtonString *layer,
-			       BuxtonString *key);
+			       BuxtonString *key)
+	__attribute__((warn_unused_result));
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

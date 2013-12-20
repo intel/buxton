@@ -109,14 +109,16 @@ void* greedy_realloc(void **p, size_t *allocated, size_t need);
  * @param type The BuxtonDataType to query
  * @return A string representation of the BuxtonDataType
  */
-const char* buxton_type_as_string(BuxtonDataType type);
+const char* buxton_type_as_string(BuxtonDataType type)
+        __attribute__((warn_unused_result));
 
 /**
  * Retrieve the filesystem path for the given layer
  * @param layer The layer in question
  * @return a string containing the filesystem path
  */
-char* get_layer_path(BuxtonLayer *layer);
+char* get_layer_path(BuxtonLayer *layer)
+        __attribute__((warn_unused_result));
 
 /**
  * Perform a deep copy of one BuxtonData to another
@@ -130,11 +132,13 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
  * @param key Pointer to BuxtonString representing a buxton key
  * @return A pointer to a character string containing the key's group
  */
-char *get_group(BuxtonString *key);
+char *get_group(BuxtonString *key)
+        __attribute__((warn_unused_result));
 
 /**
  * Get the name portion of a buxton key
  * @param key Pointer to BuxtonString representing a buxton key
  * @return A pointer to a character string containing the key's name
  */
-char *get_name(BuxtonString *key);
+char *get_name(BuxtonString *key)
+        __attribute__((warn_unused_result));

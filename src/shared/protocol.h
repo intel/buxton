@@ -42,7 +42,8 @@ typedef enum BuxtonStatus {
  */
 size_t buxton_wire_get_response(BuxtonClient *client,
 				BuxtonControlMessage *msg,
-				BuxtonData **list);
+				BuxtonData **list)
+	__attribute__((warn_unused_result));
 /**
  * Send a SET message over the wire protocol, return the response
  * @param client Client connection
@@ -52,7 +53,8 @@ size_t buxton_wire_get_response(BuxtonClient *client,
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonData *value);
+			   BuxtonString *key, BuxtonData *value)
+	__attribute__((warn_unused_result));
 
 /**
  * Send a GET message over the wire protocol, return the data
@@ -63,7 +65,8 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonData *value);
+			   BuxtonString *key, BuxtonData *value)
+	__attribute__((warn_unused_result));
 
 
 /**
@@ -75,7 +78,8 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
  */
 bool buxton_wire_unset_value(BuxtonClient *client,
 			     BuxtonString *layer_name,
-			     BuxtonString *key);
+			     BuxtonString *key)
+	__attribute__((warn_unused_result));
 /**
  * Send a NOTIFY message over the protocol, register for events
  * @param client Client connection
@@ -83,7 +87,8 @@ bool buxton_wire_unset_value(BuxtonClient *client,
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_register_notification(BuxtonClient *client,
-				       BuxtonString *key);
+				       BuxtonString *key)
+	__attribute__((warn_unused_result));
 
 /**
  * Send a LIST message over the protocol, retrieve key list
@@ -94,7 +99,8 @@ bool buxton_wire_register_notification(BuxtonClient *client,
  */
 bool buxton_wire_list_keys(BuxtonClient *client,
 			   BuxtonString *layer,
-			   BuxtonArray **array);
+			   BuxtonArray **array)
+	__attribute__((warn_unused_result));
 
 /**
  * Send an UNNOTIFY message over the protocol, no longer recieve events
@@ -103,7 +109,8 @@ bool buxton_wire_list_keys(BuxtonClient *client,
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_unregister_notification(BuxtonClient *client,
-				         BuxtonString *key);
+				         BuxtonString *key)
+	__attribute__((warn_unused_result));
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

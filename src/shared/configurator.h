@@ -58,7 +58,8 @@ void buxton_add_cmd_line(ConfigKey confkey, char* data);
  * @return the path to the plugin module.  Do not free this pointer.
  * It belongs to configurator.
  */
-const char *buxton_module_dir(void);
+const char *buxton_module_dir(void)
+	__attribute__((warn_unused_result));
 
 /**
  * @internal
@@ -67,7 +68,8 @@ const char *buxton_module_dir(void);
  * @return the path of the config file.  Do not free this pointer.
  * It belongs to configurator.
  */
-const char *buxton_conf_file(void);
+const char *buxton_conf_file(void)
+	__attribute__((warn_unused_result));
 
 /**
  * @internal
@@ -77,7 +79,8 @@ const char *buxton_conf_file(void);
  * @return the path of the database file.  Do not free this pointer.
  * It belongs to configurator.
  */
-const char *buxton_db_path(void);
+const char *buxton_db_path(void)
+	__attribute__((warn_unused_result));
 
 /**
  * @internal
@@ -87,7 +90,8 @@ const char *buxton_db_path(void);
  * @return the path of the smack load file.  Do not free this pointer.
  * It belongs to configurator.
  */
-const char *buxton_smack_load_file(void);
+const char *buxton_smack_load_file(void)
+	__attribute__((warn_unused_result));
 
 /**
  * @internal
@@ -97,7 +101,8 @@ const char *buxton_smack_load_file(void);
  * @return the path of the buxton socket.  Do not free this pointer.
  * It belongs to configurator.
  */
-const char *buxton_socket(void);
+const char *buxton_socket(void)
+	__attribute__((warn_unused_result));
 
 /**
  * @internal
@@ -109,7 +114,8 @@ const char *buxton_socket(void);
  *
  * @return an integer that indicates the number of layers.
  */
-int buxton_get_layers(ConfigLayer **layers);
+int buxton_get_layers(ConfigLayer **layers)
+	__attribute__((warn_unused_result));
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

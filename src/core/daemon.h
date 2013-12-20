@@ -79,7 +79,8 @@ typedef struct BuxtonDaemon {
  */
 bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		BuxtonString **key, BuxtonString **layer,
-		BuxtonData **value);
+		BuxtonData **value)
+	__attribute__((warn_unused_result));
 
 /**
  * Handle a message within bt-daemon
@@ -90,7 +91,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
  */
 bool bt_daemon_handle_message(BuxtonDaemon *self,
 			      client_list_item *client,
-			      size_t size);
+			      size_t size)
+	__attribute__((warn_unused_result));
 
 /**
  * Notify clients a value changes in bt-daemon
@@ -126,7 +128,8 @@ void set_value(BuxtonDaemon *self, client_list_item *client,
  */
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 		      BuxtonString *layer, BuxtonString *key,
-		      BuxtonStatus *status);
+		      BuxtonStatus *status)
+	__attribute__((warn_unused_result));
 
 /**
  * Buxton daemon function for unsetting a value
@@ -148,7 +151,8 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
  * @param status Will be set with the BuxtonStatus result of the operation
  */
 BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
-		       BuxtonString *layer, BuxtonStatus *status);
+		       BuxtonString *layer, BuxtonStatus *status)
+	__attribute__((warn_unused_result));
 
 /**
  * Buxton daemon function for registering notifications on a given key
@@ -175,7 +179,8 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
  * @param cl Client to check the credentials of
  * @return bool indicating credentials where found or not
  */
-bool identify_client(client_list_item *cl);
+bool identify_client(client_list_item *cl)
+	__attribute__((warn_unused_result));
 
 /**
  * Add a fd to daemon's poll list
@@ -202,7 +207,8 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i);
  * @param i The currently active file descriptor
  * @return bool indicating more data to process
  */
-bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
+bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
+	__attribute__((warn_unused_result));
 
 /**
  * Terminate client connectoin

@@ -122,7 +122,8 @@ static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)
  * @param client A BuxtonClient
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_open(BuxtonClient *client);
+_bx_export_ bool buxton_client_open(BuxtonClient *client)
+	__attribute__((warn_unused_result));
 
 /**
  * Close the connection to Buxton
@@ -141,7 +142,8 @@ _bx_export_ void buxton_client_close(BuxtonClient *client);
 _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
 					 BuxtonString *layer,
 					 BuxtonString *key,
-					 BuxtonData *data);
+					 BuxtonData *data)
+	__attribute__((warn_unused_result));
 
 /**
  * Retrieve a value from Buxton
@@ -152,7 +154,8 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
  */
 _bx_export_ bool buxton_client_get_value(BuxtonClient *client,
 					 BuxtonString *key,
-					 BuxtonData *data);
+					 BuxtonData *data)
+	__attribute__((warn_unused_result));
 
 /**
  * Retrieve a value from Buxton
@@ -165,7 +168,8 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client,
 _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 						   BuxtonString *layer,
 						   BuxtonString *key,
-						   BuxtonData *data);
+						   BuxtonData *data)
+	__attribute__((warn_unused_result));
 
 /**
  * List all keys within a given layer in Buxon
@@ -176,7 +180,8 @@ _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
  */
 _bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
 					 BuxtonString *layer_name,
-					 BuxtonArray **list);
+					 BuxtonArray **list)
+	__attribute__((warn_unused_result));
 
 /**
  * Register for notifications on the given key in all layers
@@ -185,7 +190,8 @@ _bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
  * @return a boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
-						     BuxtonString *key);
+						     BuxtonString *key)
+	__attribute__((warn_unused_result));
 
 /**
  * Unregister from notifications on the given key in all layers
@@ -194,7 +200,8 @@ _bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
  * @return a boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
-						       BuxtonString *key);
+						       BuxtonString *key)
+	__attribute__((warn_unused_result));
 
 
 /**
@@ -206,7 +213,8 @@ _bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
  */
 _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
 					   BuxtonString *layer,
-					   BuxtonString *key);
+					   BuxtonString *key)
+	__attribute__((warn_unused_result));
 
 /**
  * Create a key for item lookup in buxton
@@ -214,21 +222,24 @@ _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
  * @param name Pointer to a character string representing a name
  * @return A pointer to a BuxtonString containing the key
  */
-_bx_export_ BuxtonString *buxton_make_key(char *group, char *name);
+_bx_export_ BuxtonString *buxton_make_key(char *group, char *name)
+	__attribute__((warn_unused_result));
 
 /**
  * Get the group portion of a buxton key
  * @param key Pointer to BuxtonString representing a buxton key
  * @return A pointer to a character string containing the key's group
  */
-_bx_export_ char *buxton_get_group(BuxtonString *key);
+_bx_export_ char *buxton_get_group(BuxtonString *key)
+	__attribute__((warn_unused_result));
 
 /**
  * Get the name portion of a buxton key
  * @param key Pointer to BuxtonString representing a buxton key
  * @return A pointer to a character string containing the key's name
  */
-_bx_export_ char *buxton_get_name(BuxtonString *key);
+_bx_export_ char *buxton_get_name(BuxtonString *key)
+	__attribute__((warn_unused_result));
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

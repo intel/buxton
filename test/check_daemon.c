@@ -469,7 +469,8 @@ START_TEST(bt_daemon_handle_message_error_check)
 	cl.smack_label = &slabel;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
-	buxton_direct_open(&daemon.buxton);
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
 
 	cl.data = malloc(4);
 	fail_if(!cl.data, "Couldn't allocate blank message");
@@ -534,7 +535,8 @@ START_TEST(bt_daemon_handle_message_set_check)
 	cl.smack_label = &slabel;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
-	buxton_direct_open(&daemon.buxton);
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
 
 	data1.type = STRING;
 	string = buxton_make_key("group", "name");
@@ -609,7 +611,8 @@ START_TEST(bt_daemon_handle_message_get_check)
 	cl.smack_label = &slabel;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
-	buxton_direct_open(&daemon.buxton);
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
 
 	data1.type = STRING;
 	string = buxton_make_key("group", "name");
@@ -696,7 +699,8 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
-	buxton_direct_open(&daemon.buxton);
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
 
 	string = buxton_make_key("group", "name");
 	fail_if(!string, "Failed to allocate key");
@@ -778,7 +782,8 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	cl.smack_label = &slabel;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
-	buxton_direct_open(&daemon.buxton);
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
 
 	data1.type = STRING;
 	string = buxton_make_key("group", "name");
@@ -844,7 +849,8 @@ START_TEST(bt_daemon_notify_clients_check)
 		"Failed to cache Smack rules");
 	string = buxton_make_key("group", "name");
 	fail_if(!string, "Failed to allocate key");
-	buxton_direct_open(&daemon.buxton);
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
 
 	value1.type = STRING;
 	value1.store.d_string = buxton_string_pack("dummy value");

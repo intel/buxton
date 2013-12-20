@@ -52,13 +52,15 @@ typedef enum BuxtonKeyAccessType {
  * Check whether Smack is enabled in bt-daemon
  * @return a boolean value, indicating whether Smack is enabled
  */
-bool buxton_smack_enabled(void);
+bool buxton_smack_enabled(void)
+	__attribute__((warn_unused_result));
 
 /**
  * Load Smack rules from the kernel
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_cache_smack_rules(void);
+bool buxton_cache_smack_rules(void)
+	__attribute__((warn_unused_result));
 
 /**
  * Check whether the smack access matches the buxton client access
@@ -69,13 +71,15 @@ bool buxton_cache_smack_rules(void);
  */
 bool buxton_check_smack_access(BuxtonString *subject,
 			       BuxtonString *object,
-			       BuxtonKeyAccessType request);
+			       BuxtonKeyAccessType request)
+	__attribute__((warn_unused_result));
 
 /**
  * Set up inotify to track Smack rule file for changes
  * @return an exit code for the operation
  */
-int buxton_watch_smack_rules(void);
+int buxton_watch_smack_rules(void)
+	__attribute__((warn_unused_result));
 
 /**
  * Check whether the client has read access for a key in a layer
@@ -88,7 +92,8 @@ int buxton_watch_smack_rules(void);
  */
 bool buxton_check_read_access(BuxtonClient *client, BuxtonString *layer,
 			      BuxtonString *key, BuxtonData *data,
-			      BuxtonString *client_label);
+			      BuxtonString *client_label)
+	__attribute__((warn_unused_result));
 
 /**
  * Check whether the client has write access for a key in a layer
