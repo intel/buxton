@@ -30,6 +30,10 @@
 #include "smack.h"
 #include "util.h"
 
+#ifdef NDEBUG
+	#error "re-run configure with --enable-debug"
+#endif
+
 static pid_t daemon_pid;
 
 static void exec_daemon(void)

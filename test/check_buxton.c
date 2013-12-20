@@ -24,6 +24,10 @@
 #include "serialize.h"
 #include "util.h"
 
+#ifdef NDEBUG
+	#error "re-run configure with --enable-debug"
+#endif
+
 START_TEST(buxton_direct_open_check)
 {
 	BuxtonControl c;

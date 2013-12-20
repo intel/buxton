@@ -23,6 +23,10 @@
 
 #include "configurator.h"
 
+#ifdef NDEBUG
+	#error "re-run configure with --enable-debug"
+#endif
+
 static void fail_strne(const char *value, char *correct_value, bool casecmp)
 {
 	char buf[PATH_MAX];

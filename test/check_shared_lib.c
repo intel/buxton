@@ -29,6 +29,10 @@
 #include "util.h"
 #include "configurator.h"
 
+#ifdef NDEBUG
+	#error "re-run configure with --enable-debug"
+#endif
+
 START_TEST(log_write_check)
 {
 	char log_file[] = "log-check-stderr-file";

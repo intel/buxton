@@ -30,7 +30,7 @@ include_HEADERS =
 lib_LTLIBRARIES =
 pkglib_LTLIBRARIES =
 DISTCHECK_CONFIGURE_FLAGS =  \
-	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
+	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir) --enable-debug
 
 systemdsystemunitdir = @SYSTEMD_SYSTEMUNITDIR@
 systemdsystemunit_DATA = data/buxton.service data/buxton.socket
