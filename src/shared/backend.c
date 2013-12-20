@@ -462,6 +462,7 @@ void buxton_direct_close(BuxtonControl *control)
 {
 	Iterator iterator;
 	BuxtonBackend *backend;
+	BuxtonLayer *layer;
 
 	if (_directPermitted)
 		hashmap_remove(_directPermitted, &(control->client.pid));
@@ -472,6 +473,12 @@ void buxton_direct_close(BuxtonControl *control)
 	}
 	hashmap_free(control->config.backends);
 	hashmap_free(control->config.databases);
+
+	HASHMAP_FOREACH(layer, control->config.layers, iterator) {
+		free(layer->name.value);
+		free(layer->description);
+		free(layer);
+	}
 	hashmap_free(control->config.layers);
 
 	control->client.direct = false;
