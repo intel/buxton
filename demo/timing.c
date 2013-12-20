@@ -163,10 +163,11 @@ static bool timed_func(unsigned long long *elapsed, struct testcase *tc)
 	return ret;
 }
 
-static bool test(struct testcase *tc)
+static void test(struct testcase *tc)
 {
 	unsigned long long elapsed;
 	unsigned long long total;
+	unsigned long long errors = 0;
 	double meansqr;
 	double mean;
 	double sigma;
@@ -179,10 +180,8 @@ static bool test(struct testcase *tc)
 	testcase_init(tc);
 
 	for (i = 0; i < iterations; i++) {
-		if (!timed_func(&elapsed, tc)) {
-			fprintf(stderr, "Test %s failed\n", tc->name);
-			return false;
-		}
+		if (!timed_func(&elapsed, tc))
+			errors++;
 
 		mean += (double)elapsed;
 		meansqr += (double)elapsed * (double)elapsed;
@@ -194,10 +193,8 @@ static bool test(struct testcase *tc)
 
 	testcase_cleanup(tc);
 
-	printf("%-24s  %10.3lfus  %10.3lfus\n",
-	       tc->name, mean / 1000.0, sigma / 1000.0);
-
-	return true;
+	printf("%-24s  %10.3lfus  %10.3lfus  %10llu\n",
+	       tc->name, mean / 1000.0, sigma / 1000.0, errors);
 }
 
 int main(int argc, char **argv)
@@ -220,12 +217,10 @@ int main(int argc, char **argv)
 	}
 
 	printf("Buxton protocol latency timing tool. Using %i iterations per test.\n", iterations);
-	printf("Test Name:                   Average:        Sigma:\n");
+	printf("Test Name:                   Average:        Sigma:     Errors:\n");
 
-	for (i = 0; i < TEST_COUNT; i++) {
-		if (!test(&testcases[i]))
-			break;
-	}
+	for (i = 0; i < TEST_COUNT; i++)
+		test(&testcases[i]);
 
 	buxton_client_close(&__client);
 	exit(ret);
