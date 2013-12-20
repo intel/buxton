@@ -193,7 +193,7 @@ static bool list_keys(BuxtonLayer *layer,
 		in_key.length = (uint32_t)key.dsize;
 		real_key = buxton_get_name(&in_key);
 		current->store.d_string.value = strdup(real_key);
-		current->store.d_string.length = (uint32_t)strlen(real_key);
+		current->store.d_string.length = (uint32_t)strlen(real_key)+1;
 		current->label = buxton_string_pack("dummy");
 		if (!buxton_array_add(k_list, current)) {
 			buxton_log("Unable to add key to to gdbm list\n");
