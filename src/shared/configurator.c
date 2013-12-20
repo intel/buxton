@@ -194,6 +194,7 @@ static void initialize(void)
 			}
 		}
 	}
+	conf.initialized = true;
 }
 
 /**

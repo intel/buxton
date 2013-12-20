@@ -50,8 +50,6 @@ static void default_test(const char *value, char *correct_value, char *symbolnam
 
 	snprintf(buf, sizeof(buf), "%s was not %s", value, correct_value);
 	fail_strne(value, correct_value, true);
-
-	free((char*)value);
 }
 
 START_TEST(configurator_default_module_dir)
