@@ -263,6 +263,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 
 	if (get.type == STRING)
 		free(get.store.d_string.value);
+	free(get.label.value);
 	return true;
 }
 
