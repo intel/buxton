@@ -23,7 +23,7 @@
 
 #include "configurator.h"
 
-static void fail_strne(char *value, char *correct_value, bool casecmp)
+static void fail_strne(const char *value, char *correct_value, bool casecmp)
 {
 	char buf[PATH_MAX];
 	int ret;
@@ -41,7 +41,7 @@ static void fail_ne(int a, int b)
 	fail_unless(a == b, "%d is not %d", a, b);
 }
 
-static void default_test(char *value, char* correct_value, char *symbolname)
+static void default_test(const char *value, char *correct_value, char *symbolname)
 {
 	char buf[PATH_MAX];
 
@@ -51,7 +51,7 @@ static void default_test(char *value, char* correct_value, char *symbolname)
 	snprintf(buf, sizeof(buf), "%s was not %s", value, correct_value);
 	fail_strne(value, correct_value, true);
 
-	free(value);
+	free((char*)value);
 }
 
 START_TEST(configurator_default_module_dir)

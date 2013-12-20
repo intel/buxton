@@ -227,34 +227,34 @@ void buxton_add_cmd_line(ConfigKey confkey, char* data)
 	conf.keys[confkey] = _strdup(data);
 }
 
-char* buxton_module_dir(void)
+const char* buxton_module_dir(void)
 {
 	initialize();
-	return conf.keys[CONFIG_MODULE_DIR];
+	return (const char*)conf.keys[CONFIG_MODULE_DIR];
 }
 
-char* buxton_conf_file(void)
+const char* buxton_conf_file(void)
 {
 	initialize();
-	return conf.keys[CONFIG_CONF_FILE];
+	return (const char*)conf.keys[CONFIG_CONF_FILE];
 }
 
-char* buxton_db_path(void)
+const char* buxton_db_path(void)
 {
 	initialize();
-	return conf.keys[CONFIG_DB_PATH];
+	return (const char*)conf.keys[CONFIG_DB_PATH];
 }
 
-char* buxton_smack_load_file(void)
+const char* buxton_smack_load_file(void)
 {
 	initialize();
-	return conf.keys[CONFIG_SMACK_LOAD_FILE];
+	return (const char*)conf.keys[CONFIG_SMACK_LOAD_FILE];
 }
 
-char* buxton_socket(void)
+const char* buxton_socket(void)
 {
 	initialize();
-	return conf.keys[CONFIG_BUXTON_SOCKET];
+	return (const char*)conf.keys[CONFIG_BUXTON_SOCKET];
 }
 
 int buxton_get_layers(ConfigLayer **layers)
