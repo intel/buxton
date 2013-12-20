@@ -49,7 +49,7 @@ struct testcase {
 };
 
 #define TEST_COUNT (TEST_TYPE_MAX * TEST_DATA_TYPE_MAX)
-struct testcase testcases[TEST_COUNT] = {
+static struct testcase testcases[TEST_COUNT] = {
 	{ "set_int32",          TEST_SET,       TEST_INT32    },
 	{ "get_int32",          TEST_GET,       TEST_INT32    },
 	{ "set_unset_int32",    TEST_SET_UNSET, TEST_INT32    },
