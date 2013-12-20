@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "buxton-array.h"
+#include <util.h>
 
 BuxtonArray *buxton_array_new(void)
 {
@@ -27,6 +28,7 @@ bool buxton_array_add(BuxtonArray *array,
 		      void *data)
 {
 	uint new_len;
+	size_t curr, new_size;
 
 	if (!array || !data)
 		return false;
@@ -37,9 +39,11 @@ bool buxton_array_add(BuxtonArray *array,
 	}
 
 	new_len = array->len += 1;
+	curr = (size_t)(array->len*sizeof(void*));
+	new_size = curr + sizeof(void*);
 	if (new_len >= array->len) {
 		/* Resize the array to hold one more pointer */
-		array->data = realloc(array->data, (new_len+1)*sizeof(void*));
+		array->data = greedy_realloc((void**)&array->data, &curr, new_size);
 		if (!array->data)
 			return false;
 	}
