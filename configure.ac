@@ -188,7 +188,6 @@ data/buxton.socket
 test/test-pass.ini
 test/test-fail.ini
 test/test.conf
-src/shared/constants.c
 ])
 AC_OUTPUT
 

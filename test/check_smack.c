@@ -23,8 +23,8 @@
 #include <unistd.h>
 
 #include "bt-daemon.h"
+#include "configurator.h"
 #include "check_utils.h"
-#include "constants.h"
 #include "daemon.h"
 #include "log.h"
 #include "smack.h"
@@ -51,7 +51,7 @@ static void setup(void)
 	sigset_t sigset;
 	pid_t pid;
 
-	unlink(BUXTON_SOCKET);
+	unlink(buxton_socket());
 
 	sigemptyset(&sigset);
 	sigaddset(&sigset, SIGCHLD);

@@ -73,7 +73,6 @@ endif
 
 EXTRA_DIST = \
 	src/libbuxton/lbuxton.sym \
-	src/shared/constants.h \
 	test/test.load2 \
 	test/test.conf \
 	test/test-configurator.conf
@@ -88,7 +87,6 @@ bin_PROGRAMS = \
 	buxtonctl
 
 bt_daemon_SOURCES = \
-	src/shared/constants.c \
 	src/core/daemon.c \
 	src/core/daemon.h \
 	src/core/main.c
@@ -99,7 +97,6 @@ bt_daemon_LDADD = \
 	libbuxton-shared.la
 
 buxtonctl_SOURCES = \
-	src/shared/constants.c \
 	src/cli/main.c \
 	src/cli/client.c \
 	src/cli/client.h
@@ -217,7 +214,6 @@ check_PROGRAMS = \
 	check_configurator
 
 check_buxton_SOURCES = \
-	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
         test/check_buxton.c
@@ -233,7 +229,6 @@ check_buxton_LDADD = \
 	libbuxton-shared.la
 
 check_shared_lib_SOURCES = \
-	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
         test/check_shared_lib.c
@@ -252,7 +247,6 @@ check_shared_lib_LDADD = \
 	libbuxton-shared.la
 
 check_bt_daemon_SOURCES = \
-	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
 	src/core/daemon.c \
@@ -273,7 +267,6 @@ check_bt_daemon_LDADD = \
 	libbuxton-shared.la
 
 check_daemon_SOURCES = \
-	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
 	src/core/daemon.c \
@@ -294,7 +287,6 @@ check_daemon_LDADD = \
 	libbuxton-shared.la
 
 check_smack_SOURCES = \
-	src/shared/constants.c \
 	test/check_utils.c \
 	test/check_utils.h \
 	test/check_smack.c
@@ -313,7 +305,6 @@ check_smack_LDADD = \
 	libbuxton-shared.la
 
 check_configurator_SOURCES = \
-	src/shared/constants.c \
 	src/shared/configurator.c \
 	src/shared/configurator.h \
 	test/check_configurator.c
@@ -342,8 +333,7 @@ bin_PROGRAMS += \
 
 # Timing test
 bxt_timing_SOURCES = \
-	demo/timing.c \
-	src/shared/constants.c
+	demo/timing.c
 bxt_timing_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la \

@@ -26,6 +26,7 @@
 #include <time.h>
 
 #include "bt-daemon.h"
+#include "configurator.h"
 #include "check_utils.h"
 #include "daemon.h"
 #include "log.h"
@@ -103,7 +104,7 @@ static void setup(void)
 	sigset_t sigset;
 	pid_t pid;
 
-	unlink(BUXTON_SOCKET);
+	unlink(buxton_socket());
 
 	sigemptyset(&sigset);
 	sigaddset(&sigset, SIGCHLD);
@@ -1194,7 +1195,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 	sigset_t sigset;
 	pid_t pid;
 
-	unlink(BUXTON_SOCKET);
+	unlink(buxton_socket());
 
 	sigemptyset(&sigset);
 	sigaddset(&sigset, SIGCHLD);

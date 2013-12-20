@@ -14,14 +14,14 @@
 #endif
 
 #include <check.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <linux/limits.h>
-#include <stdbool.h>
 #include <iniparser.h>
+#include <linux/limits.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "configurator.h"
-#include "constants.h"
 
 static void fail_strne(char *value, char *correct_value, bool casecmp)
 {

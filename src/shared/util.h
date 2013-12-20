@@ -45,7 +45,6 @@
 #include <locale.h>
 
 #include "macro.h"
-#include "constants.h"
 #include "bt-daemon.h"
 #include "backend.h"
 

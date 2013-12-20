@@ -13,16 +13,16 @@
     #include "config.h"
 #endif
 
+#include <assert.h>
+#include <iniparser.h>
+#include <linux/limits.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "configurator.h"
 #include "log.h"
-#include "constants.h"
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
-#include <linux/limits.h>
-#include <iniparser.h>
 
 /**
  * Section name in ini file for our configuration

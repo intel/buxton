@@ -17,8 +17,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/inotify.h>
+
 #include "bt-daemon.h"
-#include "constants.h"
+#include "configurator.h"
 #include "hashmap.h"
 #include "log.h"
 #include "smack.h"
@@ -63,7 +64,7 @@ bool buxton_cache_smack_rules(void)
 		goto end;
 	}
 
-	load_file = fopen(SMACK_LOAD_FILE, "r");
+	load_file = fopen(buxton_smack_load_file(), "r");
 
 	if (!load_file) {
 		switch (errno) {
@@ -226,7 +227,7 @@ int buxton_watch_smack_rules(void)
 		buxton_log("inotify_init(): %m\n");
 		return -1;
 	}
-	if (inotify_add_watch(fd, SMACK_LOAD_FILE, IN_CLOSE_WRITE) < 0) {
+	if (inotify_add_watch(fd, buxton_smack_load_file(), IN_CLOSE_WRITE) < 0) {
 		buxton_log("inotify_add_watch(): %m\n");
 		return -1;
 	}

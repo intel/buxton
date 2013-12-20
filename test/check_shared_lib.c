@@ -22,7 +22,6 @@
 #include <limits.h>
 
 #include "backend.h"
-#include "constants.h"
 #include "hashmap.h"
 #include "log.h"
 #include "serialize.h"
