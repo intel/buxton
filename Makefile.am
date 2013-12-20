@@ -190,7 +190,6 @@ gdbm_la_LDFLAGS = \
 	-avoid-version
 
 gdbm_la_LIBADD = \
-	libbuxton.la \
 	libbuxton-shared.la \
 	-lgdbm
 

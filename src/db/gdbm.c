@@ -19,7 +19,6 @@
 #include <string.h>
 
 #include "log.h"
-#include "bt-daemon.h"
 #include "hashmap.h"
 #include "serialize.h"
 #include "util.h"
@@ -191,7 +190,7 @@ static bool list_keys(BuxtonLayer *layer,
 		current->type = STRING;
 		in_key.value = (char*)key.dptr;
 		in_key.length = (uint32_t)key.dsize;
-		real_key = buxton_get_name(&in_key);
+		real_key = get_name(&in_key);
 		current->store.d_string.value = strdup(real_key);
 		current->store.d_string.length = (uint32_t)strlen(real_key)+1;
 		current->label = buxton_string_pack("dummy");
