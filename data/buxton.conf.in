@@ -2,6 +2,12 @@
 # Default buxton config file
 #
 
+[Configuration]
+ModuleDirectory=@MODULEDIR@
+DatabasePath=@DB_PATH@
+SmackLoadFile=@SMACK_LOAD_FILE@
+SocketPath=@BUXTON_SOCKET@
+
 [base]
 Type=System
 Backend=gdbm
