@@ -1,3 +1,4 @@
+
 AC_PREREQ([2.68])
 AC_INIT([buxton],[1],[william.douglas@intel.com])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability silent-rules subdir-objects color-tests no-dist-gzip dist-xz])
