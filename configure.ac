@@ -183,6 +183,7 @@ AM_CONDITIONAL([BUILD_DEMOS], [test x$enable_demos = x"yes"])
 
 AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P test/databases])
 AC_CONFIG_FILES([
+data/buxton.conf
 data/buxton.service
 data/buxton.socket
 test/test-pass.ini
