@@ -23,6 +23,9 @@
 #include "serialize.h"
 #include "util.h"
 
+/** Maximum number of deletions before a reorganise */
+#define MAX_DELETIONS 50
+
 /**
  * GDBM Database Module
  */
@@ -186,6 +189,17 @@ static bool unset_value(BuxtonLayer *layer,
 		d_record.del_count = ((DBStats*)value.dptr)->del_count;
 		d_record.del_count += 1;
 		free(value.dptr);
+	}
+
+	/* Ceiling deletions hit, reorganise the database */
+	if (d_record.del_count >= MAX_DELETIONS) {
+		rc = gdbm_reorganize(db);
+		if (rc < 0) {
+			buxton_log("gdbm_reorganize failed for %s\n", layer->name);
+			return ret;
+		}
+		/* Now reset the deletion count */
+		d_record.del_count = 0;
 	}
 	value.dptr = (char*)&d_record;
 	value.dsize = (int)sizeof(d_record);
