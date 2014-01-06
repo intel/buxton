@@ -39,7 +39,7 @@
  * @return a new BuxtonLayer.  Callers are responsible for managing
  * this memory
  */
-static BuxtonLayer* buxton_layer_new(ConfigLayer *conf_layer);
+static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer);
 
 bool buxton_direct_open(BuxtonControl *control)
 {
@@ -270,12 +270,12 @@ bool buxton_init_layers(BuxtonConfig *config)
 	ret = true;
 	config->layers = layers;
 
- end:
+end:
 	free(config_layers);
 	return ret;
 }
 
-static BuxtonLayer* buxton_layer_new(ConfigLayer *conf_layer)
+static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 {
 	BuxtonLayer *out;
 
