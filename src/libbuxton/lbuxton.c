@@ -36,6 +36,23 @@
 #include "protocol.h"
 #include "configurator.h"
 
+bool buxton_client_set_conf_file(char *path)
+{
+	int r;
+	struct stat st;
+
+	r = stat(path, &st);
+	if (r == -1)
+		return false;
+	else
+		if (st.st_mode & S_IFDIR)
+			return false;
+
+	buxton_add_cmd_line(CONFIG_CONF_FILE, path);
+
+	return true;
+}
+
 bool buxton_client_open(BuxtonClient *client)
 {
 	int bx_socket, r;

@@ -118,6 +118,13 @@ static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)
 /* Buxton API Methods */
 
 /**
+ * Sets path to buxton configuration file
+ * @param path Path to the buxton configuration file to use
+ * @return A boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_set_conf_file(char *path);
+
+/**
  * Open a connection to Buxton
  * @param client A BuxtonClient
  * @return A boolean value, indicating success of the operation

@@ -13,7 +13,7 @@
 #include <string.h>
 
 #include "buxton-array.h"
-#include <util.h>
+#include "util.h"
 
 BuxtonArray *buxton_array_new(void)
 {

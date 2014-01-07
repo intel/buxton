@@ -96,10 +96,18 @@ bt_daemon_LDADD = \
 	libbuxton-security.la \
 	libbuxton-shared.la
 
+bt_daemon_CFLAGS = \
+	$(AM_CFLAGS) \
+	-rdynamic
+
 buxtonctl_SOURCES = \
 	src/cli/main.c \
 	src/cli/client.c \
 	src/cli/client.h
+
+buxtonctl_CFLAGS = \
+	$(AM_CFLAGS) \
+	-rdynamic
 
 buxtonctl_LDADD = \
 	libbuxton.la \
@@ -190,7 +198,6 @@ gdbm_la_LDFLAGS = \
 	-avoid-version
 
 gdbm_la_LIBADD = \
-	libbuxton-shared.la \
 	-lgdbm
 
 memory_la_SOURCES = \
@@ -201,9 +208,6 @@ memory_la_LDFLAGS = \
 	-fvisibility=hidden \
 	-module \
 	-avoid-version
-
-memory_la_LIBADD = \
-	libbuxton-shared.la
 
 check_PROGRAMS = \
 	check_buxton \
@@ -222,7 +226,8 @@ check_buxton_CFLAGS = \
 	@CHECK_CFLAGS@ \
 	-DMAKE_CHECK \
 	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
-	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\" \
+	-rdynamic
 check_buxton_LDADD = \
 	@CHECK_LIBS@ \
 	libbuxton.la \
@@ -258,7 +263,8 @@ check_bt_daemon_CFLAGS = \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK \
 	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
-	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\" \
+	-rdynamic
 check_bt_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	$(SYSTEMD_LIBS) \
@@ -278,7 +284,8 @@ check_daemon_CFLAGS = \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK \
 	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
-	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\" \
+	-rdynamic
 check_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \

@@ -23,12 +23,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <getopt.h>
 
 #include "bt-daemon.h"
 #include "backend.h"
 #include "client.h"
+#include "configurator.h"
 #include "hashmap.h"
 #include "log.h"
 #include "util.h"
@@ -82,6 +84,7 @@ int main(int argc, char **argv)
 	int c;
 	bool help = false;
 	control.client.direct = false;
+	char *conf_path = NULL;
 
 	/* Build a command list */
 	commands = hashmap_new(string_hash_func, string_compare_func);
@@ -165,23 +168,25 @@ int main(int argc, char **argv)
 	hashmap_put(commands, c_unset_value.name, &c_unset_value);
 
 	static struct option opts[] = {
-		{ "direct", 0, NULL, 'd' },
-		{ "help",   0, NULL, 'h' },
+		{ "config-file", 0, NULL, 'c' },
+		{ "direct",	 0, NULL, 'd' },
+		{ "help",	 0, NULL, 'h' },
 		{ NULL, 0, NULL, 0 }
 	};
 
 	while (true) {
-		c = getopt_long(argc, argv, "dh", opts, &i);
+		c = getopt_long(argc, argv, "c:dh", opts, &i);
 
 		if (c == -1)
 			break;
 
 		switch (c) {
-		case 'd':
-			if (geteuid() != 0) {
-				printf("Only root may use --direct\n");
+		case 'c':
+			conf_path = strdup(optarg);
+			if (!conf_path)
 				goto end;
-			}
+			break;
+		case 'd':
 			control.client.direct = true;
 			break;
 		case 'h':
@@ -228,12 +233,31 @@ int main(int argc, char **argv)
 
 	control.client.uid = geteuid();
 	if (control.client.direct) {
+		if (conf_path) {
+			int r;
+			struct stat st;
+
+			r = stat(conf_path, &st);
+			if (r == -1) {
+				printf("Invalid configuration file path\n");
+				goto end;
+			} else {
+				if (st.st_mode & S_IFDIR) {
+					printf("Configuration file given is a directory\n");
+					goto end;
+				}
+			}
+			buxton_add_cmd_line(CONFIG_CONF_FILE, conf_path);
+		}
 		if (!buxton_direct_open(&(control))){
 			buxton_log("Failed to directly talk to Buxton\n");
 			ret = false;
 			goto end;
 		}
 	} else {
+		if (conf_path)
+			if (!buxton_client_set_conf_file(conf_path))
+				printf("Failed to set configuration file path\n");
 		if (!buxton_client_open(&(control.client))) {
 			buxton_log("Failed to talk to Buxton\n");
 			ret = false;
@@ -249,6 +273,7 @@ int main(int argc, char **argv)
 			      optind + 4 < argc ? argv[optind + 4] : NULL);
 
 end:
+	free(conf_path);
 	hashmap_free(commands);
 	buxton_direct_close(&control);
 	if (ret)

@@ -19,9 +19,11 @@
 #endif
 
 #include <errno.h>
+#include <getopt.h>
 #include <poll.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/un.h>
 #include <systemd/sd-daemon.h>
 #include <stdlib.h>
@@ -32,6 +34,7 @@
 #include <attr/xattr.h>
 
 #include "bt-daemon.h"
+#include "backend.h"
 #include "daemon.h"
 #include "list.h"
 #include "log.h"
@@ -48,6 +51,14 @@ static BuxtonDaemon self;
 void my_handler(int sig)
 {
 	do_shutdown = true;
+}
+
+static void print_usage(char *name)
+{
+	printf("%s: Usage\n\n", name);
+
+	printf("  -c, --config-file	   Path to configuration file\n");
+	printf("  -h, --help		   Display this help message\n");
 }
 
 /**
@@ -67,6 +78,48 @@ int main(int argc, char *argv[])
 	bool manual_start = false;
 	struct sigaction sa;
 	bool leftover_messages = false;
+	struct stat st;
+	bool help = false;
+
+	static struct option opts[] = {
+		{ "config-file", 0, NULL, 'c' },
+		{ "help",	 0, NULL, 'h' },
+		{ NULL, 0, NULL, 0 }
+	};
+
+	while (true) {
+		int c;
+		int i;
+		c = getopt_long(argc, argv, "c:h", opts, &i);
+
+		if (c == -1)
+			break;
+
+		switch (c) {
+		case 'c':
+			ret = stat(optarg, &st);
+			if (ret == -1) {
+				buxton_log("Invalid configuration file path\n");
+				exit(EXIT_FAILURE);
+			} else {
+				if(st.st_mode & S_IFDIR) {
+					buxton_log("Configuration file given is a directory\n");
+					exit(EXIT_FAILURE);
+				}
+			}
+
+			buxton_add_cmd_line(CONFIG_CONF_FILE, optarg);
+			break;
+		case 'h':
+			help = true;
+			break;
+		}
+	}
+
+	if (help) {
+		print_usage(argv[0]);
+		exit(EXIT_SUCCESS);
+	}
 
 	if (!buxton_cache_smack_rules())
 		exit(EXIT_FAILURE);

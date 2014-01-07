@@ -1,5 +1,6 @@
 BUXTON_1 {
 	global:
+		buxton_client_set_conf_file;
 		buxton_client_open;
 		buxton_client_close;
 		buxton_client_set_value;
