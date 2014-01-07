@@ -140,8 +140,14 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/configurator.h \
 	${NULL}
 
+libbuxton_shared_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	$(INIPARSER_CFLAGS)
+
 libbuxton_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
+	$(INIPARSER_LIBS) \
+	-ldl \
 	-static
 
 noinst_LTLIBRARIES += \
@@ -167,18 +173,15 @@ libbuxton_la_SOURCES = \
 
 libbuxton_la_CFLAGS = \
 	$(AM_CFLAGS) \
-	@INIPARSER_CFLAGS@ \
 	-fvisibility=hidden
 
 libbuxton_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	@INIPARSER_LIBS@ \
 	-version-info $(LIBBUXTON_CURRENT):$(LIBBUXTON_REVISION):$(LIBBUXTON_AGE) \
 	-Wl,--version-script=$(top_srcdir)/src/libbuxton/lbuxton.sym
 
 libbuxton_la_LIBADD = \
-	libbuxton-shared.la \
-	-ldl
+	libbuxton-shared.la
 
 pkglib_LTLIBRARIES += \
 	gdbm.la \

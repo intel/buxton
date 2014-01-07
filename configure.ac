@@ -18,10 +18,12 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 
 # Checks for libraries.
-AC_CHECK_LIB([dl], [dlopen])
-AC_CHECK_LIB([gdbm], [gdbm_open])
-AC_CHECK_LIB([rt], [clock_gettime])
-AC_CHECK_LIB([m], [sqrt])
+AC_CHECK_LIB([dl], [dlopen], [])
+AC_CHECK_LIB([gdbm], [gdbm_open], [])
+AC_CHECK_LIB([rt], [clock_gettime], [])
+AC_CHECK_LIB([m], [sqrt], [])
+
+LIBS=""
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -80,6 +82,8 @@ PKG_CHECK_MODULES([INIPARSER], [iniparser >= 3.1], [], [
 		AC_CHECK_LIB([iniparser], [iniparser_load])
 		INIPARSER_CFLAGS=""
 		INIPARSER_LIBS="-liniparser"
+		# Reset libs after AC_CHECK_LIB
+		LIBS=""
 ])
 
 # Checks for header files.
