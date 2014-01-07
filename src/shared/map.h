@@ -52,7 +52,7 @@ BuxtonHashmap *buxton_hashmap_new(long int size);
 /**
  * Add a value to the map by key
  * @param key Unique key
- * @param value Value to store (polong inter)
+ * @param value Value to store (pointer)
  * @return true if the operation succeed, or false
  */
 bool buxton_hashmap_put(BuxtonHashmap *map, long int key, void* value);
@@ -60,7 +60,7 @@ bool buxton_hashmap_put(BuxtonHashmap *map, long int key, void* value);
 /**
  * Get a value from the map by key
  * @param key Unique key
- * @return A polong inter previously stored, or NULL if it cannot be found
+ * @return A pointer previously stored, or NULL if it cannot be found
  */
 void *buxton_hashmap_get(BuxtonHashmap *map, long int key);
 
@@ -72,7 +72,7 @@ void buxton_hashmap_del(BuxtonHashmap *map, long int key);
 
 /**
  * Free a BuxtonHashmap
- * @param p Polong inter to BuxtonHashmap polong inter (BuxtonHashmap**)
+ * @param p pointer to BuxtonHashmap pointer (BuxtonHashmap**)
  */
 void free_hashmap(void *p)
 {
