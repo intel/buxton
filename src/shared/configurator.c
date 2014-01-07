@@ -293,6 +293,10 @@ int buxton_get_layers(ConfigLayer **layers)
 	return j;
 }
 
+void include_configurator(void)
+{
+	;
+}
 
 
 /*

@@ -389,6 +389,11 @@ end:
 	return ret;
 }
 
+void include_protocol(void)
+{
+	;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

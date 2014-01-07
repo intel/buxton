@@ -33,6 +33,7 @@
 #include "configurator.h"
 #include "hashmap.h"
 #include "log.h"
+#include "protocol.h"
 #include "util.h"
 
 static Hashmap *commands;
@@ -85,6 +86,11 @@ int main(int argc, char **argv)
 	bool help = false;
 	control.client.direct = false;
 	char *conf_path = NULL;
+
+	/* libtool bites my twinkie */
+	include_configurator();
+	include_protocol();
+	include_serialize();
 
 	/* Build a command list */
 	commands = hashmap_new(string_hash_func, string_compare_func);

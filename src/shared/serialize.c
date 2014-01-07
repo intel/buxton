@@ -489,6 +489,11 @@ size_t buxton_get_message_size(uint8_t *data, size_t size)
 	return r_size;
 }
 
+void include_serialize(void)
+{
+	;
+}
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

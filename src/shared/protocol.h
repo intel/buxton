@@ -112,6 +112,8 @@ bool buxton_wire_unregister_notification(BuxtonClient *client,
 				         BuxtonString *key)
 	__attribute__((warn_unused_result));
 
+void include_protocol(void);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

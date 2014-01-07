@@ -127,6 +127,8 @@ size_t buxton_deserialize_message(uint8_t *data,
 size_t buxton_get_message_size(uint8_t *data, size_t size)
 	__attribute__((warn_unused_result));
 
+void include_serialize(void);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *

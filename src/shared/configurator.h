@@ -117,6 +117,8 @@ const char *buxton_socket(void)
 int buxton_get_layers(ConfigLayer **layers)
 	__attribute__((warn_unused_result));
 
+void include_configurator(void);
+
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
  *
