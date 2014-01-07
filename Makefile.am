@@ -8,7 +8,7 @@ if DEBUG
 AM_CFLAGS += -ggdb3 -O0
 endif
 if COVERAGE
-AM_CFLAGS += --coverage
+AM_CFLAGS += --coverage -fprofile-arcs -ftest-coverage
 endif
 
 AM_CPPFLAGS = \
