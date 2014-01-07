@@ -140,14 +140,6 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/configurator.h \
 	${NULL}
 
-if USE_LOCAL_INIPARSER
-libbuxton_shared_la_SOURCES += \
-	src/shared/dictionary.c \
-	src/shared/dictionary.h \
-	src/shared/iniparser.c \
-	src/shared/iniparser.h
-endif
-
 libbuxton_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-static
