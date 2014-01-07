@@ -126,6 +126,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/backend.h \
 	src/shared/hashmap.c \
 	src/shared/hashmap.h \
+	src/shared/map.c \
+	src/shared/map.h \
 	src/shared/macro.h \
 	src/shared/util.h \
 	src/shared/serialize.c \
