@@ -46,3 +46,6 @@ bxt_timing
 test/databases/*.db
 test/test.conf
 check_configurator
+GPATH
+GRTAGS
+GTAGS
