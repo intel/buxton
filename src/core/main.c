@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	bool help = false;
 
 	static struct option opts[] = {
-		{ "config-file", 0, NULL, 'c' },
+		{ "config-file", 1, NULL, 'c' },
 		{ "help",	 0, NULL, 'h' },
 		{ NULL, 0, NULL, 0 }
 	};

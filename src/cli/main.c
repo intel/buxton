@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 	hashmap_put(commands, c_unset_value.name, &c_unset_value);
 
 	static struct option opts[] = {
-		{ "config-file", 0, NULL, 'c' },
+		{ "config-file", 1, NULL, 'c' },
 		{ "direct",	 0, NULL, 'd' },
 		{ "help",	 0, NULL, 'h' },
 		{ NULL, 0, NULL, 0 }
