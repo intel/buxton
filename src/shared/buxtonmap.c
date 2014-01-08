@@ -93,7 +93,7 @@ void buxton_hashmap_del(BuxtonHashmap *map, void* key)
 	if (!b)
 		return;
 
-	buxton_list_remove(&b, key, false);
+	buxton_list_remove2(&b, key, map->auto_free_key, map->auto_free_value);
 	map->buckets[no] = b;
 	map->n_elements -= 1;
 }

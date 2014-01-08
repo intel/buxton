@@ -109,6 +109,11 @@ bool buxton_list_prepend2(BuxtonList **list, void *data, void *data2)
 
 bool buxton_list_remove(BuxtonList **list, void *data, bool do_free)
 {
+	return buxton_list_remove2(list, data, do_free, false);
+}
+
+bool buxton_list_remove2(BuxtonList **list, void *data, bool one, bool two)
+{
 	BuxtonList *head = *list;
 	BuxtonList *current = head;
 	BuxtonList *prev = head;
@@ -130,8 +135,10 @@ bool buxton_list_remove(BuxtonList **list, void *data, bool do_free)
 		prev->next = current->next;
 
 	/* Should free? */
-	if (do_free)
+	if (one)
 		free(current->data);
+	if (two)
+		free(current->data2);
 	free(current);
 	*list = head;
 	return true;

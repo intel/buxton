@@ -79,6 +79,17 @@ bool buxton_list_prepend2(BuxtonList **list, void *data, void *data2);
 bool buxton_list_remove(BuxtonList **list, void *data, bool do_free);
 
 /**
+ * Remove the given element from the list (2 part)
+ *
+ * @param list Pointer to a BuxtonList pointer
+ * @param data Remove item with the matching data pointer
+ * @param one Whether to free data
+ * @param two Whether to free data2
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_list_remove2(BuxtonList **list, void *data, bool one, bool two);
+
+/**
  * Return the tail item's data in the list
  * @param list BuxtonList instance
  * @return the elements data
