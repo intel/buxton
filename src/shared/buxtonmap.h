@@ -25,6 +25,8 @@
 #define BUXTON_HASHMAP_SIZE 32
 #define _cleanup_hashmap_ __attribute__ ((cleanup(buxton_hashmap_free)))
 
+typedef long (*hash_func) (void* a);
+typedef bool (*compare_func) (void* a, void *b);
 /**
  * A simple Hashmap backed by BuxtonList
  */
@@ -34,6 +36,8 @@ typedef struct BuxtonHashmap {
 	int n_elements; /**<Number of elements */
 	bool auto_free_key; /**<Free all keys */
 	bool auto_free_value; /**<Free all elements */
+	hash_func hash; /**<Hash function */
+	compare_func compare; /**<Compare function */
 } BuxtonHashmap;
 
 /**
