@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 
 	/* For client notifications */
-	self.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	self.notify_mapping = buxton_hashmap_new(BUXTON_HASHMAP_SIZE, true, true);
 	/* Store a list of connected clients */
 	LIST_HEAD_INIT(client_list_item, self.client_list);
 
@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
 		free(i);
 		i = j;
 	}
-	hashmap_free(self.notify_mapping);
+	buxton_hashmap_free(&self.notify_mapping);
 	buxton_direct_close(&self.buxton);
 	return EXIT_SUCCESS;
 }

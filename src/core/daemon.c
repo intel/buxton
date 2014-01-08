@@ -252,7 +252,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 	assert(key);
 	assert(value);
 
-	list = hashmap_get(self->notify_mapping, key->value);
+	list = buxton_hashmap_get(self->notify_mapping, key->value);
 	if (!list)
 		return;
 
@@ -519,7 +519,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonS
 	}
 	nitem->old_data = old_data;
 
-	n_list = hashmap_get(self->notify_mapping, key->value);
+	n_list = buxton_hashmap_get(self->notify_mapping, key->value);
 	if (!n_list) {
 		key_name = strdup(key->value);
 		if (!key_name) {
@@ -527,7 +527,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonS
 			return;
 		}
 
-		if (hashmap_put(self->notify_mapping, key_name, nitem) < 0) {
+		if (buxton_hashmap_put(self->notify_mapping, key_name, nitem) < 0) {
 			free(key_name);
 			free(nitem);
 			return;
@@ -551,7 +551,7 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	assert(status);
 
 	*status = BUXTON_STATUS_FAILED;
-	n_list = hashmap_get(self->notify_mapping, key->value);
+	n_list = buxton_hashmap_get(self->notify_mapping, key->value);
 	/* This key isn't actually registered for notifications */
 	if (!n_list)
 		return;
@@ -575,7 +575,7 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 
 	/* If we removed the last item, remove the mapping too */
 	if (length == 1)
-		hashmap_remove(self->notify_mapping, key->value);
+		buxton_hashmap_del(self->notify_mapping, key->value);
 
 	*status = BUXTON_STATUS_OK;
 }

@@ -29,6 +29,7 @@
 #include "list.h"
 #include "protocol.h"
 #include "serialize.h"
+#include "buxtonmap.h"
 
 /**
  * List for daemon's clients
@@ -62,7 +63,7 @@ typedef struct BuxtonDaemon {
 	bool *accepting;
 	struct pollfd *pollfds;
 	client_list_item *client_list;
-	Hashmap *notify_mapping;
+	BuxtonHashmap *notify_mapping;
 	BuxtonControl buxton;
 } BuxtonDaemon;
 
