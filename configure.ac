@@ -18,10 +18,12 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 
 # Checks for libraries.
-AC_CHECK_LIB([dl], [dlopen])
-AC_CHECK_LIB([gdbm], [gdbm_open])
-AC_CHECK_LIB([rt], [clock_gettime])
-AC_CHECK_LIB([m], [sqrt])
+AC_CHECK_LIB([dl], [dlopen], [])
+AC_CHECK_LIB([gdbm], [gdbm_open], [])
+AC_CHECK_LIB([rt], [clock_gettime], [])
+AC_CHECK_LIB([m], [sqrt], [])
+
+LIBS=""
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -73,6 +75,17 @@ AH_BOTTOM([#endif])
 PKG_CHECK_MODULES([CHECK], [check])
 PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
 
+# Check for iniparser
+PKG_CHECK_MODULES([INIPARSER], [iniparser >= 3.1], [], [
+		# Check iniparser manually
+		AC_CHECK_HEADERS([iniparser.h], [], [AC_MSG_ERROR([Unable to find iniparser headers])])
+		AC_CHECK_LIB([iniparser], [iniparser_load])
+		INIPARSER_CFLAGS=""
+		INIPARSER_LIBS="-liniparser"
+		# Reset libs after AC_CHECK_LIB
+		LIBS=""
+])
+
 # Checks for header files.
 AC_FUNC_ALLOCA
 AC_HEADER_STDBOOL
@@ -109,16 +122,6 @@ AC_ARG_WITH([user], AS_HELP_STRING([--with-user=USER],
 	[username="buxton"])
 BUXTON_USERNAME="${username}"
 AC_SUBST(BUXTON_USERNAME)
-
-INIPARSER_CFLAGS="-I${srcdir}/src/shared/"
-AC_ARG_WITH([local-iniparser],
-	AS_HELP_STRING([--with-local-iniparser[default=yes]],
-		[Use built-in iniparser for config parsing]),
-	[use_local_iniparser="true"],
-	[PKG_CHECK_MODULES([INIPARSER], [iniparser >= 3.1],
-		[use_local_iniparser="false"],
-		[use_local_iniparser="true"; AC_SUBST(INIPARSER_CFLAGS)])])
-AM_CONDITIONAL([USE_LOCAL_INIPARSER], [test x$use_local_iniparser = x"true"])
 
 AC_ARG_WITH([module-dir], AS_HELP_STRING([--with-module-dir=MODULEDIR],
 	[path to buxton modules]), [moduledir=${withval}],

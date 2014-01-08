@@ -113,7 +113,7 @@ static bool unset_value(BuxtonLayer *layer,
 	return true;
 }
 
-_bx_export_ void buxton_module_destroy(void)
+_public_ void buxton_module_destroy(void)
 {
 	const char *key;
 	Iterator iterator;
@@ -129,7 +129,7 @@ _bx_export_ void buxton_module_destroy(void)
 	_resources = NULL;
 }
 
-_bx_export_ bool buxton_module_init(BuxtonBackend *backend)
+_public_ bool buxton_module_init(BuxtonBackend *backend)
 {
 
 	assert(backend);
