@@ -417,6 +417,7 @@ START_TEST(register_notification_check)
 	BuxtonDaemon server;
 
 	client.smack_label = &clabel;
+	client.cred.uid = 1002;
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 	server.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
@@ -533,6 +534,7 @@ START_TEST(bt_daemon_handle_message_set_check)
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
 	cl.smack_label = &slabel;
+	cl.cred.uid = 1002;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 	fail_if(!buxton_direct_open(&daemon.buxton),
@@ -609,6 +611,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
 	cl.smack_label = &slabel;
+	cl.cred.uid = 1002;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 	fail_if(!buxton_direct_open(&daemon.buxton),
@@ -695,6 +698,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
 	cl.smack_label = &slabel;
+	cl.cred.uid = 1002;
 	daemon.buxton.client.uid = 1001;
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
@@ -780,6 +784,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
 	cl.smack_label = &slabel;
+	cl.cred.uid = 1002;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 	fail_if(!buxton_direct_open(&daemon.buxton),
@@ -842,6 +847,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
 	cl.smack_label = &slabel;
+	cl.cred.uid = 1002;
 	daemon.notify_mapping = hashmap_new(string_hash_func,
 					    string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
