@@ -28,6 +28,7 @@
 #include "smack.h"
 #include "util.h"
 #include "configurator.h"
+#include "buxtonlist.h"
 
 #ifdef NDEBUG
 	#error "re-run configure with --enable-debug"
@@ -136,6 +137,56 @@ START_TEST(array_check)
 	buxton_array_free(&array, array_free_fun);
 	fail_if(array != NULL,
 		"Failed to free BuxtonArray");
+}
+END_TEST
+
+START_TEST(list_check)
+{
+	BuxtonList *list = NULL;
+	char *initial = "first";
+	char *head = "head";
+	char *tail = "tail";
+	char *tmp = NULL;
+
+	/* Initialization check */
+	fail_if(buxton_list_append(&list, initial) == false,
+		"Failed to initialize BuxtonList");
+	fail_if(strcmp(initial, (char*)list->data) != 0,
+		"List head does not match initial data");
+
+	/* Prepend check */
+	fail_if(buxton_list_prepend(&list, head) == false,
+		"Failed to prepend new head to BuxtonList");
+	fail_if(strcmp(head, (char*)list->data) != 0,
+		"BuxtonList head does not match prepended data");
+
+	/* Append check */
+	fail_if(buxton_list_append(&list, tail) == false,
+		"Failed to append new tail to BuxtonList");
+	tmp = (char*)buxton_list_get_tail(list);
+	fail_if(tmp == NULL, "Failed to obtain BuxtonList tail");
+	fail_if(strcmp(tail, tmp) != 0,
+		"BuxtonList tail does not match appended data");
+
+	/* Length check */
+	fail_if(buxton_list_get_length(list) != 3,
+		"BuxtonList length invalid");
+
+	/* Remove the middle */
+	fail_if(buxton_list_remove(&list, initial, false) == false,
+		"Failed to remove element from BuxtonList");
+	fail_if(buxton_list_get_length(list) != 2,
+		"BuxtonList removal length failed");
+
+	/* Ensure first and last are correct */
+	fail_if(strcmp(head, (char*)list->data) != 0,
+		"BuxtonList head no longer matches");
+	tmp = (char*)buxton_list_get_tail(list);
+	fail_if(tmp == NULL, "BuxtonList tail corrupt");
+	fail_if(strcmp(tail, tmp) != 0,
+		"BuxtonList tail data incorrect");
+
+	buxton_free_list(&list);
 }
 END_TEST
 
@@ -665,6 +716,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("array_functions");
 	tcase_add_test(tc, array_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("list_functions");
+	tcase_add_test(tc, list_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("util_functions");
