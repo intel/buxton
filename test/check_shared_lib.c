@@ -23,6 +23,7 @@
 
 #include "backend.h"
 #include "hashmap.h"
+#include "buxtonmap.h"
 #include "log.h"
 #include "serialize.h"
 #include "smack.h"
@@ -93,6 +94,39 @@ START_TEST(hashmap_check)
 		"Failed to remove item from hashmap");
 
 	hashmap_free(map);
+}
+END_TEST
+
+START_TEST(buxton_hashmap_check)
+{
+	BuxtonHashmap *map = NULL;
+	char *ret;
+
+	map = buxton_hashmap_new(BUXTON_HASHMAP_SIZE, false, false);
+	fail_if(map == NULL, "Failed to allocate BuxtonHashmap");
+
+	/* Integers */
+	fail_if(buxton_hashmap_puti(map, 10, "passed") == false,
+		"Failed to add element to BuxtonHashmap");
+
+	ret = buxton_hashmap_geti(map, 10);
+	fail_if(ret == NULL,
+		"Failed to get value from BuxtonHashmap");
+	fail_if(strcmp(ret, "passed") != 0, "Failed to retrieve the put value");
+
+	/* Strings */
+	fail_if(buxton_hashmap_put(map, "test", "passed2") == false,
+		"Failed to add string element to BuxtonHashmap");
+	ret = buxton_hashmap_get(map, "test");
+	fail_if(ret == NULL,
+		"Failed to get string value from BuxtonHashmap");
+	fail_if(strcmp(ret, "passed2") != 0, "Failed to retrieve the put string value");
+
+	buxton_hashmap_deli(map, 10);
+	fail_if(map->n_elements != 1,
+		"Element not correctly removed from hashmap");
+
+	buxton_hashmap_free(&map);
 }
 END_TEST
 
@@ -712,6 +746,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("buxton_hashmap_functions");
+	tcase_add_test(tc, buxton_hashmap_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("array_functions");
