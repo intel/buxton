@@ -339,7 +339,7 @@ START_TEST(set_value_check)
 {
 	BuxtonString layer, key;
 	BuxtonData value;
-	client_list_item client;
+	BuxtonClientInfo client;
 	BuxtonStatus status;
 	BuxtonDaemon server;
 	BuxtonString clabel;
@@ -367,7 +367,7 @@ START_TEST(get_value_check)
 {
 	BuxtonString layer, key;
 	BuxtonData *value;
-	client_list_item client;
+	BuxtonClientInfo client;
 	BuxtonStatus status;
 	BuxtonDaemon server;
 	BuxtonString clabel;
@@ -411,7 +411,7 @@ END_TEST
 START_TEST(register_notification_check)
 {
 	BuxtonString key;
-	client_list_item client, no_client;
+	BuxtonClientInfo client, no_client;
 	BuxtonString clabel;
 	BuxtonStatus status;
 	BuxtonDaemon server;
@@ -455,7 +455,7 @@ START_TEST(bt_daemon_handle_message_error_check)
 	BuxtonString slabel;
 	size_t size;
 	BuxtonData data1;
-	client_list_item cl;
+	BuxtonClientInfo cl;
 	bool r;
 	BuxtonArray *list = NULL;
 	uint16_t control;
@@ -518,7 +518,7 @@ START_TEST(bt_daemon_handle_message_set_check)
 	BuxtonString slabel;
 	size_t size;
 	BuxtonData data1, data2, data3;
-	client_list_item cl;
+	BuxtonClientInfo cl;
 	bool r;
 	BuxtonClient bclient;
 	BuxtonData *list;
@@ -593,7 +593,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 	BuxtonString slabel;
 	size_t size;
 	BuxtonData data1, data2;
-	client_list_item cl;
+	BuxtonClientInfo cl;
 	bool r;
 	BuxtonClient bclient;
 	BuxtonData *list;
@@ -680,7 +680,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	BuxtonString slabel;
 	size_t size;
 	BuxtonData data2;
-	client_list_item cl;
+	BuxtonClientInfo cl;
 	bool r;
 	BuxtonClient bclient;
 	BuxtonData *list;
@@ -765,7 +765,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	BuxtonString slabel;
 	size_t size;
 	BuxtonData data1, data2;
-	client_list_item cl;
+	BuxtonClientInfo cl;
 	bool r;
 	BuxtonClient bclient;
 	BuxtonData *list;
@@ -829,7 +829,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	BuxtonString layer;
 	BuxtonString *string;
 	BuxtonData value1, value2;
-	client_list_item cl;
+	BuxtonClientInfo cl;
 	BuxtonStatus status;
 	bool r;
 	BuxtonClient bclient;
@@ -1103,7 +1103,7 @@ END_TEST
 START_TEST(identify_client_check)
 {
 	int sender;
-	client_list_item client;
+	BuxtonClientInfo client;
 	bool r;
 	int32_t msg = 5;
 

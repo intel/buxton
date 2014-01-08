@@ -88,7 +88,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	return true;
 }
 
-bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
+bool bt_daemon_handle_message(BuxtonDaemon *self, BuxtonClientInfo *client, size_t size)
 {
 	BuxtonControlMessage msg;
 	BuxtonStatus response;
@@ -238,7 +238,7 @@ end:
 	return ret;
 }
 
-void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonString *key, BuxtonData *value)
+void bt_daemon_notify_clients(BuxtonDaemon *self, BuxtonClientInfo *client, BuxtonString *key, BuxtonData *value)
 {
 	notification_list_item *list = NULL;
 	notification_list_item *nitem;
@@ -341,7 +341,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 	}
 }
 
-void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+void set_value(BuxtonDaemon *self, BuxtonClientInfo *client, BuxtonString *layer,
 		      BuxtonString *key, BuxtonData *value, BuxtonStatus *status)
 {
 
@@ -381,7 +381,7 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 }
 
 
-void unset_value(BuxtonDaemon *self, client_list_item *client,
+void unset_value(BuxtonDaemon *self, BuxtonClientInfo *client,
 		 BuxtonString *layer, BuxtonString *key,
 		 BuxtonStatus *status)
 {
@@ -415,7 +415,7 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 	buxton_debug("Daemon unset value completed\n");
 }
 
-BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+BuxtonData *get_value(BuxtonDaemon *self, BuxtonClientInfo *client, BuxtonString *layer,
 		      BuxtonString *key, BuxtonStatus *status)
 {
 	BuxtonData *data = NULL;
@@ -474,7 +474,7 @@ end:
 	return data;
 }
 
-BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
+BuxtonArray *list_keys(BuxtonDaemon *self, BuxtonClientInfo *client,
 		       BuxtonString *layer, BuxtonStatus *status)
 {
 	BuxtonArray *ret_list = NULL;
@@ -489,7 +489,7 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 	return ret_list;
 }
 
-void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonString *key,
+void register_notification(BuxtonDaemon *self, BuxtonClientInfo *client, BuxtonString *key,
 			   BuxtonStatus *status)
 {
 	notification_list_item *n_list = NULL;
@@ -538,7 +538,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonS
 	*status = BUXTON_STATUS_OK;
 }
 
-void unregister_notification(BuxtonDaemon *self, client_list_item *client,
+void unregister_notification(BuxtonDaemon *self, BuxtonClientInfo *client,
 			     BuxtonString *key, BuxtonStatus *status)
 {
 	notification_list_item *n_list = NULL;
@@ -580,7 +580,7 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	*status = BUXTON_STATUS_OK;
 }
 
-bool identify_client(client_list_item *cl)
+bool identify_client(BuxtonClientInfo *cl)
 {
 	/* Identity handling */
 	ssize_t nr;
@@ -685,7 +685,7 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i)
 	self->nfds--;
 }
 
-static void handle_smack_label(client_list_item *cl)
+static void handle_smack_label(BuxtonClientInfo *cl)
 {
 	socklen_t slabel_len = 1;
 	char *buf = NULL;
@@ -733,7 +733,7 @@ static void handle_smack_label(client_list_item *cl)
 	cl->smack_label = slabel;
 }
 
-bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
+bool handle_client(BuxtonDaemon *self, BuxtonClientInfo *cl, nfds_t i)
 {
 	ssize_t l;
 	uint16_t peek;
@@ -819,7 +819,7 @@ terminate:
 	return more_data;
 }
 
-void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
+void terminate_client(BuxtonDaemon *self, BuxtonClientInfo *cl, nfds_t i)
 {
 	del_pollfd(self, i);
 	close(cl->fd);
@@ -828,8 +828,7 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	free(cl->smack_label);
 	free(cl->data);
 	buxton_debug("Closed connection from fd %d\n", cl->fd);
-	LIST_REMOVE(client_list_item, item, self->client_list, cl);
-	free(cl);
+	buxton_hashmap_deli(self->client_list, cl->fd);
 	cl = NULL;
 }
 

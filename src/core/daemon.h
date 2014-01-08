@@ -32,24 +32,23 @@
 #include "buxtonmap.h"
 
 /**
- * List for daemon's clients
+ * Stores information on a connected client
  */
-typedef struct client_list_item {
-	LIST_FIELDS(struct client_list_item, item); /**<List type */
+typedef struct BuxtonClientInfo {
 	int fd; /**<File descriptor of connected client */
 	struct ucred cred; /**<Credentials of connected client */
 	BuxtonString *smack_label; /**<Smack label of connected client */
 	uint8_t *data; /**<Data buffer for the client */
 	size_t offset; /**<Current position to write to data buffer */
 	size_t size; /**<Size of the data buffer */
-} client_list_item;
+} BuxtonClientInfo;
 
 /**
  * List of clients interested in a key
  */
 typedef struct notification_list_item {
 	LIST_FIELDS(struct notification_list_item, item); /**<List type */
-	client_list_item *client; /**<Client */
+	BuxtonClientInfo *client; /**<Client */
 	BuxtonData *old_data; /**<Old value of a particular key*/
 } notification_list_item;
 
@@ -62,7 +61,7 @@ typedef struct BuxtonDaemon {
 	nfds_t nfds;
 	bool *accepting;
 	struct pollfd *pollfds;
-	client_list_item *client_list;
+	BuxtonHashmap *client_list;
 	BuxtonHashmap *notify_mapping;
 	BuxtonControl buxton;
 } BuxtonDaemon;
@@ -91,7 +90,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
  * @returns bool True if message was successfully handled
  */
 bool bt_daemon_handle_message(BuxtonDaemon *self,
-			      client_list_item *client,
+			      BuxtonClientInfo *client,
 			      size_t size)
 	__attribute__((warn_unused_result));
 
@@ -102,7 +101,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self,
  * @param key Modified key
  * @param value Modified value
  */
-void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
+void bt_daemon_notify_clients(BuxtonDaemon *self, BuxtonClientInfo *client,
 			      BuxtonString* key, BuxtonData *value);
 
 /**
@@ -114,7 +113,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
  * @param value Value being set
  * @param status Will be set with the BuxtonStatus result of the operation
  */
-void set_value(BuxtonDaemon *self, client_list_item *client,
+void set_value(BuxtonDaemon *self, BuxtonClientInfo *client,
 	       BuxtonString *layer, BuxtonString *key, BuxtonData *value,
 	       BuxtonStatus *status);
 
@@ -127,7 +126,7 @@ void set_value(BuxtonDaemon *self, client_list_item *client,
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
-BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
+BuxtonData *get_value(BuxtonDaemon *self, BuxtonClientInfo *client,
 		      BuxtonString *layer, BuxtonString *key,
 		      BuxtonStatus *status)
 	__attribute__((warn_unused_result));
@@ -140,7 +139,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
  * @param key Key for the value being dunset
  * @param status Will be set with the BuxtonStatus result of the operation
  */
-void unset_value(BuxtonDaemon *self, client_list_item *client,
+void unset_value(BuxtonDaemon *self, BuxtonClientInfo *client,
 		 BuxtonString *layer, BuxtonString *key,
 		 BuxtonStatus *status);
 
@@ -151,7 +150,7 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
  * @param layer Layer to query
  * @param status Will be set with the BuxtonStatus result of the operation
  */
-BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
+BuxtonArray *list_keys(BuxtonDaemon *self, BuxtonClientInfo *client,
 		       BuxtonString *layer, BuxtonStatus *status)
 	__attribute__((warn_unused_result));
 
@@ -162,7 +161,7 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
  * @param key Key to notify for changes on
  * @param status Will be set with the BuxtonStatus result of the operation
  */
-void register_notification(BuxtonDaemon *self, client_list_item *client,
+void register_notification(BuxtonDaemon *self, BuxtonClientInfo *client,
 			   BuxtonString *key, BuxtonStatus *status);
 
 /**
@@ -172,7 +171,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
  * @param key Key to no longer recieve notifications for
  * @param status Will be set with the BuxtonStatus result of the operation
  */
-void unregister_notification(BuxtonDaemon *self, client_list_item *client,
+void unregister_notification(BuxtonDaemon *self, BuxtonClientInfo *client,
 			     BuxtonString *key, BuxtonStatus *status);
 
 /**
@@ -180,7 +179,7 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
  * @param cl Client to check the credentials of
  * @return bool indicating credentials where found or not
  */
-bool identify_client(client_list_item *cl)
+bool identify_client(BuxtonClientInfo *cl)
 	__attribute__((warn_unused_result));
 
 /**
@@ -208,7 +207,7 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i);
  * @param i The currently active file descriptor
  * @return bool indicating more data to process
  */
-bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
+bool handle_client(BuxtonDaemon *self, BuxtonClientInfo *cl, nfds_t i)
 	__attribute__((warn_unused_result));
 
 /**
@@ -217,7 +216,7 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
  * @param cl The client to terminate
  * @param i File descriptor to remove from poll list
  */
-void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i);
+void terminate_client(BuxtonDaemon *self, BuxtonClientInfo *cl, nfds_t i);
 
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 	/* For client notifications */
 	self.notify_mapping = buxton_hashmap_new(BUXTON_HASHMAP_SIZE, true, true);
 	/* Store a list of connected clients */
-	LIST_HEAD_INIT(client_list_item, self.client_list);
+	self.client_list = buxton_hashmap_new(BUXTON_HASHMAP_SIZE, false, true);
 
 	descriptors = sd_listen_fds(0);
 	if (descriptors < 0) {
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
 		leftover_messages = false;
 
 		for (nfds_t i=0; i<self.nfds; i++) {
-			client_list_item *cl = NULL;
+			BuxtonClientInfo *cl = NULL;
 			char discard[256];
 
 			if (self.pollfds[i].revents == 0)
@@ -273,15 +273,13 @@ int main(int argc, char *argv[])
 
 				buxton_debug("New client fd %d connected through fd %d\n", fd, self.pollfds[i].fd);
 
-				cl = malloc0(sizeof(client_list_item));
+				cl = malloc0(sizeof(BuxtonClientInfo));
 				if (!cl)
 					exit(EXIT_FAILURE);
 
-				LIST_INIT(client_list_item, item, cl);
-
 				cl->fd = fd;
 				cl->cred = (struct ucred) {0, 0, 0};
-				LIST_PREPEND(client_list_item, item, self.client_list, cl);
+				buxton_hashmap_puti(self.client_list, cl->fd, cl);
 
 				/* poll for data on this new client as well */
 				add_pollfd(&self, cl->fd, POLLIN | POLLPRI, false);
@@ -306,10 +304,7 @@ int main(int argc, char *argv[])
 				assert(self.pollfds[i].fd != smackfd);
 
 			/* handle data on any connection */
-			/* TODO: Replace with hash table lookup */
-			LIST_FOREACH(item, cl, self.client_list)
-				if (self.pollfds[i].fd == cl->fd)
-					break;
+			cl = buxton_hashmap_geti(self.client_list, self.pollfds[i].fd);
 
 			assert(cl);
 			if(handle_client(&self, cl, i))
@@ -324,11 +319,7 @@ int main(int argc, char *argv[])
 	for (int i = 0; i < self.nfds; i++) {
 		close(self.pollfds[i].fd);
 	}
-	for (client_list_item *i = self.client_list; i;) {
-		client_list_item *j = i->item_next;
-		free(i);
-		i = j;
-	}
+	buxton_hashmap_free(&self.client_list);
 	buxton_hashmap_free(&self.notify_mapping);
 	buxton_direct_close(&self.buxton);
 	return EXIT_SUCCESS;
