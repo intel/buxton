@@ -23,10 +23,26 @@
 #include "serialize.h"
 #include "util.h"
 
+/** Maximum number of deletions before a reorganise */
+#define MAX_DELETIONS 50
+
 /**
  * GDBM Database Module
  */
 
+/**
+ * Unique struct to enable access to DBStats
+ */
+typedef struct DBKey {
+	uint16_t unused; /**<Unused, but set to 0x672 to be unique */
+} DBKey;
+
+/**
+ * Maintain database statistics
+ */
+typedef struct DBStats {
+	int del_count; /**<Deletion count (unset) */
+} DBStats;
 
 static Hashmap *_resources = NULL;
 
@@ -142,6 +158,9 @@ static bool unset_value(BuxtonLayer *layer,
 	GDBM_FILE db;
 	datum key;
 	bool ret = false;
+	DBKey d_key;
+	DBStats d_record;
+	datum value;
 	int rc;
 
 	assert(layer);
@@ -157,6 +176,36 @@ static bool unset_value(BuxtonLayer *layer,
 	/* Negative value means the key wasn't found */
 	rc = gdbm_delete(db, key);
 	ret = rc == 0 ? true : false;
+
+	/* Update deletion count */
+	d_key.unused = 0x672;
+	key.dptr = (char*)&d_key;
+	key.dsize = (int)sizeof(d_key);
+
+	value = gdbm_fetch(db, key);
+	if (value.dsize < 0 || value.dptr == NULL) {
+		d_record.del_count = 0;
+	} else {
+		d_record.del_count = ((DBStats*)value.dptr)->del_count;
+		d_record.del_count += 1;
+		free(value.dptr);
+	}
+
+	/* Ceiling deletions hit, reorganise the database */
+	if (d_record.del_count >= MAX_DELETIONS) {
+		rc = gdbm_reorganize(db);
+		if (rc < 0) {
+			buxton_log("gdbm_reorganize failed for %s\n", layer->name);
+			return ret;
+		}
+		/* Now reset the deletion count */
+		d_record.del_count = 0;
+	}
+	value.dptr = (char*)&d_record;
+	value.dsize = (int)sizeof(d_record);
+	if ((rc = gdbm_store(db, key, value, GDBM_REPLACE)) < 0) {
+		buxton_log("Could not update deletion stats for %s\n", layer->name);
+	}
 
 	return ret;
 }
@@ -223,7 +272,7 @@ end:
 	return ret;
 }
 
-_bx_export_ void buxton_module_destroy(void)
+_public_ void buxton_module_destroy(void)
 {
 	const char *key;
 	Iterator iterator;
@@ -238,7 +287,7 @@ _bx_export_ void buxton_module_destroy(void)
 	_resources = NULL;
 }
 
-_bx_export_ bool buxton_module_init(BuxtonBackend *backend)
+_public_ bool buxton_module_init(BuxtonBackend *backend)
 {
 
 	assert(backend);

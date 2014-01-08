@@ -8,7 +8,7 @@ if DEBUG
 AM_CFLAGS += -ggdb3 -O0
 endif
 if COVERAGE
-AM_CFLAGS += --coverage
+AM_CFLAGS += --coverage -fprofile-arcs -ftest-coverage
 endif
 
 AM_CPPFLAGS = \
@@ -126,6 +126,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/backend.h \
 	src/shared/hashmap.c \
 	src/shared/hashmap.h \
+	src/shared/map.c \
+	src/shared/map.h \
 	src/shared/macro.h \
 	src/shared/util.h \
 	src/shared/serialize.c \
@@ -136,16 +138,14 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/configurator.h \
 	${NULL}
 
-if USE_LOCAL_INIPARSER
-libbuxton_shared_la_SOURCES += \
-	src/shared/dictionary.c \
-	src/shared/dictionary.h \
-	src/shared/iniparser.c \
-	src/shared/iniparser.h
-endif
+libbuxton_shared_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	$(INIPARSER_CFLAGS)
 
 libbuxton_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
+	$(INIPARSER_LIBS) \
+	-ldl \
 	-static
 
 noinst_LTLIBRARIES += \
@@ -171,18 +171,15 @@ libbuxton_la_SOURCES = \
 
 libbuxton_la_CFLAGS = \
 	$(AM_CFLAGS) \
-	@INIPARSER_CFLAGS@ \
 	-fvisibility=hidden
 
 libbuxton_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	@INIPARSER_LIBS@ \
 	-version-info $(LIBBUXTON_CURRENT):$(LIBBUXTON_REVISION):$(LIBBUXTON_AGE) \
 	-Wl,--version-script=$(top_srcdir)/src/libbuxton/lbuxton.sym
 
 libbuxton_la_LIBADD = \
-	libbuxton-shared.la \
-	-ldl
+	libbuxton-shared.la
 
 pkglib_LTLIBRARIES += \
 	gdbm.la \

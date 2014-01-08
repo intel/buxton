@@ -10,7 +10,7 @@
  */
 
 /**
- * \file bt-daemon.h Buxton public header
+ * \file bt-daemon.h Buxton _public_ header
  *
  * This is the public part of libbuxton
  *
@@ -37,9 +37,9 @@
 
 #if (__GNUC__ >= 4)
 /* Export symbols */
-#    define _bx_export_ __attribute__ ((visibility("default")))
+#    define _public_ __attribute__ ((visibility("default")))
 #else
-#  define _bx_export_
+#  define _public_
 #endif
 
 /**
@@ -122,21 +122,21 @@ static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)
  * @param path Path to the buxton configuration file to use
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_set_conf_file(char *path);
+_public_ bool buxton_client_set_conf_file(char *path);
 
 /**
  * Open a connection to Buxton
  * @param client A BuxtonClient
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_open(BuxtonClient *client)
+_public_ bool buxton_client_open(BuxtonClient *client)
 	__attribute__((warn_unused_result));
 
 /**
  * Close the connection to Buxton
  * @param client A BuxtonClient
  */
-_bx_export_ void buxton_client_close(BuxtonClient *client);
+_public_ void buxton_client_close(BuxtonClient *client);
 
 /**
  * Set a value within Buxton
@@ -146,10 +146,10 @@ _bx_export_ void buxton_client_close(BuxtonClient *client);
  * @param data A struct containing the data to set
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_set_value(BuxtonClient *client,
-					 BuxtonString *layer,
-					 BuxtonString *key,
-					 BuxtonData *data)
+_public_ bool buxton_client_set_value(BuxtonClient *client,
+				      BuxtonString *layer,
+				      BuxtonString *key,
+				      BuxtonData *data)
 	__attribute__((warn_unused_result));
 
 /**
@@ -159,9 +159,9 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
  * @param data An empty BuxtonData, where data is stored
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_get_value(BuxtonClient *client,
-					 BuxtonString *key,
-					 BuxtonData *data)
+_public_ bool buxton_client_get_value(BuxtonClient *client,
+				      BuxtonString *key,
+				      BuxtonData *data)
 	__attribute__((warn_unused_result));
 
 /**
@@ -172,10 +172,10 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client,
  * @param data An empty BuxtonData, where data is stored
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
-						   BuxtonString *layer,
-						   BuxtonString *key,
-						   BuxtonData *data)
+_public_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
+					        BuxtonString *layer,
+					        BuxtonString *key,
+					        BuxtonData *data)
 	__attribute__((warn_unused_result));
 
 /**
@@ -185,9 +185,9 @@ _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
  * @param list Pointer to store a BuxtonArray in
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
-					 BuxtonString *layer_name,
-					 BuxtonArray **list)
+_public_ bool buxton_client_list_keys(BuxtonClient *client,
+				      BuxtonString *layer_name,
+				      BuxtonArray **list)
 	__attribute__((warn_unused_result));
 
 /**
@@ -196,8 +196,8 @@ _bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
  * @param key The key to register interest with
  * @return a boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
-						     BuxtonString *key)
+_public_ bool buxton_client_register_notification(BuxtonClient *client,
+						  BuxtonString *key)
 	__attribute__((warn_unused_result));
 
 /**
@@ -206,8 +206,8 @@ _bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
  * @param key The key to remove registered interest from
  * @return a boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
-						       BuxtonString *key)
+_public_ bool buxton_client_unregister_notification(BuxtonClient *client,
+						    BuxtonString *key)
 	__attribute__((warn_unused_result));
 
 
@@ -218,9 +218,9 @@ _bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
  * @param key The key to remove
  * @return a boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
-					   BuxtonString *layer,
-					   BuxtonString *key)
+_public_ bool buxton_client_unset_value(BuxtonClient *client,
+					BuxtonString *layer,
+					BuxtonString *key)
 	__attribute__((warn_unused_result));
 
 /**
@@ -229,7 +229,7 @@ _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
  * @param name Pointer to a character string representing a name
  * @return A pointer to a BuxtonString containing the key
  */
-_bx_export_ BuxtonString *buxton_make_key(char *group, char *name)
+_public_ BuxtonString *buxton_make_key(char *group, char *name)
 	__attribute__((warn_unused_result));
 
 /**
@@ -237,7 +237,7 @@ _bx_export_ BuxtonString *buxton_make_key(char *group, char *name)
  * @param key Pointer to BuxtonString representing a buxton key
  * @return A pointer to a character string containing the key's group
  */
-_bx_export_ char *buxton_get_group(BuxtonString *key)
+_public_ char *buxton_get_group(BuxtonString *key)
 	__attribute__((warn_unused_result));
 
 /**
@@ -245,7 +245,7 @@ _bx_export_ char *buxton_get_group(BuxtonString *key)
  * @param key Pointer to BuxtonString representing a buxton key
  * @return A pointer to a character string containing the key's name
  */
-_bx_export_ char *buxton_get_name(BuxtonString *key)
+_public_ char *buxton_get_name(BuxtonString *key)
 	__attribute__((warn_unused_result));
 
 /*

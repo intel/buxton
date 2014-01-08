@@ -6,8 +6,3 @@
 - test multi-part messaging in the client-side of the library, mirroring
   changes made to bt-daemon's protocol handling
 
-- add checks for data consistency, and determine if gdbm needs to be
-  "reorganised" to ensure minimal I/O bottlenecking
-
-- before 1.0, define NDEBUG (disables asserts) in config.h unless
-  --enable-debug is passed to configure
