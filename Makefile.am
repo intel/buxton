@@ -123,6 +123,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/log.h \
 	src/shared/buxtonlist.c \
 	src/shared/buxtonlist.h \
+	src/shared/buxtonmap.c \
+	src/shared/buxtonmap.h \
 	src/shared/array.c \
 	src/shared/backend.c \
 	src/shared/backend.h \

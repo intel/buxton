@@ -81,6 +81,32 @@ bool buxton_list_prepend(BuxtonList **list, void *data)
 	return true;
 }
 
+bool buxton_list_prepend2(BuxtonList **list, void *data, void *data2)
+{
+	BuxtonList *head = *list;
+	BuxtonList *prev = NULL;
+
+	if (!head) {
+		/* New head generation */
+		head = calloc(1, sizeof(BuxtonList));
+		if (!head)
+			return false;
+		prev = head;
+	} else {
+		/* New item */
+		prev = calloc(1, sizeof(BuxtonList));
+		if (!prev)
+			return false;
+		prev->next = head;
+	}
+	/* Previous item is now the head */
+	prev->data = data;
+	prev->data2 = data2;
+	*list = prev;
+
+	return true;
+}
+
 bool buxton_list_remove(BuxtonList **list, void *data, bool do_free)
 {
 	BuxtonList *head = *list;

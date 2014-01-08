@@ -26,6 +26,7 @@
  */
 typedef struct BuxtonList {
 	void *data; /**<Data for this item in the list */
+	void *data2; /**<Reserved data segment (hashmaps) */
 	struct BuxtonList *next; /**<Next item in the list */
 } BuxtonList;
 
@@ -54,6 +55,18 @@ bool buxton_list_append(BuxtonList **list, void *data);
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_list_prepend(BuxtonList **list, void *data);
+
+/*
+ * Prepend 2 pieces of data to an existing list, or create a new list if NULL
+ * Much faster than append
+ *
+ * @note May return false if memory allocation errors exist
+ * @param list Pointer to BuxtonList pointer
+ * @param data Data pointer to store in the list
+ * @param data2 Data pointer to store in the list
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_list_prepend2(BuxtonList **list, void *data, void *data2);
 
 /**
  * Remove the given element from the list
@@ -90,6 +103,27 @@ inline void buxton_free_list(void *p)
 	BuxtonList *elem, *node = NULL;
 	elem = list;
 	while (elem != NULL) {
+		node = elem->next;
+		free(elem);
+		elem = node;
+	}
+}
+
+/**
+ * Free all 2 part items in the list and their items
+ */
+static inline void buxton_free_list2(void *p, bool one, bool two)
+{
+	BuxtonList *list = *(BuxtonList**)p;
+	if (!list)
+		return;
+	BuxtonList *elem, *node = NULL;
+	elem = list;
+	while (elem != NULL) {
+		if (one)
+			free(elem->data);
+		if (two)
+			free(elem->data2);
 		node = elem->next;
 		free(elem);
 		elem = node;
