@@ -183,6 +183,11 @@ AS_IF([test "x$enable_demos" = "xyes"],
 	[])
 AM_CONDITIONAL([BUILD_DEMOS], [test x$enable_demos = x"yes"])
 
+if test "x$enable_demos" = "xyes"; then
+	# Require GTK3 for client demonstration
+	PKG_CHECK_MODULES([GTK3], [gtk+-3.0 >= 3.10])
+fi
+
 AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P test/databases])
 AC_CONFIG_FILES([
 data/buxton.service
