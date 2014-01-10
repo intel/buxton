@@ -179,7 +179,7 @@ end:
 }
 
 size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
-			        BuxtonArray *list)
+			        uint64_t msgid, BuxtonArray *list)
 {
 	uint16_t i = 0;
 	uint8_t *data = NULL;
@@ -199,7 +199,8 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
 		return ret;
 
-	data = malloc0(sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t));
+	data = malloc0(sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint64_t) +
+		       sizeof(uint32_t));
 	if (!data)
 		goto end;
 
@@ -213,6 +214,9 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 	/* Save room for final size */
 	offset += sizeof(uint32_t);
+
+	memcpy(data+offset, &msgid, sizeof(uint64_t));
+	offset += sizeof(uint64_t);
 
 	/* Now write the parameter count */
 	memcpy(data+offset, &(list->len), sizeof(uint32_t));
@@ -329,8 +333,10 @@ end:
 	return ret;
 }
 
-size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message,
-				  size_t size, BuxtonData **list)
+size_t buxton_deserialize_message(uint8_t *data,
+				  BuxtonControlMessage *r_message,
+				  size_t size, uint64_t *r_msgid,
+				  BuxtonData **list)
 {
 	size_t offset = 0;
 	size_t ret = 0;
@@ -340,6 +346,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 	BuxtonDataType c_type;
 	BuxtonData *k_list = NULL;
 	BuxtonData c_data;
+	uint64_t msgid;
 
 	assert(data);
 	assert(r_message);
@@ -369,6 +376,10 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 
 	/* Skip size since our caller got this already */
 	offset += sizeof(uint32_t);
+
+	/* Obtain the message id */
+	msgid = *(uint64_t*)(data+offset);
+	offset += sizeof(uint64_t);
 
 	/* Obtain number of parameters */
 	n_params = *(uint32_t*)(data+offset);
@@ -462,6 +473,7 @@ size_t buxton_deserialize_message(uint8_t *data, BuxtonControlMessage *r_message
 		offset += c_length;
 	}
 	*r_message = message;
+	*r_msgid = msgid;
 	*list = k_list;
 	ret = n_params;
 end:

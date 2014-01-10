@@ -20,6 +20,13 @@
 #include "protocol.h"
 #include "util.h"
 
+static volatile uint64_t _msgid = 0;
+
+static uint64_t get_msgid(void)
+{
+	return __sync_fetch_and_add(&_msgid, 1);
+}
+
 size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 			      BuxtonData **list)
 {
@@ -34,6 +41,7 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 	size_t count = 0;
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
+	uint64_t r_msgid;
 
 	response = malloc0(BUXTON_MESSAGE_HEADER_LENGTH);
 	if (!response)
@@ -59,7 +67,7 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 		if (size != offset)
 			continue;
 
-		count = buxton_deserialize_message(response, &r_msg, size, &r_list);
+		count = buxton_deserialize_message(response, &r_msg, size, &r_msgid, &r_list);
 		if (count == 0)
 			return 0;
 		if (!(r_msg == BUXTON_CONTROL_STATUS && r_list[0].type == INT32)
@@ -96,6 +104,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_key;
+	uint64_t msgid = get_msgid();
 
 	buxton_string_to_data(layer_name, &d_layer);
 	buxton_string_to_data(key, &d_key);
@@ -116,7 +125,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 		goto end;
 	}
 	/* Attempt to serialize our send message */
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, list);
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, msgid, list);
 	if (send_len == 0)
 		goto end;
 
@@ -150,6 +159,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_key;
+	uint64_t msgid = get_msgid();
 
 	buxton_string_to_data(key, &d_key);
 	d_key.label = buxton_string_pack("dummy");
@@ -169,7 +179,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 		goto end;
 	}
 
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, list);
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, msgid, list);
 
 	if (send_len == 0)
 		goto end;
@@ -215,6 +225,7 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 	BuxtonArray *list = NULL;
 	BuxtonData d_key, d_layer;
 	bool ret = false;
+	uint64_t msgid = get_msgid();
 
 	buxton_string_to_data(key, &d_key);
 	d_key.label = buxton_string_pack("dummy");
@@ -232,7 +243,7 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 		goto end;
 	}
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNSET,
-					    list);
+					    msgid, list);
 
 	if (send_len == 0)
 		goto end;
@@ -267,6 +278,7 @@ bool buxton_wire_list_keys(BuxtonClient *client,
 	int i;
 	BuxtonData d_layer;
 	bool ret = false;
+	uint64_t msgid = get_msgid();
 
 	buxton_string_to_data(layer, &d_layer);
 	d_layer.label = buxton_string_pack("dummy");
@@ -277,7 +289,8 @@ bool buxton_wire_list_keys(BuxtonClient *client,
 		buxton_log("Unable to add layer to list_keys array\n");
 		goto end;
 	}
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_LIST, list);
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_LIST, msgid,
+					    list);
 	if (send_len == 0)
 		goto end;
 
@@ -321,6 +334,7 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 	BuxtonArray *list = NULL;
 	BuxtonData d_key;
 	bool ret = false;
+	uint64_t msgid = get_msgid();
 
 	buxton_string_to_data(key, &d_key);
 	d_key.label = buxton_string_pack("dummy");
@@ -331,7 +345,8 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 		buxton_log("Unable to add key to register_notification array\n");
 		goto end;
 	}
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_NOTIFY, list);
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_NOTIFY, msgid,
+					    list);
 	if (send_len == 0)
 		goto end;
 
@@ -361,6 +376,7 @@ bool buxton_wire_unregister_notification(BuxtonClient *self, BuxtonString *key)
 	BuxtonArray *list = NULL;
 	BuxtonData d_key;
 	bool ret = false;
+	uint64_t msgid = get_msgid();
 
 	buxton_string_to_data(key, &d_key);
 	d_key.label = buxton_string_pack("dummy");
@@ -371,7 +387,8 @@ bool buxton_wire_unregister_notification(BuxtonClient *self, BuxtonString *key)
 		buxton_log("Unable to add key to unregister_notification array\n");
 		goto end;
 	}
-	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNNOTIFY, list);
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNNOTIFY,
+					    msgid, list);
 
 	if (send_len == 0)
 		goto end;

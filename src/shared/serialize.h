@@ -97,25 +97,29 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *dest)
  * Serialize an internal buxton message for wire communication
  * @param dest Pointer to store serialized message in
  * @param message The type of message to be serialized
+ * @param msgid The message ID to be serialized
  * @param list An array of BuxtonData's to be serialized
  * @return a size_t, 0 indicates failure otherwise size of dest
  */
 size_t buxton_serialize_message(uint8_t **dest,
 				BuxtonControlMessage message,
+				uint64_t msgid,
 				BuxtonArray *list)
 	__attribute__((warn_unused_result));
 
 /**
  * Deserialize the given data into an array of BuxtonData structs
  * @param data The source data to be deserialized
- * @param message An empty pointer that will be set to the message type
+ * @param r_message An empty pointer that will be set to the message type
  * @param size The size of the data being deserialized
+ * @param r_msgid The message ID being deserialized
  * @param list A pointer that will be filled out as an array of BuxtonData structs
  * @return the length of the array, or 0 if deserialization failed
  */
 size_t buxton_deserialize_message(uint8_t *data,
-				  BuxtonControlMessage *message,
-				  size_t size, BuxtonData **list)
+				  BuxtonControlMessage *r_message,
+				  size_t size, uint64_t *r_msgid,
+				  BuxtonData **list)
 	__attribute__((warn_unused_result));
 
 /**

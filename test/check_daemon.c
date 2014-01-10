@@ -425,9 +425,9 @@ START_TEST(register_notification_check)
 	fail_if(!server.notify_mapping, "Failed to allocate hashmap");
 
 	key = buxton_string_pack("key");
-	register_notification(&server, &client, &key, &status);
+	register_notification(&server, &client, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
-	register_notification(&server, &client, &key, &status);
+	register_notification(&server, &client, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
 	//FIXME: Figure out what to do with duplicates
 	key = buxton_string_pack("no-key");
@@ -442,7 +442,7 @@ START_TEST(register_notification_check)
 	fail_if(status != BUXTON_STATUS_OK,
 		"Unable to unregister from notifications");
 	key = buxton_string_pack("key2");
-	register_notification(&server, &client, &key, &status);
+	register_notification(&server, &client, &key, 0, &status);
 	fail_if(status == BUXTON_STATUS_OK, "Registered notification with key not in db");
 
 	hashmap_free(server.notify_mapping);
@@ -493,7 +493,7 @@ START_TEST(bt_daemon_handle_message_error_check)
 	data1.label = buxton_string_pack("dummy");
 	r = buxton_array_add(list, &data1);
 	fail_if(!r, "Failed to add element to array");
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY,
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 0,
 					list);
 	fail_if(size == 0, "Failed to serialize message");
 	control = BUXTON_CONTROL_MIN;
@@ -561,14 +561,14 @@ START_TEST(bt_daemon_handle_message_set_check)
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data3);
 	fail_if(!r, "Failed to add element to array");
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY,
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(r, "Failed to detect parse_list failure");
 
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET,
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
@@ -634,7 +634,8 @@ START_TEST(bt_daemon_handle_message_get_check)
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
 	fail_if(!r, "Failed to add element to array");
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, out_list);
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, 0,
+					out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
@@ -655,7 +656,8 @@ START_TEST(bt_daemon_handle_message_get_check)
 	fail_if(!out_list2, "Failed to allocate list");
 	r = buxton_array_add(out_list2, &data2);
 	fail_if(!r, "Failed to add element to array");
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, out_list2);
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, 0,
+					out_list2);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
@@ -718,7 +720,8 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	data2.label = buxton_string_pack("dummy");
 	r = buxton_array_add(out_list, &data2);
 	fail_if(!r, "Failed to add element to array");
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, out_list);
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 0,
+					out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
@@ -741,7 +744,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	data2.store.d_string.value = string->value;
 	data2.store.d_string.length = string->length;
 	data2.label = buxton_string_pack("dummy");
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNNOTIFY,
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNNOTIFY, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
@@ -809,7 +812,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
 	fail_if(!r, "Failed to add element to array");
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNSET,
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNSET, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
@@ -879,7 +882,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
 				    &value1);
 	fail_if(!r, "Failed to set value for notify");
-	register_notification(&daemon, &cl, &key, &status);
+	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value1);
@@ -925,7 +928,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
 				    &value1);
 	fail_if(!r, "Failed to set value for notify");
-	register_notification(&daemon, &cl, &key, &status);
+	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
@@ -964,7 +967,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
 				    &value1);
 	fail_if(!r, "Failed to set value for notify");
-	register_notification(&daemon, &cl, &key, &status);
+	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
@@ -1003,7 +1006,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
 				    &value1);
 	fail_if(!r, "Failed to set value for notify");
-	register_notification(&daemon, &cl, &key, &status);
+	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
@@ -1042,7 +1045,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
 				    &value1);
 	fail_if(!r, "Failed to set value for notify");
-	register_notification(&daemon, &cl, &key, &status);
+	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
@@ -1081,7 +1084,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
 				    &value1);
 	fail_if(!r, "Failed to set value for notify");
-	register_notification(&daemon, &cl, &key, &status);
+	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);

@@ -49,6 +49,7 @@ typedef struct client_list_item {
 typedef struct BuxtonNotification {
 	client_list_item *client; /**<Client */
 	BuxtonData *old_data; /**<Old value of a particular key*/
+	uint64_t msgid; /**<Message id from the client */
 } BuxtonNotification;
 
 /**
@@ -158,10 +159,12 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
  * @param key Key to notify for changes on
+ * @param msgid Message ID from the client
  * @param status Will be set with the BuxtonStatus result of the operation
  */
 void register_notification(BuxtonDaemon *self, client_list_item *client,
-			   BuxtonString *key, BuxtonStatus *status);
+			   BuxtonString *key, uint64_t msgid,
+			   BuxtonStatus *status);
 
 /**
  * Buxton daemon function for unregistering notifications from the given key
