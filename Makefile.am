@@ -337,7 +337,7 @@ check_DATA = \
 if BUILD_DEMOS
 bin_PROGRAMS += \
 	bxt_timing \
-	gtk_client
+	bxt_gtk_client
 
 # Timing test
 bxt_timing_SOURCES = \
@@ -348,14 +348,14 @@ bxt_timing_LDADD = \
 	-lrt -lm
 
 # GTK3 client demo
-gtk_client_SOURCES = \
+bxt_gtk_client_SOURCES = \
 	demo/gtk_client.c \
 	demo/gtk_client.h
-gtk_client_LDADD = \
+bxt_gtk_client_LDADD = \
 	$(GTK3_LIBS) \
 	libbuxton.la \
 	libbuxton-shared.la
-gtk_client_CFLAGS = \
+bxt_gtk_client_CFLAGS = \
 	$(GTK3_CFLAGS) \
 	$(AM_CFLAGS)
 
