@@ -11,3 +11,6 @@
 
 - before 1.0, define NDEBUG (disables asserts) in config.h unless
   --enable-debug is passed to configure
+
+- Make gtk3 optional so bxt_timing can still be built if gtk3 is
+  absent. bxt_timing doesn't need gtk3.
