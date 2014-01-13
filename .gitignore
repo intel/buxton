@@ -40,6 +40,7 @@ check_daemon
 check_bt_daemon
 check_smack
 bxt_timing
+bxt_gtk_client
 *.gcda
 *.gcno
 /coverage
