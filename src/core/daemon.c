@@ -396,6 +396,7 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 		return;
 	}
 
+	//FIXME move direct functions to daemon only file
 	/* Use internal library to set value */
 	if (!buxton_direct_set_value(&self->buxton, layer, key, value)) {
 		*status = BUXTON_STATUS_FAILED;
