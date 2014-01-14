@@ -414,7 +414,7 @@ START_TEST(buxton_wire_get_value_check)
 		/* child (server) */
 		uint8_t *dest = NULL;
 		size_t size;
-		BuxtonData data1, data2;
+		BuxtonData data1, data2, data3;
 		uint8_t buf[4096];
 		ssize_t r;
 
@@ -422,12 +422,17 @@ START_TEST(buxton_wire_get_value_check)
 		data1.type = INT32;
 		data1.store.d_int32 = 0;
 		data1.label = buxton_string_pack("dummy");
-		data2.type = INT32;
-		data2.store.d_int32 = 1;
-		data2.label = buxton_string_pack("label");
+		data2.type = STRING;
+		data2.store.d_string = buxton_string_pack("key");
+		data2.label = buxton_string_pack("dummy");
+		data3.type = INT32;
+		data3.store.d_int32 = 1;
+		data3.label = buxton_string_pack("label");
 		fail_if(!buxton_array_add(list, &data1),
 			"Failed to add first element to response");
 		fail_if(!buxton_array_add(list, &data2),
+			"Failed to add first element to response");
+		fail_if(!buxton_array_add(list, &data3),
 			"Failed to add first element to response");
 		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 0,
 						list);

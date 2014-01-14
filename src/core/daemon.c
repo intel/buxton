@@ -98,7 +98,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	uint16_t i;
 	size_t p_count;
 	size_t response_len;
-	BuxtonData response_data;
+	BuxtonData response_data, kdata;
 	BuxtonData *value = NULL;
 	BuxtonString *key = NULL;
 	BuxtonString *layer = NULL;
@@ -111,6 +111,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	assert(self);
 	assert(client);
 
+	kdata.label = buxton_string_pack("dummy");
 	uid = self->buxton.client.uid;
 	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size,
 					     &msgid, &list);
@@ -165,6 +166,11 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	switch (msg) {
 	/* TODO: Use cascading switch */
 	case BUXTON_CONTROL_SET:
+		buxton_string_to_data(key, &kdata);
+		if (!buxton_array_add(out_list, &kdata)) {
+			buxton_log("Failed to prepare GET array key data\n");
+			goto end;
+		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -174,6 +180,11 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_GET:
+		buxton_string_to_data(key, &kdata);
+		if (!buxton_array_add(out_list, &kdata)) {
+			buxton_log("Failed to prepare GET array key data\n");
+			goto end;
+		}
 		if (!buxton_array_add(out_list, data)) {
 			buxton_log("Failed to prepare GET array data\n");
 			goto end;
@@ -187,6 +198,11 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_UNSET:
+		buxton_string_to_data(key, &kdata);
+		if (!buxton_array_add(out_list, &kdata)) {
+			buxton_log("Failed to prepare GET array key data\n");
+			goto end;
+		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -212,6 +228,11 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_NOTIFY:
+		buxton_string_to_data(key, &kdata);
+		if (!buxton_array_add(out_list, &kdata)) {
+			buxton_log("Failed to prepare GET array key data\n");
+			goto end;
+		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -221,6 +242,11 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
+		buxton_string_to_data(key, &kdata);
+		if (!buxton_array_add(out_list, &kdata)) {
+			buxton_log("Failed to prepare GET array key data\n");
+			goto end;
+		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);

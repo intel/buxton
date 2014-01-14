@@ -188,13 +188,13 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list);
-	if (count == 2 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
+	if (count == 3 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 	else
 		goto end;
 
 	/* Now copy the data over for the user */
-	buxton_data_copy(&r_list[1], value);
+	buxton_data_copy(&r_list[2], value);
 
 end:
 	if (r_list) {

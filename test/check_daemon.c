@@ -578,12 +578,20 @@ START_TEST(bt_daemon_handle_message_set_check)
 
 	bclient.fd = client;
 	csize = buxton_wire_get_response(&bclient, &msg, &list);
-	fail_if(csize != 1, "Failed to get correct response to set");
+	fail_if(csize != 2, "Failed to get correct response to set");
+	fail_if(list[0].type != INT32,
+		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to set");
-	free(list[0].label.value);
-	free(list);
+	fail_if(list[1].type != STRING,
+		"Failed to get correct key type");
+	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
+		"Failed to get correct key");
 
+	free(list[0].label.value);
+	free(list[1].label.value);
+	free(list[1].store.d_string.value);
+	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
 	buxton_direct_close(&daemon.buxton);
@@ -643,13 +651,17 @@ START_TEST(bt_daemon_handle_message_get_check)
 
 	bclient.fd = client;
 	csize = buxton_wire_get_response(&bclient, &msg, &list);
-	fail_if(csize != 2, "Failed to get correct response to get 1");
+	fail_if(csize != 3, "Failed to get correct response to get 1");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get 1");
-	fail_if(list[1].store.d_int32 != 1,
+	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
+		"Failed to get correct get key back 1");
+	fail_if(list[2].store.d_int32 != 1,
 		"Failed to get correct value 1");
 	free(list[0].label.value);
 	free(list[1].label.value);
+	free(list[1].store.d_string.value);
+	free(list[2].label.value);
 	free(list);
 
 	out_list2 = buxton_array_new();
@@ -665,13 +677,17 @@ START_TEST(bt_daemon_handle_message_get_check)
 	free(string);
 
 	csize = buxton_wire_get_response(&bclient, &msg, &list);
-	fail_if(csize != 2, "Failed to get correct response to get 2");
+	fail_if(csize != 3, "Failed to get correct response to get 2");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get 2");
-	fail_if(list[1].store.d_int32 != 1,
+	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
+		"Failed to get correct get key back 2");
+	fail_if(list[2].store.d_int32 != 1,
 		"Failed to get correct value 2");
 	free(list[0].label.value);
 	free(list[1].label.value);
+	free(list[1].store.d_string.value);
+	free(list[2].label.value);
 	free(list);
 
 	close(client);
@@ -731,10 +747,14 @@ START_TEST(bt_daemon_handle_message_notify_check)
 
 	bclient.fd = client;
 	csize = buxton_wire_get_response(&bclient, &msg, &list);
-	fail_if(csize != 1, "Failed to get correct response to notify");
+	fail_if(csize != 2, "Failed to get correct response to notify");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to register notification");
+	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
+		"Failed to get correct register notification key back");
 	free(list[0].label.value);
+	free(list[1].store.d_string.value);
+	free(list[1].label.value);
 	free(list);
 
 	/* UNNOTIFY */
@@ -755,12 +775,21 @@ START_TEST(bt_daemon_handle_message_notify_check)
 
 	bclient.fd = client;
 	csize = buxton_wire_get_response(&bclient, &msg, &list);
-	fail_if(csize != 1, "Failed to get correct response to unnotify");
+	fail_if(csize != 2, "Failed to get correct response to unnotify");
+	fail_if(csize != 2, "Failed to get correct response to set");
+	fail_if(list[0].type != INT32,
+		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
-		"Failed to unregister from notification");
-	free(list[0].label.value);
-	free(list);
+		"Failed to unregister for notification");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct key type");
+	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
+		"Failed to get correct key");
 
+	free(list[0].label.value);
+	free(list[1].store.d_string.value);
+	free(list[1].label.value);
+	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
 	buxton_direct_close(&daemon.buxton);
@@ -822,12 +851,21 @@ START_TEST(bt_daemon_handle_message_unset_check)
 
 	bclient.fd = client;
 	csize = buxton_wire_get_response(&bclient, &msg, &list);
-	fail_if(csize != 1, "Failed to get correct response to unset");
+	fail_if(csize != 2, "Failed to get correct response to unset");
+	fail_if(csize != 2, "Failed to get correct response to set");
+	fail_if(list[0].type != INT32,
+		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to unset");
-	free(list[0].label.value);
-	free(list);
+	fail_if(list[1].type != STRING,
+		"Failed to get correct key type");
+	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
+		"Failed to get correct key");
 
+	free(list[0].label.value);
+	free(list[1].store.d_string.value);
+	free(list[1].label.value);
+	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
 	buxton_direct_close(&daemon.buxton);
