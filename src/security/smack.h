@@ -86,12 +86,12 @@ int buxton_watch_smack_rules(void)
  * @param client The current BuxtonClient
  * @param layer The layer name for the key
  * @param key The key to check
- * @param data The data for the key
+ * @param label The label for the key
  * @param client_label The Smack label of the client
  * @return true if read access is granted, otherwise false
  */
 bool buxton_check_read_access(BuxtonControl *control, BuxtonString *layer,
-			      BuxtonString *key, BuxtonData *data,
+			      BuxtonString *key, BuxtonString *label,
 			      BuxtonString *client_label)
 	__attribute__((warn_unused_result));
 
@@ -100,12 +100,12 @@ bool buxton_check_read_access(BuxtonControl *control, BuxtonString *layer,
  * @param client The current BuxtonClient
  * @param layer The layer name for the key
  * @param key The key to check
- * @param data The data for the key
+ * @param label The label for the key
  * @param client_label The Smack label of the client
  * @return true if write access is granted, otherwise false
  */
 bool buxton_check_write_access(BuxtonControl *control, BuxtonString *layer,
-			       BuxtonString *key, BuxtonData *data,
+			       BuxtonString *key, BuxtonString *label,
 			       BuxtonString *client_label);
 
 

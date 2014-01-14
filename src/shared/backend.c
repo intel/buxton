@@ -127,7 +127,7 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 	if (backend->get_value(layer, key, data)) {
 		/* Access checks are not needed for direct clients, where label is NULL */
 		if (label && !buxton_check_read_access(control, layer_name,
-						       key, data, label)) {
+						       key, &data->label, label)) {
 			/* Client lacks permission to read the value */
 			return false;
 		}
@@ -155,7 +155,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
 
 	/* Access checks are not needed for direct clients, where label is NULL */
 	if (label) {
-		if (!buxton_check_write_access(control, layer_name, key, data, label)) {
+		if (!buxton_check_write_access(control, layer_name, key, &data->label, label)) {
 			return false;
 		}
 	}

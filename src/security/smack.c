@@ -237,7 +237,7 @@ int buxton_watch_smack_rules(void)
 bool buxton_check_read_access(BuxtonControl *control,
 			      BuxtonString *layer,
 			      BuxtonString *key,
-			      BuxtonData *data,
+			      BuxtonString *label,
 			      BuxtonString *client_label)
 {
 	smack_check();
@@ -247,7 +247,7 @@ bool buxton_check_read_access(BuxtonControl *control,
 	 * are in the correct spot
 	 */
 	assert(key);
-	assert(data);
+	assert(label);
 	assert(client_label);
 
 	char *group = get_group(key);
@@ -269,7 +269,7 @@ bool buxton_check_read_access(BuxtonControl *control,
 		 * should also be readable.
 		 */
 		if (!buxton_check_smack_access(client_label,
-					       &(data->label),
+					       label,
 					       ACCESS_READ)) {
 			buxton_debug("Smack: not permitted to get value\n");
 			return false;
@@ -283,12 +283,12 @@ bool buxton_check_read_access(BuxtonControl *control,
 bool buxton_check_write_access(BuxtonControl *control,
 			       BuxtonString *layer,
 			       BuxtonString *key,
-			       BuxtonData *data,
+			       BuxtonString *label,
 			       BuxtonString *client_label)
 {
 	smack_check();
 
-	/* The data arg may be NULL, in case of a delete */
+	/* The label arg may be NULL, in case of a delete */
 	assert(control);
 	assert(layer);
 	assert(key);
@@ -324,8 +324,8 @@ bool buxton_check_write_access(BuxtonControl *control,
 							       curr_data,
 							       NULL);
 
-		if (data && !valid && !buxton_check_smack_access(client_label,
-								 &(data->label),
+		if (label && !valid && !buxton_check_smack_access(client_label,
+								 label,
 								 ACCESS_WRITE)) {
 			buxton_debug("Smack: not permitted to set new value\n");
 			return false;
@@ -339,15 +339,15 @@ bool buxton_check_write_access(BuxtonControl *control,
 				return false;
 			}
 
-			if (data) {
+			if (label) {
 				/* The existing label should be preserved */
-				free(data->label.value);
-				data->label.value = strdup(curr_data->label.value);
-				if (!data->label.value) {
+				free(label->value);
+				label->value = strdup(curr_data->label.value);
+				if (!label->value) {
 					buxton_log("strdup: %m\n");
 					return false;
 				}
-				data->label.length = curr_data->label.length;
+				label->length = curr_data->label.length;
 			}
 		}
 	}
