@@ -183,7 +183,15 @@ AS_IF([test "x$enable_demos" = "xyes"],
 	[])
 AM_CONDITIONAL([BUILD_DEMOS], [test x$enable_demos = x"yes"])
 
-if test "x$enable_demos" = "xyes"; then
+# GTK3 demo
+AC_ARG_ENABLE(gtk-demo, AS_HELP_STRING([--enable-gtk-demo], [enable demos @<:@default=no@:>@]),
+	      [], [enable_gtk_demo=no])
+AS_IF([test "x$enable_gtk_demo" = "xyes"],
+	[AC_DEFINE([DEMOS], [1], [Building GTK demo])],
+	[])
+AM_CONDITIONAL([BUILD_GTK_DEMO], [test x$enable_gtk_demo = x"yes"])
+
+if test "x$enable_gtk_demo" = "xyes"; then
 	# Require GTK3 for client demonstration
 	PKG_CHECK_MODULES([GTK3], [gtk+-3.0 >= 3.10])
 fi
