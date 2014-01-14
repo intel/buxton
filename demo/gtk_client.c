@@ -133,7 +133,7 @@ static void buxton_test_init(BuxtonTest *self)
 
 	 update_value(self);
 	 /* Grab buxton notifications on idle loop */
-	 g_idle_add(update_buxton, self);
+	 g_idle_add((GSourceFunc)update_buxton, self);
 }
 
 static void buxton_test_dispose(GObject *object)
