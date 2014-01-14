@@ -453,9 +453,6 @@ START_TEST(buxton_wire_get_value_check)
 		fail_if(buxton_wire_get_value(&client, &layer_name, &key, &value) != true,
 			"Failed to properly get value");
 		fail_if(value.type != INT32, "Failed to get value's correct type");
-		fail_if(!(value.label.value), "Failed to get value's label");
-		fail_if(!streq(value.label.value, "label"),
-			"Failed to get value's correct label");
 		fail_if(value.store.d_int32 != 1, "Failed to get value's correct value");
 		close(client.fd);
 		free(value.label.value);
