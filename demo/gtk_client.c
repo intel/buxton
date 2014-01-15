@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "bt-daemon.h"
+#include "buxton-array.h"
 #include "gtk_client.h"
 
 /* BuxtonTest object */
@@ -23,6 +24,7 @@ struct _BuxtonTest {
         GtkWidget *info;
         GtkWidget *value_label;
         GtkWidget *entry;
+        gboolean registered;
 };
 
 /* BuxtonTest class definition */
@@ -120,6 +122,7 @@ static void buxton_test_init(BuxtonTest *self)
 	gtk_widget_show_all(GTK_WIDGET(self));
 	gtk_widget_grab_focus(button);
 
+	self->registered = FALSE;
 	/* Attempt connection to Buxton */
 	if (!buxton_client_open(&self->client)) {
 		gtk_info_bar_set_message_type(GTK_INFO_BAR(info),
@@ -127,7 +130,6 @@ static void buxton_test_init(BuxtonTest *self)
 		gtk_label_set_markup(GTK_LABEL(self->info_label), "No connection!");
 		gtk_widget_show(info);
 	} else {
-		/* TODO: Register for notifications */
 		gtk_widget_hide(info);
 	}
 
@@ -184,8 +186,8 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 
 	if (!buxton_client_set_value(&self->client, &layer, key, &data))
 		report_error(self, "Unable to set value!");
-	else
-		update_value(self);
+	/* We should now recieve a notification, do not get_value
+	 * as you're about to receive a CHANGED event */
 	free(key);
 }
 
@@ -205,6 +207,14 @@ static void update_value(BuxtonTest *self)
 		if (!buxton_client_open(&self->client))
 			report_error(self, "Unable to connect to Buxton!");
 		return;
+	}
+
+	if (!self->registered) {
+		/* Register for notifications on key changes */
+		if (!buxton_client_register_notification(&self->client, key))
+			report_error(self, "Unable to register for notifications");
+		else
+			self->registered = TRUE;
 	}
 
 	lab = g_strdup_printf("<big>\'test\' value: %s</big>", data.store.d_string.value);
@@ -229,7 +239,38 @@ static void report_error(BuxtonTest *self, gchar *error)
 
 static gboolean update_buxton(BuxtonTest *self)
 {
-	/* TODO: Probe for notifications */
+	BuxtonArray *changes = NULL;
+	BuxtonData *key = NULL;
+	BuxtonData *value = NULL;
+	gchar *lab = NULL;
+
+	if (!buxton_client_get_notifications(&self->client, &changes))
+		return TRUE;
+
+	if (!changes)
+		return TRUE;
+
+	/* This is just for integrity sake and testing */
+	printf("Recieved length of %d\n", changes->len);
+	key = buxton_array_get(changes, 0);
+	g_assert(key->type == STRING);
+	g_assert(g_str_equal(key->store.d_string.value, "test"));
+
+	if(changes->len == 1) {
+		lab = g_strdup_printf("<big>\'test' value unset</big>");
+	} else {
+		value = buxton_array_get(changes, 1);
+		g_assert(value->type == STRING);
+		lab = g_strdup_printf("<big>\'test\' value: %s</big>",
+			value->store.d_string.value);
+	}
+
+	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
+	g_free(lab);
+
+	if (changes)
+		buxton_array_free(&changes, NULL);
+
 	return TRUE;
 }
 
