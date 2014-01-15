@@ -61,19 +61,23 @@ bool buxton_client_open(BuxtonClient *client)
 	if (!client)
 		return false;
 
-	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
 		return false;
-	}
 
 	remote.sun_family = AF_UNIX;
 	strncpy(remote.sun_path, buxton_socket(), sizeof(remote.sun_path));
 	r = connect(bx_socket, (struct sockaddr *)&remote, sizeof(remote));
-	client->fd = bx_socket;
 	if ( r == -1) {
-		close(client->fd);
+		close(bx_socket);
 		return false;
 	}
 
+	if (!setup_callbacks()) {
+		close(bx_socket);
+		return false;
+	}
+
+	client->fd = bx_socket;
 	return true;
 }
 
@@ -82,6 +86,7 @@ void buxton_client_close(BuxtonClient *client)
 	if (!client)
 		return;
 
+	cleanup_callbacks();
 	close(client->fd);
 	client->direct = 0;
 	client->fd = -1;

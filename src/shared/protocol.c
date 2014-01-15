@@ -14,17 +14,64 @@
 #endif
 
 #include <assert.h>
+#include <pthread.h>
 #include <stdlib.h>
 
+#include "hashmap.h"
 #include "log.h"
 #include "protocol.h"
 #include "util.h"
 
+static pthread_mutex_t callback_guard = PTHREAD_MUTEX_INITIALIZER;
+static Hashmap *callbacks = NULL;
+static Hashmap *notify_callbacks = NULL;
 static volatile uint64_t _msgid = 0;
 
 static uint64_t get_msgid(void)
 {
 	return __sync_fetch_and_add(&_msgid, 1);
+}
+
+bool setup_callbacks(void)
+{
+	bool r = false;
+
+	pthread_mutex_lock(&callback_guard);
+
+	if (callbacks && notify_callbacks)
+		goto unlock;
+
+	callbacks = hashmap_new(trivial_hash_func, trivial_compare_func);
+	if (!callbacks)
+		goto unlock;
+
+	notify_callbacks = hashmap_new(trivial_hash_func, trivial_compare_func);
+	if (!notify_callbacks) {
+		hashmap_free(callbacks);
+		goto unlock;
+	}
+
+	r = true;
+
+unlock:
+	pthread_mutex_unlock(&callback_guard);
+
+	return r;
+}
+
+void cleanup_callbacks(void)
+{
+	pthread_mutex_lock(&callback_guard);
+
+	if (callbacks)
+		hashmap_free(callbacks);
+	callbacks = NULL;
+
+	if (notify_callbacks)
+		hashmap_free(notify_callbacks);
+	notify_callbacks = NULL;
+
+	pthread_mutex_unlock(&callback_guard);
 }
 
 size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,

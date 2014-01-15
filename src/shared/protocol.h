@@ -34,6 +34,17 @@ typedef enum BuxtonStatus {
 } BuxtonStatus;
 
 /**
+ * Initialize callback hashamps
+ * @return a boolean value, indicating success of the operation
+ */
+bool setup_callbacks(void);
+
+/**
+ * free callback hashmaps
+ */
+void cleanup_callbacks(void);
+
+/**
  * Wait for and parse a response from bt-daemon
  * @param client A Buxton Client
  * @param msg Pointer to BuxtonControlMessage
