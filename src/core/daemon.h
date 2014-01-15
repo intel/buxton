@@ -44,13 +44,12 @@ typedef struct client_list_item {
 } client_list_item;
 
 /**
- * List of clients interested in a key
+ * Notification registration
  */
-typedef struct notification_list_item {
-	LIST_FIELDS(struct notification_list_item, item); /**<List type */
+typedef struct BuxtonNotification {
 	client_list_item *client; /**<Client */
 	BuxtonData *old_data; /**<Old value of a particular key*/
-} notification_list_item;
+} BuxtonNotification;
 
 /**
  * Global store of bt-daemon state
