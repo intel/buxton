@@ -15,6 +15,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #include "log.h"
 #include "protocol.h"
@@ -387,6 +388,56 @@ bool buxton_wire_unregister_notification(BuxtonClient *self, BuxtonString *key)
 end:
 	buxton_array_free(&list, NULL);
 	return ret;
+}
+
+bool buxton_wire_get_notifications(BuxtonClient *client,
+				   BuxtonArray **array)
+{
+	BuxtonControlMessage msg;
+	BuxtonData *r_list = NULL;
+	BuxtonArray *ret = NULL;
+	int flags;
+	bool b_ret = false;
+
+	flags = fcntl(client->fd, F_GETFL, 0);
+	if (flags < 0)
+		return false;
+	/* Attempt to make socket non blocking */
+	if (fcntl(client->fd, F_SETFL, flags | O_NONBLOCK) != 0)
+		return false;
+
+	if (!buxton_wire_get_response(client, &msg, &r_list))
+		goto end;
+	if (msg != BUXTON_CONTROL_CHANGED) {
+		buxton_log("Warning: Recieved unhandled wire message (%d)\n", msg);
+		goto end;
+	}
+	if (!r_list) {
+		buxton_log("Critical error: Corrupt notification packet\n");
+		goto end;
+	}
+
+	ret = buxton_array_new();
+	if (!ret) {
+		buxton_log("Critical error: Unable to allocate array\n");
+		goto end;
+	}
+
+	if (!buxton_array_add(ret, &r_list[0]) ||
+	    !buxton_array_add(ret, &r_list[1])) {
+		buxton_log("Critical error: Memory failure\n");
+		buxton_array_free(&ret, NULL);
+		goto end;
+	}
+
+	b_ret = true;
+	*array = ret;
+end:
+	if (fcntl(client->fd, F_SETFL, flags) != 0) {
+		buxton_log("Unable to set socket blocking again\n");
+		return false;
+	}
+	return b_ret;
 }
 
 void include_protocol(void)

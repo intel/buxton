@@ -222,6 +222,11 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 
 	/* Now write the response */
 	write(client->fd, response_store, response_len);
+	if (msg == BUXTON_CONTROL_SET)
+		bt_daemon_notify_clients(self, client, key, value);
+	else if (msg == BUXTON_CONTROL_UNSET)
+		bt_daemon_notify_clients(self, client, key, NULL);
+
 	ret = true;
 
 end:
@@ -250,7 +255,6 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 	assert(self);
 	assert(client);
 	assert(key);
-	assert(value);
 
 	list = hashmap_get(self->notify_mapping, key->value);
 	if (!list)
@@ -263,7 +267,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		free(response);
 		response = NULL;
 
-		if (nitem->old_data) {
+		if (nitem->old_data && value) {
 			switch (value->type) {
 			case STRING:
 				c = memcmp((const void *)
@@ -310,7 +314,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		free(nitem->old_data);
 
 		nitem->old_data = malloc0(sizeof(BuxtonData));
-		if (nitem->old_data)
+		if (nitem->old_data && value)
 			buxton_data_copy(value, nitem->old_data);
 
 		data.store.d_string.value = key->value;
@@ -323,10 +327,12 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 			buxton_array_free(&out_list, NULL);
 			return;
 		}
-		if (!buxton_array_add(out_list, value)) {
-			buxton_log("Failed to add notify array value\n");
-			buxton_array_free(&out_list, NULL);
-			return;
+		if (value) {
+			if (!buxton_array_add(out_list, value)) {
+				buxton_log("Failed to add notify array value\n");
+				buxton_array_free(&out_list, NULL);
+				return;
+			}
 		}
 		response_len = buxton_serialize_message(&response,
 			BUXTON_CONTROL_CHANGED, out_list);
