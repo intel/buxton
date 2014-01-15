@@ -212,6 +212,16 @@ _bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
 
 
 /**
+ * Check for notifications  on a previously registered interest (key)
+ * @param client An open client ocnnection
+ * @param list Pointer to store a BuxtonArray result set in
+ * @return a boolean value; false if no notifications have been found
+ */
+_bx_export_ bool buxton_client_get_notifications(BuxtonClient *client,
+						 BuxtonArray **list)
+	__attribute__((warn_unused_result));
+
+/**
  * Unset a value by key in the given BuxtonLayer
  * @param client An open client connection
  * @param layer The layer to remove the value from

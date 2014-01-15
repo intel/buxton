@@ -112,6 +112,11 @@ bool buxton_client_unregister_notification(BuxtonClient *client, BuxtonString *k
 	return buxton_wire_unregister_notification(client, key);
 }
 
+bool buxton_client_get_notifications(BuxtonClient *client, BuxtonArray **list)
+{
+	return buxton_wire_get_notifications(client, list);
+}
+
 bool buxton_client_set_value(BuxtonClient *client,
 			      BuxtonString *layer_name,
 			      BuxtonString *key,

@@ -222,6 +222,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 
 	/* Now write the response */
 	write(client->fd, response_store, response_len);
+	if (msg == BUXTON_CONTROL_SET)
+		bt_daemon_notify_clients(self, client, key, value);
+
 	ret = true;
 
 end:
