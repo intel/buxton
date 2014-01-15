@@ -222,6 +222,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 
 	/* Now write the response */
 	write(client->fd, response_store, response_len);
+	if (msg == BUXTON_CONTROL_SET)
+		bt_daemon_notify_clients(self, client, key, value);
+
 	ret = true;
 
 end:
@@ -240,8 +243,9 @@ end:
 
 void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonString *key, BuxtonData *value)
 {
-	notification_list_item *list = NULL;
-	notification_list_item *nitem;
+	BuxtonList *list = NULL;
+	BuxtonList *elem = NULL;
+	BuxtonNotification *nitem;
 	_cleanup_free_ uint8_t* response = NULL;
 	size_t response_len;
 	BuxtonData data;
@@ -258,7 +262,10 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 
 	data.type = STRING;
 	data.label = buxton_string_pack("dummy");
-	LIST_FOREACH(item, nitem, list) {
+	buxton_list_foreach(list, elem) {
+		if (!elem)
+			break;
+		nitem = elem->data;
 		int c = 1;
 		free(response);
 		response = NULL;
@@ -492,8 +499,8 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonString *key,
 			   BuxtonStatus *status)
 {
-	notification_list_item *n_list = NULL;
-	notification_list_item *nitem;
+	BuxtonList *n_list = NULL;
+	BuxtonNotification *nitem;
 	BuxtonData *old_data = NULL;
 	BuxtonStatus key_status;
 	char *key_name;
@@ -505,10 +512,9 @@ void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonS
 
 	*status = BUXTON_STATUS_FAILED;
 
-	nitem = malloc0(sizeof(notification_list_item));
+	nitem = malloc0(sizeof(BuxtonNotification));
 	if (!nitem)
 		return;
-	LIST_INIT(notification_list_item, item, nitem);
 	nitem->client = client;
 
 	/* Store data now, cheap */
@@ -519,7 +525,9 @@ void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonS
 	}
 	nitem->old_data = old_data;
 
+	/* May be null, but will append regardless */
 	n_list = hashmap_get(self->notify_mapping, key->value);
+
 	if (!n_list) {
 		key_name = strdup(key->value);
 		if (!key_name) {
@@ -527,13 +535,16 @@ void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonS
 			return;
 		}
 
-		if (hashmap_put(self->notify_mapping, key_name, nitem) < 0) {
+		if (!buxton_list_append(&n_list, nitem))
+			return;
+		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0) {
 			free(key_name);
 			free(nitem);
 			return;
 		}
 	} else {
-		LIST_PREPEND(notification_list_item, item, n_list, nitem);
+		if (!buxton_list_append(&n_list, nitem))
+			return;
 	}
 	*status = BUXTON_STATUS_OK;
 }
@@ -541,9 +552,9 @@ void register_notification(BuxtonDaemon *self, client_list_item *client, BuxtonS
 void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 			     BuxtonString *key, BuxtonStatus *status)
 {
-	notification_list_item *n_list = NULL;
-	notification_list_item *nitem, *citem = NULL;
-	int length = 0;
+	BuxtonList *n_list = NULL;
+	BuxtonList *elem = NULL;
+	BuxtonNotification *nitem, *citem = NULL;
 
 	assert(self);
 	assert(client);
@@ -556,11 +567,14 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	if (!n_list)
 		return;
 
-	LIST_FOREACH(item, nitem, n_list) {
+	buxton_list_foreach(n_list, elem) {
+		if (!elem)
+			break;
+		nitem = elem->data;
 		/* Find the list item for this client */
 		if (nitem->client == client)
 			citem = nitem;
-		length++;
+			break;
 	};
 
 	/* Client hasn't registered for notifications on this key */
@@ -568,13 +582,11 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 		return;
 
 	/* Remove client from notifications */
-	LIST_REMOVE(notification_list_item, item, n_list, citem);
 	free_buxton_data(&(citem->old_data));
-	citem->client = NULL;
-	free(citem);
+	buxton_list_remove(&n_list, citem, true);
 
 	/* If we removed the last item, remove the mapping too */
-	if (length == 1)
+	if (!n_list)
 		hashmap_remove(self->notify_mapping, key->value);
 
 	*status = BUXTON_STATUS_OK;
