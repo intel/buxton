@@ -67,7 +67,7 @@ void buxton_array_free(BuxtonArray **array,
 		       buxton_free_func free_method)
 {
 	int i;
-	if (!array)
+	if (!array || !*array)
 		return;
 
 	if (free_method) {
