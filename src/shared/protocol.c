@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include "hashmap.h"
 #include "log.h"
@@ -26,6 +27,11 @@ static pthread_mutex_t callback_guard = PTHREAD_MUTEX_INITIALIZER;
 static Hashmap *callbacks = NULL;
 static Hashmap *notify_callbacks = NULL;
 static volatile uint64_t _msgid = 0;
+
+struct notify_value {
+	struct timeval tv;
+	BuxtonCallback cb;
+};
 
 static uint64_t get_msgid(void)
 {
@@ -75,7 +81,7 @@ void cleanup_callbacks(void)
 }
 
 size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
-			      BuxtonData **list)
+				BuxtonData **list, BuxtonCallback callback)
 {
 	assert(self);
 	assert(msg);
@@ -133,8 +139,9 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 	return count;
 }
 
-bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonString *key,
-			   BuxtonData *value)
+bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name,
+			   BuxtonString *key, BuxtonData *value,
+			   BuxtonCallback callback)
 {
 	assert(self);
 	assert(layer_name);
@@ -180,7 +187,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	write(self->fd, send, send_len);
 
 	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list);
+	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
 	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 
@@ -189,8 +196,9 @@ end:
 	return ret;
 }
 
-bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonString *key,
-			   BuxtonData *value)
+bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name,
+			   BuxtonString *key, BuxtonData *value,
+			   BuxtonCallback callback)
 {
 	assert(self);
 	assert(key);
@@ -234,7 +242,7 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name, BuxtonS
 	write(self->fd, send, send_len);
 
 	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list);
+	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
 	if (count == 3 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 	else
@@ -258,7 +266,8 @@ end:
 
 bool buxton_wire_unset_value(BuxtonClient *client,
 			     BuxtonString *layer_name,
-			     BuxtonString *key)
+			     BuxtonString *key,
+			     BuxtonCallback callback)
 {
 	assert(client);
 	assert(layer_name);
@@ -299,7 +308,7 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 	write(client->fd, send, send_len);
 
 	/* Gain response */
-	count = buxton_wire_get_response(client, &r_msg, &r_list);
+	count = buxton_wire_get_response(client, &r_msg, &r_list, callback);
 	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 
@@ -310,7 +319,8 @@ end:
 
 bool buxton_wire_list_keys(BuxtonClient *client,
 			   BuxtonString *layer,
-			   BuxtonArray **array)
+			   BuxtonArray **array,
+			   BuxtonCallback callback)
 {
 	assert(client);
 	assert(layer);
@@ -347,7 +357,7 @@ bool buxton_wire_list_keys(BuxtonClient *client,
 	buxton_array_free(&list, NULL);
 
 	/* Gain response */
-	count = buxton_wire_get_response(client, &r_msg, &r_list);
+	count = buxton_wire_get_response(client, &r_msg, &r_list, callback);
 	if (!(count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK))
 		goto end;
 
@@ -368,7 +378,9 @@ end:
 	return ret;
 }
 
-bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
+bool buxton_wire_register_notification(BuxtonClient *self,
+				       BuxtonString *key,
+				       BuxtonCallback callback)
 {
 	assert(self);
 	assert(key);
@@ -401,7 +413,7 @@ bool buxton_wire_register_notification(BuxtonClient *self, BuxtonString *key)
 	write(self->fd, send, send_len);
 
 	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list);
+	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
 	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 
@@ -410,7 +422,9 @@ end:
 	return ret;
 }
 
-bool buxton_wire_unregister_notification(BuxtonClient *self, BuxtonString *key)
+bool buxton_wire_unregister_notification(BuxtonClient *self,
+					 BuxtonString *key,
+					 BuxtonCallback callback)
 {
 	assert(self);
 	assert(key);
@@ -444,7 +458,7 @@ bool buxton_wire_unregister_notification(BuxtonClient *self, BuxtonString *key)
 	write(self->fd, send, send_len);
 
 	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list);
+	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
 	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 

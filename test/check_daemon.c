@@ -165,7 +165,7 @@ START_TEST(buxton_client_set_value_check)
 	data.type = STRING;
 	data.label = buxton_string_pack("label");
 	data.store.d_string = buxton_string_pack("bxt_test_value");
-	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
+	fail_if(buxton_client_set_value(&c, &layer, &key, &data, NULL) == false,
 		"Setting value in buxton failed.");
 }
 END_TEST
@@ -178,7 +178,7 @@ START_TEST(buxton_client_get_value_for_layer_check)
 	BuxtonData result;
 	fail_if(buxton_client_open(&c) == false,
 		"Open failed with daemon.");
-	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result) == false,
+	fail_if(buxton_client_get_value_for_layer(&c, &layer, &key, &result, NULL) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
@@ -208,9 +208,9 @@ START_TEST(buxton_client_get_value_check)
 	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(data.store.d_string.value == NULL,
 		"Failed to allocate test string.");
-	fail_if(buxton_client_set_value(&c, &layer, &key, &data) == false,
+	fail_if(buxton_client_set_value(&c, &layer, &key, &data, NULL) == false,
 		"Failed to set second value.");
-	fail_if(buxton_client_get_value(&c, &key, &result) == false,
+	fail_if(buxton_client_get_value(&c, &key, &result, NULL) == false,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
@@ -577,7 +577,7 @@ START_TEST(bt_daemon_handle_message_set_check)
 	free(string);
 
 	bclient.fd = client;
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2, "Failed to get correct response to set");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
@@ -650,7 +650,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 	fail_if(!r, "Failed to get message 1");
 
 	bclient.fd = client;
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 3, "Failed to get correct response to get 1");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get 1");
@@ -676,7 +676,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 	fail_if(!r, "Failed to get message 2");
 	free(string);
 
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 3, "Failed to get correct response to get 2");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get 2");
@@ -746,7 +746,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	free(string);
 
 	bclient.fd = client;
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2, "Failed to get correct response to notify");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to register notification");
@@ -774,9 +774,8 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	free(string);
 
 	bclient.fd = client;
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2, "Failed to get correct response to unnotify");
-	fail_if(csize != 2, "Failed to get correct response to set");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
@@ -850,9 +849,8 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	free(string);
 
 	bclient.fd = client;
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2, "Failed to get correct response to unset");
-	fail_if(csize != 2, "Failed to get correct response to set");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
@@ -933,7 +931,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	free(string);
 
 	bclient.fd = client;
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2,
 		"Failed to get correct response to notify string");
 	fail_if(!streq(get_group(&list[0].store.d_string), "group"),
@@ -973,7 +971,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	free(string->value);
 	free(string);
 
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2,
 		"Failed to get correct response to notify int32");
 	fail_if(!streq(get_group(&list[0].store.d_string), "group32"),
@@ -1012,7 +1010,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	free(string->value);
 	free(string);
 
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2,
 		"Failed to get correct response to notify int64");
 	fail_if(!streq(get_group(&list[0].store.d_string), "group64"),
@@ -1051,7 +1049,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	free(string->value);
 	free(string);
 
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2,
 		"Failed to get correct response to notify float");
 	fail_if(!streq(get_group(&list[0].store.d_string), "groupf"),
@@ -1090,7 +1088,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	free(string->value);
 	free(string);
 
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2,
 		"Failed to get correct response to notify double");
 	fail_if(!streq(get_group(&list[0].store.d_string), "groupd"),
@@ -1129,7 +1127,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	free(string->value);
 	free(string);
 
-	csize = buxton_wire_get_response(&bclient, &msg, &list);
+	csize = buxton_wire_get_response(&bclient, &msg, &list, NULL);
 	fail_if(csize != 2,
 		"Failed to get correct response to notify bool");
 	fail_if(!streq(get_group(&list[0].store.d_string), "groupb"),

@@ -93,50 +93,59 @@ void buxton_client_close(BuxtonClient *client)
 }
 
 bool buxton_client_get_value(BuxtonClient *client,
-			      BuxtonString *key,
-			      BuxtonData *data)
+			     BuxtonString *key,
+			     BuxtonData *data,
+			     BuxtonCallback callback)
 {
-	return buxton_wire_get_value(client, NULL, key, data);
+	return buxton_wire_get_value(client, NULL, key, data, callback);
 }
 
 bool buxton_client_get_value_for_layer(BuxtonClient *client,
-			      BuxtonString *layer_name,
-			      BuxtonString *key,
-			      BuxtonData *data)
+				       BuxtonString *layer_name,
+				       BuxtonString *key,
+				       BuxtonData *data,
+				       BuxtonCallback callback)
 {
-	return buxton_wire_get_value(client, layer_name, key, data);
+	return buxton_wire_get_value(client, layer_name, key, data, callback);
 }
 
-bool buxton_client_register_notification(BuxtonClient *client, BuxtonString *key)
+bool buxton_client_register_notification(BuxtonClient *client,
+					 BuxtonString *key,
+					 BuxtonCallback callback)
 {
-	return buxton_wire_register_notification(client, key);
+	return buxton_wire_register_notification(client, key, callback);
 }
 
-bool buxton_client_unregister_notification(BuxtonClient *client, BuxtonString *key)
+bool buxton_client_unregister_notification(BuxtonClient *client,
+					   BuxtonString *key,
+					   BuxtonCallback callback)
 {
-	return buxton_wire_unregister_notification(client, key);
+	return buxton_wire_unregister_notification(client, key, callback);
 }
 
 bool buxton_client_set_value(BuxtonClient *client,
-			      BuxtonString *layer_name,
-			      BuxtonString *key,
-			      BuxtonData *data)
+			     BuxtonString *layer_name,
+			     BuxtonString *key,
+			     BuxtonData *data,
+			     BuxtonCallback callback)
 {
-	return buxton_wire_set_value(client, layer_name, key, data);
+	return buxton_wire_set_value(client, layer_name, key, data, callback);
 }
 
 bool buxton_client_list_keys(BuxtonClient *client,
 			     BuxtonString *layer_name,
-			     BuxtonArray **list)
+			     BuxtonArray **list,
+			     BuxtonCallback callback)
 {
-	return buxton_wire_list_keys(client, layer_name, list);
+	return buxton_wire_list_keys(client, layer_name, list, callback);
 }
 
 bool buxton_client_unset_value(BuxtonClient *client,
 			       BuxtonString *layer_name,
-			       BuxtonString *key)
+			       BuxtonString *key,
+			       BuxtonCallback callback)
 {
-	return buxton_wire_unset_value(client, layer_name, key);
+	return buxton_wire_unset_value(client, layer_name, key, callback);
 }
 
 BuxtonString *buxton_make_key(char *group, char *name)

@@ -72,7 +72,7 @@ bool cli_get_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataTyp
 							&get);
 	else
 		ret = buxton_client_get_value_for_layer(&control->client, &layer,
-							key, &get);
+							key, &get, NULL);
 	if (!ret)
 		printf("Failed to get key \'%s:%s\' in layer '%s'\n", get_group(key),
 		       get_name(key), layer.value);
@@ -163,7 +163,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		ret = buxton_direct_set_value(control, &layer, key, &set);
 	else
 		ret = buxton_client_set_value(&control->client, &layer, key,
-					      &set);
+					      &set, NULL);
 	if (!ret)
 		printf("Failed to update key \'%s:%s\' in layer '%s'\n", get_group(key),
 		       get_name(key), layer.value);
@@ -199,7 +199,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		else
 			ret = buxton_client_get_value_for_layer(&control->client,
 								&layer, key,
-								&get);
+								&get, NULL);
 		if (!ret) {
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
 			       layer.value, get_group(key), get_name(key));
@@ -210,7 +210,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 			ret = buxton_direct_get_value(control, key, &get);
 		else
 			ret = buxton_client_get_value(&control->client, key,
-						      &get);
+						      &get, NULL);
 		if (!ret) {
 			printf("Requested key was not found: %s:%s\n", get_group(key),
 			       get_name(key));
@@ -284,7 +284,8 @@ bool cli_list_keys(BuxtonControl *control,
 	if (control->client.direct)
 		ret = buxton_direct_list_keys(control, &layer, &results);
 	else
-		ret = buxton_client_list_keys(&(control->client), &layer, &results);
+		ret = buxton_client_list_keys(&(control->client), &layer,
+					      &results, NULL);
 	if (!ret) {
 		printf("No keys found for layer \'%s\'\n", one);
 		return false;
@@ -320,7 +321,8 @@ bool cli_unset_value(BuxtonControl *control,
 	if (control->client.direct)
 		return buxton_direct_unset_value(control, &layer, key);
 	else
-		return buxton_client_unset_value(&control->client, &layer, key);
+		return buxton_client_unset_value(&control->client, &layer,
+						 key, NULL);
 }
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html

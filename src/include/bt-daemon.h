@@ -108,6 +108,13 @@ typedef struct BuxtonArray {
 	uint len; /**<Length of the array */
 } BuxtonArray;
 
+/**
+ * Prototype for callback functions
+ *
+ * Takes a BuxtonArray pointer and returns void.
+ */
+typedef void (*BuxtonCallback)(BuxtonArray *);
+
 static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)
 {
 	d->type = STRING;
@@ -144,12 +151,14 @@ _bx_export_ void buxton_client_close(BuxtonClient *client);
  * @param layer The layer to manipulate
  * @param key The key name
  * @param data A struct containing the data to set
+ * @param callback A callback function to handle daemon reply
  * @return A boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
 					 BuxtonString *layer,
 					 BuxtonString *key,
-					 BuxtonData *data)
+					 BuxtonData *data,
+					 BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**
@@ -157,11 +166,13 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
  * @param client An open client connection
  * @param key The key to retrieve
  * @param data An empty BuxtonData, where data is stored
+ * @param callback A callback function to handle daemon reply
  * @return A boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_get_value(BuxtonClient *client,
 					 BuxtonString *key,
-					 BuxtonData *data)
+					 BuxtonData *data,
+					 BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**
@@ -170,12 +181,14 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client,
  * @param layer The layer where the key is set
  * @param key The key to retrieve
  * @param data An empty BuxtonData, where data is stored
+ * @param callback A callback function to handle daemon reply
  * @return A boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 						   BuxtonString *layer,
 						   BuxtonString *key,
-						   BuxtonData *data)
+						   BuxtonData *data,
+						   BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**
@@ -183,31 +196,37 @@ _bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
  * @param client An open client connection
  * @param layer_name The layer to query
  * @param list Pointer to store a BuxtonArray in
+ * @param callback A callback function to handle daemon reply
  * @return A boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
 					 BuxtonString *layer_name,
-					 BuxtonArray **list)
+					 BuxtonArray **list,
+					 BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**
  * Register for notifications on the given key in all layers
  * @param client An open client connection
  * @param key The key to register interest with
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
-						     BuxtonString *key)
+						     BuxtonString *key,
+						     BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**
  * Unregister from notifications on the given key in all layers
  * @param client An open client connection
  * @param key The key to remove registered interest from
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
-						       BuxtonString *key)
+						       BuxtonString *key,
+						       BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 
@@ -216,11 +235,13 @@ _bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
  * @param client An open client connection
  * @param layer The layer to remove the value from
  * @param key The key to remove
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
 					   BuxtonString *layer,
-					   BuxtonString *key)
+					   BuxtonString *key,
+					   BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**

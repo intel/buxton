@@ -325,7 +325,7 @@ START_TEST(buxton_wire_get_response_check)
 	} else {
 		/* parent (client) */
 		close(server);
-		fail_if(buxton_wire_get_response(&client, &msg, &list) != 1,
+		fail_if(buxton_wire_get_response(&client, &msg, &list, NULL) != 1,
 			"Failed to properly handle response");
 		fail_if(msg != BUXTON_CONTROL_STATUS,
 			"Failed to get correct control message type");
@@ -392,7 +392,7 @@ START_TEST(buxton_wire_set_value_check)
 		value.type = STRING;
 		value.label = buxton_string_pack("label");
 		value.store.d_string = buxton_string_pack("value");
-		fail_if(buxton_wire_set_value(&client, &layer_name, &key, &value) != true,
+		fail_if(buxton_wire_set_value(&client, &layer_name, &key, &value, NULL) != true,
 			"Failed to properly set value");
 		close(client.fd);
 	}
@@ -455,7 +455,7 @@ START_TEST(buxton_wire_get_value_check)
 		close(server);
 		layer_name = buxton_string_pack("layer");
 		key = buxton_string_pack("key");
-		fail_if(buxton_wire_get_value(&client, &layer_name, &key, &value) != true,
+		fail_if(buxton_wire_get_value(&client, &layer_name, &key, &value, NULL) != true,
 			"Failed to properly get value");
 		fail_if(value.type != INT32, "Failed to get value's correct type");
 		fail_if(value.store.d_int32 != 1, "Failed to get value's correct value");

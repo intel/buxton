@@ -53,7 +53,8 @@ void cleanup_callbacks(void);
  */
 size_t buxton_wire_get_response(BuxtonClient *client,
 				BuxtonControlMessage *msg,
-				BuxtonData **list)
+				BuxtonData **list,
+				BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 /**
  * Send a SET message over the wire protocol, return the response
@@ -61,10 +62,12 @@ size_t buxton_wire_get_response(BuxtonClient *client,
  * @param layer_name Layer name
  * @param key Key name
  * @param value A BuxtonData storing the new value
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonData *value)
+			   BuxtonString *key, BuxtonData *value,
+			   BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**
@@ -73,10 +76,12 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
  * @param layer_name Layer name (optional)
  * @param key Key name
  * @param value A pointer to store retrieved value in
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonData *value)
+			   BuxtonString *key, BuxtonData *value,
+			   BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 
@@ -85,20 +90,24 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
  * @param client Client connection
  * @param layer_name Layer name
  * @param key Key name
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_unset_value(BuxtonClient *client,
 			     BuxtonString *layer_name,
-			     BuxtonString *key)
+			     BuxtonString *key,
+			     BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 /**
  * Send a NOTIFY message over the protocol, register for events
  * @param client Client connection
  * @param key Key name
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_register_notification(BuxtonClient *client,
-				       BuxtonString *key)
+				       BuxtonString *key,
+				       BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**
@@ -106,21 +115,25 @@ bool buxton_wire_register_notification(BuxtonClient *client,
  * @param client Client connection
  * @param layer Layer name
  * @param array An empty array pointer to store results
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_list_keys(BuxtonClient *client,
 			   BuxtonString *layer,
-			   BuxtonArray **array)
+			   BuxtonArray **array,
+			   BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 /**
  * Send an UNNOTIFY message over the protocol, no longer recieve events
  * @param client Client connection
  * @param key Key name
+ * @param callback A callback function to handle daemon reply
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_wire_unregister_notification(BuxtonClient *client,
-				         BuxtonString *key)
+				         BuxtonString *key,
+					 BuxtonCallback callback)
 	__attribute__((warn_unused_result));
 
 void include_protocol(void);
