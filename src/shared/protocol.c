@@ -23,6 +23,8 @@
 #include "protocol.h"
 #include "util.h"
 
+#define TIMEOUT 3
+
 static pthread_mutex_t callback_guard = PTHREAD_MUTEX_INITIALIZER;
 static Hashmap *callbacks = NULL;
 static Hashmap *notify_callbacks = NULL;
@@ -41,8 +43,11 @@ static uint64_t get_msgid(void)
 bool setup_callbacks(void)
 {
 	bool r = false;
+	int s;
 
-	pthread_mutex_lock(&callback_guard);
+	s = pthread_mutex_lock(&callback_guard);
+	if (s)
+		return false;
 
 	if (callbacks && notify_callbacks)
 		goto unlock;
@@ -60,14 +65,16 @@ bool setup_callbacks(void)
 	r = true;
 
 unlock:
-	pthread_mutex_unlock(&callback_guard);
+	s = pthread_mutex_unlock(&callback_guard);
+	if (s)
+		return false;
 
 	return r;
 }
 
 void cleanup_callbacks(void)
 {
-	pthread_mutex_lock(&callback_guard);
+	(void)pthread_mutex_lock(&callback_guard);
 
 	if (callbacks)
 		hashmap_free(callbacks);
@@ -77,7 +84,67 @@ void cleanup_callbacks(void)
 		hashmap_free(notify_callbacks);
 	notify_callbacks = NULL;
 
-	pthread_mutex_unlock(&callback_guard);
+	(void)pthread_mutex_unlock(&callback_guard);
+}
+
+void run_callback(BuxtonCallback callback, size_t count, BuxtonData *list)
+{
+	BuxtonArray *array = NULL;
+
+	if (!callback)
+		goto out;
+
+	array = buxton_array_new();
+	if (!array)
+		goto out;
+
+	for (int i = 0; i < count; i++)
+		if (!buxton_array_add(array, &list[i]))
+			goto out;
+
+	callback(array);
+
+out:
+	buxton_array_free(&array, NULL);
+}
+
+bool send_message(BuxtonClient *self, uint8_t *send, size_t send_len,
+		  BuxtonCallback callback, uint64_t msgid)
+{
+	ssize_t wr;
+	struct notify_value *nv;
+	int s;
+	bool r = false;
+
+	nv = malloc0(sizeof(struct notify_value));
+	if (!nv)
+		goto end;
+
+	(void)gettimeofday(&nv->tv, NULL);
+	nv->cb = callback;
+
+	s = pthread_mutex_lock(&callback_guard);
+	if (s)
+		goto end;
+
+	s = hashmap_put(callbacks, (void *)msgid, nv);
+	(void)pthread_mutex_unlock(&callback_guard);
+
+	if (s < 1) {
+		buxton_debug("Error adding callback for msgid: %llu\n", msgid);
+		free(nv);
+		goto end;
+	}
+
+	/* Now write it off */
+	wr = write(self->fd, send, send_len);
+	if (wr < 0)
+		goto end;
+
+	r = true;
+
+end:
+	return r;
 }
 
 size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
@@ -94,7 +161,11 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 	size_t count = 0;
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
-	uint64_t r_msgid;
+	uint64_t r_msgid, hkey;
+	struct notify_value *nv, *nvi;
+	struct timeval tv;
+	int s;
+	Iterator it;
 
 	response = malloc0(BUXTON_MESSAGE_HEADER_LENGTH);
 	if (!response)
@@ -133,6 +204,28 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 	} while (true);
 	assert(r_msg > BUXTON_CONTROL_MIN);
 	assert(r_msg < BUXTON_CONTROL_MAX);
+
+	(void)gettimeofday(&tv, NULL);
+
+	s = pthread_mutex_lock(&callback_guard);
+	if (s)
+		return 0;
+
+	nv = hashmap_remove(callbacks, (void *)r_msgid);
+	if (nv) {
+		run_callback((BuxtonCallback)(nv->cb), count, r_list);
+		free(nv);
+	}
+
+	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
+		if (tv.tv_sec - nvi->tv.tv_sec > TIMEOUT) {
+			(void)hashmap_remove(callbacks, (void *)hkey);
+			free(nvi);
+		}
+	}
+
+	(void)pthread_mutex_unlock(&callback_guard);
+
 	*msg = r_msg;
 	*list = r_list;
 
@@ -183,8 +276,8 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name,
 	if (send_len == 0)
 		goto end;
 
-	/* Now write it off */
-	write(self->fd, send, send_len);
+	if (!send_message(self, send, send_len, callback, msgid))
+		goto end;
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
@@ -238,8 +331,9 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name,
 
 	if (send_len == 0)
 		goto end;
-	/* Now write it off */
-	write(self->fd, send, send_len);
+
+	if (!send_message(self, send, send_len, callback, msgid))
+		goto end;
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
@@ -264,12 +358,12 @@ end:
 	return ret;
 }
 
-bool buxton_wire_unset_value(BuxtonClient *client,
+bool buxton_wire_unset_value(BuxtonClient *self,
 			     BuxtonString *layer_name,
 			     BuxtonString *key,
 			     BuxtonCallback callback)
 {
-	assert(client);
+	assert(self);
 	assert(layer_name);
 	assert(key);
 
@@ -304,11 +398,11 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 	if (send_len == 0)
 		goto end;
 
-	/* Now write it off */
-	write(client->fd, send, send_len);
+	if (!send_message(self, send, send_len, callback, msgid))
+		goto end;
 
 	/* Gain response */
-	count = buxton_wire_get_response(client, &r_msg, &r_list, callback);
+	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
 	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
 		ret = true;
 
@@ -317,12 +411,12 @@ end:
 	return ret;
 }
 
-bool buxton_wire_list_keys(BuxtonClient *client,
+bool buxton_wire_list_keys(BuxtonClient *self,
 			   BuxtonString *layer,
 			   BuxtonArray **array,
 			   BuxtonCallback callback)
 {
-	assert(client);
+	assert(self);
 	assert(layer);
 
 	size_t count;
@@ -351,13 +445,13 @@ bool buxton_wire_list_keys(BuxtonClient *client,
 	if (send_len == 0)
 		goto end;
 
-	/* Now write it off */
-	write(client->fd, send, send_len);
+	if (!send_message(self, send, send_len, callback, msgid))
+		goto end;
 
 	buxton_array_free(&list, NULL);
 
 	/* Gain response */
-	count = buxton_wire_get_response(client, &r_msg, &r_list, callback);
+	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
 	if (!(count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK))
 		goto end;
 
@@ -409,8 +503,8 @@ bool buxton_wire_register_notification(BuxtonClient *self,
 	if (send_len == 0)
 		goto end;
 
-	/* Now write it off */
-	write(self->fd, send, send_len);
+	if (!send_message(self, send, send_len, callback, msgid))
+		goto end;
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
@@ -454,8 +548,8 @@ bool buxton_wire_unregister_notification(BuxtonClient *self,
 	if (send_len == 0)
 		goto end;
 
-	/* Now write it off */
-	write(self->fd, send, send_len);
+	if (!send_message(self, send, send_len, callback, msgid))
+		goto end;
 
 	/* Gain response */
 	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
