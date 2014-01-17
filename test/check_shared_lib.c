@@ -22,6 +22,7 @@
 #include <limits.h>
 
 #include "backend.h"
+#include "buxtonlist.h"
 #include "hashmap.h"
 #include "log.h"
 #include "serialize.h"
@@ -136,6 +137,75 @@ START_TEST(array_check)
 	buxton_array_free(&array, array_free_fun);
 	fail_if(array != NULL,
 		"Failed to free BuxtonArray");
+}
+END_TEST
+
+START_TEST(list_check)
+{
+	BuxtonList *list = NULL;
+	int i;
+	char *tmp = NULL;
+	char *head = "<head of the list>";
+	char *head2 = "<prepend should appear before head now>";
+	char *data = "<middle element to be removed>";
+
+	/* Append a million strings. Results in about 3 million allocs
+	 * due to asprintf, calloc of node, etc */
+	int DEFAULT_SIZE = (10*1000)*100;
+	for (i = 0; i <= DEFAULT_SIZE; i++) {
+		if (i == 5) {
+			fail_if(buxton_list_append(&list, data) == false,
+				"Failed to append to BuxtonList");
+		} else {
+			asprintf(&tmp, "i #%d", i);
+			fail_if(buxton_list_prepend(&list, tmp) == false,
+				"Failed to prepend to BuxtonList");
+		}
+	}
+
+	fail_if(list->size != DEFAULT_SIZE, "List size invalid");
+
+	/* Prepend head */
+	fail_if(buxton_list_prepend(&list, head) != true, "Prepend head failed");
+	fail_if(list->size != DEFAULT_SIZE+1, "Prepended head size invalid");
+
+	/* Prepend head2 */
+	fail_if(buxton_list_prepend(&list, head2) != true, "Prepend head2 failed");
+	fail_if(list->size != DEFAULT_SIZE+2, "Prepended head2 size invalid");
+
+	/* Remove from middle */
+	fail_if(buxton_list_remove(&list, data, false) != true,
+		"List removal from middle failed");
+	fail_if(list->size != DEFAULT_SIZE+1, "List middle removal size invalid");
+
+	/* Remove from end */
+	fail_if(buxton_list_remove(&list, tmp, true) != true,
+		"List tail removal failed");
+	fail_if(list->size != DEFAULT_SIZE, "List tail removal size invalid");
+
+	fail_if(buxton_list_append(&list, "newend") != true,
+		"List new tail append failed");
+	fail_if(list->size != DEFAULT_SIZE+1, "List new tail size invalid");
+	fail_if(buxton_list_remove(&list, "newend", false) != true,
+		"List new tail removal failed");
+	fail_if(list->size != DEFAULT_SIZE,
+		"List new tail size invalid (post removal)");
+
+	/* Fake remove */
+	fail_if(buxton_list_remove(&list, "nonexistent", false) == true,
+		"List non existent removal should fail");
+	fail_if(list->size != DEFAULT_SIZE,
+		"List size invalid after no change");
+
+	/* Remove head */
+	fail_if(buxton_list_remove(&list, head, false) == false,
+		"List remove head failed");
+	fail_if(buxton_list_remove(&list, head2, false) == false,
+		"List remove head2 failed");
+	fail_if(list->size != DEFAULT_SIZE-2,
+		"List post heads removal size invalid");
+
+	buxton_list_free_all(&list);
 }
 END_TEST
 
@@ -665,6 +735,10 @@ shared_lib_suite(void)
 
 	tc = tcase_create("array_functions");
 	tcase_add_test(tc, array_check);
+	suite_add_tcase(s, tc);
+
+	tc = tcase_create("list_functions");
+	tcase_add_test(tc, list_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("util_functions");

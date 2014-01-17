@@ -112,6 +112,16 @@ bool buxton_wire_unregister_notification(BuxtonClient *client,
 				         BuxtonString *key)
 	__attribute__((warn_unused_result));
 
+/**
+ * Check for notifications on the wire
+ * @param client Client connection
+ * @param array An empty array pointer to store results
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_get_notifications(BuxtonClient *client,
+				   BuxtonArray **array)
+	__attribute__((warn_unused_result));
+
 void include_protocol(void);
 
 /*
