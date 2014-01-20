@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -68,6 +69,11 @@ bool buxton_client_open(BuxtonClient *client)
 	strncpy(remote.sun_path, buxton_socket(), sizeof(remote.sun_path));
 	r = connect(bx_socket, (struct sockaddr *)&remote, sizeof(remote));
 	if ( r == -1) {
+		close(bx_socket);
+		return false;
+	}
+
+	if (fcntl(bx_socket, F_SETFL, O_NONBLOCK)) {
 		close(bx_socket);
 		return false;
 	}

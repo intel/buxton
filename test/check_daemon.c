@@ -179,7 +179,7 @@ START_TEST(buxton_client_set_value_check)
 	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(!buxton_client_set_value(&c, &layer, &key, &data,
 					 client_set_value_test,
-					 NULL, false),
+					 NULL, true),
 		"Setting value in buxton failed.");
 }
 END_TEST
@@ -215,7 +215,7 @@ START_TEST(buxton_client_get_value_for_layer_check)
 		"Open failed with daemon.");
 	fail_if(!buxton_client_get_value_for_layer(&c, &layer, &key,
 						   client_get_value_test,
-						   "bxt_test_value", false),
+						   "bxt_test_value", true),
 		"Retrieving value from buxton gdbm backend failed.");
 }
 END_TEST
@@ -234,11 +234,11 @@ START_TEST(buxton_client_get_value_check)
 	data.label = buxton_string_pack("label2");
 	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(!buxton_client_set_value(&c, &layer, &key, &data,
-					 client_set_value_test, NULL, false),
+					 client_set_value_test, NULL, true),
 		"Failed to set second value.");
 	fail_if(!buxton_client_get_value(&c, &key,
 					 client_get_value_test,
-					 data.store.d_string.value, false),
+					 data.store.d_string.value, true),
 		"Retrieving value from buxton gdbm backend failed.");
 }
 END_TEST
