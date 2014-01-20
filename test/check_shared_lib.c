@@ -14,6 +14,7 @@
 #endif
 
 #include <check.h>
+#include <fcntl.h>
 #include <malloc.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,6 +24,7 @@
 
 #include "backend.h"
 #include "buxtonlist.h"
+#include "check_utils.h"
 #include "hashmap.h"
 #include "log.h"
 #include "serialize.h"
@@ -362,6 +364,22 @@ START_TEST(buxton_type_as_string_check)
 	type = BOOLEAN;
 	fail_if(strcmp(buxton_type_as_string(type), "boolean") != 0,
 		"Failed to get string of BOOLEAN type");
+}
+END_TEST
+
+START_TEST(_write_check)
+{
+	int in, out;
+	uint8_t buf[10];
+
+	setup_socket_pair(&in, &out);
+	fail_if(fcntl(in, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(out, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	buf[0] = 1;
+	fail_if(!_write(out, buf, 1), "Failed to write 1 byte");
 }
 END_TEST
 
@@ -776,6 +794,7 @@ shared_lib_suite(void)
 	tcase_add_test(tc, get_layer_path_check);
 	tcase_add_test(tc, buxton_data_copy_check);
 	tcase_add_test(tc, buxton_type_as_string_check);
+	tcase_add_test(tc, _write_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("buxton_serialize_functions");

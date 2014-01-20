@@ -15,7 +15,10 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <errno.h>
 #include <string.h>
+#include <unistd.h>
+
 #include "configurator.h"
 #include "hashmap.h"
 #include "log.h"
@@ -183,6 +186,24 @@ char *get_name(BuxtonString *key)
 	c++;
 
 	return c;
+}
+
+bool _write(int fd, uint8_t *buf, size_t nbytes)
+{
+	size_t nbytes_out = 0;
+
+	while (nbytes_out != nbytes) {
+		ssize_t b;
+		b = write(fd, buf + nbytes_out, nbytes - nbytes_out);
+
+		if (b == -1 && errno != EAGAIN) {
+			buxton_debug("write error\n");
+			return false;
+		}
+		nbytes_out += (size_t)b;
+	}
+
+	return true;
 }
 
 /*

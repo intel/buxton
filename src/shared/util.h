@@ -143,6 +143,16 @@ char *get_group(BuxtonString *key)
 char *get_name(BuxtonString *key)
 	__attribute__((warn_unused_result));
 
+/**
+ * Wrapper for nonblocking write, handles EAGAIN
+ * @param fd File descriptor to write to
+ * @param buf Buffer containing data to write
+ * @param len Length of buffer to write
+ * @return A boolean indicating the success of the operation
+ */
+bool _write(int fd, uint8_t *buf, size_t len)
+	__attribute__((warn_unused_result));
+
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
