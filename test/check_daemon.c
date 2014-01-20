@@ -29,6 +29,7 @@
 #include "configurator.h"
 #include "check_utils.h"
 #include "daemon.h"
+#include "hashmap.h"
 #include "log.h"
 #include "smack.h"
 #include "util.h"
@@ -539,6 +540,8 @@ START_TEST(bt_daemon_handle_message_set_check)
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 	fail_if(!buxton_direct_open(&daemon.buxton),
 		"Failed to open buxton direct connection");
+	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
 
 	data1.type = STRING;
 	string = buxton_make_key("group", "name");
@@ -582,6 +585,7 @@ START_TEST(bt_daemon_handle_message_set_check)
 	free(list);
 
 	close(client);
+	hashmap_free(daemon.notify_mapping);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list, NULL);
 }
@@ -789,6 +793,8 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 	fail_if(!buxton_direct_open(&daemon.buxton),
 		"Failed to open buxton direct connection");
+	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
 
 	data1.type = STRING;
 	string = buxton_make_key("group", "name");
@@ -820,6 +826,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	free(list);
 
 	close(client);
+	hashmap_free(daemon.notify_mapping);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list, NULL);
 }
