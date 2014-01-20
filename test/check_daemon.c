@@ -610,8 +610,6 @@ START_TEST(bt_daemon_handle_message_set_check)
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to handle set message");
-	free(string->value);
-	free(string);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -629,6 +627,8 @@ START_TEST(bt_daemon_handle_message_set_check)
 		"Failed to get correct key");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
+	free(string->value);
+	free(string);
 	free(list[0].label.value);
 	free(list[1].label.value);
 	free(list[1].store.d_string.value);
