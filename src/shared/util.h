@@ -97,10 +97,10 @@ static inline void free_buxton_string(void *p)
 #define malloc0(n) (calloc((n), 1))
 
 _malloc_  _alloc_(1, 2) static inline void *malloc_multiply(size_t a, size_t b) {
-        if (_unlikely_(b == 0 || a > ((size_t) -1) / b))
-                return NULL;
+	if (_unlikely_(b == 0 || a > ((size_t) -1) / b))
+		return NULL;
 
-        return malloc(a * b);
+	return malloc(a * b);
 }
 void* greedy_realloc(void **p, size_t *allocated, size_t need);
 
@@ -110,7 +110,7 @@ void* greedy_realloc(void **p, size_t *allocated, size_t need);
  * @return A string representation of the BuxtonDataType
  */
 const char* buxton_type_as_string(BuxtonDataType type)
-        __attribute__((warn_unused_result));
+	__attribute__((warn_unused_result));
 
 /**
  * Retrieve the filesystem path for the given layer
@@ -118,7 +118,7 @@ const char* buxton_type_as_string(BuxtonDataType type)
  * @return a string containing the filesystem path
  */
 char* get_layer_path(BuxtonLayer *layer)
-        __attribute__((warn_unused_result));
+	__attribute__((warn_unused_result));
 
 /**
  * Perform a deep copy of one BuxtonData to another
@@ -133,7 +133,7 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
  * @return A pointer to a character string containing the key's group
  */
 char *get_group(BuxtonString *key)
-        __attribute__((warn_unused_result));
+	__attribute__((warn_unused_result));
 
 /**
  * Get the name portion of a buxton key
@@ -141,4 +141,17 @@ char *get_group(BuxtonString *key)
  * @return A pointer to a character string containing the key's name
  */
 char *get_name(BuxtonString *key)
-        __attribute__((warn_unused_result));
+	__attribute__((warn_unused_result));
+
+/*
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
+ *
+ * Local variables:
+ * c-basic-offset: 8
+ * tab-width: 8
+ * indent-tabs-mode: t
+ * End:
+ *
+ * vi: set shiftwidth=8 tabstop=8 noexpandtab:
+ * :indentSize=8:tabSize=8:noTabs=false:
+ */
