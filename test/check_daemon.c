@@ -158,13 +158,19 @@ END_TEST
 static void client_set_value_test(BuxtonArray *array, void *data)
 {
 	BuxtonData *d;
+	char *k = (char *)data;
 
-	fail_if(array->len != 1, "Failed to get correct array size");
+	fail_if(array->len != 2, "Failed to get correct array size");
 	d = buxton_array_get(array, 0);
-	fail_if(!d, "Invalid array");
+	fail_if(!d, "Missing array index 0");
 	fail_if(d->type != INT32, "Invalid return type");
 	fail_if(d->store.d_int32 != BUXTON_STATUS_OK,
 		"Set value failed");
+	d = buxton_array_get(array, 1);
+	fail_if(!d, "Missing array index 1");
+	fail_if(d->type != STRING, "Invalid key type");
+	fail_if(!streq(d->store.d_string.value, k),
+		"Incorrect set key returned");
 }
 START_TEST(buxton_client_set_value_check)
 {
@@ -179,7 +185,7 @@ START_TEST(buxton_client_set_value_check)
 	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(!buxton_client_set_value(&c, &layer, &key, &data,
 					 client_set_value_test,
-					 NULL, true),
+					 key.value, true),
 		"Setting value in buxton failed.");
 }
 END_TEST
@@ -234,7 +240,7 @@ START_TEST(buxton_client_get_value_check)
 	data.label = buxton_string_pack("label2");
 	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(!buxton_client_set_value(&c, &layer, &key, &data,
-					 client_set_value_test, NULL, true),
+					 client_set_value_test, key.value, true),
 		"Failed to set second value.");
 	fail_if(!buxton_client_get_value(&c, &key,
 					 client_get_value_test,
