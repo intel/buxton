@@ -20,6 +20,7 @@
 
 #include <errno.h>
 #include <getopt.h>
+#include <fcntl.h>
 #include <poll.h>
 #include <signal.h>
 #include <sys/socket.h>
@@ -272,6 +273,11 @@ int main(int argc, char *argv[])
 				}
 
 				buxton_debug("New client fd %d connected through fd %d\n", fd, self.pollfds[i].fd);
+
+				if (fcntl(fd, F_SETFL, O_NONBLOCK)) {
+					close(fd);
+					break;
+				}
 
 				cl = malloc0(sizeof(client_list_item));
 				if (!cl)

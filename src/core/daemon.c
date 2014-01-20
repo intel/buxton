@@ -262,13 +262,13 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	buxton_array_free(&out_list, NULL);
 
 	/* Now write the response */
-	write(client->fd, response_store, response_len);
-	if (msg == BUXTON_CONTROL_SET && response == BUXTON_STATUS_OK)
-		bt_daemon_notify_clients(self, client, key, value);
-	else if (msg == BUXTON_CONTROL_UNSET && response == BUXTON_STATUS_OK)
-		bt_daemon_notify_clients(self, client, key, NULL);
-
-	ret = true;
+	ret = _write(client->fd, response_store, response_len);
+	if (ret) {
+		if (msg == BUXTON_CONTROL_SET && response == BUXTON_STATUS_OK)
+			bt_daemon_notify_clients(self, client, key, value);
+		else if (msg == BUXTON_CONTROL_UNSET && response == BUXTON_STATUS_OK)
+			bt_daemon_notify_clients(self, client, key, NULL);
+	}
 
 end:
 	/* Restore our own UID */
@@ -309,6 +309,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 			break;
 		nitem = elem->data;
 		int c = 1;
+		__attribute__((unused)) bool unused;
 		free(response);
 		response = NULL;
 
@@ -389,7 +390,8 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		}
 		buxton_debug("Notification to %d of key change (%s)\n", nitem->client->fd,
 			     key->value);
-		write(nitem->client->fd, response, response_len);
+
+		unused = _write(nitem->client->fd, response, response_len);
 	}
 }
 
@@ -833,10 +835,14 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		* data and we don't have a complete message just
 		* cleanup and let the client resend their request.
 		*/
-		if (l < 0)
-			goto terminate;
-		else if (l == 0)
+		if (l < 0) {
+			if (errno != EAGAIN)
+				goto terminate;
+			else
+				goto cleanup;
+		} else if (l == 0) {
 			goto cleanup;
+		}
 
 		cl->offset += (size_t)l;
 		if (cl->offset < BUXTON_MESSAGE_HEADER_LENGTH) {
