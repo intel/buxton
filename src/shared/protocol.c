@@ -260,7 +260,6 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
 			   BuxtonString *key, BuxtonData *value,
 			   BuxtonCallback callback, void *data)
 {
-	//FIXME put assert after declarations
 	assert(client);
 	assert(layer_name);
 	assert(key);
