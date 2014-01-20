@@ -14,6 +14,7 @@
 #endif
 
 #include <check.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -288,184 +289,321 @@ START_TEST(buxton_name_label_check)
 }
 END_TEST
 
-START_TEST(buxton_wire_get_response_check)
+static int run_callback_test_value = 0;
+static void run_callback_cb_test(BuxtonArray *array, void *data)
+{
+	BuxtonData *d;
+	bool *b;
+
+	switch (run_callback_test_value) {
+	case 0:
+		/* first pass through */
+		run_callback_test_value = 1;
+		break;
+	case 1:
+		/* second pass through */
+		fail_if(array->len != 1, "Failed setup array size");
+		d = buxton_array_get(array, 0);
+		fail_if(!d, "Failed to set array element");
+		fail_if(d->type != INT32, "Failed to setup array element value");
+		run_callback_test_value = 2;
+		break;
+	case 2:
+		/* third pass through */
+		b = (bool *)data;
+		*b = true;
+		break;
+	default:
+		fail("Unexpected test value");
+		break;
+	}
+}
+START_TEST(run_callback_check)
+{
+	bool data = false;
+	BuxtonData list[] = {
+		{INT32, {.d_int32 = 1}, {0}}
+	};
+
+	run_callback(NULL, (void *)&data, 1, list);
+	run_callback(run_callback_cb_test, NULL, 0, NULL);
+	fail_if(run_callback_test_value != 1,
+		"Failed to update callback test value 1");
+	run_callback(run_callback_cb_test, NULL, 1, list);
+	fail_if(run_callback_test_value != 2,
+		"Failed to update callback test value 2");
+	run_callback(run_callback_cb_test, (void *)&data, 0, NULL);
+	fail_if(!data, "Failed to update callback test value 3");
+}
+END_TEST
+
+START_TEST(send_message_check)
 {
 	BuxtonClient client;
 	BuxtonArray *out_list = NULL;
 	BuxtonData *list = NULL;
-	BuxtonControlMessage msg;
-	pid_t pid;
 	int server;
+	uint8_t *dest = NULL;
+	uint8_t *source = NULL;
+	size_t size;
+	BuxtonData data;
 
 	setup_socket_pair(&(client.fd), &server);
-	out_list = buxton_array_new();
+	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
 
-	pid = fork();
-	if (pid == 0) {
-		/* child (server) */
-		uint8_t *dest = NULL;
-		size_t size;
-		BuxtonData data;
-		close(client.fd);
-		data.type = INT32;
-		data.store.d_int32 = 0;
-		data.label = buxton_string_pack("dummy");
-		fail_if(!buxton_array_add(out_list, &data),
-			"Failed to add response to array");
-		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS,
-						0, out_list);
-		buxton_array_free(&out_list, NULL);
-		fail_if(size == 0, "Failed to serialize message");
-		write(server, dest, size);
-		close(server);
-		exit(EXIT_SUCCESS);
-	} else if (pid == -1) {
-		/* error */
-		fail("Failed to fork for response check");
-	} else {
-		/* parent (client) */
-		close(server);
-		fail_if(buxton_wire_get_response(&client, &msg, &list, NULL) != 1,
-			"Failed to properly handle response");
-		fail_if(msg != BUXTON_CONTROL_STATUS,
-			"Failed to get correct control message type");
-		fail_if(list[0].type != INT32,
-			"Failed to get correct data type from message");
-		fail_if(!(list[0].label.value),
-			"Failed to get label from message");
-		fail_if(!streq(list[0].label.value, "dummy"),
-			"Failed to get correct label from message");
-		fail_if(list[0].store.d_int32 != 0,
-			"Failed to get correct data value from message");
-		free(list);
-		close(client.fd);
-	}
+	fail_if(!setup_callbacks(),
+		"Failed to setup callbacks");
+
+	out_list = buxton_array_new();
+	data.type = INT32;
+	data.store.d_int32 = 0;
+	data.label = buxton_string_pack("dummy");
+	fail_if(!buxton_array_add(out_list, &data),
+		"Failed to add get response to array");
+	size = buxton_serialize_message(&source, BUXTON_CONTROL_STATUS,
+					0, out_list);
+	fail_if(size == 0, "Failed to serialize message");
+	fail_if(!send_message(&client, source, size, NULL, NULL, 0),
+		"Failed to write message");
+
+	cleanup_callbacks();
+	buxton_array_free(&out_list, NULL);
+	free(dest);
+	free(list);
+	close(server);
+	close(client.fd);
+}
+END_TEST
+
+static void handle_response_cb_test(BuxtonArray *array, void *data)
+{
+	bool *val = (bool *)data;
+	fail_if(*val, "Got wrong data value");
+	*val = true;
+}
+START_TEST(buxton_wire_handle_response_check)
+{
+	BuxtonClient client;
+	BuxtonArray *out_list = NULL;
+	int server;
+	uint8_t *dest = NULL;
+	size_t size;
+	BuxtonData data;
+	bool test_data = false;
+
+	setup_socket_pair(&(client.fd), &server);
+	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	/* done just to create a callback to be used */
+	fail_if(!setup_callbacks(),
+		"Failed to initialeze get response callbacks");
+	out_list = buxton_array_new();
+	data.type = INT32;
+	data.store.d_int32 = 0;
+	data.label = buxton_string_pack("dummy");
+	fail_if(!buxton_array_add(out_list, &data),
+		"Failed to add get response to array");
+	size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS,
+					0, out_list);
+	buxton_array_free(&out_list, NULL);
+	fail_if(size == 0, "Failed to serialize message");
+	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
+			      &test_data, 0), "Failed to send message");
+
+	/* server */
+	fail_if(!_write(server, dest, size),
+		"Failed to send get response");
+
+	/* client */
+	fail_if(buxton_wire_handle_response(&client) != 1,
+		"Failed to handle response correctly");
+	fail_if(!test_data, "Failed to update data");
+
+	cleanup_callbacks();
+	free(dest);
+	close(client.fd);
+	close(server);
+}
+END_TEST
+
+START_TEST(buxton_wire_get_response_check)
+{
+	BuxtonClient client;
+	BuxtonArray *out_list = NULL;
+	int server;
+	uint8_t *dest = NULL;
+	size_t size;
+	BuxtonData data;
+	bool test_data = false;
+
+	setup_socket_pair(&(client.fd), &server);
+	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	/* done just to create a callback to be used */
+	fail_if(!setup_callbacks(),
+		"Failed to initialeze callbacks");
+	out_list = buxton_array_new();
+	data.type = INT32;
+	data.store.d_int32 = 0;
+	data.label = buxton_string_pack("dummy");
+	fail_if(!buxton_array_add(out_list, &data),
+		"Failed to add data to array");
+	size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS,
+					0, out_list);
+	buxton_array_free(&out_list, NULL);
+	fail_if(size == 0, "Failed to serialize message");
+	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
+			      &test_data, 0), "Failed to send message");
+
+	/* server */
+	fail_if(!_write(server, dest, size),
+		"Failed to send get response");
+
+	/* client */
+	fail_if(!buxton_wire_get_response(&client),
+		"Failed to handle response correctly");
+	fail_if(!test_data, "Failed to update data");
+
+	cleanup_callbacks();
+	free(dest);
+	close(client.fd);
+	close(server);
 }
 END_TEST
 
 START_TEST(buxton_wire_set_value_check)
 {
 	BuxtonClient client;
-	pid_t pid;
 	int server;
-	BuxtonArray *list = NULL;
+	size_t size;
+	BuxtonData *list = NULL;
+	uint8_t buf[4096];
+	ssize_t r;
+	BuxtonString layer_name, key;
+	BuxtonData value;
+	BuxtonControlMessage msg;
+	uint64_t msgid;
 
 	setup_socket_pair(&(client.fd), &server);
-	list = buxton_array_new();
+	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
 
-	pid = fork();
-	if (pid == 0) {
-		/* child (server) */
-		uint8_t *dest = NULL;
-		size_t size;
-		BuxtonData data;
-		uint8_t buf[4096];
-		ssize_t r;
+	fail_if(!setup_callbacks(),
+		"Failed to initialeze callbacks");
 
-		close(client.fd);
-		data.type = INT32;
-		data.store.d_int32 = 0;
-		data.label = buxton_string_pack("dummy");
-		fail_if(!buxton_array_add(list, &data),
-			"Failed to add response to array");
-		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 0,
-						list);
-		buxton_array_free(&list, NULL);
-		fail_if(size == 0, "Failed to serialize message");
-		r = read(server, buf, 4096);
-		fail_if(r < 0, "Read failed from buxton_wire_set_value");
-		write(server, dest, size);
-		close(server);
-		free(dest);
-		exit(EXIT_SUCCESS);
-	} else if (pid == -1) {
-		/* error */
-		fail("Failed to fork for set check");
-	} else {
-		/* parent (client) */
-		BuxtonString layer_name, key;
-		BuxtonData value;
+	layer_name = buxton_string_pack("layer");
+	key = buxton_string_pack("key");
+	value.type = STRING;
+	value.label = buxton_string_pack("label");
+	value.store.d_string = buxton_string_pack("value");
+	fail_if(buxton_wire_set_value(&client, &layer_name, &key, &value, NULL,
+				      NULL) != true,
+		"Failed to properly set value");
 
-		close(server);
-		layer_name = buxton_string_pack("layer");
-		key = buxton_string_pack("key");
-		value.type = STRING;
-		value.label = buxton_string_pack("label");
-		value.store.d_string = buxton_string_pack("value");
-		fail_if(!setup_callbacks(), "Failed to setup callbacks");
-		fail_if(buxton_wire_set_value(&client, &layer_name, &key, &value, NULL) != true,
-			"Failed to properly set value");
-		cleanup_callbacks();
-		close(client.fd);
-	}
+	r = read(server, buf, 4096);
+	fail_if(r < 0, "Read from client failed");
+	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
+	fail_if(size != 3, "Failed to get valid message from buffer");
+	fail_if(msg != BUXTON_CONTROL_SET,
+		"Failed to get correct control type");
+	fail_if(list[0].type != STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != STRING, "Failed to set correct key type");
+	fail_if(list[2].type != STRING, "Failed to set correct value type");
+	fail_if(!streq(list[0].store.d_string.value, "layer"),
+		"Failed to set correct layer");
+	fail_if(!streq(list[1].store.d_string.value, "key"),
+		"Failed to set correct key");
+	fail_if(!streq(list[2].store.d_string.value, "value"),
+		"Failed to set correct value");
+
+	free(list[0].store.d_string.value);
+	free(list[0].label.value);
+	free(list[1].store.d_string.value);
+	free(list[1].label.value);
+	free(list[2].store.d_string.value);
+	free(list[2].label.value);
+	cleanup_callbacks();
+	close(client.fd);
+	close(server);
 }
 END_TEST
 
 START_TEST(buxton_wire_get_value_check)
 {
 	BuxtonClient client;
-	pid_t pid;
 	int server;
-	BuxtonArray *list = NULL;
+	size_t size;
+	BuxtonData *list = NULL;
+	uint8_t buf[4096];
+	ssize_t r;
+	BuxtonString layer_name, key;
+	BuxtonControlMessage msg;
+	uint64_t msgid;
 
 	setup_socket_pair(&(client.fd), &server);
-	list = buxton_array_new();
+	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
 
-	pid = fork();
-	if (pid == 0) {
-		/* child (server) */
-		uint8_t *dest = NULL;
-		size_t size;
-		BuxtonData data1, data2, data3;
-		uint8_t buf[4096];
-		ssize_t r;
+	fail_if(!setup_callbacks(),
+		"Failed to initialeze callbacks");
 
-		close(client.fd);
-		data1.type = INT32;
-		data1.store.d_int32 = 0;
-		data1.label = buxton_string_pack("dummy");
-		data2.type = STRING;
-		data2.store.d_string = buxton_string_pack("key");
-		data2.label = buxton_string_pack("dummy");
-		data3.type = INT32;
-		data3.store.d_int32 = 1;
-		data3.label = buxton_string_pack("label");
-		fail_if(!buxton_array_add(list, &data1),
-			"Failed to add first element to response");
-		fail_if(!buxton_array_add(list, &data2),
-			"Failed to add first element to response");
-		fail_if(!buxton_array_add(list, &data3),
-			"Failed to add first element to response");
-		size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS, 0,
-						list);
-		buxton_array_free(&list, NULL);
-		fail_if(size == 0, "Failed to serialize message");
-		r = read(server, buf, 4096);
-		fail_if(r < 0, "Read failed from buxton_wire_get_value");
-		write(server, dest, size);
-		close(server);
-		free(dest);
-		exit(EXIT_SUCCESS);
-	} else if (pid == -1) {
-		/* error */
-		fail("Failed to fork for get check");
-	} else {
-		/* parent (client) */
-		BuxtonString layer_name, key;
-		BuxtonData value;
+	layer_name = buxton_string_pack("layer");
+	key = buxton_string_pack("key");
+	fail_if(buxton_wire_get_value(&client, &layer_name, &key, NULL,
+				      NULL) != true,
+		"Failed to properly set value");
 
-		close(server);
-		layer_name = buxton_string_pack("layer");
-		key = buxton_string_pack("key");
-		fail_if(!setup_callbacks(), "Failed to setup callbacks");
-		fail_if(buxton_wire_get_value(&client, &layer_name, &key, &value, NULL) != true,
-			"Failed to properly get value");
-		fail_if(value.type != INT32, "Failed to get value's correct type");
-		fail_if(value.store.d_int32 != 1, "Failed to get value's correct value");
-		cleanup_callbacks();
-		close(client.fd);
-		free(value.label.value);
-	}
+	r = read(server, buf, 4096);
+	fail_if(r < 0, "Read from client failed");
+	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
+	fail_if(size != 2, "Failed to get valid message from buffer");
+	fail_if(msg != BUXTON_CONTROL_GET,
+		"Failed to get correct control type");
+	fail_if(list[0].type != STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != STRING, "Failed to set correct key type");
+	fail_if(!streq(list[0].store.d_string.value, "layer"),
+		"Failed to set correct layer");
+	fail_if(!streq(list[1].store.d_string.value, "key"),
+		"Failed to set correct key");
+
+	free(list[0].store.d_string.value);
+	free(list[0].label.value);
+	free(list[1].store.d_string.value);
+	free(list[1].label.value);
+
+	fail_if(buxton_wire_get_value(&client, NULL, &key, NULL,
+				      NULL) != true,
+		"Failed to properly set value");
+
+	r = read(server, buf, 4096);
+	fail_if(r < 0, "Read from client failed");
+	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
+	fail_if(size != 1, "Failed to get valid message from buffer");
+	fail_if(msg != BUXTON_CONTROL_GET,
+		"Failed to get correct control type");
+	fail_if(list[0].type != STRING, "Failed to set correct layer type");
+	fail_if(!streq(list[0].store.d_string.value, "key"),
+		"Failed to set correct key");
+
+	free(list[0].store.d_string.value);
+	free(list[0].label.value);
+
+	cleanup_callbacks();
+	close(client.fd);
+	close(server);
 }
 END_TEST
 
@@ -489,6 +627,9 @@ buxton_suite(void)
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("buxton_protocol_functions");
+	tcase_add_test(tc, run_callback_check);
+	tcase_add_test(tc, send_message_check);
+	tcase_add_test(tc, buxton_wire_handle_response_check);
 	tcase_add_test(tc, buxton_wire_get_response_check);
 	tcase_add_test(tc, buxton_wire_set_value_check);
 	tcase_add_test(tc, buxton_wire_get_value_check);

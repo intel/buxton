@@ -14,6 +14,7 @@
 #endif
 
 #include <assert.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -31,8 +32,9 @@ static Hashmap *notify_callbacks = NULL;
 static volatile uint64_t _msgid = 0;
 
 struct notify_value {
-	struct timeval tv;
+	void *data;
 	BuxtonCallback cb;
+	struct timeval tv;
 };
 
 static uint64_t get_msgid(void)
@@ -87,7 +89,8 @@ void cleanup_callbacks(void)
 	(void)pthread_mutex_unlock(&callback_guard);
 }
 
-void run_callback(BuxtonCallback callback, size_t count, BuxtonData *list)
+void run_callback(BuxtonCallback callback, void *data, size_t count,
+		  BuxtonData *list)
 {
 	BuxtonArray *array = NULL;
 
@@ -102,19 +105,20 @@ void run_callback(BuxtonCallback callback, size_t count, BuxtonData *list)
 		if (!buxton_array_add(array, &list[i]))
 			goto out;
 
-	callback(array);
+	callback(array, data);
 
 out:
 	buxton_array_free(&array, NULL);
 }
 
-bool send_message(BuxtonClient *self, uint8_t *send, size_t send_len,
-		  BuxtonCallback callback, uint64_t msgid)
+bool send_message(BuxtonClient *client, uint8_t *send, size_t send_len,
+		  BuxtonCallback callback, void *data, uint64_t msgid)
 {
-	ssize_t wr;
-	struct notify_value *nv;
+	struct notify_value *nv, *nvi;
 	int s;
 	bool r = false;
+	Iterator it;
+	uint64_t hkey;
 
 	nv = malloc0(sizeof(struct notify_value));
 	if (!nv)
@@ -122,10 +126,19 @@ bool send_message(BuxtonClient *self, uint8_t *send, size_t send_len,
 
 	(void)gettimeofday(&nv->tv, NULL);
 	nv->cb = callback;
+	nv->data = data;
 
 	s = pthread_mutex_lock(&callback_guard);
 	if (s)
 		goto end;
+
+	/* remove timed out callbacks */
+	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
+		if (nv->tv.tv_sec - nvi->tv.tv_sec > TIMEOUT) {
+			(void)hashmap_remove(callbacks, (void *)hkey);
+			free(nvi);
+		}
+	}
 
 	s = hashmap_put(callbacks, (void *)msgid, nv);
 	(void)pthread_mutex_unlock(&callback_guard);
@@ -137,9 +150,10 @@ bool send_message(BuxtonClient *self, uint8_t *send, size_t send_len,
 	}
 
 	/* Now write it off */
-	wr = write(self->fd, send, send_len);
-	if (wr < 0)
+	if (!_write(client->fd, send, send_len)) {
+		buxton_debug("Write failed for msgid: %llu\n", msgid);
 		goto end;
+	}
 
 	r = true;
 
@@ -147,13 +161,8 @@ end:
 	return r;
 }
 
-size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
-				BuxtonData **list, BuxtonCallback callback)
+size_t buxton_wire_handle_response(BuxtonClient *client)
 {
-	assert(self);
-	assert(msg);
-	assert(list);
-
 	ssize_t l;
 	_cleanup_free_ uint8_t *response = NULL;
 	BuxtonData *r_list = NULL;
@@ -161,20 +170,19 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 	size_t count = 0;
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
-	uint64_t r_msgid, hkey;
-	struct notify_value *nv, *nvi;
-	struct timeval tv;
+	uint64_t r_msgid;
+	struct notify_value *nv;
 	int s;
-	Iterator it;
+	size_t handled = 0;
 
 	response = malloc0(BUXTON_MESSAGE_HEADER_LENGTH);
 	if (!response)
 		return 0;
 
 	do {
-		l = read(self->fd, response + offset, size - offset);
+		l = read(client->fd, response + offset, size - offset);
 		if (l <= 0)
-			return 0;
+			return handled;
 		offset += (size_t)l;
 		if (offset < BUXTON_MESSAGE_HEADER_LENGTH)
 			continue;
@@ -194,49 +202,66 @@ size_t buxton_wire_get_response(BuxtonClient *self, BuxtonControlMessage *msg,
 		count = buxton_deserialize_message(response, &r_msg, size, &r_msgid, &r_list);
 		if (count == 0)
 			return 0;
+
 		if (!(r_msg == BUXTON_CONTROL_STATUS && r_list[0].type == INT32)
 		    && !(r_msg == BUXTON_CONTROL_CHANGED &&
 			 r_list[0].type == STRING)) {
 			buxton_log("Critical error: Invalid response\n");
 			return 0;
 		}
-		break;
-	} while (true);
-	assert(r_msg > BUXTON_CONTROL_MIN);
-	assert(r_msg < BUXTON_CONTROL_MAX);
 
-	(void)gettimeofday(&tv, NULL);
+		s = pthread_mutex_lock(&callback_guard);
+		if (s)
+			return 0;
 
-	s = pthread_mutex_lock(&callback_guard);
-	if (s)
-		return 0;
-
-	nv = hashmap_remove(callbacks, (void *)r_msgid);
-	if (nv) {
-		run_callback((BuxtonCallback)(nv->cb), count, r_list);
-		free(nv);
-	}
-
-	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
-		if (tv.tv_sec - nvi->tv.tv_sec > TIMEOUT) {
-			(void)hashmap_remove(callbacks, (void *)hkey);
-			free(nvi);
+		nv = hashmap_remove(callbacks, (void *)r_msgid);
+		if (nv) {
+			run_callback((BuxtonCallback)(nv->cb), nv->data, count, r_list);
+			free(nv);
+			for (int i = 0; i < count; i++) {
+				if (r_list[i].type == STRING)
+					free(r_list[i].store.d_string.value);
+				free(r_list[i].label.value);
+			}
+			free(r_list);
 		}
-	}
+		(void)pthread_mutex_unlock(&callback_guard);
+		handled++;
 
-	(void)pthread_mutex_unlock(&callback_guard);
+		/* reset for next possible message */
+		size = BUXTON_MESSAGE_HEADER_LENGTH;
+		offset = 0;
+	} while (true);
 
-	*msg = r_msg;
-	*list = r_list;
-
-	return count;
+	return handled;
 }
 
-bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonData *value,
-			   BuxtonCallback callback)
+bool buxton_wire_get_response(BuxtonClient *client)
 {
-	assert(self);
+	struct pollfd pfd[1];
+	int r;
+	size_t processed;
+
+	pfd[0].fd = client->fd;
+	pfd[0].events = POLLIN;
+	pfd[0].revents = 0;
+	r = poll(pfd, 1, 5000);
+
+	if (r <= 0)
+		return false;
+
+	processed = buxton_wire_handle_response(client);
+	if (processed)
+		return true;
+	return false;
+}
+
+bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
+			   BuxtonString *key, BuxtonData *value,
+			   BuxtonCallback callback, void *data)
+{
+	//FIXME put assert after declarations
+	assert(client);
 	assert(layer_name);
 	assert(key);
 	assert(value);
@@ -244,10 +269,7 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name,
 
 	_cleanup_free_ uint8_t *send = NULL;
 	bool ret = false;
-	size_t count;
 	size_t send_len = 0;
-	BuxtonControlMessage r_msg;
-	_cleanup_free_ BuxtonData *r_list = NULL;
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_key;
@@ -276,34 +298,26 @@ bool buxton_wire_set_value(BuxtonClient *self, BuxtonString *layer_name,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(self, send, send_len, callback, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid))
 		goto end;
 
-	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
-	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-		ret = true;
+	ret = true;
 
 end:
 	buxton_array_free(&list, NULL);
 	return ret;
 }
 
-bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonData *value,
-			   BuxtonCallback callback)
+bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
+			   BuxtonString *key, BuxtonCallback callback,
+			   void *data)
 {
-	assert(self);
+	assert(client);
 	assert(key);
-	assert(value);
 
 	bool ret = false;
-	size_t count = 0;
 	size_t send_len = 0;
-	int i;
 	_cleanup_free_ uint8_t *send = NULL;
-	BuxtonControlMessage r_msg;
-	BuxtonData *r_list = NULL;
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_key;
@@ -332,46 +346,28 @@ bool buxton_wire_get_value(BuxtonClient *self, BuxtonString *layer_name,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(self, send, send_len, callback, msgid))
+	if(!send_message(client, send, send_len, callback, data, msgid))
 		goto end;
 
-	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
-	if (count == 3 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-		ret = true;
-	else
-		goto end;
-
-	/* Now copy the data over for the user */
-	buxton_data_copy(&r_list[2], value);
+	ret = true;
 
 end:
-	if (r_list) {
-		for (i=0; i < count; i++) {
-			free(r_list[i].label.value);
-			if (r_list[i].type == STRING)
-				free(r_list[i].store.d_string.value);
-		}
-		free(r_list);
-	}
 	buxton_array_free(&list, NULL);
 	return ret;
 }
 
-bool buxton_wire_unset_value(BuxtonClient *self,
+bool buxton_wire_unset_value(BuxtonClient *client,
 			     BuxtonString *layer_name,
 			     BuxtonString *key,
-			     BuxtonCallback callback)
+			     BuxtonCallback callback,
+			     void *data)
 {
-	assert(self);
+	assert(client);
 	assert(layer_name);
 	assert(key);
 
-	size_t count;
 	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
-	BuxtonControlMessage r_msg;
-	_cleanup_free_ BuxtonData *r_list = NULL;
 	BuxtonArray *list = NULL;
 	BuxtonData d_key, d_layer;
 	bool ret = false;
@@ -398,35 +394,25 @@ bool buxton_wire_unset_value(BuxtonClient *self,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(self, send, send_len, callback, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid))
 		goto end;
-
-	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
-	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-		ret = true;
 
 end:
 	buxton_array_free(&list, NULL);
 	return ret;
 }
 
-bool buxton_wire_list_keys(BuxtonClient *self,
+bool buxton_wire_list_keys(BuxtonClient *client,
 			   BuxtonString *layer,
-			   BuxtonArray **array,
-			   BuxtonCallback callback)
+			   BuxtonCallback callback,
+			   void *data)
 {
-	assert(self);
+	assert(client);
 	assert(layer);
 
-	size_t count;
 	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
-	BuxtonControlMessage r_msg;
-	_cleanup_free_ BuxtonData *r_list = NULL;
 	BuxtonArray *list = NULL;
-	BuxtonArray *ret_list = NULL;
-	int i;
 	BuxtonData d_layer;
 	bool ret = false;
 	uint64_t msgid = get_msgid();
@@ -445,45 +431,27 @@ bool buxton_wire_list_keys(BuxtonClient *self,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(self, send, send_len, callback, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid))
 		goto end;
 
-	buxton_array_free(&list, NULL);
-
-	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
-	if (!(count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK))
-		goto end;
-
-	ret_list = buxton_array_new();
-	for (i = 1; i < count; i ++) {
-		if (!buxton_array_add(ret_list, &r_list[i])) {
-			buxton_log("Unable to send list-keys response\n");
-			goto end;
-		}
-	}
-	*array = ret_list;
 	ret = true;
 
 end:
-	if (!ret)
-		buxton_array_free(&ret_list, NULL);
+	buxton_array_free(&list, NULL);
 
 	return ret;
 }
 
-bool buxton_wire_register_notification(BuxtonClient *self,
+bool buxton_wire_register_notification(BuxtonClient *client,
 				       BuxtonString *key,
-				       BuxtonCallback callback)
+				       BuxtonCallback callback,
+				       void *data)
 {
-	assert(self);
+	assert(client);
 	assert(key);
 
-	size_t count;
 	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
-	BuxtonControlMessage r_msg;
-	_cleanup_free_ BuxtonData *r_list = NULL;
 	BuxtonArray *list = NULL;
 	BuxtonData d_key;
 	bool ret = false;
@@ -503,31 +471,26 @@ bool buxton_wire_register_notification(BuxtonClient *self,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(self, send, send_len, callback, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid))
 		goto end;
 
-	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
-	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-		ret = true;
+	ret = true;
 
 end:
 	buxton_array_free(&list, NULL);
 	return ret;
 }
 
-bool buxton_wire_unregister_notification(BuxtonClient *self,
+bool buxton_wire_unregister_notification(BuxtonClient *client,
 					 BuxtonString *key,
-					 BuxtonCallback callback)
+					 BuxtonCallback callback,
+					 void *data)
 {
-	assert(self);
+	assert(client);
 	assert(key);
 
-	size_t count;
 	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
-	BuxtonControlMessage r_msg;
-	_cleanup_free_ BuxtonData *r_list = NULL;
 	BuxtonArray *list = NULL;
 	BuxtonData d_key;
 	bool ret = false;
@@ -548,13 +511,10 @@ bool buxton_wire_unregister_notification(BuxtonClient *self,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(self, send, send_len, callback, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid))
 		goto end;
 
-	/* Gain response */
-	count = buxton_wire_get_response(self, &r_msg, &r_list, callback);
-	if (count > 0 && r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-		ret = true;
+	ret = true;
 
 end:
 	buxton_array_free(&list, NULL);
