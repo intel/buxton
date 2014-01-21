@@ -62,10 +62,12 @@ void run_callback(BuxtonCallback callback, void *data, size_t count, BuxtonData 
  * @param callback Callback function used to handle bt-daemon's response
  * @param data User data passed to callback function
  * @param msgid Message id used to identify bt-daemon's response
+ * @param type The type of request being sent to bt-daemon
  * @return a boolean value, indicating success of the operation
  */
 bool send_message(BuxtonClient *client, uint8_t *send, size_t send_len,
-		  BuxtonCallback callback, void *data, uint64_t msgid)
+		  BuxtonCallback callback, void *data, uint64_t msgid,
+		  BuxtonControlMessage type)
 	__attribute__((warn_unused_result));
 
 /**

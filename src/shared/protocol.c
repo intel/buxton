@@ -35,6 +35,7 @@ struct notify_value {
 	void *data;
 	BuxtonCallback cb;
 	struct timeval tv;
+	BuxtonControlMessage type;
 };
 
 static uint64_t get_msgid(void)
@@ -112,7 +113,8 @@ out:
 }
 
 bool send_message(BuxtonClient *client, uint8_t *send, size_t send_len,
-		  BuxtonCallback callback, void *data, uint64_t msgid)
+		  BuxtonCallback callback, void *data, uint64_t msgid,
+		  BuxtonControlMessage type)
 {
 	struct notify_value *nv, *nvi;
 	int s;
@@ -127,6 +129,7 @@ bool send_message(BuxtonClient *client, uint8_t *send, size_t send_len,
 	(void)gettimeofday(&nv->tv, NULL);
 	nv->cb = callback;
 	nv->data = data;
+	nv->type = type;
 
 	s = pthread_mutex_lock(&callback_guard);
 	if (s)
@@ -214,10 +217,20 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 		if (s)
 			return 0;
 
+		s = -1;
 		nv = hashmap_remove(callbacks, (void *)r_msgid);
 		if (nv) {
-			run_callback((BuxtonCallback)(nv->cb), nv->data, count, r_list);
-			free(nv);
+			if (nv->type == BUXTON_CONTROL_NOTIFY) {
+				if (r_list[0].type == INT32 &&
+				    r_list[0].store.d_int32 == BUXTON_STATUS_OK)
+					s = hashmap_put(notify_callbacks, (void *)r_msgid, nv);
+				else
+					s = -1;
+			}
+			if (s < 0) {
+				run_callback((BuxtonCallback)(nv->cb), nv->data, count, r_list);
+				free(nv);
+			}
 			for (int i = 0; i < count; i++) {
 				if (r_list[i].type == STRING)
 					free(r_list[i].store.d_string.value);
@@ -297,7 +310,8 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(client, send, send_len, callback, data, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid,
+			  BUXTON_CONTROL_SET))
 		goto end;
 
 	ret = true;
@@ -345,7 +359,8 @@ bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
 	if (send_len == 0)
 		goto end;
 
-	if(!send_message(client, send, send_len, callback, data, msgid))
+	if(!send_message(client, send, send_len, callback, data, msgid,
+			 BUXTON_CONTROL_GET))
 		goto end;
 
 	ret = true;
@@ -393,7 +408,8 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(client, send, send_len, callback, data, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid,
+		    BUXTON_CONTROL_UNSET))
 		goto end;
 
 end:
@@ -430,7 +446,8 @@ bool buxton_wire_list_keys(BuxtonClient *client,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(client, send, send_len, callback, data, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid,
+		    BUXTON_CONTROL_LIST))
 		goto end;
 
 	ret = true;
@@ -470,7 +487,8 @@ bool buxton_wire_register_notification(BuxtonClient *client,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(client, send, send_len, callback, data, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid,
+		    BUXTON_CONTROL_NOTIFY))
 		goto end;
 
 	ret = true;
@@ -510,7 +528,8 @@ bool buxton_wire_unregister_notification(BuxtonClient *client,
 	if (send_len == 0)
 		goto end;
 
-	if (!send_message(client, send, send_len, callback, data, msgid))
+	if (!send_message(client, send, send_len, callback, data, msgid,
+		    BUXTON_CONTROL_UNNOTIFY))
 		goto end;
 
 	ret = true;

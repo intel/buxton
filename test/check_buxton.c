@@ -366,8 +366,9 @@ START_TEST(send_message_check)
 	size = buxton_serialize_message(&source, BUXTON_CONTROL_STATUS,
 					0, out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	fail_if(!send_message(&client, source, size, NULL, NULL, 0),
-		"Failed to write message");
+	fail_if(!send_message(&client, source, size, NULL, NULL, 0,
+			BUXTON_CONTROL_STATUS),
+		"Failed to write message 1");
 
 	cleanup_callbacks();
 	buxton_array_free(&out_list, NULL);
@@ -414,7 +415,8 @@ START_TEST(buxton_wire_handle_response_check)
 	buxton_array_free(&out_list, NULL);
 	fail_if(size == 0, "Failed to serialize message");
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 0), "Failed to send message");
+			      &test_data, 0, BUXTON_CONTROL_STATUS),
+		"Failed to send message");
 
 	/* server */
 	fail_if(!_write(server, dest, size),
@@ -462,7 +464,8 @@ START_TEST(buxton_wire_get_response_check)
 	buxton_array_free(&out_list, NULL);
 	fail_if(size == 0, "Failed to serialize message");
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 0), "Failed to send message");
+			      &test_data, 0, BUXTON_CONTROL_STATUS),
+		"Failed to send message");
 
 	/* server */
 	fail_if(!_write(server, dest, size),
