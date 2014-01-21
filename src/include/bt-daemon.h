@@ -167,6 +167,10 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
 
 /**
  * Retrieve a value from Buxton
+ *
+ * @note If no callback is provided and sync is set to true,
+ * libbuxton will attempt to set the data parameter for you.
+ * 
  * @param client An open client connection
  * @param key The key to retrieve
  * @param callback A callback function to handle daemon reply
@@ -183,6 +187,10 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client,
 
 /**
  * Retrieve a value from Buxton
+ *
+ * @note If no callback is provided and sync is set to true,
+ * libbuxton will attempt to set the data parameter for you.
+ * 
  * @param client An open client connection
  * @param layer The layer where the key is set
  * @param key The key to retrieve
