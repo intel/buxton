@@ -83,8 +83,14 @@ size_t buxton_serialize(BuxtonData *source, uint8_t **target)
 		case INT32:
 			memcpy(data+offset, &(source->store.d_int32), sizeof(int32_t));
 			break;
+		case UINT32:
+			memcpy(data+offset, &(source->store.d_uint32), sizeof(uint32_t));
+			break;
 		case INT64:
 			memcpy(data+offset, &(source->store.d_int64), sizeof(int64_t));
+			break;
+		case UINT64:
+			memcpy(data+offset, &(source->store.d_uint64), sizeof(uint64_t));
 			break;
 		case FLOAT:
 			memcpy(data+offset, &(source->store.d_float), sizeof(float));
@@ -149,8 +155,14 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target)
 		case INT32:
 			target->store.d_int32 = *(int32_t*)(source+offset);
 			break;
+		case UINT32:
+			target->store.d_uint32 = *(uint32_t*)(source+offset);
+			break;
 		case INT64:
 			target->store.d_int64 = *(int64_t*)(source+offset);
+			break;
+		case UINT64:
+			target->store.d_uint64 = *(uint64_t*)(source+offset);
 			break;
 		case FLOAT:
 			target->store.d_float = *(float*)(source+offset);
@@ -244,8 +256,14 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			case INT32:
 				p_length = sizeof(int32_t);
 				break;
+			case UINT32:
+				p_length = sizeof(uint32_t);
+				break;
 			case INT64:
 				p_length = sizeof(int64_t);
+				break;
+			case UINT64:
+				p_length = sizeof(uint64_t);
 				break;
 			case FLOAT:
 				p_length = sizeof(float);
@@ -299,8 +317,14 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			case INT32:
 				memcpy(data+offset, &(param->store.d_int32), sizeof(int32_t));
 				break;
+			case UINT32:
+				memcpy(data+offset, &(param->store.d_uint32), sizeof(uint32_t));
+				break;
 			case INT64:
 				memcpy(data+offset, &(param->store.d_int64), sizeof(int64_t));
+				break;
+			case UINT64:
+				memcpy(data+offset, &(param->store.d_uint64), sizeof(uint64_t));
 				break;
 			case FLOAT:
 				memcpy(data+offset, &(param->store.d_float), sizeof(float));
@@ -452,8 +476,14 @@ size_t buxton_deserialize_message(uint8_t *data,
 			case INT32:
 				c_data.store.d_int32 = *(int32_t*)(data+offset);
 				break;
+			case UINT32:
+				c_data.store.d_uint32 = *(uint32_t*)(data+offset);
+				break;
 			case INT64:
 				c_data.store.d_int64 = *(int64_t*)(data+offset);
+				break;
+			case UINT64:
+				c_data.store.d_uint64 = *(uint64_t*)(data+offset);
 				break;
 			case FLOAT:
 				c_data.store.d_float = *(float*)(data+offset);

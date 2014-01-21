@@ -33,7 +33,9 @@ enum test_type {
 
 enum data_type {
 	TEST_INT32,
+	TEST_UINT32,
 	TEST_INT64,
+	TEST_UINT64,
 	TEST_BOOLEAN,
 	TEST_STRING,
 	TEST_STRING4K,
@@ -53,9 +55,15 @@ static struct testcase testcases[TEST_COUNT] = {
 	{ "set_int32",          TEST_SET,       TEST_INT32    },
 	{ "get_int32",          TEST_GET,       TEST_INT32    },
 	{ "set_unset_int32",    TEST_SET_UNSET, TEST_INT32    },
+	{ "set_uint32",         TEST_SET,       TEST_UINT32   },
+	{ "get_uint32",         TEST_GET,       TEST_UINT32   },
+	{ "set_unset_uint32",   TEST_SET_UNSET, TEST_UINT32   },
 	{ "set_int64",          TEST_SET,       TEST_INT64    },
 	{ "get_int64",          TEST_GET,       TEST_INT64    },
 	{ "set_unset_int64",    TEST_SET_UNSET, TEST_INT64    },
+	{ "set_uint64",         TEST_SET,       TEST_UINT64   },
+	{ "get_uint64",         TEST_GET,       TEST_UINT64   },
+	{ "set_unset_uint64",   TEST_SET_UNSET, TEST_UINT64   },
 	{ "set_boolean",        TEST_SET,       TEST_BOOLEAN  },
 	{ "get_boolean",        TEST_GET,       TEST_BOOLEAN  },
 	{ "set_unset_boolean",  TEST_SET_UNSET, TEST_BOOLEAN  },
@@ -88,12 +96,22 @@ static bool testcase_init(struct testcase *tc)
 		case TEST_INT32:
 			sprintf(name, "TimingTest-%d-int32", getpid());
 			__data.type = INT32;
-			__data.store.d_int32 = 672;
+			__data.store.d_int32 = -672;
+			break;
+		case TEST_UINT32:
+			sprintf(name, "TimingTest-%d-uint32", getpid());
+			__data.type = UINT32;
+			__data.store.d_uint32 = 672;
 			break;
 		case TEST_INT64:
 			sprintf(name, "TimingTest-%d-int64", getpid());
 			__data.type = INT64;
-			__data.store.d_int64 = 672 * 672;
+			__data.store.d_int64 = -672 * 672;
+			break;
+		case TEST_UINT64:
+			sprintf(name, "TimingTest-%d-uint64", getpid());
+			__data.type = UINT64;
+			__data.store.d_uint64 = 672 * 672;
 			break;
 		case TEST_BOOLEAN:
 			sprintf(name, "TimingTest-%d-boolean", getpid());

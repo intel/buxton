@@ -1075,6 +1075,45 @@ START_TEST(bt_daemon_notify_clients_check)
 	free(list[1].label.value);
 	free(list);
 
+	value1.type = UINT32;
+	value1.store.d_uint32 = 1;
+	value2.type = UINT32;
+	value2.store.d_uint32 = 2;
+	string = buxton_make_key("groupu32", "nameu32");
+	fail_if(!string, "Failed to allocate key");
+	key.value = string->value;
+	key.length = string->length;
+	layer = buxton_string_pack("base");
+	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+				    &value1, NULL);
+	fail_if(!r, "Failed to set value for notify");
+	register_notification(&daemon, &cl, &key, 0, &status);
+	fail_if(status != BUXTON_STATUS_OK,
+		"Failed to register notification for notify");
+	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+
+	s = read(client, buf, 4096);
+	fail_if(s < 0, "Read from client failed");
+	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
+	fail_if(csize != 2,
+		"Failed to get correct response to notify uint32");
+	fail_if(msg != BUXTON_CONTROL_CHANGED,
+		"Failed to get correct control type");
+	fail_if(msgid != 0, "Failed to get correct message id");
+	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
+		"Failed to get correct notification keyu32");
+	fail_if(list[1].type != UINT32,
+		"Failed to get correct notification value type uint32");
+	fail_if(list[1].store.d_uint32 != 2,
+		"Failed to get correct notification value data uint32");
+
+	free(string->value);
+	free(string);
+	free(list[0].label.value);
+	free(list[0].store.d_string.value);
+	free(list[1].label.value);
+	free(list);
+
 	value1.type = INT64;
 	value1.store.d_int64 = 2;
 	value2.type = INT64;
@@ -1106,6 +1145,45 @@ START_TEST(bt_daemon_notify_clients_check)
 		"Failed to get correct notification value type int 64");
 	fail_if(list[1].store.d_int64 != 3,
 		"Failed to get correct notification value data int64");
+
+	free(string->value);
+	free(string);
+	free(list[0].label.value);
+	free(list[0].store.d_string.value);
+	free(list[1].label.value);
+	free(list);
+
+	value1.type = UINT64;
+	value1.store.d_uint64 = 2;
+	value2.type = UINT64;
+	value2.store.d_uint64 = 3;
+	string = buxton_make_key("group64", "name64");
+	fail_if(!string, "Failed to allocate key");
+	key.value = string->value;
+	key.length = string->length;
+	layer = buxton_string_pack("base");
+	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+				    &value1, NULL);
+	fail_if(!r, "Failed to set value for notify");
+	register_notification(&daemon, &cl, &key, 0, &status);
+	fail_if(status != BUXTON_STATUS_OK,
+		"Failed to register notification for notify");
+	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+
+	s = read(client, buf, 4096);
+	fail_if(s < 0, "Read from client failed");
+	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
+	fail_if(csize != 2,
+		"Failed to get correct response to notify uint64");
+	fail_if(msg != BUXTON_CONTROL_CHANGED,
+		"Failed to get correct control type");
+	fail_if(msgid != 0, "Failed to get correct message id");
+	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
+		"Failed to get correct notification keyu64");
+	fail_if(list[1].type != UINT64,
+		"Failed to get correct notification value type uint64");
+	fail_if(list[1].store.d_uint64 != 3,
+		"Failed to get correct notification value data uint64");
 
 	free(string->value);
 	free(string);

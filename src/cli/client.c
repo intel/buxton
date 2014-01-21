@@ -113,10 +113,24 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 			return ret;
 		}
 		break;
+	case UINT32:
+		set.store.d_uint32 = (uint32_t)strtol(value.value, NULL, 10);
+		if (errno) {
+			printf("Invalid uint32_t value\n");
+			return ret;
+		}
+		break;
 	case INT64:
 		set.store.d_int64 = strtoll(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid int64_t value\n");
+			return ret;
+		}
+		break;
+	case UINT64:
+		set.store.d_uint64 = strtoull(value.value, NULL, 10);
+		if (errno) {
+			printf("Invalid uint64_t value\n");
 			return ret;
 		}
 		break;
@@ -235,9 +249,17 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		printf("%s%s:%s = %" PRId32 "\n", prefix, get_group(key),
 		       get_name(key), get.store.d_int32);
 		break;
+	case UINT32:
+		printf("%s%s:%s = %" PRIo32 "\n", prefix, get_group(key),
+		       get_name(key), get.store.d_uint32);
+		break;
 	case INT64:
 		printf("%s%s:%s = %" PRId64 "\n", prefix, get_group(key),
 		       get_name(key), get.store.d_int64);
+		break;
+	case UINT64:
+		printf("%s%s:%s = %" PRIo64 "\n", prefix, get_group(key),
+		       get_name(key), get.store.d_uint64);
 		break;
 	case FLOAT:
 		printf("%s%s:%s = %f\n", prefix, get_group(key),

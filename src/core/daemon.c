@@ -325,10 +325,20 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 					   (const void *)&(value->store.d_int32),
 					   sizeof(int32_t));
 				break;
+			case UINT32:
+				c = memcmp((const void *)&(nitem->old_data->store.d_uint32),
+					   (const void *)&(value->store.d_uint32),
+					   sizeof(uint32_t));
+				break;
 			case INT64:
 				c = memcmp((const void *)&(nitem->old_data->store.d_int64),
 					   (const void *)&(value->store.d_int64),
 					   sizeof(int64_t));
+				break;
+			case UINT64:
+				c = memcmp((const void *)&(nitem->old_data->store.d_uint64),
+					   (const void *)&(value->store.d_uint64),
+					   sizeof(uint64_t));
 				break;
 			case FLOAT:
 				c = memcmp((const void *)&(nitem->old_data->store.d_float),

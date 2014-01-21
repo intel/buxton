@@ -73,7 +73,9 @@ int main(int argc, char **argv)
 	bool ret = false;
 	Command c_get_string, c_set_string;
 	Command c_get_int32, c_set_int32;
+	Command c_get_uint32, c_set_uint32;
 	Command c_get_int64, c_set_int64;
+	Command c_get_uint64, c_set_uint64;
 	Command c_get_float, c_set_float;
 	Command c_get_double, c_set_double;
 	Command c_get_bool, c_set_bool;
@@ -107,7 +109,7 @@ int main(int argc, char **argv)
 				   4, 4, "layer group name value", &cli_set_value, STRING };
 	hashmap_put(commands, c_set_string.name, &c_set_string);
 
-	/* Integers */
+	/* 32bit Integers */
 	c_get_int32 = (Command) { "get-int32", "Get an int32_t value by key",
 				  2, 3, "[layer] group name", &cli_get_value, INT32 };
 	hashmap_put(commands, c_get_int32.name, &c_get_int32);
@@ -116,7 +118,16 @@ int main(int argc, char **argv)
 				  4, 4, "layer group name value", &cli_set_value, INT32 };
 	hashmap_put(commands, c_set_int32.name, &c_set_int32);
 
-	/* Longs */
+	/* Unsigned 32bit Integers */
+	c_get_uint32 = (Command) { "get-uint32", "Get an uint32_t value by key",
+				  2, 3, "[layer] group name", &cli_get_value, UINT32 };
+	hashmap_put(commands, c_get_uint32.name, &c_get_uint32);
+
+	c_set_uint32 = (Command) { "set-uint32", "Set a key with an uint32_t value",
+				  4, 4, "layer group name value", &cli_set_value, UINT32 };
+	hashmap_put(commands, c_set_uint32.name, &c_set_uint32);
+
+	/* 32bit Integers */
 	c_get_int64 = (Command) { "get-int64", "Get an int64_t value by key",
 				  2, 3, "[layer] group name", &cli_get_value, INT64};
 	hashmap_put(commands, c_get_int64.name, &c_get_int64);
@@ -124,6 +135,15 @@ int main(int argc, char **argv)
 	c_set_int64 = (Command) { "set-int64", "Set a key with an int64_t value",
 				  4, 4, "layer group name value", &cli_set_value, INT64 };
 	hashmap_put(commands, c_set_int64.name, &c_set_int64);
+
+	/* Unsigned 32bit Integers */
+	c_get_uint64 = (Command) { "get-uint64", "Get an uint64_t value by key",
+				  2, 3, "[layer] group name", &cli_get_value, UINT64};
+	hashmap_put(commands, c_get_uint64.name, &c_get_uint64);
+
+	c_set_uint64 = (Command) { "set-uint64", "Set a key with an uint64_t value",
+				  4, 4, "layer group name value", &cli_set_value, UINT64 };
+	hashmap_put(commands, c_set_uint64.name, &c_set_uint64);
 
 	/* Floats */
 	c_get_float = (Command) { "get-float", "Get a float point value by key",

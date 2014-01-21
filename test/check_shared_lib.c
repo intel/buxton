@@ -283,15 +283,39 @@ START_TEST(buxton_data_copy_check)
 	if (copy.label.value)
 		free(copy.label.value);
 
-	original.type = INT64;
-	original.store.d_int64 = LONG_MAX;
+	original.type = UINT32;
+	original.store.d_uint32 = UINT_MAX;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
-		"Failed to copy long type");
+		"Failed to copy uint32 type");
 	fail_if(!streq(original.label.value, copy.label.value),
-		"Incorrectly copied long label");
+		"Incorrectly copied uint32 label");
+	fail_if(original.store.d_uint32 != copy.store.d_uint32,
+		"Failed to copy int32 data");
+	if (copy.label.value)
+		free(copy.label.value);
+
+	original.type = INT64;
+	original.store.d_int64 = LLONG_MAX;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy int64 type");
+	fail_if(!streq(original.label.value, copy.label.value),
+		"Incorrectly copied int64 label");
 	fail_if(original.store.d_int64 != copy.store.d_int64,
-		"Failed to copy long data");
+		"Failed to copy int64 data");
+	if (copy.label.value)
+		free(copy.label.value);
+
+	original.type = UINT64;
+	original.store.d_uint64 = ULLONG_MAX;
+	buxton_data_copy(&original, &copy);
+	fail_if(copy.type != original.type,
+		"Failed to copy uint64 type");
+	fail_if(!streq(original.label.value, copy.label.value),
+		"Incorrectly copied uint64 label");
+	fail_if(original.store.d_uint64 != copy.store.d_uint64,
+		"Failed to copy uint64 data");
 	if (copy.label.value)
 		free(copy.label.value);
 
@@ -349,9 +373,17 @@ START_TEST(buxton_type_as_string_check)
 	fail_if(strcmp(buxton_type_as_string(type), "int32_t") != 0,
 		"Failed to get string of INT32 type");
 
+	type = UINT32;
+	fail_if(strcmp(buxton_type_as_string(type), "uint32_t") != 0,
+		"Failed to get string of UINT32 type");
+
 	type = INT64;
 	fail_if(strcmp(buxton_type_as_string(type), "int64_t") != 0,
 		"Failed to get string of INT64 type");
+
+	type = UINT64;
+	fail_if(strcmp(buxton_type_as_string(type), "uint64_t") != 0,
+		"Failed to get string of UINT64 type");
 
 	type = FLOAT;
 	fail_if(strcmp(buxton_type_as_string(type), "float") != 0,
@@ -408,15 +440,29 @@ START_TEST(buxton_db_serialize_check)
 	dsource.type = INT32;
 	dsource.store.d_int32 = INT_MAX;
 	fail_if(buxton_serialize(&dsource, &packed) == false,
-		"Failed to serialize int data");
+		"Failed to serialize int32 data");
 	fail_if(buxton_deserialize(packed, &dtarget) == false,
-		"Failed to deserialize int data");
+		"Failed to deserialize int32 data");
 	fail_if(dsource.type != dtarget.type,
-		"Source and destination type differ for int");
+		"Source and destination type differ for int32");
 	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
-		"Source and destination int labels differ");
+		"Source and destination int32 labels differ");
 	fail_if(dsource.store.d_int32 != dtarget.store.d_int32,
-		"Source and destination int data differ");
+		"Source and destination int32 data differ");
+	free(packed);
+
+	dsource.type = UINT32;
+	dsource.store.d_uint32 = UINT_MAX;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize uint32 data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize uint32 data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for uint32");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination uint32 labels differ");
+	fail_if(dsource.store.d_uint32 != dtarget.store.d_uint32,
+		"Source and destination uint32 data differ");
 	free(packed);
 
 	dsource.type = INT64;
@@ -431,6 +477,20 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination long labels differ");
 	fail_if(dsource.store.d_int64 != dtarget.store.d_int64,
 		"Source and destination long data differ");
+	free(packed);
+
+	dsource.type = UINT64;
+	dsource.store.d_uint64 = ULLONG_MAX;
+	fail_if(buxton_serialize(&dsource, &packed) == false,
+		"Failed to serialize uint64 data");
+	fail_if(buxton_deserialize(packed, &dtarget) == false,
+		"Failed to deserialize uint64 data");
+	fail_if(dsource.type != dtarget.type,
+		"Source and destination type differ for uint64");
+	fail_if(strcmp(dsource.label.value, dtarget.label.value) != 0,
+		"Source and destination uint64 labels differ");
+	fail_if(dsource.store.d_uint64 != dtarget.store.d_uint64,
+		"Source and destination uint64 data differ");
 	free(packed);
 
 	dsource.type = FLOAT;
@@ -531,17 +591,35 @@ START_TEST(buxton_message_serialize_check)
 	dsource1.store.d_int32 = INT_MAX;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
-	fail_if(ret == 0, "Failed to serialize int data");
+	fail_if(ret == 0, "Failed to serialize int32 data");
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
 					   &dtarget) != 1,
 		"Failed to deserialize int data");
-	fail_if(ctarget != csource, "Failed to get correct control message for int");
+	fail_if(ctarget != csource, "Failed to get correct control message for int32");
 	fail_if(mtarget != msource,
-		"Failed to get correct message id for int");
+		"Failed to get correct message id for int32");
 	fail_if(dsource1.type != dtarget[0].type,
-		"Source and destination type differ for int");
+		"Source and destination type differ for int32");
 	fail_if(dsource1.store.d_int32 != dtarget[0].store.d_int32,
-		"Source and destination int data differ");
+		"Source and destination int32 data differ");
+	free(packed);
+	free(dtarget);
+
+	dsource1.type = UINT32;
+	dsource1.store.d_uint32 = UINT_MAX;
+	csource = BUXTON_CONTROL_GET;
+	ret = buxton_serialize_message(&packed, csource, msource, list);
+	fail_if(ret == 0, "Failed to serialize uint32 data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
+					   &dtarget) != 1,
+		"Failed to deserialize uint32 data");
+	fail_if(ctarget != csource, "Failed to get correct control message for uint32");
+	fail_if(mtarget != msource,
+		"Failed to get correct message id for uint32");
+	fail_if(dsource1.type != dtarget[0].type,
+		"Source and destination type differ for uint32");
+	fail_if(dsource1.store.d_uint32 != dtarget[0].store.d_uint32,
+		"Source and destination uint32 data differ");
 	free(packed);
 	free(dtarget);
 
@@ -560,6 +638,24 @@ START_TEST(buxton_message_serialize_check)
 		"Source and destination type differ for long");
 	fail_if(dsource1.store.d_int64 != dtarget[0].store.d_int64,
 		"Source and destination long data differ");
+	free(packed);
+	free(dtarget);
+
+	dsource1.type = UINT64;
+	dsource1.store.d_uint64 = ULLONG_MAX;
+	csource = BUXTON_CONTROL_GET;
+	ret = buxton_serialize_message(&packed, csource, msource, list);
+	fail_if(ret == 0, "Failed to serialize uint64 data");
+	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
+					   &dtarget) != 1,
+		"Failed to deserialize uint64 data");
+	fail_if(ctarget != csource, "Failed to get correct control message for uint64");
+	fail_if(mtarget != msource,
+		"Failed to get correct message id for uint64");
+	fail_if(dsource1.type != dtarget[0].type,
+		"Source and destination type differ for uint64");
+	fail_if(dsource1.store.d_uint64 != dtarget[0].store.d_uint64,
+		"Source and destination uint64 data differ");
 	free(packed);
 	free(dtarget);
 

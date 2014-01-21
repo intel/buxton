@@ -115,8 +115,14 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 		case INT32:
 			store.d_int32 = original->store.d_int32;
 			break;
+		case UINT32:
+			store.d_uint32 = original->store.d_uint32;
+			break;
 		case INT64:
 			store.d_int64 = original->store.d_int64;
+			break;
+		case UINT64:
+			store.d_uint64 = original->store.d_uint64;
 			break;
 		case FLOAT:
 			store.d_float = original->store.d_float;
@@ -150,8 +156,12 @@ const char* buxton_type_as_string(BuxtonDataType type)
 			return "string";
 		case INT32:
 			return "int32_t";
+		case UINT32:
+			return "uint32_t";
 		case INT64:
 			return "int64_t";
+		case UINT64:
+			return "uint64_t";
 		case FLOAT:
 			return "float";
 		case DOUBLE:

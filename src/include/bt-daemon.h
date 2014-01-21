@@ -59,7 +59,9 @@ typedef enum BuxtonDataType {
 	BUXTON_TYPE_MIN,
 	STRING, /**<Represents type of a string value */
 	INT32, /**<Represents type of an int32_t value */
+	UINT32, /**<Represents type of an uint32_t value */
 	INT64, /**<Represents type of a int64_t value */
+	UINT64, /**<Represents type of a uint64_t value */
 	FLOAT, /**<Represents type of a float value */
 	DOUBLE, /**<Represents type of a double value */
 	BOOLEAN, /**<Represents type of a boolean value */
@@ -80,7 +82,9 @@ typedef struct BuxtonString {
 typedef union BuxtonDataStore {
 	BuxtonString d_string; /**<Stores a string value */
 	int32_t d_int32; /**<Stores an int32_t value */
+	uint32_t d_uint32; /**<Stores an uint32_t value */
 	int64_t d_int64; /**<Stores a int64_t value */
+	uint64_t d_uint64; /**<Stores a uint64_t value */
 	float d_float; /**<Stores a float value */
 	double d_double; /**<Stores a double value */
 	bool d_boolean; /**<Stores a boolean value */
