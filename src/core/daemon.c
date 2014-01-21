@@ -167,7 +167,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_SET:
 		buxton_string_to_data(key, &kdata);
 		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare GET array key data\n");
+			buxton_log("Failed to prepare SET array key data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
@@ -199,7 +199,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_UNSET:
 		buxton_string_to_data(key, &kdata);
 		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare GET array key data\n");
+			buxton_log("Failed to prepare UNSET array key data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
@@ -229,7 +229,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_NOTIFY:
 		buxton_string_to_data(key, &kdata);
 		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare GET array key data\n");
+			buxton_log("Failed to prepare NOTIFY array key data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
@@ -243,7 +243,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_UNNOTIFY:
 		buxton_string_to_data(key, &kdata);
 		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare GET array key data\n");
+			buxton_log("Failed to prepare UNNOTIFY array key data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
