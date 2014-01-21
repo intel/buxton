@@ -37,6 +37,16 @@
 #include "protocol.h"
 #include "configurator.h"
 
+static void __callback(BuxtonArray *array, void *p)
+{
+	if (!array || array->len != 3)
+		return;
+	BuxtonData *value = (BuxtonData*)buxton_array_get(array, 2);
+	if (!value)
+		return;
+	buxton_data_copy(value, (BuxtonData*)p);
+}
+
 bool buxton_client_set_conf_file(char *path)
 {
 	int r;
@@ -106,13 +116,15 @@ bool buxton_client_get_value(BuxtonClient *client,
 {
 	bool r;
 
-	r = buxton_wire_get_value(client, NULL, key, callback, data);
+	if (sync && !callback && data)
+		r = buxton_wire_get_value(client, NULL, key, __callback, data);
+	else
+		r = buxton_wire_get_value(client, NULL, key, callback, data);
 	if (!r)
 		return false;
 
 	if (sync)
 		r = buxton_wire_get_response(client);
-
 	return r;
 }
 
@@ -125,7 +137,10 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 {
 	bool r;
 
-	r = buxton_wire_get_value(client, layer_name, key, callback, data);
+	if (sync && !callback && data)
+		r = buxton_wire_get_value(client, layer_name, key, __callback, data);
+	else
+		r = buxton_wire_get_value(client, layer_name, key, callback, data);
 	if (!r)
 		return false;
 
