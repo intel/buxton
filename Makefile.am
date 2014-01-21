@@ -93,7 +93,6 @@ bt_daemon_SOURCES = \
 
 bt_daemon_LDADD = \
 	$(SYSTEMD_LIBS) \
-	libbuxton-security.la \
 	libbuxton-shared.la
 
 bt_daemon_CFLAGS = \
@@ -117,6 +116,8 @@ noinst_LTLIBRARIES += \
 	libbuxton-shared.la
 
 libbuxton_shared_la_SOURCES = \
+	src/security/smack.c \
+	src/security/smack.h \
 	src/shared/util.c \
 	src/shared/list.h \
 	src/shared/log.c \
@@ -147,17 +148,6 @@ libbuxton_shared_la_SOURCES += \
 endif
 
 libbuxton_shared_la_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	-static
-
-noinst_LTLIBRARIES += \
-	libbuxton-security.la
-
-libbuxton_security_la_SOURCES = \
-	src/security/smack.c \
-	src/security/smack.h
-
-libbuxton_security_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-static
 
@@ -250,7 +240,6 @@ check_shared_lib_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
 	libbuxton.la \
-	libbuxton-security.la \
 	libbuxton-shared.la
 
 check_bt_daemon_SOURCES = \
@@ -271,7 +260,6 @@ check_bt_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	$(SYSTEMD_LIBS) \
 	libbuxton.la \
-	libbuxton-security.la \
 	libbuxton-shared.la
 
 check_daemon_SOURCES = \
@@ -292,7 +280,6 @@ check_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
 	libbuxton.la \
-	libbuxton-security.la \
 	libbuxton-shared.la
 
 check_smack_SOURCES = \
@@ -310,7 +297,6 @@ check_smack_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
 	libbuxton.la \
-	libbuxton-security.la \
 	libbuxton-shared.la
 
 check_configurator_SOURCES = \
