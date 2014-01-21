@@ -509,7 +509,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 	 * buxton_direct_get_value_for_layer() so that we
 	 * can do per-layer access checks.
 	 */
-	if (!buxton_check_read_access(&(self->buxton.client),
+	if (!buxton_check_read_access(&self->buxton,
 				      layer,
 				      key,
 				      data,

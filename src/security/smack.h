@@ -90,7 +90,7 @@ int buxton_watch_smack_rules(void)
  * @param client_label The Smack label of the client
  * @return true if read access is granted, otherwise false
  */
-bool buxton_check_read_access(BuxtonClient *client, BuxtonString *layer,
+bool buxton_check_read_access(BuxtonControl *control, BuxtonString *layer,
 			      BuxtonString *key, BuxtonData *data,
 			      BuxtonString *client_label)
 	__attribute__((warn_unused_result));

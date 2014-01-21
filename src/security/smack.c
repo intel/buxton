@@ -234,7 +234,7 @@ int buxton_watch_smack_rules(void)
 	return fd;
 }
 
-bool buxton_check_read_access(BuxtonClient *client,
+bool buxton_check_read_access(BuxtonControl *control,
 			      BuxtonString *layer,
 			      BuxtonString *key,
 			      BuxtonData *data,
@@ -242,7 +242,7 @@ bool buxton_check_read_access(BuxtonClient *client,
 {
 	smack_check();
 
-	assert(client);
+	assert(control);
 	/* FIXME: reinstate the layer assert after get_value checks
 	 * are in the correct spot
 	 */
