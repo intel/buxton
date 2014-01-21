@@ -226,6 +226,14 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 					s = hashmap_put(notify_callbacks, (void *)r_msgid, nv);
 				else
 					s = -1;
+			} else if (nv->type == BUXTON_CONTROL_UNNOTIFY) {
+				if (r_list[0].type == INT32 &&
+				    r_list[0].store.d_int32 == BUXTON_STATUS_OK &&
+				    count == 3)
+					(void)hashmap_remove(notify_callbacks,
+							     (void *)r_list[2].store.d_uint64);
+				else
+					s = -1;
 			}
 			if (s < 0) {
 				run_callback((BuxtonCallback)(nv->cb), nv->data, count, r_list);
