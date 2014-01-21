@@ -172,9 +172,11 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
  * @param client Used to validate smack access
  * @param key Key to no longer recieve notifications for
  * @param status Will be set with the BuxtonStatus result of the operation
+ * @return Message ID used to send key's notifications to the client
  */
-void unregister_notification(BuxtonDaemon *self, client_list_item *client,
-			     BuxtonString *key, BuxtonStatus *status);
+uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
+			     BuxtonString *key, BuxtonStatus *status)
+	__attribute__((warn_unused_result));
 
 /**
  * Verify credentials for the client socket

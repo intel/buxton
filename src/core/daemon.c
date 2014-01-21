@@ -97,7 +97,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	uint16_t i;
 	size_t p_count;
 	size_t response_len;
-	BuxtonData response_data, kdata;
+	BuxtonData response_data, kdata, mdata;
 	BuxtonData *value = NULL;
 	BuxtonString *key = NULL;
 	BuxtonString *layer = NULL;
@@ -105,7 +105,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
 	bool ret = false;
-	uint64_t msgid;
+	uint64_t msgid, n_msgid;
 
 	assert(self);
 	assert(client);
@@ -145,7 +145,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		register_notification(self, client, key, msgid, &response);
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
-		unregister_notification(self, client, key, &response);
+		n_msgid = unregister_notification(self, client, key, &response);
 		break;
 	default:
 		goto end;
@@ -244,6 +244,13 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		buxton_string_to_data(key, &kdata);
 		if (!buxton_array_add(out_list, &kdata)) {
 			buxton_log("Failed to prepare UNNOTIFY array key data\n");
+			goto end;
+		}
+		mdata.label = buxton_string_pack("dummy");
+		mdata.type = UINT64;
+		mdata.store.d_uint64 = n_msgid;
+		if (!buxton_array_add(out_list, &mdata)) {
+			buxton_log("Failed to prepare NOTIFY array msgid data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
@@ -578,12 +585,13 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	*status = BUXTON_STATUS_OK;
 }
 
-void unregister_notification(BuxtonDaemon *self, client_list_item *client,
+uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 			     BuxtonString *key, BuxtonStatus *status)
 {
 	BuxtonList *n_list = NULL;
 	BuxtonList *elem = NULL;
 	BuxtonNotification *nitem, *citem = NULL;
+	uint64_t msgid = 0;
 
 	assert(self);
 	assert(client);
@@ -594,7 +602,7 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	n_list = hashmap_get(self->notify_mapping, key->value);
 	/* This key isn't actually registered for notifications */
 	if (!n_list)
-		return;
+		return 0;
 
 	BUXTON_LIST_FOREACH(n_list, elem) {
 		if (!elem)
@@ -608,8 +616,9 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 
 	/* Client hasn't registered for notifications on this key */
 	if (!citem)
-		return;
+		return 0;
 
+	msgid = citem->msgid;
 	/* Remove client from notifications */
 	free_buxton_data(&(citem->old_data));
 	buxton_list_remove(&n_list, citem, true);
@@ -619,6 +628,8 @@ void unregister_notification(BuxtonDaemon *self, client_list_item *client,
 		hashmap_remove(self->notify_mapping, key->value);
 
 	*status = BUXTON_STATUS_OK;
+
+	return msgid;
 }
 
 bool identify_client(client_list_item *cl)

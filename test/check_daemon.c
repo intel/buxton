@@ -440,6 +440,7 @@ START_TEST(register_notification_check)
 	BuxtonString clabel;
 	BuxtonStatus status;
 	BuxtonDaemon server;
+	uint64_t msgid;
 
 	client.smack_label = &clabel;
 	client.cred.uid = 1002;
@@ -449,22 +450,25 @@ START_TEST(register_notification_check)
 	fail_if(!server.notify_mapping, "Failed to allocate hashmap");
 
 	key = buxton_string_pack("key");
-	register_notification(&server, &client, &key, 0, &status);
+	register_notification(&server, &client, &key, 1, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
-	register_notification(&server, &client, &key, 0, &status);
+	register_notification(&server, &client, &key, 1, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
 	//FIXME: Figure out what to do with duplicates
 	key = buxton_string_pack("no-key");
-	unregister_notification(&server, &client, &key, &status);
+	msgid = unregister_notification(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_FAILED,
 		"Unregistered from notifications with invalid key");
+	fail_if(msgid != 0, "Got unexpected notify message id");
 	key = buxton_string_pack("key");
-	unregister_notification(&server, &no_client, &key, &status);
+	msgid = unregister_notification(&server, &no_client, &key, &status);
 	fail_if(status != BUXTON_STATUS_FAILED,
 		"Unregistered from notifications with invalid client");
-	unregister_notification(&server, &client, &key, &status);
+	fail_if(msgid != 0, "Got unexpected notify message id");
+	msgid = unregister_notification(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Unable to unregister from notifications");
+	fail_if(msgid != 1, "Failed to get correct notify message id");
 	key = buxton_string_pack("key2");
 	register_notification(&server, &client, &key, 0, &status);
 	fail_if(status == BUXTON_STATUS_OK, "Registered notification with key not in db");
@@ -846,7 +850,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed 2");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2, "Failed to get correct response to unnotify");
+	fail_if(csize != 3, "Failed to get correct response to unnotify");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type 2");
 	fail_if(list[0].type != INT32,
@@ -857,6 +861,10 @@ START_TEST(bt_daemon_handle_message_notify_check)
 		"Failed to get correct key type");
 	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
 		"Failed to get correct key");
+	fail_if(list[2].type != UINT64,
+		"Failed to get correct unnotify message id type");
+	fail_if(list[0].store.d_uint64 != 0,
+		"Failed to get correct unnotify message id");
 	fail_if(msgid != 0, "Failed to get correct message id 2");
 
 	free(string->value);
@@ -864,6 +872,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	free(list[0].label.value);
 	free(list[1].store.d_string.value);
 	free(list[1].label.value);
+	free(list[2].label.value);
 	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
