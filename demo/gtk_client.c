@@ -24,6 +24,7 @@ struct _BuxtonTest {
         GtkWidget *info;
         GtkWidget *value_label;
         GtkWidget *entry;
+        gboolean registered;
 };
 
 /* BuxtonTest class definition */
@@ -42,6 +43,25 @@ static void update_key(GtkWidget *self, gpointer userdata);
 static void update_value(BuxtonTest *self);
 static void report_error(BuxtonTest *self, gchar *error);
 static gboolean update_buxton(BuxtonTest *self);
+
+static void notify_cb(BuxtonArray *list, void *userdata)
+{
+	BuxtonTest *self = (BuxtonTest*)userdata;
+	gchar *lab;
+	BuxtonData *key, *value;
+
+	printf("Length: %d\n", list->len);
+	if (list->len != 2) {
+		report_error(self, "Key has been unset\n");
+		return;
+	}
+
+	key = buxton_array_get(list, 0);
+	value = buxton_array_get(list, 1);
+	lab = g_strdup_printf("<big>\'%s\' value: %s</big>", key->store.d_string.value, value->store.d_string.value);
+	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
+	free(lab);
+}
 
 /* Initialisation */
 static void buxton_test_class_init(BuxtonTestClass *klass)
@@ -128,13 +148,13 @@ static void buxton_test_init(BuxtonTest *self)
 		gtk_label_set_markup(GTK_LABEL(self->info_label), "No connection!");
 		gtk_widget_show(info);
 	} else {
-		/* TODO: Register for notifications */
 		gtk_widget_hide(info);
 	}
 
-	 update_value(self);
-	 /* Grab buxton notifications on idle loop */
-	 g_idle_add((GSourceFunc)update_buxton, self);
+	self->registered = FALSE;
+	update_value(self);
+	/* Grab buxton notifications on idle loop */
+	g_idle_add((GSourceFunc)update_buxton, self);
 }
 
 static void buxton_test_dispose(GObject *object)
@@ -212,8 +232,6 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 
 	if (!buxton_client_set_value(&self->client, &layer, key, &data, callback, NULL, true))
 		report_error(self, "Unable to set value!");
-	else
-		update_value(self);
 	free(key);
 }
 
@@ -222,6 +240,14 @@ static void update_value(BuxtonTest *self)
 	BuxtonString *key;
 
 	key = buxton_make_key("test", "test");
+
+	if (!self->registered) {
+		if (!buxton_client_register_notification(&self->client,
+			key, notify_cb, self, true))
+			report_error(self, "Unable to register for notifications");
+		else
+			self->registered = TRUE;
+	}
 
 	if (!buxton_client_get_value(&self->client, key, update_ui, self, true)) {
 		/* Buxton disconnects us when this happens. ##FIXME##
