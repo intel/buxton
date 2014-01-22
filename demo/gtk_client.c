@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "bt-daemon.h"
+#include "buxton-array.h"
 #include "gtk_client.h"
 
 /* BuxtonTest object */
@@ -154,6 +155,33 @@ GtkWidget* buxton_test_new(void)
 	return GTK_WIDGET(self);
 }
 
+/**
+ * Callback for when we ask buxton for the key value
+ */
+static void update_ui(BuxtonArray *array, void *p)
+{
+	BuxtonTest *self = (BuxtonTest*)p;
+	gchar *lab;
+	BuxtonData *data;
+	BuxtonData *key;
+
+	key = (BuxtonData*)buxton_array_get(array, 1);
+	data = (BuxtonData*)buxton_array_get(array, 2);
+
+	lab = g_strdup_printf("<big>\'%s\' value: %s</big>", key->store.d_string.value, data->store.d_string.value);
+	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
+	free(lab);
+}
+
+/**
+ * Called from set_value
+ *
+ * In the future may use this to check the status of the operation
+ */
+static void callback(BuxtonArray *array, void *p)
+{
+}
+
 static void update_key(GtkWidget *widget, gpointer userdata)
 {
 	BuxtonTest *self = BUXTON_TEST(userdata);
@@ -182,7 +210,7 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	data.label.value = "_";
 	data.label.length = 2;
 
-	if (!buxton_client_set_value(&self->client, &layer, key, &data))
+	if (!buxton_client_set_value(&self->client, &layer, key, &data, callback, NULL, true))
 		report_error(self, "Unable to set value!");
 	else
 		update_value(self);
@@ -191,25 +219,17 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 
 static void update_value(BuxtonTest *self)
 {
-	BuxtonData data;
 	BuxtonString *key;
-	gchar *lab;
 
 	key = buxton_make_key("test", "test");
 
-	if (!buxton_client_get_value(&self->client, key, &data)) {
+	if (!buxton_client_get_value(&self->client, key, update_ui, self, true)) {
 		/* Buxton disconnects us when this happens. ##FIXME##
 		 * We force a reconnect */
 		report_error(self, "Cannot retrieve value");
 		buxton_client_close(&self->client);
 		if (!buxton_client_open(&self->client))
-			report_error(self, "Unable to connect to Buxton!");
-		return;
-	}
-
-	lab = g_strdup_printf("<big>\'test\' value: %s</big>", data.store.d_string.value);
-	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
-	free(lab);
+			report_error(self, "Unable to connect to Buxton!");	}
 
 	free(key);
 }
