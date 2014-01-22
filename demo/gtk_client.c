@@ -276,7 +276,7 @@ static void report_error(BuxtonTest *self, gchar *error)
 
 static gboolean update_buxton(BuxtonTest *self)
 {
-	/* TODO: Probe for notifications */
+	buxton_client_poll(&self->client);
 	return TRUE;
 }
 
