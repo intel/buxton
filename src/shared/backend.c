@@ -386,18 +386,23 @@ static bool init_backend(BuxtonConfig *config,
 	}
 
 	backend_tmp = malloc0(sizeof(BuxtonBackend));
-	if (!backend_tmp)
+	if (!backend_tmp) {
+		free(backend_tmp);
 		return false;
+	}
 
 	r = asprintf(&path, "%s/%s.so", buxton_module_dir(), name);
-	if (r == -1)
+	if (r == -1) {
+		free(backend_tmp);
 		return false;
+	}
 
 	/* Load the module */
 	handle = dlopen(path, RTLD_LAZY);
 
 	if (!handle) {
 		buxton_log("dlopen(): %s\n", dlerror());
+		free(backend_tmp);
 		return false;
 	}
 

@@ -470,6 +470,7 @@ size_t buxton_deserialize_message(uint8_t *data,
 				c_data.store.d_string.length = (uint32_t)c_length;
 				if (c_data.store.d_string.value[c_length-1] != 0x00) {
 					buxton_debug("buxton_deserialize_message(): Garbage message\n");
+					free(c_data.store.d_string.value);
 					goto end;
 				}
 				break;
