@@ -99,7 +99,7 @@ static void buxton_test_init(BuxtonTest *self)
 	/* Help label */
 	label = gtk_label_new("<big>"
 		"Using the controls below, you can set a key within the\n"
-		"<b>base</b> layer. Open another instance of this client to\n"
+		"<b>user</b> layer. Open another instance of this client to\n"
 		"check notification support.</big>");
 	gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
 	gtk_box_pack_start(GTK_BOX(layout), label, FALSE, FALSE, 10);
@@ -209,7 +209,7 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	BuxtonString *key;
 	BuxtonString layer;
 	BuxtonString value;
-	char *layer_name = "base";
+	char *layer_name = "user";
 	const gchar *t_value;
 
 
