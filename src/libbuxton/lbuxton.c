@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <sys/ioctl.h>
 #include <dirent.h>
 #include <string.h>
 #include <stdint.h>
@@ -232,6 +233,17 @@ bool buxton_client_unset_value(BuxtonClient *client,
 		r = buxton_wire_get_response(client);
 
 	return r;
+}
+
+bool buxton_client_poll(BuxtonClient *client)
+{
+	int avail = 0;
+	if (ioctl(client->fd, FIONREAD, &avail) < 0)
+		return false;
+
+	if (avail > 0)
+		return buxton_wire_get_response(client);
+	return false;
 }
 
 BuxtonString *buxton_make_key(char *group, char *name)

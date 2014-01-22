@@ -280,6 +280,17 @@ _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
 	__attribute__((warn_unused_result));
 
 /**
+ * Poll Buxton socket to check for unreceived events
+ *
+ * @note If unprocessed bytes are waiting on the socket, then they will
+ * be read and the appropriate callbacks will be executed
+ *
+ * @param client An open client connection
+ * @return a boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_poll(BuxtonClient *client);
+
+/**
  * Create a key for item lookup in buxton
  * @param group Pointer to a character string representing a group
  * @param name Pointer to a character string representing a name
