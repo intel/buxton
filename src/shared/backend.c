@@ -82,6 +82,7 @@ bool buxton_direct_get_value(BuxtonControl *control, BuxtonString *key,
 						      label);
 		if (r) {
 			free(d.label.value);
+			d.label.value = NULL;
 			if (d.type == STRING)
 				free(d.store.d_string.value);
 			if (priority <= l->priority) {

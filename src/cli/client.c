@@ -62,6 +62,7 @@ bool cli_get_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataTyp
 	BuxtonData get;
 	bool ret = false;
 
+	memset((void*)&get, 0, sizeof(BuxtonData));
 	layer = buxton_string_pack(one);
 	key = buxton_make_key(two, three);
 	if (!key)
@@ -78,7 +79,8 @@ bool cli_get_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataTyp
 		       get_name(key), layer.value);
 	else
 		printf("[%s][%s:%s] = %s\n", layer.value, get_group(key),
-		       get_name(key), get.label.value);
+		       get_name(key),
+		       get.label.value ? get.label.value : "");
 
 	return ret;
 }
@@ -91,6 +93,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 	BuxtonData set;
 	bool ret = false;
 
+	memset((void*)&set, 0, sizeof(BuxtonData));
 	layer.value = one;
 	layer.length = (uint32_t)strlen(one) + 1;
 	key = buxton_make_key(two, three);
@@ -193,6 +196,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	_cleanup_free_ char *prefix = NULL;
 	bool ret = false;
 
+	memset((void*)&get, 0, sizeof(BuxtonData));
 	if (three != NULL) {
 		layer.value = one;
 		layer.length = (uint32_t)strlen(one) + 1;
@@ -243,7 +247,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	switch (get.type) {
 	case STRING:
 		printf("%s%s:%s = %s\n", prefix, get_group(key), get_name(key),
-		       get.store.d_string.value);
+		       get.store.d_string.value ? get.store.d_string.value : "");
 		break;
 	case INT32:
 		printf("%s%s:%s = %" PRId32 "\n", prefix, get_group(key),
@@ -312,7 +316,8 @@ bool cli_list_keys(BuxtonControl *control,
 		printf("No keys found for layer \'%s\'\n", one);
 		return false;
 	}
-
+	if (results == NULL)
+		return false;
 	/* Print all of the keys in this layer */
 	printf("%d keys found in layer \'%s\'\n", results->len, one);
 	for (i = 0; i < results->len; i++) {
