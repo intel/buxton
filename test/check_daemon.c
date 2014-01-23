@@ -1468,7 +1468,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 				fuzz.buf[i] = (uint8_t)(rand() % 255);
 			}
 			if ((fuzz.size >= 6) && (rand() % 4096)) {
-				uint16_t control = (rand() % (BUXTON_CONTROL_MAX-1)) + 1;
+				uint16_t control = (uint16_t)((rand() % (BUXTON_CONTROL_MAX-1)) + 1);
 
 				/* magic */
 				fuzz.buf[0] = 0x06;
