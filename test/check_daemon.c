@@ -1467,6 +1467,19 @@ START_TEST(bt_daemon_eat_garbage_check)
 			for (int i=0; i < fuzz.size; i++) {
 				fuzz.buf[i] = (uint8_t)(rand() % 255);
 			}
+			if ((fuzz.size >= 6) && (rand() % 4096)) {
+				uint16_t control = (rand() % (BUXTON_CONTROL_MAX-1)) + 1;
+
+				/* magic */
+				fuzz.buf[0] = 0x06;
+				fuzz.buf[1] = 0x72;
+
+				/* valid message type */
+				memcpy((void*)(fuzz.buf + 2), (void*)(&control), sizeof(uint16_t));
+
+				/* valid size */
+				*((uint32_t*)(fuzz.buf+4)) = fuzz.size;
+			}
 
 			bytes = write(c.fd, (void*)(fuzz.buf), fuzz.size);
 			fail_if(bytes == -1, "write failed: %m%s", dump_fuzz(&fuzz));
