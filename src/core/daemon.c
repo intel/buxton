@@ -105,7 +105,8 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
 	bool ret = false;
-	uint64_t msgid, n_msgid;
+	uint64_t msgid = 0;
+	uint64_t n_msgid = 0;
 
 	assert(self);
 	assert(client);
