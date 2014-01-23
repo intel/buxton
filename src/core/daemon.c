@@ -38,6 +38,15 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		*key = &(list[1].store.d_string);
 		*value = &(list[2]);
 		break;
+	case BUXTON_CONTROL_SET_LABEL:
+		if (count != 3)
+			return false;
+		if (list[0].type != STRING || list[1].type != STRING)
+			return false;
+		*layer = &(list[0].store.d_string);
+		*key = &(list[1].store.d_string);
+		*value = &(list[2]);
+		break;
 	case BUXTON_CONTROL_GET:
 		if (count == 2) {
 			if(list[0].type != STRING || list[1].type != STRING)
@@ -134,6 +143,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_SET:
 		set_value(self, client, layer, key, value, &response);
 		break;
+	case BUXTON_CONTROL_SET_LABEL:
+		set_label(self, client, layer, key, value, &response);
+		break;
 	case BUXTON_CONTROL_GET:
 		data = get_value(self, client, layer, key, &response);
 		break;
@@ -177,6 +189,20 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 							msgid, out_list);
 		if (response_len == 0) {
 			buxton_log("Failed to serialize set response message\n");
+			goto end;
+		}
+		break;
+	case BUXTON_CONTROL_SET_LABEL:
+		buxton_string_to_data(key, &kdata);
+		if (!buxton_array_add(out_list, &kdata)) {
+			buxton_log("Failed to prepare SET_LABEL array key data\n");
+			goto end;
+		}
+		response_len = buxton_serialize_message(&response_store,
+							BUXTON_CONTROL_STATUS,
+							msgid, out_list);
+		if (response_len == 0) {
+			buxton_log("Failed to serialize set_label response message\n");
 			goto end;
 		}
 		break;
@@ -444,6 +470,35 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 	buxton_debug("Daemon set value completed\n");
 }
 
+void set_label(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
+		      BuxtonString *key, BuxtonData *value, BuxtonStatus *status)
+{
+
+	assert(self);
+	assert(client);
+	assert(layer);
+	assert(key);
+	assert(value);
+	assert(status);
+
+	*status = BUXTON_STATUS_FAILED;
+
+	buxton_debug("Daemon setting [%s][%s][%s]\n",
+		     layer->value,
+		     key->value,
+		     value->label.value);
+
+	self->buxton.client.uid = client->cred.uid;
+
+	/* Use internal library to set label */
+	if (!buxton_direct_set_label(&self->buxton, layer, key, &value->label)) {
+		*status = BUXTON_STATUS_FAILED;
+		return;
+	}
+
+	*status = BUXTON_STATUS_OK;
+	buxton_debug("Daemon set label completed\n");
+}
 
 void unset_value(BuxtonDaemon *self, client_list_item *client,
 		 BuxtonString *layer, BuxtonString *key,

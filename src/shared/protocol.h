@@ -102,6 +102,24 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
 	__attribute__((warn_unused_result));
 
 /**
+ * Send a SET_LABEL message over the wire protocol, return the response
+ *
+ * @note This is a privileged operation, so it will return false for unprivileged clients
+ *
+ * @param client Client connection
+ * @param layer_name Layer name
+ * @param key Key or group name
+ * @param value A BuxtonData storing the key or group label
+ * @param callback A callback function to handle daemon reply
+ * @param data User data to be used with callback function
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_set_label(BuxtonClient *client, BuxtonString *layer_name,
+			   BuxtonString *key, BuxtonData *value,
+			   BuxtonCallback callback, void *data)
+	__attribute__((warn_unused_result));
+
+/**
  * Send a GET message over the wire protocol, return the data
  * @param client Client connection
  * @param layer_name Layer name (optional)

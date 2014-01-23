@@ -329,6 +329,58 @@ end:
 	return ret;
 }
 
+bool buxton_wire_set_label(BuxtonClient *client, BuxtonString *layer_name,
+			   BuxtonString *key, BuxtonData *value,
+			   BuxtonCallback callback, void *data)
+{
+	assert(client);
+	assert(layer_name);
+	assert(key);
+	assert(value);
+	assert(value->label.value);
+
+	_cleanup_free_ uint8_t *send = NULL;
+	bool ret = false;
+	size_t send_len = 0;
+	BuxtonArray *list = NULL;
+	BuxtonData d_layer;
+	BuxtonData d_key;
+	uint64_t msgid = get_msgid();
+
+	buxton_string_to_data(layer_name, &d_layer);
+	buxton_string_to_data(key, &d_key);
+	d_layer.label = buxton_string_pack("dummy");
+	d_key.label = buxton_string_pack("dummy");
+
+	list = buxton_array_new();
+	if (!buxton_array_add(list, &d_layer)) {
+		buxton_log("Failed to add layer to set_label array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_key)) {
+		buxton_log("Failed to add group/key to set_label array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, value)) {
+		buxton_log("Failed to add label to set_label array\n");
+		goto end;
+	}
+	/* Attempt to serialize our send message */
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET_LABEL, msgid, list);
+	if (send_len == 0)
+		goto end;
+
+	if (!send_message(client, send, send_len, callback, data, msgid,
+			  BUXTON_CONTROL_SET_LABEL))
+		goto end;
+
+	ret = true;
+
+end:
+	buxton_array_free(&list, NULL);
+	return ret;
+}
+
 bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
 			   BuxtonString *key, BuxtonCallback callback,
 			   void *data)

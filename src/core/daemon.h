@@ -118,6 +118,19 @@ void set_value(BuxtonDaemon *self, client_list_item *client,
 	       BuxtonStatus *status);
 
 /**
+ * Buxton daemon function for setting a label
+ * @param self bt-daemon instance being run
+ * @param client Used to validate smack access
+ * @param layer Layer for the label being set
+ * @param key Key or group for the label being set
+ * @param value Label being set
+ * @param status Will be set with the BuxtonStatus result of the operation
+ */
+void set_label(BuxtonDaemon *self, client_list_item *client,
+	       BuxtonString *layer, BuxtonString *key, BuxtonData *value,
+	       BuxtonStatus *status);
+
+/**
  * Buxton daemon function for getting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access

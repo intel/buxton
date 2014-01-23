@@ -182,6 +182,26 @@ bool buxton_client_set_value(BuxtonClient *client,
 	return r;
 }
 
+bool buxton_client_set_label(BuxtonClient *client,
+			     BuxtonString *layer_name,
+			     BuxtonString *key,
+			     BuxtonData *value,
+			     BuxtonCallback callback,
+			     void *data,
+			     bool sync)
+{
+	bool r;
+
+	r = buxton_wire_set_label(client, layer_name, key, value, callback, data);
+	if (!r)
+		return false;
+
+	if (sync)
+		r = buxton_wire_get_response(client);
+
+	return r;
+}
+
 bool buxton_client_list_keys(BuxtonClient *client,
 			     BuxtonString *layer_name,
 			     BuxtonCallback callback,

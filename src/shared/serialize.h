@@ -50,6 +50,7 @@
 typedef enum BuxtonControlMessage{
 	BUXTON_CONTROL_MIN,
 	BUXTON_CONTROL_SET, /**<Set a value within Buxton */
+	BUXTON_CONTROL_SET_LABEL, /**<Set a label within Buxton */
 	BUXTON_CONTROL_GET, /**<Retrieve a value from Buxton */
 	BUXTON_CONTROL_UNSET, /**<Unset a value within Buxton */
 	BUXTON_CONTROL_LIST, /**<List keys within a Buxton layer */

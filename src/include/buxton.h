@@ -170,6 +170,29 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
 	__attribute__((warn_unused_result));
 
 /**
+ * Set a label within Buxton
+ *
+ * @note This is a privileged operation; the return value will be false for unprivileged clients.
+ *
+ * @param client An open client connection
+ * @param layer The layer to manipulate
+ * @param key The key or group name
+ * @param value A struct containing the label to set
+ * @param callback A callback function to handle daemon reply
+ * @param data User data to be used with callback function
+ * @param sync Indicator for running a synchronous request
+ * @return A boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_set_label(BuxtonClient *client,
+					 BuxtonString *layer,
+					 BuxtonString *key,
+					 BuxtonData *value,
+					 BuxtonCallback callback,
+					 void *data,
+					 bool sync)
+	__attribute__((warn_unused_result));
+
+/**
  * Retrieve a value from Buxton
  * @param client An open client connection
  * @param key The key to retrieve
