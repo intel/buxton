@@ -18,7 +18,7 @@
 #include <string.h>
 #include <sys/inotify.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "configurator.h"
 #include "hashmap.h"
 #include "log.h"

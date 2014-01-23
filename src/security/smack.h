@@ -16,7 +16,7 @@
 #endif
 
 #include "backend.h"
-#include "bt-daemon.h"
+#include "buxton.h"
 
 /**
  * Maximum length for a Smack label

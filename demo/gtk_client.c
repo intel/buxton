@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "gtk_client.h"
 
 /* BuxtonTest object */

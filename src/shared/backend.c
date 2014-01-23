@@ -23,7 +23,7 @@
 
 #include "configurator.h"
 #include "backend.h"
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "hashmap.h"
 #include "util.h"
 #include "log.h"

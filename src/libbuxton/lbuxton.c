@@ -31,7 +31,7 @@
 #include <stdint.h>
 
 #include "util.h"
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "log.h"
 #include "hashmap.h"
 #include "protocol.h"

@@ -19,7 +19,7 @@
 #include <unistd.h>
 
 #include "backend.h"
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "check_utils.h"
 #include "protocol.h"
 #include "serialize.h"

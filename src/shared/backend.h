@@ -20,7 +20,7 @@
     #include "config.h"
 #endif
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "hashmap.h"
 
 /**

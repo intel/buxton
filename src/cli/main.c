@@ -27,7 +27,7 @@
 #include <errno.h>
 #include <getopt.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "backend.h"
 #include "client.h"
 #include "configurator.h"

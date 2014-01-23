@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <bt-daemon.h>
+#include <buxton.h>
 
 /**
  * Valid function prototype for 'free' method

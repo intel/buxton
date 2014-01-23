@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "log.h"
 #include "serialize.h"
 #include "smack.h"

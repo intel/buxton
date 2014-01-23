@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "buxton-array.h"
 
 /**

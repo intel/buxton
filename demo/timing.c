@@ -15,7 +15,7 @@
 #include <time.h>
 #include <math.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "util.h"
 
 #define error(...) { printf(__VA_ARGS__); }

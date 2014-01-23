@@ -150,7 +150,7 @@ libbuxton_shared_la_LDFLAGS = \
 	-static
 
 include_HEADERS += \
-	src/include/bt-daemon.h \
+	src/include/buxton.h \
 	src/include/buxton-array.h
 
 lib_LTLIBRARIES += \

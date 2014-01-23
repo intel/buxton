@@ -45,7 +45,7 @@
 #include <locale.h>
 
 #include "macro.h"
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "backend.h"
 
 size_t page_size(void);

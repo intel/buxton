@@ -20,7 +20,7 @@
     #include "config.h"
 #endif
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "list.h"
 #include "serialize.h"
 #include "hashmap.h"

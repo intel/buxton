@@ -17,7 +17,7 @@
 
 #include "hashmap.h"
 #include "log.h"
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "backend.h"
 #include "util.h"
 

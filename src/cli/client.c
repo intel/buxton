@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "client.h"
 #include "hashmap.h"
 #include "util.h"

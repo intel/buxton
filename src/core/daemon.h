@@ -23,7 +23,7 @@
 #include <sys/poll.h>
 #include <sys/socket.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "backend.h"
 #include "hashmap.h"
 #include "list.h"

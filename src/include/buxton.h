@@ -10,12 +10,12 @@
  */
 
 /**
- * \file bt-daemon.h Buxton public header
+ * \file buxton.h Buxton public header
  *
  * This is the public part of libbuxton
  *
  * \mainpage Buxton
- * \link bt-daemon.h Public API
+ * \link buxton.h Public API
  * \endlink - API listing for libbuxton
  * \copyright Copyright (C) 2013 Intel corporation
  * \par License

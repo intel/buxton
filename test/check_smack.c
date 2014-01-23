@@ -22,7 +22,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "configurator.h"
 #include "check_utils.h"
 #include "daemon.h"

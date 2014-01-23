@@ -34,7 +34,7 @@
 #include <stdbool.h>
 #include <attr/xattr.h>
 
-#include "bt-daemon.h"
+#include "buxton.h"
 #include "backend.h"
 #include "daemon.h"
 #include "list.h"
