@@ -1478,7 +1478,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 				memcpy((void*)(fuzz.buf + 2), (void*)(&control), sizeof(uint16_t));
 
 				/* valid size */
-				*((uint32_t*)(fuzz.buf+4)) = fuzz.size;
+				memcpy((void *)(fuzz.buf + 4), (void *)(&fuzz.size), sizeof(uint32_t));
 			}
 
 			bytes = write(c.fd, (void*)(fuzz.buf), fuzz.size);
