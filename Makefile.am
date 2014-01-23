@@ -3,7 +3,7 @@ AM_CFLAGS = -std=gnu99 -fstack-protector -Wall -pedantic \
         -Wstrict-prototypes -Wundef -fno-common \
         -Werror-implicit-function-declaration \
         -Wformat -Wformat-security -Werror=format-security \
-	-Wconversion
+	-Wconversion -rdynamic
 if DEBUG
 AM_CFLAGS += -ggdb3 -O0
 endif
@@ -96,8 +96,7 @@ bt_daemon_LDADD = \
 	libbuxton-shared.la
 
 bt_daemon_CFLAGS = \
-	$(AM_CFLAGS) \
-	-rdynamic
+	$(AM_CFLAGS)
 
 buxtonctl_SOURCES = \
 	src/cli/main.c \
@@ -105,8 +104,7 @@ buxtonctl_SOURCES = \
 	src/cli/client.h
 
 buxtonctl_CFLAGS = \
-	$(AM_CFLAGS) \
-	-rdynamic
+	$(AM_CFLAGS)
 
 buxtonctl_LDADD = \
 	libbuxton.la \
@@ -218,8 +216,7 @@ check_buxton_CFLAGS = \
 	@CHECK_CFLAGS@ \
 	-DMAKE_CHECK \
 	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
-	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\" \
-	-rdynamic
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_buxton_LDADD = \
 	@CHECK_LIBS@ \
 	libbuxton.la \
@@ -254,8 +251,7 @@ check_bt_daemon_CFLAGS = \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK \
 	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
-	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\" \
-	-rdynamic
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_bt_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	$(SYSTEMD_LIBS) \
@@ -274,8 +270,7 @@ check_daemon_CFLAGS = \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK \
 	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
-	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\" \
-	-rdynamic
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_daemon_LDADD = \
 	@CHECK_LIBS@ \
 	@INIPARSER_LIBS@ \
