@@ -387,7 +387,6 @@ static bool init_backend(BuxtonConfig *config,
 
 	backend_tmp = malloc0(sizeof(BuxtonBackend));
 	if (!backend_tmp) {
-		free(backend_tmp);
 		return false;
 	}
 
