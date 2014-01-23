@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <sys/ioctl.h>
 #include <dirent.h>
 #include <string.h>
 #include <stdint.h>
@@ -36,6 +37,16 @@
 #include "hashmap.h"
 #include "protocol.h"
 #include "configurator.h"
+
+static void __callback(BuxtonArray *array, void *p)
+{
+	if (!array || array->len != 3)
+		return;
+	BuxtonData *value = (BuxtonData*)buxton_array_get(array, 2);
+	if (!value)
+		return;
+	buxton_data_copy(value, (BuxtonData*)p);
+}
 
 bool buxton_client_set_conf_file(char *path)
 {
@@ -106,13 +117,15 @@ bool buxton_client_get_value(BuxtonClient *client,
 {
 	bool r;
 
-	r = buxton_wire_get_value(client, NULL, key, callback, data);
+	if (sync && !callback && data)
+		r = buxton_wire_get_value(client, NULL, key, __callback, data);
+	else
+		r = buxton_wire_get_value(client, NULL, key, callback, data);
 	if (!r)
 		return false;
 
 	if (sync)
 		r = buxton_wire_get_response(client);
-
 	return r;
 }
 
@@ -125,7 +138,10 @@ bool buxton_client_get_value_for_layer(BuxtonClient *client,
 {
 	bool r;
 
-	r = buxton_wire_get_value(client, layer_name, key, callback, data);
+	if (sync && !callback && data)
+		r = buxton_wire_get_value(client, layer_name, key, __callback, data);
+	else
+		r = buxton_wire_get_value(client, layer_name, key, callback, data);
 	if (!r)
 		return false;
 
@@ -217,6 +233,17 @@ bool buxton_client_unset_value(BuxtonClient *client,
 		r = buxton_wire_get_response(client);
 
 	return r;
+}
+
+bool buxton_client_poll(BuxtonClient *client)
+{
+	int avail = 0;
+	if (ioctl(client->fd, FIONREAD, &avail) < 0)
+		return false;
+
+	if (avail > 0)
+		return buxton_wire_get_response(client);
+	return false;
 }
 
 BuxtonString *buxton_make_key(char *group, char *name)

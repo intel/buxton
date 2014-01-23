@@ -171,6 +171,10 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
 
 /**
  * Retrieve a value from Buxton
+ *
+ * @note If no callback is provided and sync is set to true,
+ * libbuxton will attempt to set the data parameter for you.
+ *
  * @param client An open client connection
  * @param key The key to retrieve
  * @param callback A callback function to handle daemon reply
@@ -187,6 +191,10 @@ _bx_export_ bool buxton_client_get_value(BuxtonClient *client,
 
 /**
  * Retrieve a value from Buxton
+ *
+ * @note If no callback is provided and sync is set to true,
+ * libbuxton will attempt to set the data parameter for you.
+ *
  * @param client An open client connection
  * @param layer The layer where the key is set
  * @param key The key to retrieve
@@ -270,6 +278,17 @@ _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
 					   void *data,
 					   bool sync)
 	__attribute__((warn_unused_result));
+
+/**
+ * Poll Buxton socket to check for unreceived events
+ *
+ * @note If unprocessed bytes are waiting on the socket, then they will
+ * be read and the appropriate callbacks will be executed
+ *
+ * @param client An open client connection
+ * @return a boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_poll(BuxtonClient *client);
 
 /**
  * Create a key for item lookup in buxton
