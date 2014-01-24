@@ -116,25 +116,27 @@ noinst_LTLIBRARIES += \
 libbuxton_shared_la_SOURCES = \
 	src/security/smack.c \
 	src/security/smack.h \
-	src/shared/util.c \
+	src/shared/array.c \
+	src/shared/backend.c \
+	src/shared/backend.h \
+	src/shared/buxtonlist.c \
+	src/shared/buxtonlist.h \
+	src/shared/configurator.c \
+	src/shared/configurator.h \
+	src/shared/direct.c \
+	src/shared/direct.h \
+	src/shared/hashmap.c \
+	src/shared/hashmap.h \
 	src/shared/list.h \
 	src/shared/log.c \
 	src/shared/log.h \
-	src/shared/array.c \
-	src/shared/backend.c \
-	src/shared/buxtonlist.c \
-	src/shared/buxtonlist.h \
-	src/shared/backend.h \
-	src/shared/hashmap.c \
-	src/shared/hashmap.h \
 	src/shared/macro.h \
-	src/shared/util.h \
-	src/shared/serialize.c \
-	src/shared/serialize.h \
 	src/shared/protocol.c \
 	src/shared/protocol.h \
-	src/shared/configurator.c \
-	src/shared/configurator.h \
+	src/shared/serialize.c \
+	src/shared/serialize.h \
+	src/shared/util.c \
+	src/shared/util.h \
 	${NULL}
 
 if USE_LOCAL_INIPARSER

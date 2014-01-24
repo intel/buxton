@@ -21,6 +21,7 @@
 #include "backend.h"
 #include "buxton.h"
 #include "check_utils.h"
+#include "direct.h"
 #include "protocol.h"
 #include "serialize.h"
 #include "util.h"

@@ -31,6 +31,7 @@
 #include "backend.h"
 #include "client.h"
 #include "configurator.h"
+#include "direct.h"
 #include "hashmap.h"
 #include "log.h"
 #include "protocol.h"

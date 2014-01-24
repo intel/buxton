@@ -20,6 +20,7 @@
 
 #include "buxton.h"
 #include "configurator.h"
+#include "direct.h"
 #include "hashmap.h"
 #include "log.h"
 #include "smack.h"

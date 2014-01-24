@@ -20,6 +20,7 @@
 
 #include "buxton.h"
 #include "client.h"
+#include "direct.h"
 #include "hashmap.h"
 #include "util.h"
 #include "buxton-array.h"

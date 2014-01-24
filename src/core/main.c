@@ -37,6 +37,7 @@
 #include "buxton.h"
 #include "backend.h"
 #include "daemon.h"
+#include "direct.h"
 #include "list.h"
 #include "log.h"
 #include "smack.h"

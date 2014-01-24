@@ -30,6 +30,7 @@
 #include "configurator.h"
 #include "check_utils.h"
 #include "daemon.h"
+#include "direct.h"
 #include "hashmap.h"
 #include "log.h"
 #include "smack.h"

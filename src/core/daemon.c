@@ -20,6 +20,7 @@
 #include <attr/xattr.h>
 
 #include "daemon.h"
+#include "direct.h"
 #include "log.h"
 #include "util.h"
 #include "buxtonlist.h"
