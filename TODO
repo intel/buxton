@@ -1,16 +1,89 @@
-- make install: create some default data path
+TODO format:
+Description: (description of task)
+Difficulty: [Simple|Medium|Complex]
+Time to complete: (estimate in days)
+Target: Version to be released in
+Status: If multi part change, what has been done so far
 
-- integrate smack access control in get_value and set_value functions
-  of bt-daemon (main.c)
+Description: make install: create some default data path
+Difficulty: Simple
+Time to complete: ??
+Target: ??
+Status:
 
-- test multi-part messaging in the client-side of the library, mirroring
-  changes made to bt-daemon's protocol handling
+Description: Update logic for smack access checks
+Difficulty: Medium
+Time to complete: 6
+Target: v1
+Status: Missing check for list_keys. Have check but logic not complete for
+	set_value, set_label, unset_value, unset_label, get_label. Logic
+	complete for get_value.
 
-- add checks for data consistency, and determine if gdbm needs to be
-  "reorganised" to ensure minimal I/O bottlenecking
+Description: Test multi-part messaging in the client-side of the library,
+	     mirroring changes made to bt-daemon's protocol handling
+Difficulty: Complex
+Time to complete: ??
+Target: ??
+Status:
 
-- before 1.0, define NDEBUG (disables asserts) in config.h unless
-  --enable-debug is passed to configure
+Description: add checks for data consistency, and determine if gdbm needs to be
+	     "reorganised" to ensure minimal I/O bottlenecking
+Difficulty: Medium
+Time to complete: 4
+Target: v1
+Status:
 
-- Make gtk3 optional so bxt_timing can still be built if gtk3 is
-  absent. bxt_timing doesn't need gtk3.
+Description: Tests for nonblocking calls between client and server
+Difficulty: Simple
+Time to complete: 4
+Target: v1
+Status:
+
+Description: Tests for list keys
+Difficulty: Simple
+Time to complete: 1
+Target: v1
+Status:
+
+Description: Bulk send receive messages
+Difficulty: Complex
+Time to complete: ??
+Target: ??
+Status:
+
+Description: Complete code coverage (minus exceptional cases)
+Difficulty: Simple
+Time to complete: 10
+Target: v1
+Status: 78.8% of lines covered
+
+Description: Use BuxtonArray for message deserialization
+Difficulty: Medium
+Time to complete: 5
+Target: v2
+Status:
+
+Description: Remove iniparser from buxton
+Difficulty: Simple
+Time to complete: Done
+Target: ??
+Status: Needs merged but Ubuntu doesn't include it yet so holding off for now
+
+Description: Tizen programs converted to use Buxton
+Difficulty: Complex
+Time to complete: 10
+Target: v1
+Status:
+
+Description: Free notification lists
+Difficulty: Simple
+Time to complete: 1
+Target: v1
+Status:
+
+Description: Add opaque BuxtonResponse and helper functions so only BuxtonData
+	     is needed as a type clients need to use
+Difficulty: Medium
+Time to complete: 5
+Target: v1
+Status:
