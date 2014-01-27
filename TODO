@@ -15,9 +15,7 @@ Description: Update logic for smack access checks
 Difficulty: Medium
 Time to complete: 6
 Target: v1
-Status: Missing check for list_keys. Have check but logic not complete for
-	set_value, set_label, unset_value, unset_label, get_label. Logic
-	complete for get_value.
+Status: Refer to https://github.com/sofar/buxton/wiki/Smack-TODO for details.
 
 Description: Test multi-part messaging in the client-side of the library,
 	     mirroring changes made to bt-daemon's protocol handling
