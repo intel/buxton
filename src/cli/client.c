@@ -22,6 +22,7 @@
 #include "client.h"
 #include "direct.h"
 #include "hashmap.h"
+#include "protocol.h"
 #include "util.h"
 #include "buxton-array.h"
 
@@ -188,6 +189,47 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 	return ret;
 }
 
+void get_value_callback(BuxtonArray *array, void *data)
+{
+	BuxtonData *r;
+	BuxtonData *d = buxton_array_get(array, 0);
+	if (d->store.d_int32 != BUXTON_STATUS_OK)
+		return;
+
+	d = buxton_array_get(array, 2);
+	r = (BuxtonData *)data;
+	r->type = d->type;
+	switch (r->type) {
+	case STRING:
+		r->store.d_string.value = strdup(d->store.d_string.value);
+		r->store.d_string.length = d->store.d_string.length;
+		break;
+	case INT32:
+		r->store.d_int32 = d->store.d_int32;
+		break;
+	case UINT32:
+		r->store.d_uint32 = d->store.d_uint32;
+		break;
+	case INT64:
+		r->store.d_int64 = d->store.d_int64;
+		break;
+	case UINT64:
+		r->store.d_uint64 = d->store.d_uint64;
+		break;
+	case FLOAT:
+		r->store.d_float = d->store.d_float;
+		break;
+	case DOUBLE:
+		r->store.d_double = d->store.d_double;
+		break;
+	case BOOLEAN:
+		r->store.d_boolean = d->store.d_boolean;
+		break;
+	default:
+		break;
+	}
+}
+
 bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, __attribute__((unused)) char * four)
 {
@@ -218,7 +260,8 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		else
 			ret = buxton_client_get_value_for_layer(&control->client,
 								&layer, key,
-								NULL, NULL, true);
+								get_value_callback,
+								&get, true);
 		if (!ret) {
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
 			       layer.value, get_group(key), get_name(key));
@@ -229,7 +272,8 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 			ret = buxton_direct_get_value(control, key, &get, NULL);
 		else
 			ret = buxton_client_get_value(&control->client, key,
-						      NULL, NULL, true);
+						      get_value_callback, &get,
+						      true);
 		if (!ret) {
 			printf("Requested key was not found: %s:%s\n", get_group(key),
 			       get_name(key));
