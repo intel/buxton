@@ -25,12 +25,30 @@ static int iterations = 100000;
 
 typedef bool (*TestFunction) (BuxtonClient *client);
 
+/**
+ * Buxton Status Codes //FIXME remove once test status function in place
+ */
+enum BuxtonStatus {
+	BUXTON_STATUS_OK = 0, /**<Operation succeeded */
+	BUXTON_STATUS_FAILED /**<Operation failed */
+};
+
 static void callback(BuxtonArray *list, void *userdata)
 {
+	bool *r;
+	BuxtonData *d;
+
 	if (!userdata)
 		return;
-	/* Currently unused
-	buxton_data_copy(buxton_array_get(list, 2), (BuxtonData*)userdata);*/
+
+	r = (bool *)userdata;
+
+	if (list->len <= 0)
+		return;
+
+	d = buxton_array_get(list, 0);
+	if (d->store.d_int32 == BUXTON_STATUS_OK)
+		*r = true;
 }
 
 enum test_type {
@@ -164,14 +182,19 @@ static bool testcase_cleanup(struct testcase *tc)
 
 static bool testcase_run(struct testcase *tc)
 {
+	bool d = false;
+	bool r, s;
 	switch (tc->t) {
 		case TEST_GET:
-			return buxton_client_get_value(&__client, __key, callback, &__data, true);
+			r = buxton_client_get_value(&__client, __key, callback, &d, true);
+			return (r && d);
 		case TEST_SET:
-			return buxton_client_set_value(&__client, &__layer, __key, &__data, callback, NULL, true);
+			r = buxton_client_set_value(&__client, &__layer, __key, &__data, callback, &d, true);
+			return (r && d);
 		case TEST_SET_UNSET:
-			return (buxton_client_set_value(&__client, &__layer, __key, &__data, callback, NULL, true) &&
-				buxton_client_unset_value(&__client, &__layer, __key, callback, NULL, true));
+			r = buxton_client_set_value(&__client, &__layer, __key, &__data, callback, &d, true);
+			s = buxton_client_unset_value(&__client, &__layer, __key, callback, &d, true);
+			return (s && r && d);
 		default:
 			return false;
 	}
