@@ -305,6 +305,11 @@ START_TEST(buxton_name_label_check)
 		"New key value is incorrect.");
 	fail_if(!streq("System", result.label.value),
 		"Key label has been modified.");
+
+	/* modify the key label directly once it has been created */
+	fail_if(buxton_direct_set_label(&c, &layer, key, &label) == false,
+		"Failed to modify label on key.");
+
 	free(key->value);
 	free(key);
 	if (result.label.value)
