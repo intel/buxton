@@ -611,6 +611,57 @@ START_TEST(buxton_wire_get_value_check)
 }
 END_TEST
 
+START_TEST(buxton_wire_unset_value_check)
+{
+	BuxtonClient client;
+	int server;
+	size_t size;
+	BuxtonData *list = NULL;
+	uint8_t buf[4096];
+	ssize_t r;
+	BuxtonString layer_name, key;
+	BuxtonControlMessage msg;
+	uint64_t msgid;
+
+	setup_socket_pair(&(client.fd), &server);
+	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	fail_if(!setup_callbacks(),
+		"Failed to initialeze callbacks");
+
+	layer_name = buxton_string_pack("layer");
+	key = buxton_string_pack("key");
+	fail_if(!buxton_wire_unset_value(&client, &layer_name, &key, NULL,
+					 NULL),
+		"Failed to properly unset value");
+
+	r = read(server, buf, 4096);
+	fail_if(r < 0, "Read from client failed");
+	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
+	fail_if(size != 2, "Failed to get valid message from buffer");
+	fail_if(msg != BUXTON_CONTROL_UNSET,
+		"Failed to get correct control type");
+	fail_if(list[0].type != STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != STRING, "Failed to set correct key type");
+	fail_if(!streq(list[0].store.d_string.value, "layer"),
+		"Failed to set correct layer");
+	fail_if(!streq(list[1].store.d_string.value, "key"),
+		"Failed to set correct key");
+
+	free(list[0].store.d_string.value);
+	free(list[0].label.value);
+	free(list[1].store.d_string.value);
+	free(list[1].label.value);
+
+	cleanup_callbacks();
+	close(client.fd);
+	close(server);
+}
+END_TEST
+
 static Suite *
 buxton_suite(void)
 {
@@ -637,6 +688,7 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_wire_get_response_check);
 	tcase_add_test(tc, buxton_wire_set_value_check);
 	tcase_add_test(tc, buxton_wire_get_value_check);
+	tcase_add_test(tc, buxton_wire_unset_value_check);
 	suite_add_tcase(s, tc);
 
 	return s;
