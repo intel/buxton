@@ -168,6 +168,10 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	assert(key);
 	assert(label);
 
+	/* FIXME: should check if client has CAP_MAC_ADMIN instead */
+	if (control->client.uid != 0)
+		return false;
+
 	config = &control->config;
 
 	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {

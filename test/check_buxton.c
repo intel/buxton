@@ -208,7 +208,7 @@ START_TEST(buxton_group_label_check)
 	BuxtonString *key = buxton_make_key("test-group", NULL);
 	BuxtonString label = buxton_string_pack("System");
 
-	c.client.uid = getuid();
+	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	fail_if(buxton_direct_set_label(&c, &layer, key, &label) == false,
@@ -236,6 +236,7 @@ START_TEST(buxton_name_label_check)
 	group = buxton_make_key("group-foo", NULL);
 	label = buxton_string_pack("System");
 
+	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	fail_if(buxton_direct_set_label(&c, &layer, group, &label) == false,
