@@ -417,8 +417,10 @@ bool buxton_wire_unset_value(BuxtonClient *client,
 		goto end;
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-		    BUXTON_CONTROL_UNSET))
+			  BUXTON_CONTROL_UNSET))
 		goto end;
+
+	ret = true;
 
 end:
 	buxton_array_free(&list, NULL);
