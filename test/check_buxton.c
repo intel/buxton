@@ -200,6 +200,31 @@ START_TEST(buxton_key_check)
 }
 END_TEST
 
+START_TEST(buxton_set_label_check)
+{
+	BuxtonControl c;
+	BuxtonString layer = buxton_string_pack("test-gdbm");
+	BuxtonString *key = buxton_make_key("test-group", NULL);
+	BuxtonString label = buxton_string_pack("System");
+
+	c.client.uid = 0;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	fail_if(buxton_direct_set_label(&c, &layer, key, &label) == false,
+		"Failed to set label as root user.");
+
+	c.client.uid = 1000;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	fail_if(buxton_direct_set_label(&c, &layer, key, &label) == true,
+		"Able to set label as non-root user.");
+
+	free(key->value);
+	free(key);
+	buxton_direct_close(&c);
+}
+END_TEST
+
 START_TEST(buxton_group_label_check)
 {
 	BuxtonControl c;
@@ -544,6 +569,66 @@ START_TEST(buxton_wire_set_value_check)
 }
 END_TEST
 
+START_TEST(buxton_wire_set_label_check)
+{
+	BuxtonClient client;
+	int server;
+	size_t size;
+	BuxtonData *list = NULL;
+	uint8_t buf[4096];
+	ssize_t r;
+	BuxtonString layer_name, key;
+	BuxtonData value;
+	BuxtonControlMessage msg;
+	uint64_t msgid;
+
+	client.uid = 0;
+	setup_socket_pair(&(client.fd), &server);
+	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	fail_if(!setup_callbacks(),
+		"Failed to initialize callbacks");
+
+	layer_name = buxton_string_pack("layer");
+	key = buxton_string_pack("key");
+	value.type = STRING;
+	value.store.d_string = buxton_string_pack("_");
+	value.label = buxton_string_pack("dummy");
+	fail_if(buxton_wire_set_label(&client, &layer_name, &key, &value, NULL,
+				      NULL) != true,
+		"Failed to properly set label");
+
+	r = read(server, buf, 4096);
+	fail_if(r < 0, "Read from client failed");
+	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
+	fail_if(size != 3, "Failed to get valid message from buffer");
+	fail_if(msg != BUXTON_CONTROL_SET_LABEL,
+		"Failed to get correct control type");
+	fail_if(list[0].type != STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != STRING, "Failed to set correct key type");
+	fail_if(list[2].type != STRING, "Failed to set correct label type");
+	fail_if(!streq(list[0].store.d_string.value, "layer"),
+		"Failed to set correct layer");
+	fail_if(!streq(list[1].store.d_string.value, "key"),
+		"Failed to set correct key");
+	fail_if(!streq(list[2].store.d_string.value, "_"),
+		"Failed to set correct label");
+
+	free(list[0].store.d_string.value);
+	free(list[0].label.value);
+	free(list[1].store.d_string.value);
+	free(list[1].label.value);
+	free(list[2].store.d_string.value);
+	free(list[2].label.value);
+	cleanup_callbacks();
+	close(client.fd);
+	close(server);
+}
+END_TEST
+
 START_TEST(buxton_wire_get_value_check)
 {
 	BuxtonClient client;
@@ -678,6 +763,7 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_direct_get_value_check);
 	tcase_add_test(tc, buxton_memory_backend_check);
 	tcase_add_test(tc, buxton_key_check);
+	tcase_add_test(tc, buxton_set_label_check);
 	tcase_add_test(tc, buxton_group_label_check);
 	tcase_add_test(tc, buxton_name_label_check);
 	suite_add_tcase(s, tc);
@@ -688,6 +774,7 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_wire_handle_response_check);
 	tcase_add_test(tc, buxton_wire_get_response_check);
 	tcase_add_test(tc, buxton_wire_set_value_check);
+	tcase_add_test(tc, buxton_wire_set_label_check);
 	tcase_add_test(tc, buxton_wire_get_value_check);
 	tcase_add_test(tc, buxton_wire_unset_value_check);
 	suite_add_tcase(s, tc);

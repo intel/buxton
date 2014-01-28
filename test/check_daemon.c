@@ -191,6 +191,52 @@ START_TEST(buxton_client_set_value_check)
 }
 END_TEST
 
+static void client_set_label_test(BuxtonArray *array, void *data)
+{
+	BuxtonData *d;
+	char *k = (char *)data;
+
+	fail_if(array->len != 2, "Failed to get correct array size");
+	d = buxton_array_get(array, 0);
+	fail_if(!d, "Missing array index 0");
+	fail_if(d->type != INT32, "Invalid return type");
+
+	uid_t uid = getuid();
+
+	if (uid == 0) {
+		fail_if(d->store.d_int32 != BUXTON_STATUS_OK,
+			"Set label failed");
+		d = buxton_array_get(array, 1);
+		fail_if(!d, "Missing array index 1");
+		fail_if(d->type != STRING, "Invalid key type");
+		fail_if(!streq(d->store.d_string.value, k),
+			"Incorrect set label returned");
+	} else {
+		fail_if(d->store.d_int32 != BUXTON_STATUS_FAILED,
+			"Set label succeeded, but the client is not root");
+	}
+}
+START_TEST(buxton_client_set_label_check)
+{
+	BuxtonClient c;
+	BuxtonString layer = buxton_string_pack("test-gdbm");
+	BuxtonString *group = buxton_make_key("bxt-group", NULL);
+
+	fail_if(buxton_client_open(&c) == false,
+		"Open failed with daemon.");
+	BuxtonData data;
+	data.type = STRING;
+	data.store.d_string = buxton_string_pack("_");
+	data.label = buxton_string_pack("dummy");
+	fail_if(!buxton_client_set_label(&c, &layer, group, &data,
+					 client_set_label_test,
+					 &group->value, true),
+		"Setting label in buxton failed.");
+	free(group->value);
+	free(group);
+}
+END_TEST
+
 static void client_get_value_test(BuxtonArray *array, void *data)
 {
 	BuxtonData *d;
@@ -358,6 +404,33 @@ START_TEST(parse_list_check)
 		"Failed to set correct unset layer 1");
 	fail_if(!streq(key->value, l2[1].store.d_string.value),
 		"Failed to set correct unset key 1");
+
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 1, l3, &key, &layer, &value),
+		"Parsed bad set argument count");
+	l3[0].type = INT32;
+	l3[1].type = STRING;
+	l3[2].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 3, l3, &key, &layer, &value),
+		"Parsed bad set type 1");
+	l3[0].type = STRING;
+	l3[1].type = INT32;
+	l3[2].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 3, l3, &key, &layer, &value),
+		"Parsed bad set type 2");
+	l3[0].type = STRING;
+	l3[1].type = STRING;
+	l3[2].type = STRING;
+	l3[0].store.d_string = buxton_string_pack("s8");
+	l3[1].store.d_string = buxton_string_pack("s9");
+	l3[2].store.d_string = buxton_string_pack("_");
+	fail_if(!parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
+		"Unable to parse valid set 1");
+	fail_if(!streq(layer->value, l3[0].store.d_string.value),
+		"Failed to set correct set layer 1");
+	fail_if(!streq(key->value, l3[1].store.d_string.value),
+		"Failed to set correct set key 1");
+	fail_if(!streq(value->store.d_string.value, l3[2].store.d_string.value),
+		"Failed to set correct set label 1");
 }
 END_TEST
 
@@ -385,6 +458,33 @@ START_TEST(set_value_check)
 	set_value(&server, &client, &layer, &key, &value, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
+	buxton_client_close(&server.buxton.client);
+}
+END_TEST
+
+START_TEST(set_label_check)
+{
+	BuxtonString layer, group;
+	BuxtonData value;
+	client_list_item client;
+	BuxtonStatus status;
+	BuxtonDaemon server;
+	BuxtonString clabel;
+
+	fail_if(!buxton_direct_open(&server.buxton),
+		"Failed to open buxton direct connection");
+
+	client.cred.uid = 0;
+	client.smack_label = &clabel;
+	server.buxton.client.uid = 0;
+	layer = buxton_string_pack("test-gdbm");
+	group = buxton_string_pack("groupfoo");
+	value.type = STRING;
+	value.store.d_string = buxton_string_pack("_");
+	value.label = buxton_string_pack("dummy");
+
+	set_label(&server, &client, &layer, &group, &value, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Failed to set label");
 	buxton_client_close(&server.buxton.client);
 }
 END_TEST
@@ -615,6 +715,13 @@ START_TEST(bt_daemon_handle_message_set_check)
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to handle set message");
+
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET_LABEL, 0,
+					 out_list);
+	fail_if(size == 0, "Failed to serialize message");
+	r = bt_daemon_handle_message(&daemon, &cl, size);
+	free(cl.data);
+	fail_if(!r, "Failed to handle set_label message");
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -1509,6 +1616,7 @@ daemon_suite(void)
 	tcase_add_checked_fixture(tc, setup, teardown);
 	tcase_add_test(tc, buxton_client_open_check);
 	tcase_add_test(tc, buxton_client_set_value_check);
+	tcase_add_test(tc, buxton_client_set_label_check);
 	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
 	tcase_add_test(tc, buxton_client_get_value_check);
 	suite_add_tcase(s, tc);
@@ -1516,6 +1624,7 @@ daemon_suite(void)
 	tc = tcase_create("buxton_daemon_functions");
 	tcase_add_test(tc, parse_list_check);
 	tcase_add_test(tc, set_value_check);
+	tcase_add_test(tc, set_label_check);
 	tcase_add_test(tc, get_value_check);
 	tcase_add_test(tc, register_notification_check);
 	tcase_add_test(tc, bt_daemon_handle_message_error_check);
