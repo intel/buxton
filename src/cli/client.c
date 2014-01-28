@@ -375,6 +375,12 @@ bool cli_list_keys(BuxtonControl *control,
 	return true;
 }
 
+void unset_value_callback(BuxtonArray *array, void *data)
+{
+	BuxtonData *d = buxton_array_get(array, 1);
+	printf("unset key %s\n", d->store.d_string.value);
+}
+
 bool cli_unset_value(BuxtonControl *control,
 		     __attribute__((unused))BuxtonDataType type,
 		     char *one, char *two, char *three,
@@ -394,7 +400,8 @@ bool cli_unset_value(BuxtonControl *control,
 		return buxton_direct_unset_value(control, &layer, key, NULL);
 	else
 		return buxton_client_unset_value(&control->client, &layer,
-						 key, NULL, NULL, true);
+						 key, unset_value_callback,
+						 NULL, true);
 }
 /*
  * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
