@@ -149,6 +149,11 @@ int main(int argc, char *argv[])
 	ret = sigaction(SIGTERM, &sa, NULL);
 	if (ret == -1)
 		exit(EXIT_FAILURE);
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = SIG_IGN;
+	ret = sigaction(SIGPIPE, &sa, NULL);
+	if (ret == -1)
+		exit(EXIT_FAILURE);
 
 	/* For client notifications */
 	self.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
