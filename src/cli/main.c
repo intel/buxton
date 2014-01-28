@@ -232,11 +232,6 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
-	if (streq(command->name, "set-label") && !control.client.direct) {
-		printf("Must use direct to set a label\n");
-		goto end;
-	}
-
 	/* We now execute the command */
 	if (command->method == NULL) {
 		printf("Not yet implemented: %s\n", command->name);
