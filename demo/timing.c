@@ -17,12 +17,21 @@
 
 #include "buxton.h"
 #include "util.h"
+#include "buxton-array.h"
 
 #define error(...) { printf(__VA_ARGS__); }
 
 static int iterations = 100000;
 
 typedef bool (*TestFunction) (BuxtonClient *client);
+
+static void callback(BuxtonArray *list, void *userdata)
+{
+	if (!userdata)
+		return;
+	/* Currently unused
+	buxton_data_copy(buxton_array_get(list, 2), (BuxtonData*)userdata);*/
+}
 
 enum test_type {
 	TEST_GET,
@@ -144,25 +153,25 @@ static bool testcase_init(struct testcase *tc)
 	__key = buxton_make_key("TimingTest", name);
 	__data.label = buxton_string_pack("*");
 
-	return buxton_client_set_value(&__client, &__layer, __key, &__data);
+	return buxton_client_set_value(&__client, &__layer, __key, &__data, callback, NULL, true);
 }
 
 static bool testcase_cleanup(struct testcase *tc)
 {
-	return (buxton_client_set_value(&__client, &__layer, __key, &__data) &&
-		buxton_client_unset_value(&__client, &__layer, __key));
+	return (buxton_client_set_value(&__client, &__layer, __key, &__data, callback, NULL, true) &&
+		buxton_client_unset_value(&__client, &__layer, __key, callback, NULL, true));
 }
 
 static bool testcase_run(struct testcase *tc)
 {
 	switch (tc->t) {
 		case TEST_GET:
-			return buxton_client_get_value(&__client, __key, &__data);
+			return buxton_client_get_value(&__client, __key, callback, &__data, true);
 		case TEST_SET:
-			return buxton_client_set_value(&__client, &__layer, __key, &__data);
+			return buxton_client_set_value(&__client, &__layer, __key, &__data, callback, NULL, true);
 		case TEST_SET_UNSET:
-			return (buxton_client_set_value(&__client, &__layer, __key, &__data) &&
-				buxton_client_unset_value(&__client, &__layer, __key));
+			return (buxton_client_set_value(&__client, &__layer, __key, &__data, callback, NULL, true) &&
+				buxton_client_unset_value(&__client, &__layer, __key, callback, NULL, true));
 		default:
 			return false;
 	}
