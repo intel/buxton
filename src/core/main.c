@@ -43,6 +43,7 @@
 #include "smack.h"
 #include "util.h"
 #include "configurator.h"
+#include "buxtonlist.h"
 
 #define POLL_TIMEOUT 250
 #define SOCKET_TIMEOUT 5
@@ -82,6 +83,8 @@ int main(int argc, char *argv[])
 	bool leftover_messages = false;
 	struct stat st;
 	bool help = false;
+	BuxtonList *map_list = NULL;
+	Iterator iter;
 
 	static struct option opts[] = {
 		{ "config-file", 1, NULL, 'c' },
@@ -336,6 +339,17 @@ int main(int argc, char *argv[])
 		free(i);
 		i = j;
 	}
+	/* Clean up notification lists */
+	HASHMAP_FOREACH(map_list, self.notify_mapping, iter) {
+		BuxtonList *elem;
+		BUXTON_LIST_FOREACH(map_list, elem) {
+			BuxtonNotification *notif = (BuxtonNotification*)elem->data;
+			if (notif->old_data)
+				free_buxton_data(&(notif->old_data));
+		}
+		buxton_list_free_all(&map_list);
+	}
+
 	hashmap_free(self.notify_mapping);
 	buxton_direct_close(&self.buxton);
 	return EXIT_SUCCESS;
