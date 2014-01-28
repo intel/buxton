@@ -568,20 +568,20 @@ START_TEST(buxton_wire_get_value_check)
 	key = buxton_string_pack("key");
 	fail_if(buxton_wire_get_value(&client, &layer_name, &key, NULL,
 				      NULL) != true,
-		"Failed to properly set value");
+		"Failed to properly get value 1");
 
 	r = read(server, buf, 4096);
-	fail_if(r < 0, "Read from client failed");
+	fail_if(r < 0, "Read from client failed 1");
 	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
-	fail_if(size != 2, "Failed to get valid message from buffer");
+	fail_if(size != 2, "Failed to get valid message from buffer 1");
 	fail_if(msg != BUXTON_CONTROL_GET,
-		"Failed to get correct control type");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type");
-	fail_if(list[1].type != STRING, "Failed to set correct key type");
+		"Failed to get correct control type 1");
+	fail_if(list[0].type != STRING, "Failed to set correct layer type 1");
+	fail_if(list[1].type != STRING, "Failed to set correct key type 1");
 	fail_if(!streq(list[0].store.d_string.value, "layer"),
-		"Failed to set correct layer");
+		"Failed to set correct layer 1");
 	fail_if(!streq(list[1].store.d_string.value, "key"),
-		"Failed to set correct key");
+		"Failed to set correct key 1");
 
 	free(list[0].store.d_string.value);
 	free(list[0].label.value);
@@ -590,17 +590,17 @@ START_TEST(buxton_wire_get_value_check)
 
 	fail_if(buxton_wire_get_value(&client, NULL, &key, NULL,
 				      NULL) != true,
-		"Failed to properly set value");
+		"Failed to properly get value 2");
 
 	r = read(server, buf, 4096);
-	fail_if(r < 0, "Read from client failed");
+	fail_if(r < 0, "Read from client failed 2");
 	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
-	fail_if(size != 1, "Failed to get valid message from buffer");
+	fail_if(size != 1, "Failed to get valid message from buffer 2");
 	fail_if(msg != BUXTON_CONTROL_GET,
-		"Failed to get correct control type");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type");
+		"Failed to get correct control type 2");
+	fail_if(list[0].type != STRING, "Failed to set correct layer type 2");
 	fail_if(!streq(list[0].store.d_string.value, "key"),
-		"Failed to set correct key");
+		"Failed to set correct key 2");
 
 	free(list[0].store.d_string.value);
 	free(list[0].label.value);
