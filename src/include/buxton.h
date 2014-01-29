@@ -295,6 +295,14 @@ _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
 	__attribute__((warn_unused_result));
 
 /**
+ * Poll and block for a response on the socket
+ * @note Relevant callbacks will be executed if data is available
+ * @param client An open client connection
+ * @return a boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_poll_response(BuxtonClient *client);
+
+/**
  * Create a key for item lookup in buxton
  * @param group Pointer to a character string representing a group
  * @param name Pointer to a character string representing a name
