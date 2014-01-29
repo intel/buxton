@@ -228,9 +228,10 @@ START_TEST(buxton_client_set_label_check)
 	data.type = STRING;
 	data.store.d_string = buxton_string_pack("_");
 	data.label = buxton_string_pack("dummy");
+	char *userdata = buxton_get_group(group);
 	fail_if(!buxton_client_set_label(&c, &layer, group, &data,
 					 client_set_label_test,
-					 &group->value, true),
+					 userdata, true),
 		"Setting label in buxton failed.");
 	free(group->value);
 	free(group);
