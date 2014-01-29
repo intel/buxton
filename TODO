@@ -5,12 +5,6 @@ Time to complete: (estimate in days)
 Target: Version to be released in
 Status: If multi part change, what has been done so far
 
-Description: make install: create some default data path
-Difficulty: Simple
-Time to complete: <1
-Target: v1
-Status:
-
 Description: Update logic for smack access checks
 Difficulty: Medium
 Time to complete: 6

@@ -136,7 +136,7 @@ AC_SUBST(CONFPATH)
 
 AC_ARG_WITH([db-path], AS_HELP_STRING([--with-db-path=DBPATH],
 	[path to buxton db files]), [dbpath=${withval}],
-	[dbpath="${localstatedir}/buxton"])
+	[dbpath="${localstatedir}/lib/buxton"])
 DB_PATH="${dbpath}"
 AC_SUBST(DB_PATH)
 

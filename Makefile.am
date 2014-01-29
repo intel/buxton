@@ -39,6 +39,9 @@ systemdsystemunit-install-hook:
 	mkdir -p $(DESTDIR)$(systemdsystemunitdir)/sockets.target.wants
 	ln -sf ../buxton.socket $(DESTDIR)$(systemdsystemunitdir)/sockets.target.wants/buxton.socket
 
+install-data-local:
+	$(MKDIR_P) $(DESTDIR)$(localstatedir)/lib/buxton
+
 install-data-hook: systemdsystemunit-install-hook
 
 systemdsystemunit-uninstall-hook:
