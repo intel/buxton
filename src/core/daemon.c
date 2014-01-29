@@ -461,10 +461,8 @@ void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 
 	//FIXME move direct functions to daemon only file
 	/* Use internal library to set value */
-	if (!buxton_direct_set_value(&self->buxton, layer, key, value, client->smack_label)) {
-		*status = BUXTON_STATUS_FAILED;
+	if (!buxton_direct_set_value(&self->buxton, layer, key, value, client->smack_label))
 		return;
-	}
 
 	*status = BUXTON_STATUS_OK;
 	buxton_debug("Daemon set value completed\n");
@@ -491,10 +489,8 @@ void set_label(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 	self->buxton.client.uid = client->cred.uid;
 
 	/* Use internal library to set label */
-	if (!buxton_direct_set_label(&self->buxton, layer, key, &value->label)) {
-		*status = BUXTON_STATUS_FAILED;
+	if (!buxton_direct_set_label(&self->buxton, layer, key, &value->label))
 		return;
-	}
 
 	*status = BUXTON_STATUS_OK;
 	buxton_debug("Daemon set label completed\n");
