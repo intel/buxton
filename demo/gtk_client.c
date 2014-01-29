@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "buxton.h"
+#include "buxton-array.h"
 #include "gtk_client.h"
 
 /* BuxtonTest object */
@@ -40,7 +41,7 @@ static void buxton_test_dispose(GObject *object);
 static void update_key(GtkWidget *self, gpointer userdata);
 static void update_value(BuxtonTest *self);
 static void report_error(BuxtonTest *self, gchar *error);
-static gboolean update_buxton(BuxtonTest *self);
+static void buxton_callback(BuxtonArray *list, void *userdata);
 
 /* Initialisation */
 static void buxton_test_class_init(BuxtonTestClass *klass)
@@ -132,8 +133,6 @@ static void buxton_test_init(BuxtonTest *self)
 	}
 
 	 update_value(self);
-	 /* Grab buxton notifications on idle loop */
-	 g_idle_add((GSourceFunc)update_buxton, self);
 }
 
 static void buxton_test_dispose(GObject *object)
@@ -164,7 +163,6 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	char *layer_name = "base";
 	const gchar *t_value;
 
-
 	t_value = gtk_entry_get_text(GTK_ENTRY(self->entry));
 	if (strlen(t_value) == 0 || g_str_equal(t_value, ""))
 		return;
@@ -182,7 +180,8 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	data.label.value = "_";
 	data.label.length = 2;
 
-	if (!buxton_client_set_value(&self->client, &layer, key, &data))
+	if (!buxton_client_set_value(&self->client, &layer, key, &data,
+		buxton_callback, NULL, true))
 		report_error(self, "Unable to set value!");
 	else
 		update_value(self);
@@ -191,13 +190,15 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 
 static void update_value(BuxtonTest *self)
 {
-	BuxtonData data;
 	BuxtonString *key;
-	gchar *lab;
+	BuxtonString layer;
+	layer.value = "base";
+	layer.length = (uint32_t)strlen("base")+1;
 
 	key = buxton_make_key("test", "test");
 
-	if (!buxton_client_get_value(&self->client, key, &data)) {
+	if (!buxton_client_get_value_for_layer(&self->client, &layer, key,
+		buxton_callback, self, true)) {
 		/* Buxton disconnects us when this happens. ##FIXME##
 		 * We force a reconnect */
 		report_error(self, "Cannot retrieve value");
@@ -206,10 +207,6 @@ static void update_value(BuxtonTest *self)
 			report_error(self, "Unable to connect to Buxton!");
 		return;
 	}
-
-	lab = g_strdup_printf("<big>\'test\' value: %s</big>", data.store.d_string.value);
-	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
-	free(lab);
 
 	free(key);
 }
@@ -227,10 +224,25 @@ static void report_error(BuxtonTest *self, gchar *error)
 	}
 }
 
-static gboolean update_buxton(BuxtonTest *self)
+static void buxton_callback(BuxtonArray *list, void *userdata)
 {
-	/* TODO: Probe for notifications */
-	return TRUE;
+	BuxtonData *data, *key;
+	BuxtonTest *self;
+	gchar *lab;
+
+	if (!userdata)
+		return;
+
+	self = BUXTON_TEST(userdata);
+	data = buxton_array_get(list, 2);
+	key = buxton_array_get(list, 1);
+
+	/* Include key in the callback update */
+	lab = g_strdup_printf("<big>\'%s\' value: %s</big>",
+		key->store.d_string.value,
+		data->store.d_string.value);
+	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
+	free(lab);
 }
 
 /** Main entry */
