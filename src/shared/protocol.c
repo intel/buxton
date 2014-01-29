@@ -219,6 +219,10 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 
 		s = -1;
 		nv = hashmap_remove(callbacks, (void *)r_msgid);
+		if (!nv && r_msg == BUXTON_CONTROL_CHANGED) {
+			/* Push to notification callbacks */
+			nv = hashmap_get(notify_callbacks, (void *)r_msgid);
+		}
 		if (nv) {
 			if (nv->type == BUXTON_CONTROL_NOTIFY) {
 				if (r_list[0].type == INT32 &&
@@ -237,7 +241,6 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 			}
 			if (s < 0) {
 				run_callback((BuxtonCallback)(nv->cb), nv->data, count, r_list);
-				free(nv);
 			}
 			for (int i = 0; i < count; i++) {
 				if (r_list[i].type == STRING)
