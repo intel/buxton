@@ -7,15 +7,16 @@ Status: If multi part change, what has been done so far
 
 Description: make install: create some default data path
 Difficulty: Simple
-Time to complete: ??
-Target: ??
+Time to complete: <1
+Target: v1
 Status:
 
 Description: Update logic for smack access checks
 Difficulty: Medium
 Time to complete: 6
 Target: v1
-Status: Refer to https://github.com/sofar/buxton/wiki/Smack-TODO for details.
+Status: In progress. Refer to https://github.com/sofar/buxton/wiki/Smack-TODO
+        for details.
 
 Description: Test multi-part messaging in the client-side of the library,
 	     mirroring changes made to bt-daemon's protocol handling
@@ -53,7 +54,7 @@ Description: Complete code coverage (minus exceptional cases)
 Difficulty: Simple
 Time to complete: 10
 Target: v1
-Status: 78.8% of lines covered
+Status: 79.6% of lines covered
 
 Description: Use BuxtonArray for message deserialization
 Difficulty: Medium
@@ -83,5 +84,12 @@ Description: Add opaque BuxtonResponse and helper functions so only BuxtonData
 	     is needed as a type clients need to use
 Difficulty: Medium
 Time to complete: 5
+Target: v1
+Status:
+
+Description: When selecting a layer for get_value based on priority, ignore
+             user layers altogether if the key is accessible in a system layer.
+Difficulty: Simple
+Time to complete: 1
 Target: v1
 Status:
