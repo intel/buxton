@@ -295,14 +295,6 @@ _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
 	__attribute__((warn_unused_result));
 
 /**
- * Poll and block for a response on the socket
- * @note Relevant callbacks will be executed if data is available
- * @param client An open client connection
- * @return a boolean value, indicating success of the operation
- */
-_bx_export_ bool buxton_client_poll_response(BuxtonClient *client);
-
-/**
  * Process messages on the socket
  * @note Will not block, useful after poll in client application
  * @param client An open client connection

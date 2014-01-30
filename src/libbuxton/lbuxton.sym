@@ -12,7 +12,6 @@ BUXTON_1 {
 		buxton_client_register_notification;
 		buxton_client_unregister_notification;
 		buxton_client_handle_response;
-		buxton_client_poll_response;
 		buxton_get_group;
 		buxton_get_name;
 		buxton_make_key;

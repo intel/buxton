@@ -281,10 +281,6 @@ char *buxton_get_name(BuxtonString *key)
 	return get_name(key);
 }
 
-bool buxton_client_poll_response(BuxtonClient *client) {
-	return buxton_wire_get_response(client);
-}
-
 ssize_t buxton_client_handle_response(BuxtonClient *client)
 {
 	return buxton_wire_handle_response(client);
