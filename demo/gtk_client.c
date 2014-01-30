@@ -238,10 +238,8 @@ static void report_error(BuxtonTest *self, gchar *error)
 static gboolean buxton_update(gint fd, GIOCondition cond, gpointer userdata)
 {
 	BuxtonClient *client = (BuxtonClient*)userdata;
-	/* Only check when we have data to read */
-	if (cond & G_IO_IN || cond & G_IO_PRI)
-		buxton_client_poll_response(client);
-	return !(cond & G_IO_HUP);
+	ssize_t handled = buxton_client_handle_response(client);
+	return (handled >= 0);
 }
 
 static void buxton_callback(BuxtonArray *list, void *userdata)
