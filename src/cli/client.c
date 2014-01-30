@@ -366,7 +366,9 @@ bool cli_list_keys(BuxtonControl *control,
 {
 	BuxtonString layer;
 	BuxtonArray *results = NULL;
+	BuxtonData *current = NULL;
 	bool ret = false;
+	int i;
 
 	layer.value = one;
 	layer.length = (uint32_t)strlen(one) + 1;
@@ -383,8 +385,17 @@ bool cli_list_keys(BuxtonControl *control,
 	if (results == NULL && control->client.direct)
 		return false;
 
-	if (results)
+	if (control->client.direct) {
+		/* Print all of the keys in this layer */
+		printf("%d keys found in layer \'%s\':\n", results->len, one);
+		for (i = 0; i < results->len; i++) {
+			current = (BuxtonData*)results->data[i];
+			printf("%s\n", current->store.d_string.value);
+			free(current->store.d_string.value);
+		}
+
 		buxton_array_free(&results, NULL);
+	}
 
 	return true;
 }
