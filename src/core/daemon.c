@@ -278,7 +278,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		mdata.type = UINT64;
 		mdata.store.d_uint64 = n_msgid;
 		if (!buxton_array_add(out_list, &mdata)) {
-			buxton_log("Failed to prepare NOTIFY array msgid data\n");
+			buxton_log("Failed to prepare UNNOTIFY array msgid data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
