@@ -285,7 +285,7 @@ bool buxton_client_poll_response(BuxtonClient *client) {
 	return buxton_wire_get_response(client);
 }
 
-size_t buxton_client_handle_response(BuxtonClient *client)
+ssize_t buxton_client_handle_response(BuxtonClient *client)
 {
 	return buxton_wire_handle_response(client);
 }

@@ -205,7 +205,7 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 	free(nv);
 }
 
-size_t buxton_wire_handle_response(BuxtonClient *client)
+ssize_t buxton_wire_handle_response(BuxtonClient *client)
 {
 	ssize_t l;
 	_cleanup_free_ uint8_t *response = NULL;
@@ -216,7 +216,7 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
 	uint64_t r_msgid;
 	int s;
-	size_t handled = 0;
+	ssize_t handled = 0;
 
 	response = malloc0(BUXTON_MESSAGE_HEADER_LENGTH);
 	if (!response)
@@ -231,17 +231,13 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 			continue;
 		if (size == BUXTON_MESSAGE_HEADER_LENGTH) {
 			size = buxton_get_message_size(response, offset);
-			//FIXME should close and reconnect after
-			//something like this
 			if (size == 0 || size > BUXTON_MESSAGE_MAX_LENGTH)
-				return 0;
+				return -1;
 		}
 		if (size != BUXTON_MESSAGE_HEADER_LENGTH) {
 			response = realloc(response, size);
-			//FIXME close the client or do something more
-			//productive here
 			if (!response)
-				return 0;
+				return -1;
 		}
 		if (size != offset)
 			continue;
@@ -288,7 +284,7 @@ bool buxton_wire_get_response(BuxtonClient *client)
 {
 	struct pollfd pfd[1];
 	int r;
-	size_t processed;
+	ssize_t processed;
 
 	pfd[0].fd = client->fd;
 	pfd[0].events = POLLIN;
@@ -299,7 +295,7 @@ bool buxton_wire_get_response(BuxtonClient *client)
 		return false;
 
 	processed = buxton_wire_handle_response(client);
-	if (processed)
+	if (processed > 0)
 		return true;
 	return false;
 }

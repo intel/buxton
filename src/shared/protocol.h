@@ -85,7 +85,7 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
  * @param client A BuxtonClient
  * @return number of received messages processed
  */
-size_t buxton_wire_handle_response(BuxtonClient *client)
+ssize_t buxton_wire_handle_response(BuxtonClient *client)
 	__attribute__((warn_unused_result));
 
 /**

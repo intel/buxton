@@ -303,6 +303,15 @@ _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
 _bx_export_ bool buxton_client_poll_response(BuxtonClient *client);
 
 /**
+ * Process messages on the socket
+ * @note Will not block, useful after poll in client application
+ * @param client An open client connection
+ * @return Number of messages processed or -1 if there was an error
+ */
+_bx_export_ ssize_t buxton_client_handle_response(BuxtonClient *client)
+	__attribute__((warn_unused_result));
+
+/**
  * Create a key for item lookup in buxton
  * @param group Pointer to a character string representing a group
  * @param name Pointer to a character string representing a name
