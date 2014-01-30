@@ -336,6 +336,9 @@ static void buxton_callback(BuxtonArray *list, void *userdata)
 	if (!userdata)
 		return;
 
+	if (list->len != 3)
+		return;
+
 	self = BUXTON_TEST(userdata);
 	data = buxton_array_get(list, 2);
 	key = buxton_array_get(list, 1);
