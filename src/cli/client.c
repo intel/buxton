@@ -338,6 +338,27 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	return true;
 }
 
+static void list_keys_callback(BuxtonArray *array, void *data)
+{
+	BuxtonData *r;
+	BuxtonData *d = buxton_array_get(array, 0);
+	if (d->store.d_int32 != BUXTON_STATUS_OK)
+		return;
+
+	BuxtonString *layer = (BuxtonString*)data;
+	if (!layer)
+		return;
+
+	/* Print all of the keys in this layer */
+	printf("%d keys found in layer \'%s\':\n", array->len - 1, layer->value);
+	for (uint16_t i = 1; i < array->len; i++) {
+		r = buxton_array_get(array, i);
+		if (!r)
+			break;
+		printf("%s\n", r->store.d_string.value);
+	}
+}
+
 bool cli_list_keys(BuxtonControl *control,
 		   __attribute__((unused))BuxtonDataType type,
 		   char *one, char *two, char *three,
@@ -345,9 +366,7 @@ bool cli_list_keys(BuxtonControl *control,
 {
 	BuxtonString layer;
 	BuxtonArray *results = NULL;
-	BuxtonData *current = NULL;
 	bool ret = false;
-	int i;
 
 	layer.value = one;
 	layer.length = (uint32_t)strlen(one) + 1;
@@ -356,22 +375,17 @@ bool cli_list_keys(BuxtonControl *control,
 		ret = buxton_direct_list_keys(control, &layer, &results);
 	else
 		ret = buxton_client_list_keys(&(control->client), &layer,
-					      NULL, NULL, true);
+					      list_keys_callback, &layer, true);
 	if (!ret) {
 		printf("No keys found for layer \'%s\'\n", one);
 		return false;
 	}
-	if (results == NULL)
+	if (results == NULL && control->client.direct)
 		return false;
-	/* Print all of the keys in this layer */
-	printf("%d keys found in layer \'%s\'\n", results->len, one);
-	for (i = 0; i < results->len; i++) {
-		current = (BuxtonData*)results->data[i];
-		printf("%s\n", current->store.d_string.value);
-		free(current->store.d_string.value);
-	}
 
-	buxton_array_free(&results, NULL);
+	if (results)
+		buxton_array_free(&results, NULL);
+
 	return true;
 }
 
