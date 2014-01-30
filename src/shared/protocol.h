@@ -71,6 +71,16 @@ bool send_message(BuxtonClient *client, uint8_t *send, size_t send_len,
 	__attribute__((warn_unused_result));
 
 /**
+ * Check for callbacks for daemon's response
+ * @param msg Buxton message type
+ * @param msgid Key for message lookup
+ * @param list array of BuxtonData
+ * @param count number of elements in list
+ */
+void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
+			    BuxtonData *list, size_t count);
+
+/**
  * Parse responses from bt-daemon and run callbacks on received messages
  * @param client A BuxtonClient
  * @return number of received messages processed

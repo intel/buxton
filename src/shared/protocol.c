@@ -164,6 +164,47 @@ end:
 	return r;
 }
 
+void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
+			      BuxtonData *list, size_t count)
+{
+	struct notify_value *nv;
+
+	/* use notification callbacks for notification messages */
+	if (msg == BUXTON_CONTROL_CHANGED) {
+		nv = hashmap_get(notify_callbacks, (void *)msgid);
+		if (!nv)
+			return;
+
+		run_callback((BuxtonCallback)(nv->cb), nv->data, count, list);
+		return;
+	}
+
+	nv = hashmap_remove(callbacks, (void *)msgid);
+	if (!nv)
+		return;
+
+	if (nv->type == BUXTON_CONTROL_NOTIFY) {
+		if (list[0].type == INT32 &&
+		    list[0].store.d_int32 == BUXTON_STATUS_OK)
+			if (hashmap_put(notify_callbacks, (void *)msgid, nv)
+			    >= 0)
+				return;
+	} else if (nv->type == BUXTON_CONTROL_UNNOTIFY) {
+		if (list[0].type == INT32 &&
+		    list[0].store.d_int32 == BUXTON_STATUS_OK) {
+			(void)hashmap_remove(notify_callbacks,
+					     (void *)list[2].store.d_uint64);
+			return;
+		}
+	}
+
+	/* callback should be run on notfiy or unnotify failure */
+	/* and on any other server message we are waiting for */
+	run_callback((BuxtonCallback)(nv->cb), nv->data, count, list);
+
+	free(nv);
+}
+
 size_t buxton_wire_handle_response(BuxtonClient *client)
 {
 	ssize_t l;
@@ -174,7 +215,6 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
 	uint64_t r_msgid;
-	struct notify_value *nv;
 	int s;
 	size_t handled = 0;
 
@@ -191,11 +231,15 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 			continue;
 		if (size == BUXTON_MESSAGE_HEADER_LENGTH) {
 			size = buxton_get_message_size(response, offset);
+			//FIXME should close and reconnect after
+			//something like this
 			if (size == 0 || size > BUXTON_MESSAGE_MAX_LENGTH)
 				return 0;
 		}
 		if (size != BUXTON_MESSAGE_HEADER_LENGTH) {
 			response = realloc(response, size);
+			//FIXME close the client or do something more
+			//productive here
 			if (!response)
 				return 0;
 		}
@@ -204,44 +248,26 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 
 		count = buxton_deserialize_message(response, &r_msg, size, &r_msgid, &r_list);
 		if (count == 0)
-			return 0;
+			goto next;
 
 		if (!(r_msg == BUXTON_CONTROL_STATUS && r_list[0].type == INT32)
 		    && !(r_msg == BUXTON_CONTROL_CHANGED &&
 			 r_list[0].type == STRING)) {
 			buxton_log("Critical error: Invalid response\n");
-			return 0;
+			goto next;
 		}
 
 		s = pthread_mutex_lock(&callback_guard);
 		if (s)
-			return 0;
+			goto next;
 
-		s = -1;
-		nv = hashmap_remove(callbacks, (void *)r_msgid);
-		if (!nv && r_msg == BUXTON_CONTROL_CHANGED) {
-			/* Push to notification callbacks */
-			nv = hashmap_get(notify_callbacks, (void *)r_msgid);
-		}
-		if (nv) {
-			if (nv->type == BUXTON_CONTROL_NOTIFY) {
-				if (r_list[0].type == INT32 &&
-				    r_list[0].store.d_int32 == BUXTON_STATUS_OK)
-					s = hashmap_put(notify_callbacks, (void *)r_msgid, nv);
-				else
-					s = -1;
-			} else if (nv->type == BUXTON_CONTROL_UNNOTIFY) {
-				if (r_list[0].type == INT32 &&
-				    r_list[0].store.d_int32 == BUXTON_STATUS_OK &&
-				    count == 3)
-					(void)hashmap_remove(notify_callbacks,
-							     (void *)r_list[2].store.d_uint64);
-				else
-					s = -1;
-			}
-			if (s < 0) {
-				run_callback((BuxtonCallback)(nv->cb), nv->data, count, r_list);
-			}
+		handle_callback_response(r_msg, r_msgid, r_list, count);
+
+		(void)pthread_mutex_unlock(&callback_guard);
+		handled++;
+
+	next:
+		if (r_list) {
 			for (int i = 0; i < count; i++) {
 				if (r_list[i].type == STRING)
 					free(r_list[i].store.d_string.value);
@@ -249,8 +275,6 @@ size_t buxton_wire_handle_response(BuxtonClient *client)
 			}
 			free(r_list);
 		}
-		(void)pthread_mutex_unlock(&callback_guard);
-		handled++;
 
 		/* reset for next possible message */
 		size = BUXTON_MESSAGE_HEADER_LENGTH;
