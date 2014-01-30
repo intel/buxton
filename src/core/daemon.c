@@ -212,7 +212,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 			buxton_log("Failed to prepare GET array key data\n");
 			goto end;
 		}
-		if (!buxton_array_add(out_list, data)) {
+		if (data && !buxton_array_add(out_list, data)) {
 			buxton_log("Failed to prepare GET array data\n");
 			goto end;
 		}
