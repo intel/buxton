@@ -93,3 +93,10 @@ Difficulty: Simple
 Time to complete: 3
 Target: ??
 Status:
+
+Description: Remove label member from BuxtonData; instead, store the label in
+             a BuxtonData adjacent to its corresponding value.
+Difficulty: Medium
+Time to complete: 2
+Target: v1
+Status:
