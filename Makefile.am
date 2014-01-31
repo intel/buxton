@@ -324,7 +324,10 @@ check_DATA = \
 
 if BUILD_DEMOS
 bin_PROGRAMS += \
-	bxt_timing
+	bxt_timing \
+	bxt_hello_get \
+	bxt_hello_set \
+	bxt_hello_notify
 
 # Timing test
 bxt_timing_SOURCES = \
@@ -333,6 +336,27 @@ bxt_timing_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la \
 	-lrt -lm
+
+bxt_hello_get_SOURCES = \
+	demo/helloget.c
+bxt_hello_get_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_get_LDADD = \
+	libbuxton.la
+
+bxt_hello_set_SOURCES = \
+	demo/helloset.c
+bxt_hello_set_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_set_LDADD = \
+	libbuxton.la
+
+bxt_hello_notify_SOURCES = \
+	demo/hellonotify.c
+bxt_hello_notify_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_notify_LDADD = \
+	libbuxton.la
 
 if BUILD_GTK_DEMO
 bin_PROGRAMS += \
