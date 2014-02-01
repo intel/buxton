@@ -323,6 +323,7 @@ bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
 	buxton_string_to_data(key, &d_key);
 	d_layer.label = buxton_string_pack("dummy");
 	d_key.label = buxton_string_pack("dummy");
+	value->label = buxton_string_pack("dummy");
 
 	list = buxton_array_new();
 	if (!buxton_array_add(list, &d_layer)) {
