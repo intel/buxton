@@ -79,3 +79,5 @@ static inline size_t ALIGN_TO(size_t l, size_t ali) {
 #define INT_TO_PTR(u) ((void *) ((intptr_t) (u)))
 #define PTR_TO_UINT(p) ((unsigned int) ((uintptr_t) (p)))
 #define UINT_TO_PTR(u) ((void *) ((uintptr_t) (u)))
+
+#define memzero(x,l) (memset((x), 0, (l)))

@@ -113,7 +113,7 @@ static bool get_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *da
 	key.dptr = key_name->value;
 	key.dsize = (int)key_name->length;
 
-	memset(&value, 0, sizeof(datum));
+	memzero(&value, sizeof(datum));
 	db = _db_for_resource(layer);
 	if (!db)
 		goto end;

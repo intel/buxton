@@ -97,7 +97,7 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 	assert(original->label.value);
 	assert(copy);
 
-	memset(&label, 0, sizeof(BuxtonString));
+	memzero(&label, sizeof(BuxtonString));
 	label.value = malloc(original->label.length);
 	if (!label.value)
 		goto fail;
@@ -146,7 +146,7 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 fail:
 	if (label.value)
 		free(label.value);
-	memset(copy, 0, sizeof(BuxtonData));
+	memzero(copy, sizeof(BuxtonData));
 }
 
 const char* buxton_type_as_string(BuxtonDataType type)

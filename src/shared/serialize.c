@@ -291,7 +291,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		if (curSize < size) {
 			if (!(data = greedy_realloc((void**)&data, &curSize, size)))
 				goto fail;
-			memset(data+offset, 0, size - offset);
+			memzero(data+offset, size - offset);
 		}
 
 		/* Copy data type */
@@ -417,7 +417,7 @@ size_t buxton_deserialize_message(uint8_t *data,
 	if (!k_list)
 		goto end;
 
-	memset(&c_data, 0, sizeof(BuxtonData));
+	memzero(&c_data, sizeof(BuxtonData));
 
 	for (c_param = 0; c_param < n_params; c_param++) {
 		buxton_debug("param: %d\n", c_param + 1);
@@ -500,7 +500,7 @@ size_t buxton_deserialize_message(uint8_t *data,
 		}
 		c_data.type = c_type;
 		k_list[c_param] = c_data;
-		memset(&c_data, 0, sizeof(BuxtonData));
+		memzero(&c_data, sizeof(BuxtonData));
 		offset += c_length;
 	}
 	*r_message = message;

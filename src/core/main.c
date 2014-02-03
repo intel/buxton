@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 
-		memset(&sa, 0, sizeof(sa));
+		memzero(&sa, sizeof(sa));
 		sa.un.sun_family = AF_UNIX;
 		strncpy(sa.un.sun_path, buxton_socket(), sizeof(sa.un.sun_path) - 1);
 		sa.un.sun_path[sizeof(sa.un.sun_path)-1] = 0;

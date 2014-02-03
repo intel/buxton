@@ -218,7 +218,7 @@ START_TEST(get_layer_path_check)
 	char *real_path = NULL;
 	int r;
 
-	memset(&layer, 0, sizeof(BuxtonLayer));
+	memzero(&layer, sizeof(BuxtonLayer));
 	layer.name = buxton_string_pack("path-test");
 	layer.type = LAYER_SYSTEM;
 	r = asprintf(&real_path, "%s/%s", buxton_db_path(), "path-test.db");

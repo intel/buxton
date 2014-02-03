@@ -64,7 +64,7 @@ bool cli_get_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataTyp
 	BuxtonData get;
 	bool ret = false;
 
-	memset((void*)&get, 0, sizeof(BuxtonData));
+	memzero((void*)&get, sizeof(BuxtonData));
 	layer = buxton_string_pack(one);
 	key = buxton_make_key(two, three);
 	if (!key)
@@ -95,7 +95,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 	BuxtonData set;
 	bool ret = false;
 
-	memset((void*)&set, 0, sizeof(BuxtonData));
+	memzero((void*)&set, sizeof(BuxtonData));
 	layer.value = one;
 	layer.length = (uint32_t)strlen(one) + 1;
 	key = buxton_make_key(two, three);
@@ -239,7 +239,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	_cleanup_free_ char *prefix = NULL;
 	bool ret = false;
 
-	memset((void*)&get, 0, sizeof(BuxtonData));
+	memzero((void*)&get, sizeof(BuxtonData));
 	if (three != NULL) {
 		layer.value = one;
 		layer.length = (uint32_t)strlen(one) + 1;

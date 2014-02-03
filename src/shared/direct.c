@@ -26,7 +26,7 @@ bool buxton_direct_open(BuxtonControl *control)
 
 	assert(control);
 
-	memset(&(control->config), 0, sizeof(BuxtonConfig));
+	memzero(&(control->config), sizeof(BuxtonConfig));
 	if(!buxton_init_layers(&(control->config)))
 		return false;
 
