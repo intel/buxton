@@ -10,7 +10,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <check.h>
@@ -931,7 +931,7 @@ int main(void)
 
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

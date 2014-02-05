@@ -10,7 +10,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <assert.h>
@@ -874,10 +874,10 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		l = read(self->pollfds[i].fd, (cl->data) + cl->offset, cl->size - cl->offset);
 
 		/*
-		* Close clients with read errors. If there isn't more
-		* data and we don't have a complete message just
-		* cleanup and let the client resend their request.
-		*/
+		 * Close clients with read errors. If there isn't more
+		 * data and we don't have a complete message just
+		 * cleanup and let the client resend their request.
+		 */
 		if (l < 0) {
 			if (errno != EAGAIN)
 				goto terminate;
@@ -943,7 +943,7 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 }
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

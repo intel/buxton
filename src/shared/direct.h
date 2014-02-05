@@ -17,7 +17,7 @@
 #pragma once
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <backend.h>
@@ -126,7 +126,7 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	__attribute__((warn_unused_result));
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

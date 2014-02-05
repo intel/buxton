@@ -10,7 +10,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <dlfcn.h>
@@ -105,7 +105,7 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 
 	out->priority = conf_layer->priority;
 	return out;
- fail:
+fail:
 	free(out->name.value);
 	free(out->description);
 	free(out);
@@ -247,7 +247,7 @@ void destroy_backend(BuxtonBackend *backend)
 }
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

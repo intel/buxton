@@ -22,12 +22,10 @@
  * GNU Lesser General Public License 2.1
  */
 
-
-
 #pragma once
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <stdbool.h>
@@ -329,7 +327,7 @@ _bx_export_ char *buxton_get_name(BuxtonString *key)
 	__attribute__((warn_unused_result));
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

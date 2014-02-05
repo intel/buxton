@@ -10,7 +10,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <check.h>
@@ -83,7 +83,7 @@ static void teardown(void)
 		fail_if(pid == -1, "waitpid error");
 		if (pid) {
 			fail("daemon crashed!");
-		} else  {
+		} else {
 			/* if the daemon is still running, kill it */
 			kill(SIGTERM, daemon_pid);
 			usleep(64*1000);
@@ -215,7 +215,7 @@ int main(void)
 }
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

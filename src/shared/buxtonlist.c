@@ -9,12 +9,16 @@
  * of the License, or (at your option) any later version.
  */
 
-#include "buxtonlist.h"
+#ifdef HAVE_CONFIG_H
+	#include "config.h"
+#endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "buxtonlist.h"
 
 bool buxton_list_append(BuxtonList **list, void *data)
 {
@@ -78,7 +82,7 @@ bool buxton_list_prepend(BuxtonList **list, void *data)
 	/* Previous item is now the head */
 	prev->data = data;
 	*list = prev;
-	
+
 	return true;
 }
 
@@ -98,7 +102,7 @@ bool buxton_list_remove(BuxtonList **list, void *data, bool do_free)
 	if (!current) {
 		return false;
 	}
-	
+
 	/* Data on the head (head removal)*/
 	if (current == head) {
 		if (head->next) {

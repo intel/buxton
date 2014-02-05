@@ -10,7 +10,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <check.h>
@@ -35,7 +35,7 @@ static void fail_strne(const char *value, char *correct_value, bool casecmp)
 	snprintf(buf, sizeof(buf), "%s was not %s", value, correct_value);
 	if (casecmp)
 		ret = strcasecmp(value, correct_value);
-	 else
+	else
 		ret = strcmp(value, correct_value);
 	fail_unless(ret == 0, buf);
 }
@@ -76,7 +76,7 @@ END_TEST
 
 START_TEST(configurator_default_smack_load_file)
 {
-	 default_test(buxton_smack_load_file(), (char*)_SMACK_LOAD_FILE, "buxton_smack_load_file()");
+	default_test(buxton_smack_load_file(), (char*)_SMACK_LOAD_FILE, "buxton_smack_load_file()");
 }
 END_TEST
 
@@ -333,7 +333,7 @@ int main(void)
 }
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

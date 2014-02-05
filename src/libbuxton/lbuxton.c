@@ -13,7 +13,7 @@
  * \file lbuxton.c Buxton library implementation
  */
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <assert.h>
@@ -287,7 +287,7 @@ ssize_t buxton_client_handle_response(BuxtonClient *client)
 }
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

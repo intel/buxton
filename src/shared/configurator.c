@@ -10,7 +10,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <assert.h>
@@ -49,7 +49,7 @@ static struct _conf {
  * @fixme name sucks
  */
 static const char *KS[CONFIG_MAX] = {
-        NULL,
+	NULL,
 	"BUXTON_CONF_FILE",
 	"BUXTON_MODULE_DIR",
 	"BUXTON_DB_PATH",
@@ -83,8 +83,8 @@ static const char *COMPILE_DEFAULT[CONFIG_MAX] = {
  * @internal
  * wrap strdup and die if malloc fails
  *
- * @note This may seem lame and stupid at first glance.  The former is
- * right the latter is not.  This function may abort()
+ * @note This may seem lame and stupid at first glance. The former is
+ * right the latter is not. This function may abort()
  *
  * @return pointer to dup'd string
  */
@@ -108,9 +108,9 @@ static inline char *_strdup(const char* string)
  *
  * @note This function may abort()
  *
- * @return The value as a string.  The the string is internal to
+ * @return The value as a string. The the string is internal to
  * libini, and if at this stage of the game it is null, just die.
- * Somethign is really wrong and even if we could recover, the system
+ * Something is really wrong and even if we could recover, the system
  * is not working correctly.
  */
 static char *get_ini_string(char *section, char *name)
@@ -273,7 +273,7 @@ int buxton_get_layers(ConfigLayer **layers)
 	n = iniparser_getnsec(conf.ini);
 	_layers = (ConfigLayer*)calloc((size_t)n, sizeof(ConfigLayer));
 	if (_layers == NULL)
-	        abort();
+		abort();
 	for (int i= 0; i < n; i++) {
 		char *section_name;
 
@@ -300,7 +300,7 @@ void include_configurator(void)
 
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

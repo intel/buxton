@@ -17,7 +17,7 @@
 #pragma once
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <stdint.h>
@@ -135,7 +135,7 @@ size_t buxton_get_message_size(uint8_t *data, size_t size)
 void include_serialize(void);
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

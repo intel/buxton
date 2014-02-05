@@ -10,7 +10,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 /**
@@ -121,11 +121,11 @@ int main(int argc, char **argv)
 
 	/* Unsigned 32bit Integers */
 	c_get_uint32 = (Command) { "get-uint32", "Get an uint32_t value by key",
-				  2, 3, "[layer] group name", &cli_get_value, UINT32 };
+				   2, 3, "[layer] group name", &cli_get_value, UINT32 };
 	hashmap_put(commands, c_get_uint32.name, &c_get_uint32);
 
 	c_set_uint32 = (Command) { "set-uint32", "Set a key with an uint32_t value",
-				  4, 4, "layer group name value", &cli_set_value, UINT32 };
+				   4, 4, "layer group name value", &cli_set_value, UINT32 };
 	hashmap_put(commands, c_set_uint32.name, &c_set_uint32);
 
 	/* 32bit Integers */
@@ -139,11 +139,11 @@ int main(int argc, char **argv)
 
 	/* Unsigned 32bit Integers */
 	c_get_uint64 = (Command) { "get-uint64", "Get an uint64_t value by key",
-				  2, 3, "[layer] group name", &cli_get_value, UINT64};
+				   2, 3, "[layer] group name", &cli_get_value, UINT64};
 	hashmap_put(commands, c_get_uint64.name, &c_get_uint64);
 
 	c_set_uint64 = (Command) { "set-uint64", "Set a key with an uint64_t value",
-				  4, 4, "layer group name value", &cli_set_value, UINT64 };
+				   4, 4, "layer group name value", &cli_set_value, UINT64 };
 	hashmap_put(commands, c_set_uint64.name, &c_set_uint64);
 
 	/* Floats */
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 
 	/* Unset value */
 	c_unset_value = (Command) { "unset-value", "Unset a value by key",
-				  3, 3, "layer group name", &cli_unset_value, STRING };
+				    3, 3, "layer group name", &cli_unset_value, STRING };
 	hashmap_put(commands, c_unset_value.name, &c_unset_value);
 
 	static struct option opts[] = {
@@ -304,7 +304,7 @@ end:
 }
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

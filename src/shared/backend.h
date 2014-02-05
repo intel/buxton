@@ -17,7 +17,7 @@
 #pragma once
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include "buxton.h"
@@ -145,7 +145,7 @@ bool buxton_init_layers(BuxtonConfig *config)
 void destroy_backend(BuxtonBackend *backend);
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8
