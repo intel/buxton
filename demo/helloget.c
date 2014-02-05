@@ -16,53 +16,44 @@
 #include <string.h>
 
 #include "buxton.h"
-#include "buxton-array.h"
 
-void get_cb(BuxtonArray *response, void *data)
+void get_cb(BuxtonResponse response, void *data)
 {
-	BuxtonData **value = (BuxtonData **)data;
-	BuxtonData *d;
+	int32_t* ret = (int32_t*)data;
 
-	d = buxton_array_get(response, 0);
-
-	if (d->store.d_int32) {
+	if (response_status(response) != BUXTON_STATUS_OK) {
 		printf("Failed to get value\n");
 		return;
 	}
 
-	*value = malloc(sizeof(BuxtonData *));
-	d = buxton_array_get(response, 2);
-	(*value)->type = d->type;
-	(*value)->store.d_int32 = d->store.d_int32;
+	*ret = *(int32_t*)response_value(response);
 }
 
 int main(void)
 {
 	BuxtonClient client;
-	BuxtonData *gvalue = NULL;
-	BuxtonString *key;
-	BuxtonString layer;
+	BuxtonKey key;
 	struct pollfd pfd[1];
 	int r;
+	int32_t gvalue = -1;
+	int fd;
 
-	if (!buxton_client_open(&client)) {
+	if ((fd = buxton_client_open(&client)) < 0) {
 		printf("couldn't connect\n");
 		return -1;
 	}
 
-	layer.value = "base";
-	layer.length = strlen("base") + 1;
-	key = buxton_make_key("hello", "test");
+	key = buxton_make_key("hello", "test", "base", INT32);
 	if (!key)
 		return -1;
 
-	if (!buxton_client_get_value_for_layer(&client, &layer, key, get_cb,
+	if (!buxton_client_get_value(client, key, get_cb,
 					       &gvalue, false)) {
 		printf("get call failed to run\n");
 		return -1;
 	}
 
-	pfd[0].fd = client.fd;
+	pfd[0].fd = fd;
 	pfd[0].events = POLLIN;
 	pfd[0].revents = 0;
 	r = poll(pfd, 1, 5000);
@@ -72,14 +63,16 @@ int main(void)
 		return -1;
 	}
 
-	if (!buxton_client_handle_response(&client)) {
+	if (!buxton_client_handle_response(client)) {
 		printf("bad response from daemon\n");
 		return -1;
 	}
 
-	if (gvalue)
-		printf("got value: %d\n", gvalue->store.d_int32);
+	if (gvalue >= 0)
+		printf("got value: %d\n", gvalue);
 
+	buxton_free_key(key);
+	buxton_client_close(client);
 	return 0;
 }
 
