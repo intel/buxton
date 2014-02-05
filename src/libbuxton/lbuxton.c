@@ -533,6 +533,8 @@ void *response_value(BuxtonResponse response)
 		d = buxton_array_get(r->data, 3);
 	else if (type == BUXTON_CONTROL_NOTIFY)
 		d = buxton_array_get(r->data, 2);
+	else if (type == BUXTON_CONTROL_CHANGED)
+		d = buxton_array_get(r->data, 2);
 	else
 		goto out;
 
