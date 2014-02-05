@@ -149,6 +149,41 @@ fail:
 	memzero(copy, sizeof(BuxtonData));
 }
 
+bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
+{
+	if (!original || !copy)
+		return false;
+
+	copy->value = malloc(original->length);
+	if (!copy->value)
+		return false;
+
+	memcpy(copy->value, original->value, original->length);
+	copy->length = original->length;
+
+	return true;
+}
+
+void data_free(BuxtonData *data)
+{
+	if (!data)
+		return;
+
+	if (data->type == STRING && data->store.d_string.value)
+		free(data->store.d_string.value);
+	free(data);
+}
+
+void string_free(BuxtonString *string)
+{
+	if (!string)
+		return;
+
+	if (string->value)
+		free(string->value);
+	free(string);
+}
+
 const char* buxton_type_as_string(BuxtonDataType type)
 {
 	switch (type) {

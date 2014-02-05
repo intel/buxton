@@ -128,6 +128,26 @@ char* get_layer_path(BuxtonLayer *layer)
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
 
 /**
+ * Perform a deep copy of one BuxtonString to another
+ * @param original The BuxtonString being copied
+ * @param copy Pointer where original should be copied to
+ */
+bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
+	__attribute__((warn_unused_result));
+
+/**
+ * Perform a deep free of BuxtonData
+ * @param data The BuxtonData being free'd
+ */
+void data_free(BuxtonData *data);
+
+/**
+ * Perform a deep free of BuxtonString
+ * @param string The BuxtonString being free'd
+ */
+void string_free(BuxtonString *string);
+
+/**
  * Get the group portion of a buxton key
  * @param key Pointer to BuxtonString representing a buxton key
  * @return A pointer to a character string containing the key's group
