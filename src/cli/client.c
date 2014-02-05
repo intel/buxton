@@ -373,6 +373,11 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 			printf("%s%s:%s = false\n", prefix, get_group(key),
 			       get_name(key));
 		break;
+	case BUXTON_TYPE_MIN:
+		printf("Requested key was not found: %s:%s\n", get_group(key),
+			       get_name(key));
+		return false;
+		break;
 	default:
 		printf("unknown type\n");
 		return false;
