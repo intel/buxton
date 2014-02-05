@@ -135,6 +135,14 @@ bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
 	__attribute__((warn_unused_result));
 
 /**
+ * Perform a deep copy of one _BuxtonKey to another
+ * @param original The _BuxtonKey being copied
+ * @param copy Pointer where original should be copied to
+ */
+bool buxton_key_copy(_BuxtonKey *original, _BuxtonKey *copy)
+	__attribute__((warn_unused_result));
+
+/**
  * Perform a deep free of BuxtonData
  * @param data The BuxtonData being free'd
  */
@@ -145,6 +153,12 @@ void data_free(BuxtonData *data);
  * @param string The BuxtonString being free'd
  */
 void string_free(BuxtonString *string);
+
+/**
+ * Perform a deep free of _BuxtonKey
+ * @param string The _BuxtonKey being free'd
+ */
+void key_free(_BuxtonKey *key);
 
 /**
  * Get the group portion of a buxton key

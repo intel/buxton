@@ -152,6 +152,36 @@ bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
 	return true;
 }
 
+bool buxton_key_copy(_BuxtonKey *original, _BuxtonKey *copy)
+{
+	if (!original || !copy)
+		return false;
+
+	if (original->group.value)
+		if(!buxton_string_copy(&original->group, &copy->group))
+			goto fail;
+	if (original->name.value)
+		if(!buxton_string_copy(&original->name, &copy->name))
+			goto fail;
+	if (original->layer.value)
+		if(!buxton_string_copy(&original->layer, &copy->layer))
+			goto fail;
+	copy->type = original->type;
+
+	return true;
+
+fail:
+	if (original->group.value)
+		free(copy->group.value);
+	if (original->name.value)
+		free(copy->name.value);
+	if (original->layer.value)
+		free(copy->layer.value);
+	copy->type = BUXTON_TYPE_MIN;
+
+	return false;
+}
+
 void data_free(BuxtonData *data)
 {
 	if (!data)
@@ -170,6 +200,17 @@ void string_free(BuxtonString *string)
 	if (string->value)
 		free(string->value);
 	free(string);
+}
+
+void key_free(_BuxtonKey *key)
+{
+	if (!key)
+		return;
+
+	free(key->group.value);
+	free(key->name.value);
+	free(key->layer.value);
+	free(key);
 }
 
 const char* buxton_type_as_string(BuxtonDataType type)

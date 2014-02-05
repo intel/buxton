@@ -125,6 +125,7 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 		  BuxtonControlMessage type, _BuxtonKey *key)
 {
 	struct notify_value *nv, *nvi;
+	_BuxtonKey *k = NULL;
 	int s;
 	bool r = false;
 	Iterator it;
@@ -132,17 +133,25 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 
 	nv = malloc0(sizeof(struct notify_value));
 	if (!nv)
-		goto end;
+		goto fail;
+
+	if (key) {
+		k = malloc0(sizeof(_BuxtonKey));
+		if (!k)
+			goto fail;
+		if (!buxton_key_copy(key, k))
+			goto fail;
+	}
 
 	(void)gettimeofday(&nv->tv, NULL);
 	nv->cb = callback;
 	nv->data = data;
 	nv->type = type;
-	nv->key = key;
+	nv->key = k;
 
 	s = pthread_mutex_lock(&callback_guard);
 	if (s)
-		goto end;
+		goto fail;
 
 	/* remove timed out callbacks */
 	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
@@ -157,20 +166,23 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 
 	if (s < 1) {
 		buxton_debug("Error adding callback for msgid: %llu\n", msgid);
-		free(nv);
-		goto end;
+		goto fail;
 	}
 
 	/* Now write it off */
 	if (!_write(client->fd, send, send_len)) {
 		buxton_debug("Write failed for msgid: %llu\n", msgid);
-		goto end;
+		r = false;
+	} else {
+		r = true;
 	}
 
-	r = true;
-
-end:
 	return r;
+
+fail:
+	free(nv);
+	key_free(k);
+	return false;
 }
 
 void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
@@ -212,6 +224,7 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 	/* and on any other server message we are waiting for */
 	run_callback((BuxtonCallback)(nv->cb), nv->data, count, list, nv->type);
 
+	key_free(nv->key);
 	free(nv);
 }
 
