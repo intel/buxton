@@ -249,27 +249,35 @@ void get_value_callback(BuxtonResponse response, void *data)
 	case STRING:
 		r->store.d_string.value = (char *)p;
 		r->store.d_string.length = (uint32_t)strlen(r->store.d_string.value) + 1;
+		r->type = STRING;
 		break;
 	case INT32:
 		r->store.d_int32 = *(int32_t *)p;
+		r->type = INT32;
 		break;
 	case UINT32:
 		r->store.d_uint32 = *(uint32_t *)p;
+		r->type = UINT32;
 		break;
 	case INT64:
 		r->store.d_int64 = *(int64_t *)p;
+		r->type = INT64;
 		break;
 	case UINT64:
 		r->store.d_uint64 = *(uint64_t *)p;
+		r->type = UINT64;
 		break;
 	case FLOAT:
 		r->store.d_float = *(float *)p;
+		r->type = FLOAT;
 		break;
 	case DOUBLE:
 		r->store.d_double = *(double *)p;
+		r->type = DOUBLE;
 		break;
 	case BOOLEAN:
 		r->store.d_boolean = *(bool *)p;
+		r->type = BOOLEAN;
 		break;
 	default:
 		break;
