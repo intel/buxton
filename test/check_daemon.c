@@ -552,7 +552,7 @@ START_TEST(set_value_check)
 	client_list_item client;
 	BuxtonStatus status;
 	BuxtonDaemon server;
-	BuxtonString clabel;
+	BuxtonString clabel = buxton_string_pack("_");
 
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
@@ -609,7 +609,7 @@ START_TEST(get_value_check)
 	client_list_item client;
 	BuxtonStatus status;
 	BuxtonDaemon server;
-	BuxtonString clabel;
+	BuxtonString clabel = buxton_string_pack("_");
 
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
@@ -651,7 +651,7 @@ START_TEST(register_notification_check)
 {
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	client_list_item client, no_client;
-	BuxtonString clabel;
+	BuxtonString clabel = buxton_string_pack("_");
 	BuxtonStatus status;
 	BuxtonDaemon server;
 	uint64_t msgid;
