@@ -283,7 +283,8 @@ void get_value_callback(BuxtonResponse response, void *data)
 		break;
 	}
 
-	free(p);
+	if (buxton_get_type(key) != STRING)
+		free(p);
 	free(key);
 }
 
