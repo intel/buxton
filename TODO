@@ -100,3 +100,28 @@ Difficulty: Medium
 Time to complete: 2
 Target: v1
 Status:
+
+Description: Add client library support for list_keys
+Difficulty: Medium
+Time to complete: 3
+Target: v1
+Status:
+
+Description: Ensure all public apis give copies of data
+Difficulty: Simple
+Time to complete: 1
+Target: v1
+Status:
+
+Description: Make set fail if types don't align, must unset to change type
+Difficulty: Simple
+Time to complete: 3
+Target: v1
+Status:
+
+Description: Store and use copy of client key in notify (daemon no longer
+	     to send group and name in response)
+Difficulty: Medium
+Time to complete: 4
+Target: ??
+Status:
