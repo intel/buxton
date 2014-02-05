@@ -40,6 +40,7 @@ struct notify_value {
 	BuxtonCallback cb;
 	struct timeval tv;
 	BuxtonControlMessage type;
+	_BuxtonKey *key;
 };
 
 static uint64_t get_msgid(void)
@@ -121,7 +122,7 @@ out:
 
 bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 		  BuxtonCallback callback, void *data, uint64_t msgid,
-		  BuxtonControlMessage type)
+		  BuxtonControlMessage type, _BuxtonKey *key)
 {
 	struct notify_value *nv, *nvi;
 	int s;
@@ -137,6 +138,7 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 	nv->cb = callback;
 	nv->data = data;
 	nv->type = type;
+	nv->key = key;
 
 	s = pthread_mutex_lock(&callback_guard);
 	if (s)
@@ -380,7 +382,7 @@ bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
 
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_SET))
+			  BUXTON_CONTROL_SET, key))
 		goto end;
 
 	ret = true;
@@ -431,7 +433,7 @@ bool buxton_wire_set_label(_BuxtonClient *client,
 		goto end;
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_SET_LABEL))
+			  BUXTON_CONTROL_SET_LABEL, key))
 		goto end;
 
 	ret = true;
@@ -486,7 +488,7 @@ bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 		goto end;
 
 	if(!send_message(client, send, send_len, callback, data, msgid,
-			 BUXTON_CONTROL_GET))
+			 BUXTON_CONTROL_GET, key))
 		goto end;
 
 	ret = true;
@@ -545,7 +547,7 @@ bool buxton_wire_unset_value(_BuxtonClient *client,
 		goto end;
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_UNSET))
+			  BUXTON_CONTROL_UNSET, key))
 		goto end;
 
 	ret = true;
@@ -585,7 +587,7 @@ bool buxton_wire_list_keys(_BuxtonClient *client,
 		goto end;
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-		    BUXTON_CONTROL_LIST))
+			  BUXTON_CONTROL_LIST, NULL))
 		goto end;
 
 	ret = true;
@@ -639,7 +641,7 @@ bool buxton_wire_register_notification(_BuxtonClient *client,
 		goto end;
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-		    BUXTON_CONTROL_NOTIFY))
+			  BUXTON_CONTROL_NOTIFY, key))
 		goto end;
 
 	ret = true;
@@ -692,7 +694,7 @@ bool buxton_wire_unregister_notification(_BuxtonClient *client,
 		goto end;
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-		    BUXTON_CONTROL_UNNOTIFY))
+			  BUXTON_CONTROL_UNNOTIFY, key))
 		goto end;
 
 	ret = true;

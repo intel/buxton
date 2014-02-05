@@ -402,7 +402,7 @@ START_TEST(send_message_check)
 					0, out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	fail_if(!send_message(&client, source, size, NULL, NULL, 0,
-			      BUXTON_CONTROL_STATUS),
+			      BUXTON_CONTROL_STATUS, NULL),
 		"Failed to write message 1");
 
 	cleanup_callbacks();
@@ -465,28 +465,28 @@ START_TEST(handle_callback_response_check)
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 1, BUXTON_CONTROL_SET),
+			      &test_data, 1, BUXTON_CONTROL_SET, NULL),
 		"Failed to send message 1");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 1, bad1, 1);
 	fail_if(test_data, "Failed to set cb data non notify type");
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 2, BUXTON_CONTROL_NOTIFY),
+			      &test_data, 2, BUXTON_CONTROL_NOTIFY, NULL),
 		"Failed to send message 2");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 2, bad1, 1);
 	fail_if(test_data, "Failed to set notify bad1 data");
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 3, BUXTON_CONTROL_NOTIFY),
+			      &test_data, 3, BUXTON_CONTROL_NOTIFY, NULL),
 		"Failed to send message 3");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 3, bad2, 1);
 	fail_if(test_data, "Failed to set notify bad2 data");
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 4, BUXTON_CONTROL_NOTIFY),
+			      &test_data, 4, BUXTON_CONTROL_NOTIFY, NULL),
 		"Failed to send message 4");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 4, good, 1);
 	fail_if(!test_data, "Set notify good data");
@@ -494,14 +494,14 @@ START_TEST(handle_callback_response_check)
 	/* ensure we run callback on duplicate msgid */
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 4, BUXTON_CONTROL_NOTIFY),
+			      &test_data, 4, BUXTON_CONTROL_NOTIFY, NULL),
 		"Failed to send message 4-2");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 4, good, 1);
 	fail_if(test_data, "Failed to set notify duplicate msgid");
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 5, BUXTON_CONTROL_NOTIFY),
+			      &test_data, 5, BUXTON_CONTROL_NOTIFY, NULL),
 		"Failed to send message 5");
 	handle_callback_response(BUXTON_CONTROL_CHANGED, 4, good, 1);
 	fail_if(test_data, "Failed to set changed data");
@@ -513,7 +513,7 @@ START_TEST(handle_callback_response_check)
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 6, BUXTON_CONTROL_UNNOTIFY),
+			      &test_data, 6, BUXTON_CONTROL_UNNOTIFY, NULL),
 		"Failed to send message 6");
 	printf("non_notify start\n");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 6, bad1, 1);
@@ -521,14 +521,14 @@ START_TEST(handle_callback_response_check)
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 7, BUXTON_CONTROL_UNNOTIFY),
+			      &test_data, 7, BUXTON_CONTROL_UNNOTIFY, NULL),
 		"Failed to send message 7");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 7, bad2, 1);
 	fail_if(test_data, "Failed to set unnotify bad2 data");
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 8, BUXTON_CONTROL_UNNOTIFY),
+			      &test_data, 8, BUXTON_CONTROL_UNNOTIFY, NULL),
 		"Failed to send message 8");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 8, good_unnotify, 1);
 	fail_if(!test_data, "Set unnotify good data");
@@ -573,7 +573,7 @@ START_TEST(buxton_wire_handle_response_check)
 	buxton_array_free(&out_list, NULL);
 	fail_if(size == 0, "Failed to serialize message");
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 0, BUXTON_CONTROL_STATUS),
+			      &test_data, 0, BUXTON_CONTROL_STATUS, NULL),
 		"Failed to send message");
 
 	/* server */
@@ -621,7 +621,7 @@ START_TEST(buxton_wire_get_response_check)
 	buxton_array_free(&out_list, NULL);
 	fail_if(size == 0, "Failed to serialize message");
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 0, BUXTON_CONTROL_STATUS),
+			      &test_data, 0, BUXTON_CONTROL_STATUS, NULL),
 		"Failed to send message");
 
 	/* server */

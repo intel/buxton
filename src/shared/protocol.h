@@ -63,7 +63,7 @@ void run_callback(BuxtonCallback callback, void *data, size_t count,
  */
 bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 		  BuxtonCallback callback, void *data, uint64_t msgid,
-		  BuxtonControlMessage type)
+		  BuxtonControlMessage type, _BuxtonKey *key)
 	__attribute__((warn_unused_result));
 
 /**
