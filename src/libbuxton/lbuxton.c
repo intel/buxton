@@ -430,7 +430,7 @@ BuxtonStatus response_status(BuxtonResponse response)
 
 BuxtonKey response_key(BuxtonResponse response)
 {
-	_BuxtonKey *key;
+	_BuxtonKey *key = NULL;
 	BuxtonData *d;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
 	BuxtonControlMessage type;
