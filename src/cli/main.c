@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	bool help = false;
 	control.client.direct = false;
 	char *conf_path = NULL;
-	BuxtonClient client = (BuxtonClient)(&control.client);
+	BuxtonClient client;
 
 	/* libtool bites my twinkie */
 	include_configurator();
@@ -281,11 +281,12 @@ int main(int argc, char **argv)
 		if (conf_path)
 			if (!buxton_client_set_conf_file(conf_path))
 				printf("Failed to set configuration file path\n");
-		if (!buxton_client_open(&client)) {
+		if (buxton_client_open(&client) < 0) {
 			buxton_log("Failed to talk to Buxton\n");
 			ret = false;
 			goto end;
 		}
+		control.client = *(_BuxtonClient *)client;
 	}
 
 	/* Connected to buxton_client, execute method */
