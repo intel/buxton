@@ -105,11 +105,12 @@ size_t buxton_serialize(BuxtonData *source, BuxtonString *label,
 		goto end;
 	}
 
-	*target = data;
 	ret = size;
 end:
 	if (ret < BXT_MINIMUM_SIZE)
 		free(data);
+	else
+		*target = data;
 
 	return ret;
 }

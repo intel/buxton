@@ -15,52 +15,47 @@
 #include <string.h>
 
 #include "buxton.h"
-#include "buxton-array.h"
 
-void set_cb(BuxtonArray *response, void *data)
+void set_cb(BuxtonResponse response, void *data)
 {
-	BuxtonData *d;
+	BuxtonKey key;
 
-	d = buxton_array_get(response, 0);
-	if (d->store.d_int32) {
+	if (response_status(response) != BUXTON_STATUS_OK) {
 		printf("Failed to set value\n");
 		return;
 	}
 
-	d = buxton_array_get(response, 1);
-	printf("Set value for key %s\n", d->store.d_string.value);
+	key = response_key(response);
+	printf("Set value for key %s\n", buxton_get_name(key));
 }
 
 int main(void)
 {
 	BuxtonClient client;
-	BuxtonData svalue;
-	BuxtonString *key;
-	BuxtonString layer;
+	BuxtonKey key;
 	struct pollfd pfd[1];
 	int r;
+	int fd;
+	int32_t set;
 
-	if (!buxton_client_open(&client)) {
+	if ((fd = buxton_client_open(&client)) < 0) {
 		printf("couldn't connect\n");
 		return -1;
 	}
 
-	layer.value = "base";
-	layer.length = strlen("base") + 1;
-	key = buxton_make_key("hello", "test");
+	key = buxton_make_key("hello", "test", "base", INT32);
 	if (!key)
 		return -1;
 
-	svalue.type = INT32;
-	svalue.store.d_int32 = 10;
+	set = 10;
 
-	if (!buxton_client_set_value(&client, &layer, key, &svalue, set_cb,
+	if (!buxton_client_set_value(client, key, &set, set_cb,
 				     NULL, false)) {
 		printf("set call failed to run\n");
 		return -1;
 	}
 
-	pfd[0].fd = client.fd;
+	pfd[0].fd = fd;
 	pfd[0].events = POLLIN;
 	pfd[0].revents = 0;
 	r = poll(pfd, 1, 5000);
@@ -70,11 +65,13 @@ int main(void)
 		return -1;
 	}
 
-	if (!buxton_client_handle_response(&client)) {
+	if (!buxton_client_handle_response(client)) {
 		printf("bad response from daemon\n");
 		return -1;
 	}
 
+	buxton_free_key(key);
+	buxton_client_close(client);
 	return 0;
 }
 

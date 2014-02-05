@@ -14,48 +14,48 @@
 #include <stdio.h>
 
 #include "buxton.h"
-#include "buxton-array.h"
 
-void notify_cb(BuxtonArray *response, void *data)
+void notify_cb(BuxtonResponse response, void *data)
 {
-	BuxtonData *d;
-	char *k;
 	bool *status = (bool *)data;
+	BuxtonKey key;
+	int32_t value;
 
-	d = buxton_array_get(response, 0);
-	if (d->type != STRING) {
+	key = response_key(response);
+	if (response_value(response) == NULL) {
 		*status = false;
 		return;
 	}
 
-	k = d->store.d_string.value;
-	d = buxton_array_get(response, 1);
-	printf("key %s updated with new value %d\n", k, d->store.d_int32);
+	value = *(int32_t*)response_value(response);
+	printf("key %s updated with new value %d\n", buxton_get_name(key),
+		value);
 }
 
 int main(void)
 {
 	BuxtonClient client;
-	BuxtonString *key;
+	BuxtonKey key;
 	bool status = true;
 	struct pollfd pfd[1];
 	int r;
+	int fd;
 
-	if (!buxton_client_open(&client)) {
+	if ((fd = buxton_client_open(&client)) < 0) {
 		printf("couldn't connect\n");
 		return -1;
 	}
 
-	key = buxton_make_key("hello", "test");
+	key = buxton_make_key("hello", "test", NULL, INT32);
 	if (!key)
 		return -1;
 
-	if (!buxton_client_register_notification(&client, key, notify_cb, &status, false)) {
+	if (!buxton_client_register_notification(client, key, notify_cb, &status, false)) {
 		printf("set call failed to run\n");
 		return -1;
 	}
 repoll:
-	pfd[0].fd = client.fd;
+	pfd[0].fd = fd;
 	pfd[0].events = POLLIN;
 	pfd[0].revents = 0;
 	r = poll(pfd, 1, 5000);
@@ -67,7 +67,7 @@ repoll:
 		goto repoll;
 	}
 
-	if (!buxton_client_handle_response(&client)) {
+	if (!buxton_client_handle_response(client)) {
 		printf("bad response from daemon\n");
 		return -1;
 	}
@@ -78,6 +78,9 @@ repoll:
 	}
 
 	goto repoll;
+
+	buxton_free_key(key);
+	buxton_client_close(client);
 
 	return 0;
 }
