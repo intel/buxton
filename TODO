@@ -124,4 +124,4 @@ Description: Store and use copy of client key in notify (daemon no longer
 Difficulty: Medium
 Time to complete: 4
 Target: ??
-Status:
+Status: Mostly implemented, daemon still sends the group and key data
