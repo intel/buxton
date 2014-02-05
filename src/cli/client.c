@@ -193,10 +193,12 @@ void get_value_callback(BuxtonArray *array, void *data)
 {
 	BuxtonData *r;
 	BuxtonData *d = buxton_array_get(array, 0);
-	if (d->store.d_int32 != BUXTON_STATUS_OK)
+	if ((d == NULL) || (d->store.d_int32 != BUXTON_STATUS_OK))
 		return;
 
 	d = buxton_array_get(array, 2);
+	if (d == NULL)
+		return;
 	r = (BuxtonData *)data;
 	r->type = d->type;
 	switch (r->type) {
@@ -342,7 +344,7 @@ static void list_keys_callback(BuxtonArray *array, void *data)
 {
 	BuxtonData *r;
 	BuxtonData *d = buxton_array_get(array, 0);
-	if (d->store.d_int32 != BUXTON_STATUS_OK)
+	if ((d == NULL) || (d->store.d_int32 != BUXTON_STATUS_OK))
 		return;
 
 	BuxtonString *layer = (BuxtonString*)data;
@@ -403,6 +405,8 @@ bool cli_list_keys(BuxtonControl *control,
 void unset_value_callback(BuxtonArray *array, void *data)
 {
 	BuxtonData *d = buxton_array_get(array, 1);
+	if (d == NULL)
+		return;
 	printf("unset key %s\n", d->store.d_string.value);
 }
 

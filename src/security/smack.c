@@ -121,6 +121,7 @@ bool buxton_cache_smack_rules(void)
 		accesstype = malloc0(sizeof(BuxtonKeyAccessType));
 		if (!accesstype) {
 			buxton_log("malloc0(): %m\n");
+			free(rule_pair);
 			ret = false;
 			goto end;
 		}
