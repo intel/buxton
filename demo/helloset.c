@@ -12,6 +12,7 @@
 #define _GNU_SOURCE
 #include <poll.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "buxton.h"
@@ -19,6 +20,7 @@
 void set_cb(BuxtonResponse response, void *data)
 {
 	BuxtonKey key;
+	char *name;
 
 	if (response_status(response) != BUXTON_STATUS_OK) {
 		printf("Failed to set value\n");
@@ -26,7 +28,10 @@ void set_cb(BuxtonResponse response, void *data)
 	}
 
 	key = response_key(response);
+	name = buxton_get_name(key);
 	printf("Set value for key %s\n", buxton_get_name(key));
+	buxton_free_key(key);
+	free(name);
 }
 
 int main(void)

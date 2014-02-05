@@ -12,6 +12,7 @@
 #define _GNU_SOURCE
 #include <poll.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "buxton.h"
 
@@ -20,16 +21,22 @@ void notify_cb(BuxtonResponse response, void *data)
 	bool *status = (bool *)data;
 	BuxtonKey key;
 	int32_t value;
+	char *name;
 
-	key = response_key(response);
 	if (response_value(response) == NULL) {
 		*status = false;
 		return;
 	}
 
+	key = response_key(response);
+	name = buxton_get_name(key);
+
 	value = *(int32_t*)response_value(response);
 	printf("key %s updated with new value %d\n", buxton_get_name(key),
 		value);
+
+	buxton_free_key(key);
+	free(name);
 }
 
 int main(void)
