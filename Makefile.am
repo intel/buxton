@@ -59,6 +59,7 @@ LIBBUXTON_REVISION=1
 LIBBUXTON_AGE=0
 
 TESTS = \
+	check_db_clean \
 	check_buxton \
 	check_shared_lib \
 	check_daemon \
