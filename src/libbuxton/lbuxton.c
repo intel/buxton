@@ -431,91 +431,22 @@ BuxtonStatus response_status(BuxtonResponse response)
 BuxtonKey response_key(BuxtonResponse response)
 {
 	_BuxtonKey *key = NULL;
-	BuxtonData *d;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
-	BuxtonControlMessage type;
 
 	if (!response)
-		goto fail;
+		return NULL;
+
+	if (response_type(response) == BUXTON_CONTROL_LIST)
+		return NULL;
 
 	key = malloc0(sizeof(_BuxtonKey));
 	if (!key)
-		goto fail;
+		return NULL;
 
-	type = response_type(response);
-	switch (type) {
-	case BUXTON_CONTROL_GET:
-		d = buxton_array_get(r->data, 1);
-		if (!buxton_string_copy(&d->store.d_string, &key->group))
-			goto fail;
-		d = buxton_array_get(r->data, 2);
-		if (!buxton_string_copy(&d->store.d_string, &key->name))
-			goto fail;
-		break;
-	case BUXTON_CONTROL_SET:
-		d = buxton_array_get(r->data, 1);
-		if (!buxton_string_copy(&d->store.d_string, &key->group))
-			goto fail;
-		d = buxton_array_get(r->data, 2);
-		if (!buxton_string_copy(&d->store.d_string, &key->name))
-			goto fail;
-		break;
-	case BUXTON_CONTROL_SET_LABEL:
-		d = buxton_array_get(r->data, 1);
-		if (!buxton_string_copy(&d->store.d_string, &key->group))
-			goto fail;
-		if (r->data->len == 3) {
-			d = buxton_array_get(r->data, 2);
-			if (!buxton_string_copy(&d->store.d_string, &key->name))
-				goto fail;
-		}
-		break;
-	case BUXTON_CONTROL_UNSET:
-		d = buxton_array_get(r->data, 1);
-		if (!buxton_string_copy(&d->store.d_string, &key->group))
-			goto fail;
-		d = buxton_array_get(r->data, 2);
-		if (!buxton_string_copy(&d->store.d_string, &key->name))
-			goto fail;
-		break;
-	case BUXTON_CONTROL_NOTIFY:
-		d = buxton_array_get(r->data, 1);
-		if (!buxton_string_copy(&d->store.d_string, &key->group))
-			goto fail;
-		d = buxton_array_get(r->data, 2);
-		if (!buxton_string_copy(&d->store.d_string, &key->name))
-			goto fail;
-		break;
-	case BUXTON_CONTROL_UNNOTIFY:
-		d = buxton_array_get(r->data, 1);
-		if (!buxton_string_copy(&d->store.d_string, &key->group))
-			goto fail;
-		d = buxton_array_get(r->data, 2);
-		if (!buxton_string_copy(&d->store.d_string, &key->name))
-			goto fail;
-		break;
-	case BUXTON_CONTROL_CHANGED:
-		d = buxton_array_get(r->data, 0);
-		if (!buxton_string_copy(&d->store.d_string, &key->group))
-			goto fail;
-		d = buxton_array_get(r->data, 1);
-		if (!buxton_string_copy(&d->store.d_string, &key->name))
-			goto fail;
-	default:
-		goto fail;
-		break;
-	}
+	if (!buxton_key_copy(r->key, key))
+		return NULL;
 
 	return (BuxtonKey)key;
-
-fail:
-	if (key) {
-		free(key->group.value);
-		free(key->name.value);
-		free(key);
-	}
-
-	return NULL;
 }
 
 void *response_value(BuxtonResponse response)
