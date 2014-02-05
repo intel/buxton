@@ -69,20 +69,20 @@ char* get_layer_path(BuxtonLayer *layer)
 	assert(layer);
 
 	switch (layer->type) {
-		case LAYER_SYSTEM:
-			r = asprintf(&path, "%s/%s.db", buxton_db_path(), layer->name.value);
-			if (r == -1)
-				return NULL;
-			break;
-		case LAYER_USER:
-			/* uid must already be set in layer before calling */
-			sprintf(uid, "%d", (int)layer->uid);
-			r = asprintf(&path, "%s/%s-%s.db", buxton_db_path(), layer->name.value, uid);
-			if (r == -1)
-				return NULL;
-			break;
-		default:
-			break;
+	case LAYER_SYSTEM:
+		r = asprintf(&path, "%s/%s.db", buxton_db_path(), layer->name.value);
+		if (r == -1)
+			return NULL;
+		break;
+	case LAYER_USER:
+		/* uid must already be set in layer before calling */
+		sprintf(uid, "%d", (int)layer->uid);
+		r = asprintf(&path, "%s/%s-%s.db", buxton_db_path(), layer->name.value, uid);
+		if (r == -1)
+			return NULL;
+		break;
+	default:
+		break;
 	}
 
 	return path;
@@ -91,62 +91,50 @@ char* get_layer_path(BuxtonLayer *layer)
 void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 {
 	BuxtonDataStore store;
-	BuxtonString label;
 
 	assert(original);
-	assert(original->label.value);
 	assert(copy);
 
-	memzero(&label, sizeof(BuxtonString));
-	label.value = malloc(original->label.length);
-	if (!label.value)
-		goto fail;
-	memcpy(label.value, original->label.value, original->label.length);
-	label.length = original->label.length;
-
 	switch (original->type) {
-		case STRING:
-			store.d_string.value = malloc(original->store.d_string.length);
-			if (!store.d_string.value)
-				goto fail;
-			memcpy(store.d_string.value, original->store.d_string.value, original->store.d_string.length);
-			store.d_string.length = original->store.d_string.length;
-			break;
-		case INT32:
-			store.d_int32 = original->store.d_int32;
-			break;
-		case UINT32:
-			store.d_uint32 = original->store.d_uint32;
-			break;
-		case INT64:
-			store.d_int64 = original->store.d_int64;
-			break;
-		case UINT64:
-			store.d_uint64 = original->store.d_uint64;
-			break;
-		case FLOAT:
-			store.d_float = original->store.d_float;
-			break;
-		case DOUBLE:
-			store.d_double = original->store.d_double;
-			break;
-		case BOOLEAN:
-			store.d_boolean = original->store.d_boolean;
-			break;
-		default:
+	case STRING:
+		store.d_string.value = malloc(original->store.d_string.length);
+		if (!store.d_string.value)
 			goto fail;
+		memcpy(store.d_string.value, original->store.d_string.value, original->store.d_string.length);
+		store.d_string.length = original->store.d_string.length;
+		break;
+	case INT32:
+		store.d_int32 = original->store.d_int32;
+		break;
+	case UINT32:
+		store.d_uint32 = original->store.d_uint32;
+		break;
+	case INT64:
+		store.d_int64 = original->store.d_int64;
+		break;
+	case UINT64:
+		store.d_uint64 = original->store.d_uint64;
+		break;
+	case FLOAT:
+		store.d_float = original->store.d_float;
+		break;
+	case DOUBLE:
+		store.d_double = original->store.d_double;
+		break;
+	case BOOLEAN:
+		store.d_boolean = original->store.d_boolean;
+		break;
+	default:
+		goto fail;
 	}
 
 	copy->type = original->type;
 	copy->store = store;
-	copy->label = label;
 
 	return;
 
 fail:
-	if (label.value)
-		free(label.value);
-	memzero(copy, sizeof(BuxtonData));
+	memset(copy, 0, sizeof(BuxtonData));
 }
 
 bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
@@ -187,50 +175,49 @@ void string_free(BuxtonString *string)
 const char* buxton_type_as_string(BuxtonDataType type)
 {
 	switch (type) {
-		case STRING:
-			return "string";
-		case INT32:
-			return "int32_t";
-		case UINT32:
-			return "uint32_t";
-		case INT64:
-			return "int64_t";
-		case UINT64:
-			return "uint64_t";
-		case FLOAT:
-			return "float";
-		case DOUBLE:
-			return "double";
-		case BOOLEAN:
-			return "boolean";
-		default:
-			return "[unknown]";
+	case STRING:
+		return "string";
+	case INT32:
+		return "int32_t";
+	case UINT32:
+		return "uint32_t";
+	case INT64:
+		return "int64_t";
+	case UINT64:
+		return "uint64_t";
+	case FLOAT:
+		return "float";
+	case DOUBLE:
+		return "double";
+	case BOOLEAN:
+		return "boolean";
+	default:
+		return "[unknown]";
 	}
 }
 
-char *get_group(BuxtonString *key)
+char *get_group(_BuxtonKey *key)
 {
-	if (!key || !(key->value) || !(*(key->value)))
-		return NULL;
+	if (key && key->group.value)
+		return strdup(key->group.value);
 
-	return key->value;
+	return NULL;
 }
 
-char *get_name(BuxtonString *key)
+char *get_name(_BuxtonKey *key)
 {
-	char *c;
+	if (key && key->name.value)
+		return strdup(key->name.value);
 
-	if (!key || !(key->value))
-		return NULL;
+	return NULL;
+}
 
-	c = strchr(key->value, 0);
-	if (!c)
-		return NULL;
-	if (c - (key->value + (key->length - 1)) >= 0)
-		return NULL;
-	c++;
+char *get_layer(_BuxtonKey *key)
+{
+	if (key && key->layer.value)
+		return strdup(key->layer.value);
 
-	return c;
+	return NULL;
 }
 
 bool _write(int fd, uint8_t *buf, size_t nbytes)

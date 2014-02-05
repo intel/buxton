@@ -19,6 +19,7 @@
 #include <sys/inotify.h>
 
 #include "buxton.h"
+#include "buxtonkey.h"
 #include "configurator.h"
 #include "direct.h"
 #include "hashmap.h"
@@ -237,9 +238,8 @@ int buxton_watch_smack_rules(void)
 }
 
 bool buxton_check_read_access(BuxtonControl *control,
-			      BuxtonString *layer,
-			      BuxtonString *key,
-			      BuxtonString *label,
+			      _BuxtonKey *key,
+			      BuxtonString *data_label,
 			      BuxtonString *client_label)
 {
 	smack_check();
@@ -249,13 +249,13 @@ bool buxton_check_read_access(BuxtonControl *control,
 	 * are in the correct spot
 	 */
 	assert(key);
-	assert(label);
+	assert(data_label);
 	assert(client_label);
 
-	char *group = get_group(key);
-	char *name = get_name(key);
+	char *group = key->group.value;
+	char *name = key->name.value;
 	if (!group) {
-		buxton_log("Invalid group or key: %s\n", key->value);
+		buxton_log("Invalid group or key: %s\n", key->group.value);
 		return false;
 	}
 
@@ -271,7 +271,7 @@ bool buxton_check_read_access(BuxtonControl *control,
 		 * should also be readable.
 		 */
 		if (!buxton_check_smack_access(client_label,
-					       label,
+					       data_label,
 					       ACCESS_READ)) {
 			buxton_debug("Smack: not permitted to get value\n");
 			return false;
@@ -283,25 +283,22 @@ bool buxton_check_read_access(BuxtonControl *control,
 }
 
 bool buxton_check_write_access(BuxtonControl *control,
-			       BuxtonString *layer,
-			       BuxtonString *key,
-			       BuxtonString *label,
+			       _BuxtonKey *key,
+			       BuxtonString *data_label,
 			       BuxtonString *client_label)
 {
 	smack_check();
 
 	/* The label arg may be NULL, in case of a delete */
 	assert(control);
-	assert(layer);
 	assert(key);
 	assert(client_label);
 
 	_cleanup_buxton_data_ BuxtonData *curr_data = NULL;
-
-	char *group = get_group(key);
-	char *name = get_name(key);
+	char *group = key->group.value;
+	char *name = key->name.value;
 	if (!group) {
-		buxton_log("Invalid group or key: %s\n", key->value);
+		buxton_log("Invalid group or key: %s\n", key->group.value);
 		return false;
 	}
 
@@ -309,48 +306,35 @@ bool buxton_check_write_access(BuxtonControl *control,
 		/* TODO: Once non-direct clients are able to set
 		 * group labels, we need an access check here.
 		 */
-	} else {
-		curr_data = malloc0(sizeof(BuxtonData));
-		if (!curr_data) {
-			buxton_log("malloc0: %m\n");
+	}
+
+	curr_data = malloc0(sizeof(BuxtonData));
+	if (!curr_data) {
+		buxton_log("malloc0: %m\n");
+		return false;
+	}
+
+	/* Avoid the read access permissions check here
+	 * (by passing NULL for the client label), since
+	 * this is an internal daemon operation.
+	 */
+	bool valid = buxton_direct_get_value(control,
+					     key,
+					     curr_data,
+					     data_label,
+					     NULL);
+
+	if (!valid) {
+		//FIXME anybody can create a new value
+		return true;
+	}
+
+	if (valid) {
+		if (!buxton_check_smack_access(client_label,
+					       data_label,
+					       ACCESS_WRITE)) {
+			buxton_debug("Smack: not permitted to modify existing value\n");
 			return false;
-		}
-
-		/* Avoid the read access permissions check here
-		 * (by passing NULL for the client label), since
-		 * this is an internal daemon operation.
-		 */
-		bool valid = buxton_direct_get_value_for_layer(control,
-							       layer,
-							       key,
-							       curr_data,
-							       NULL);
-
-		if (label && !valid && !buxton_check_smack_access(client_label,
-								 label,
-								 ACCESS_WRITE)) {
-			buxton_debug("Smack: not permitted to set new value\n");
-			return false;
-		}
-
-		if (valid) {
-			if (!buxton_check_smack_access(client_label,
-						       &(curr_data->label),
-						       ACCESS_WRITE)) {
-				buxton_debug("Smack: not permitted to modify existing value\n");
-				return false;
-			}
-
-			if (label) {
-				/* The existing label should be preserved */
-				free(label->value);
-				label->value = strdup(curr_data->label.value);
-				if (!label->value) {
-					buxton_log("strdup: %m\n");
-					return false;
-				}
-				label->length = curr_data->label.length;
-			}
 		}
 	}
 

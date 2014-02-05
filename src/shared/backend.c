@@ -17,11 +17,10 @@
 
 #include "configurator.h"
 #include "backend.h"
-#include "buxton.h"
 #include "hashmap.h"
 #include "util.h"
 #include "log.h"
-#include "buxton-array.h"
+#include "buxtonarray.h"
 #include "smack.h"
 
 /**

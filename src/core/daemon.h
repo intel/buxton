@@ -73,13 +73,11 @@ typedef struct BuxtonDaemon {
  * @param count Number of elements in the array
  * @param list BuxtonData array to parse
  * @param key Pointer to pointer to set if key is used
- * @param layer Pointer to pointer to set if layer is used
  * @param value Pointer to pointer to set if value is used
  * @returns bool indicating success of parsing
  */
 bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
-		BuxtonString **key, BuxtonString **layer,
-		BuxtonData **value)
+		_BuxtonKey *key, BuxtonData **value)
 	__attribute__((warn_unused_result));
 
 /**
@@ -102,59 +100,51 @@ bool bt_daemon_handle_message(BuxtonDaemon *self,
  * @param value Modified value
  */
 void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
-			      BuxtonString* key, BuxtonData *value);
+			      _BuxtonKey* key, BuxtonData *value);
 
 /**
  * Buxton daemon function for setting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param layer Layer for the value being set
  * @param key Key for the value being set
  * @param value Value being set
  * @param status Will be set with the BuxtonStatus result of the operation
  */
 void set_value(BuxtonDaemon *self, client_list_item *client,
-	       BuxtonString *layer, BuxtonString *key, BuxtonData *value,
-	       BuxtonStatus *status);
+	       _BuxtonKey *key, BuxtonData *value, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for setting a label
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param layer Layer for the label being set
  * @param key Key or group for the label being set
  * @param value Label being set
  * @param status Will be set with the BuxtonStatus result of the operation
  */
 void set_label(BuxtonDaemon *self, client_list_item *client,
-	       BuxtonString *layer, BuxtonString *key, BuxtonData *value,
-	       BuxtonStatus *status);
+	       _BuxtonKey *key, BuxtonData *value, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for getting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param layer Layer for the value being sought
  * @param key Key for the value being sought
  * @param status Will be set with the BuxtonStatus result of the operation
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
-		      BuxtonString *layer, BuxtonString *key,
-		      BuxtonStatus *status)
+		      _BuxtonKey *key, BuxtonStatus *status)
 	__attribute__((warn_unused_result));
 
 /**
  * Buxton daemon function for unsetting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access
- * @param layer Layer for the value being unset
  * @param key Key for the value being dunset
  * @param status Will be set with the BuxtonStatus result of the operation
  */
 void unset_value(BuxtonDaemon *self, client_list_item *client,
-		 BuxtonString *layer, BuxtonString *key,
-		 BuxtonStatus *status);
+		 _BuxtonKey *key, BuxtonStatus *status);
 
 /**
  * Buxton daemon function for listing keys in a given layer
@@ -176,7 +166,7 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
  * @param status Will be set with the BuxtonStatus result of the operation
  */
 void register_notification(BuxtonDaemon *self, client_list_item *client,
-			   BuxtonString *key, uint64_t msgid,
+			   _BuxtonKey *key, uint64_t msgid,
 			   BuxtonStatus *status);
 
 /**
@@ -188,7 +178,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
  * @return Message ID used to send key's notifications to the client
  */
 uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
-			     BuxtonString *key, BuxtonStatus *status)
+				 _BuxtonKey *key, BuxtonStatus *status)
 	__attribute__((warn_unused_result));
 
 /**

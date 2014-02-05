@@ -14,8 +14,14 @@ BUXTON_1 {
 		buxton_client_handle_response;
 		buxton_get_group;
 		buxton_get_name;
+		buxton_get_layer;
+		buxton_get_type;
 		buxton_make_key;
-		buxton_array_get;
+		buxton_free_key;
+		response_status;
+		response_type;
+		response_key;
+		response_value;
 	local:
 		*;
 };

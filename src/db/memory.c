@@ -56,46 +56,103 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 	return db;
 }
 
-static bool set_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
+static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+		      BuxtonString *label)
 {
 	Hashmap *db;
+	BuxtonArray *array = NULL;
+	BuxtonData *data_copy = NULL;
+	BuxtonString *label_copy = NULL;
+
 	assert(layer);
 	assert(key);
 	assert(data);
+	assert(label);
 
 	db = _db_for_resource(layer);
 	if (!db)
-		return false;
+		goto fail;
 
-	hashmap_put(db, key->value, data);
+	array = buxton_array_new();
+	if (!array)
+		goto fail;
+	data_copy = malloc0(sizeof(BuxtonData *));
+	if (!data_copy)
+		goto fail;
+	label_copy = malloc0(sizeof(BuxtonString *));
+	if (!label_copy)
+		goto fail;
+
+	buxton_data_copy(data, data_copy);
+	if (!data_copy)
+		goto fail;
+	if (!buxton_string_copy(label, label_copy))
+		goto fail;
+	if (!buxton_array_add(array, data_copy))
+		goto fail;
+	if (!buxton_array_add(array, label_copy))
+		goto fail;
+
+	hashmap_put(db, key->group.value, array);
+
 	return true;
+
+fail:
+	buxton_array_free(&array, NULL);
+	if (data_copy && data_copy->type == STRING &&
+	    data_copy->store.d_string.value)
+		free(data_copy->store.d_string.value);
+	free(data_copy);
+	if (label_copy && label_copy->value)
+		free(label_copy->value);
+	free(label_copy);
+
+	return false;
 }
 
-static bool get_value(BuxtonLayer *layer, BuxtonString *key, BuxtonData *data)
+static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+		      BuxtonString *label)
 {
 	Hashmap *db;
-	BuxtonData *stored;
+	BuxtonArray *stored;
+	BuxtonData *d;
+	BuxtonString *l;
 
 	assert(layer);
 	assert(key);
+	assert(label);
 
 	db = _db_for_resource(layer);
 	if (!db)
 		return false;
 
-	stored = (BuxtonData*)hashmap_get(db, key->value);
+	stored = (BuxtonArray *)hashmap_get(db, key->group.value);
 	if (!stored)
 		return false;
-	*data = *stored;
+	d = buxton_array_get(stored, 0);
+	buxton_data_copy(d, data);
+	//FIXME have buxton_data_copy return a bool
+	if (data->type <= BUXTON_TYPE_MIN)
+		return false;
+	l = buxton_array_get(stored, 1);
+	if (!buxton_string_copy(l, label)) {
+		if (data && data->store.d_string.value)
+			free(data->store.d_string.value);
+		return false;
+	}
+
 	return true;
 }
 
 static bool unset_value(BuxtonLayer *layer,
-			BuxtonString *key,
-			__attribute__((unused)) BuxtonData *data)
+			_BuxtonKey *key,
+			__attribute__((unused)) BuxtonData *data,
+			__attribute__((unused)) BuxtonString *label)
 {
 	Hashmap *db;
-	BuxtonData *stored;
+	BuxtonArray *stored;
+	BuxtonData *d;
+	BuxtonString *l;
 
 	assert(layer);
 	assert(key);
@@ -105,22 +162,39 @@ static bool unset_value(BuxtonLayer *layer,
 		return false;
 
 	/* test if the value exists */
-	stored = (BuxtonData*)hashmap_get(db, key->value);
+	stored = (BuxtonArray *)hashmap_get(db, key->group.value);
 	if (!stored)
 		return false;
+	/* free the data */
+	d = buxton_array_get(stored, 0);
+	data_free(d);
+	l = buxton_array_get(stored, 1);
+	string_free(l);
 	/* Now remove value from the database */
-	hashmap_remove(db, key);
+	hashmap_remove(db, key->group.value);
+	buxton_array_free(&stored, NULL);
+
 	return true;
 }
 
 _bx_export_ void buxton_module_destroy(void)
 {
 	const char *key;
-	Iterator iterator;
+	Iterator iteratori, iteratoro;
 	Hashmap *map;
+	BuxtonArray *array;
+	BuxtonData *d;
+	BuxtonString *l;
 
 	/* free all hashmaps */
-	HASHMAP_FOREACH_KEY(map, key, _resources, iterator) {
+	HASHMAP_FOREACH_KEY(map, key, _resources, iteratoro) {
+		HASHMAP_FOREACH(array, map, iteratori) {
+			d = buxton_array_get(array, 0);
+			data_free(d);
+			l = buxton_array_get(array, 1);
+			string_free(l);
+			buxton_array_free(&array, NULL);
+		}
 		hashmap_free(map);
 		free((void *)key);
 		map = NULL;

@@ -30,6 +30,20 @@
 
 static Hashmap *_resources = NULL;
 
+static char *key_get_name(BuxtonString *key)
+{
+	char *c;
+
+	c = strchr(key->value, 0);
+	if (!c)
+		return NULL;
+	if (c - (key->value + (key->length - 1)) >= 0)
+		return NULL;
+	c++;
+
+	return c;
+}
+
 /* Open or create databases on the fly */
 static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 {
@@ -66,69 +80,113 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 	return db;
 }
 
-static bool set_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *data)
+static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+		      BuxtonString *label)
 {
 	GDBM_FILE db;
-	int ret;
-	datum key;
+	int ret = -1;
+	datum key_data;
 	datum value;
 	_cleanup_free_ uint8_t *data_store = NULL;
 	size_t size;
+	uint32_t sz;
 
 	assert(layer);
-	assert(key_name);
+	assert(key);
 	assert(data);
+	assert(label);
 
-	key.dptr = key_name->value;
-	key.dsize = (int)key_name->length;
+	if (key->name.value) {
+		sz = key->group.length + key->name.length;
+		key_data.dptr = malloc(sz);
+		if (!key_data.dptr)
+			return false;
+
+		/* size is string\0string\0 so just write, bonus for
+		   nil seperator being added without extra work */
+		key_data.dsize = (int)sz;
+		memcpy(key_data.dptr, key->group.value, key->group.length);
+		memcpy(key_data.dptr + key->group.length, key->name.value,
+		       key->name.length);
+	} else {
+		key_data.dptr = malloc(key->group.length);
+		if (!key_data.dptr)
+			return false;
+
+		memcpy(key_data.dptr, key->group.value, key->group.length);
+		key_data.dsize = (int)key->group.length;
+	}
 
 	db = _db_for_resource(layer);
 	if (!db)
-		return false;
+		goto end;
 
-	size = buxton_serialize(data, &data_store);
+	size = buxton_serialize(data, label, &data_store);
 	if (size < BXT_MINIMUM_SIZE)
-		return false;
+		goto end;
 
-	value.dptr = (char*)data_store;
+	value.dptr = (char *)data_store;
 	value.dsize = (int)size;
-	ret = gdbm_store(db, key, value, GDBM_REPLACE);
+	ret = gdbm_store(db, key_data, value, GDBM_REPLACE);
+
+end:
+	free(key_data.dptr);
 
 	if (ret == -1)
 		return false;
 	return true;
 }
 
-static bool get_value(BuxtonLayer *layer, BuxtonString *key_name, BuxtonData *data)
+static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+		      BuxtonString *label)
 {
 	GDBM_FILE db;
-	datum key;
+	datum key_data;
 	datum value;
 	uint8_t *data_store = NULL;
 	bool ret = false;
+	uint32_t sz;
 
 	assert(layer);
-	assert(key_name);
 
-	key.dptr = key_name->value;
-	key.dsize = (int)key_name->length;
+	if (key->name.value) {
+		sz = key->group.length + key->name.length;
+		key_data.dptr = malloc(sz);
+		if (!key_data.dptr)
+			return false;
+
+		/* size is string\0string\0 so just write, bonus for
+		   nil seperator being added without extra work */
+		key_data.dsize = (int)sz;
+		memcpy(key_data.dptr, key->group.value, key->group.length);
+		memcpy(key_data.dptr + key->group.length, key->name.value,
+		       key->name.length);
+	} else {
+		key_data.dptr = malloc(key->group.length);
+		if (!key_data.dptr)
+			return false;
+
+		memcpy(key_data.dptr, key->group.value, key->group.length);
+		key_data.dsize = (int)key->group.length;
+	}
 
 	memzero(&value, sizeof(datum));
 	db = _db_for_resource(layer);
 	if (!db)
 		goto end;
 
-	value = gdbm_fetch(db, key);
+	value = gdbm_fetch(db, key_data);
 	if (value.dsize < 0 || value.dptr == NULL)
 		goto end;
 
 	data_store = (uint8_t*)value.dptr;
-	if (!buxton_deserialize(data_store, data))
+	if (!buxton_deserialize(data_store, data, label))
 		goto end;
 
 	ret = true;
 
 end:
+	free(key_data.dptr);
 	free(value.dptr);
 	data_store = NULL;
 
@@ -136,27 +194,46 @@ end:
 }
 
 static bool unset_value(BuxtonLayer *layer,
-			BuxtonString *key_name,
-			__attribute__((unused)) BuxtonData *data)
+			_BuxtonKey *key,
+			__attribute__((unused)) BuxtonData *data,
+			__attribute__((unused)) BuxtonString *label)
 {
 	GDBM_FILE db;
-	datum key;
+	datum key_data;
 	bool ret = false;
 	int rc;
+	uint32_t sz;
 
 	assert(layer);
-	assert(key_name);
+	assert(key);
 
-	key.dptr = key_name->value;
-	key.dsize = (int)key_name->length;
+	if (key->name.value) {
+		sz = key->group.length + key->name.length;
+		key_data.dptr = malloc(sz);
+		if (!key_data.dptr)
+			return false;
+
+		/* size is string\0string\0 so just write, bonus for
+		   nil seperator being added without extra work */
+		key_data.dsize = (int)sz;
+		memcpy(key_data.dptr, key->group.value, key->group.length);
+		memcpy(key_data.dptr + key->group.length, key->name.value,
+		       key->name.length);
+	} else {
+		key_data.dptr = key->group.value;
+		key_data.dsize = (int)key->group.length;
+	}
 
 	db = _db_for_resource(layer);
 	if (!db)
-		return false;
+		goto end;
 
 	/* Negative value means the key wasn't found */
-	rc = gdbm_delete(db, key);
+	rc = gdbm_delete(db, key_data);
 	ret = rc == 0 ? true : false;
+
+end:
+	free(key_data.dptr);
 
 	return ret;
 }
@@ -169,7 +246,7 @@ static bool list_keys(BuxtonLayer *layer,
 	BuxtonArray *k_list = NULL;
 	BuxtonData *current = NULL;
 	BuxtonString in_key;
-	char *real_key;
+	char *name;
 	bool ret = false;
 
 	assert(layer);
@@ -182,18 +259,21 @@ static bool list_keys(BuxtonLayer *layer,
 	key = gdbm_firstkey(db);
 	/* Iterate through all of the keys */
 	while (key.dptr) {
+		/* Split the key name from the rest of the key */
+		in_key.value = (char*)key.dptr;
+		in_key.length = (uint32_t)key.dsize;
+		name = key_get_name(&in_key);
+		if (!name)
+			continue;
+
 		current = malloc0(sizeof(BuxtonData));
 		if (!current)
 			goto end;
-
-		/* Split the key name from the rest of the key */
 		current->type = STRING;
-		in_key.value = (char*)key.dptr;
-		in_key.length = (uint32_t)key.dsize;
-		real_key = get_name(&in_key);
-		current->store.d_string.value = strdup(real_key);
-		current->store.d_string.length = (uint32_t)strlen(real_key)+1;
-		current->label = buxton_string_pack("dummy");
+		current->store.d_string.value = strdup(name);
+		if (!current->store.d_string.value)
+			goto end;
+		current->store.d_string.length = (uint32_t)strlen(name) + 1;
 		if (!buxton_array_add(k_list, current)) {
 			buxton_log("Unable to add key to to gdbm list\n");
 			goto end;

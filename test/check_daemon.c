@@ -27,6 +27,7 @@
 #include <time.h>
 
 #include "buxton.h"
+#include "buxtonresponse.h"
 #include "configurator.h"
 #include "check_utils.h"
 #include "daemon.h"
@@ -37,15 +38,15 @@
 #include "util.h"
 
 #ifdef NDEBUG
-	#error "re-run configure with --enable-debug"
+#error "re-run configure with --enable-debug"
 #endif
 
 static pid_t daemon_pid;
 
 typedef struct _fuzz_context_t {
-		uint8_t buf[4096];
-		size_t size;
-		int iteration;
+	uint8_t buf[4096];
+	size_t size;
+	int iteration;
 } FuzzContext;
 
 static char* dump_fuzz(FuzzContext *fuzz)
@@ -83,7 +84,7 @@ static void check_did_not_crash(pid_t pid, FuzzContext *fuzz)
 	rpid = waitpid(pid, &status, WNOHANG);
 	fail_if(rpid == -1, "couldn't wait for pid %m");
 	if (rpid == 0) {
-		 /* child is still running */
+		/* child is still running */
 		return;
 	}
 	fail_if(WIFEXITED(status), "daemon exited with status %d%s",
@@ -94,15 +95,15 @@ static void check_did_not_crash(pid_t pid, FuzzContext *fuzz)
 
 static void exec_daemon(void)
 {
-		char path[PATH_MAX];
+	char path[PATH_MAX];
 
-		//FIXME: path is wrong for makedistcheck
-		snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
+	//FIXME: path is wrong for makedistcheck
+	snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
 
-		if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
-			fail("couldn't exec: %m");
-		}
-		fail("should never reach here");
+	if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
+		fail("couldn't exec: %m");
+	}
+	fail("should never reach here");
 }
 
 static void setup(void)
@@ -139,7 +140,7 @@ static void teardown(void)
 		fail_if(pid == -1, "waitpid error");
 		if (pid) {
 			fail("daemon crashed!");
-		} else  {
+		} else	{
 			/* if the daemon is still running, kill it */
 			kill(SIGTERM, daemon_pid);
 			usleep(64*1000);
@@ -150,294 +151,403 @@ static void teardown(void)
 
 START_TEST(buxton_client_open_check)
 {
-	BuxtonClient c;
-	fail_if(buxton_client_open(&c) == false,
+	BuxtonClient c = NULL;
+	fail_if(buxton_client_open(&c) == -1,
 		"Connection failed to open with daemon.");
 }
 END_TEST
 
-static void client_set_value_test(BuxtonArray *array, void *data)
+static void client_set_value_test(BuxtonResponse response, void *data)
 {
-	BuxtonData *d;
 	char *k = (char *)data;
+	BuxtonKey key;
+	char *group;
 
-	fail_if(array->len != 2, "Failed to get correct array size");
-	d = buxton_array_get(array, 0);
-	fail_if(!d, "Missing array index 0");
-	fail_if(d->type != INT32, "Invalid return type");
-	fail_if(d->store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(response_type(response) != BUXTON_CONTROL_SET,
+		"Failed to get set response type");
+	fail_if(response_status(response) != BUXTON_STATUS_OK,
 		"Set value failed");
-	d = buxton_array_get(array, 1);
-	fail_if(!d, "Missing array index 1");
-	fail_if(d->type != STRING, "Invalid key type");
-	fail_if(!streq(d->store.d_string.value, k),
-		"Incorrect set key returned");
+	key = response_key(response);
+	fail_if(!key, "Failed to get set key");
+	group = buxton_get_group(key);
+	fail_if(!group, "Failed to get group from key");
+	fail_if(!streq(group, k),
+		"Incorrect set group returned");
+	free(group);
+	buxton_free_key(key);
 }
 START_TEST(buxton_client_set_value_check)
 {
 	BuxtonClient c;
-	BuxtonString layer = buxton_string_pack("test-gdbm");
-	BuxtonString key = buxton_string_pack("bxt_test");
-	fail_if(buxton_client_open(&c) == false,
+	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm", STRING);
+	fail_if(!key, "Failed to create key");
+	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
-	BuxtonData data;
-	data.type = STRING;
-	data.label = buxton_string_pack("label");
-	data.store.d_string = buxton_string_pack("bxt_test_value");
-	fail_if(!buxton_client_set_value(&c, &layer, &key, &data,
+	fail_if(!buxton_client_set_value(c, key, "bxt_test_value",
 					 client_set_value_test,
-					 key.value, true),
+					 "group", true),
 		"Setting value in buxton failed.");
+	buxton_free_key(key);
 }
 END_TEST
 
-static void client_set_label_test(BuxtonArray *array, void *data)
+static void client_set_label_test(BuxtonResponse response, void *data)
 {
-	BuxtonData *d;
 	char *k = (char *)data;
-
-	fail_if(array->len != 2, "Failed to get correct array size");
-	d = buxton_array_get(array, 0);
-	fail_if(!d, "Missing array index 0");
-	fail_if(d->type != INT32, "Invalid return type");
-
+	BuxtonKey key;
+	char *group;
 	uid_t uid = getuid();
 
+	fail_if(response_type(response) != BUXTON_CONTROL_SET_LABEL,
+		"Failed to get set label response type");
+
 	if (uid == 0) {
-		fail_if(d->store.d_int32 != BUXTON_STATUS_OK,
+		fail_if(response_status(response) != BUXTON_STATUS_OK,
 			"Set label failed");
-		d = buxton_array_get(array, 1);
-		fail_if(!d, "Missing array index 1");
-		fail_if(d->type != STRING, "Invalid key type");
-		fail_if(!streq(d->store.d_string.value, k),
-			"Incorrect set label returned");
+		key = response_key(response);
+		fail_if(!key, "Failed to get set label key");
+		group = buxton_get_group(key);
+		fail_if(!group, "Failed to get group from key");
+		fail_if(!streq(group, k),
+			"Incorrect set key returned");
+		free(group);
+		buxton_free_key(key);
 	} else {
-		fail_if(d->store.d_int32 != BUXTON_STATUS_FAILED,
+		fail_if(response_status(response) != BUXTON_STATUS_FAILED,
 			"Set label succeeded, but the client is not root");
 	}
 }
 START_TEST(buxton_client_set_label_check)
 {
 	BuxtonClient c;
-	BuxtonString layer = buxton_string_pack("test-gdbm");
-	BuxtonString *group = buxton_make_key("bxt-group", NULL);
-
-	fail_if(buxton_client_open(&c) == false,
+	BuxtonKey key = buxton_make_key("bxt_group", NULL, "test-gdbm", STRING);
+	fail_if(!key, "Failed to create key");
+	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
-	BuxtonData data;
-	data.type = STRING;
-	data.store.d_string = buxton_string_pack("_");
-	data.label = buxton_string_pack("dummy");
-	char *userdata = buxton_get_group(group);
-	fail_if(!buxton_client_set_label(&c, &layer, group, &data,
+	fail_if(!buxton_client_set_label(c, key, "label",
 					 client_set_label_test,
-					 userdata, true),
+					 "bxt_group", true),
 		"Setting label in buxton failed.");
-	free(group->value);
-	free(group);
+	buxton_free_key(key);
 }
 END_TEST
 
-static void client_get_value_test(BuxtonArray *array, void *data)
+static void client_get_value_test(BuxtonResponse response, void *data)
 {
-	BuxtonData *d;
+	BuxtonKey key;
+	char *group;
+	char *name;
+	char *v;
 	char *value = (char *)data;
 
-	fail_if(array->len != 3, "Failed to get correct array size");
-	d = buxton_array_get(array, 0);
-	fail_if(!d, "Invalid array");
-	fail_if(d->type != INT32, "Invalid return type");
-	fail_if(d->store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(response_status(response) != BUXTON_STATUS_OK,
 		"Get value failed");
-	d = buxton_array_get(array, 1);
-	fail_if(!d, "Invalid array");
-	fail_if(d->type != STRING, "Incorrect key type");
-	fail_if(!streq(d->store.d_string.value, "bxt_test"),
-		"Failed to get correct key");
-	d = buxton_array_get(array, 2);
-	fail_if(!d, "Array missing value");
-	fail_if(d->type != STRING, "Incorect value type");
-	fail_if(!streq(d->store.d_string.value, value),
-		       "Failed to get correct value");
+
+	key = response_key(response);
+	fail_if(!key, "Failed to get key");
+	group = buxton_get_group(key);
+	fail_if(!group, "Failed to get group");
+	fail_if(!streq(group, "group"),
+		"Failed to get correct group");
+	name = buxton_get_name(key);
+	fail_if(!name, "Failed to get name");
+	fail_if(!streq(name, "name"),
+		"Failed to get correct name");
+	v = response_value(response);
+	printf("val=%s\n", v);
+	fail_if(!v, "Failed to get value");
+	fail_if(!streq(v, value),
+		"Failed to get correct value");
+
+	free(v);
+	free(group);
+	free(name);
+	buxton_free_key(key);
 }
 START_TEST(buxton_client_get_value_for_layer_check)
 {
-	BuxtonClient c;
-	BuxtonString layer = buxton_string_pack("test-gdbm");
-	BuxtonString key = buxton_string_pack("bxt_test");
-	fail_if(buxton_client_open(&c) == false,
+	BuxtonClient c = NULL;
+	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm", STRING);
+
+	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_client_get_value_for_layer(&c, &layer, &key,
-						   client_get_value_test,
-						   "bxt_test_value", true),
+	fail_if(!buxton_client_get_value(c, key,
+					 client_get_value_test,
+					 "bxt_test_value", true),
 		"Retrieving value from buxton gdbm backend failed.");
 }
 END_TEST
 
 START_TEST(buxton_client_get_value_check)
 {
-	BuxtonClient c;
-	BuxtonString layer = buxton_string_pack("test-gdbm-user");
-	BuxtonString key = buxton_string_pack("bxt_test");
-	BuxtonData data;
+	BuxtonClient c = NULL;
+	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm-user", STRING);
 
-	fail_if(buxton_client_open(&c) == false,
+	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
 
-	data.type = STRING;
-	data.label = buxton_string_pack("label2");
-	data.store.d_string = buxton_string_pack("bxt_test_value2");
-	fail_if(!buxton_client_set_value(&c, &layer, &key, &data,
-					 client_set_value_test, key.value, true),
+	fail_if(!buxton_client_set_value(c, key, "bxt_test_value2",
+					 client_set_value_test, "group", true),
 		"Failed to set second value.");
-	fail_if(!buxton_client_get_value(&c, &key,
+	buxton_free_key(key);
+	key = buxton_make_key("group", "name", NULL, STRING);
+	fail_if(!buxton_client_get_value(c, key,
 					 client_get_value_test,
-					 data.store.d_string.value, true),
+					 "bxt_test_value2", true),
 		"Retrieving value from buxton gdbm backend failed.");
+	buxton_free_key(key);
 }
 END_TEST
 
 START_TEST(parse_list_check)
 {
-	BuxtonData l3[3];
-	BuxtonData l2[2];
-	BuxtonData l1[1];
-	BuxtonString *key = NULL;
-	BuxtonString *layer = NULL;
+	BuxtonData l2[4];
+	BuxtonData l1[3];
+	_BuxtonKey key;
 	BuxtonData *value = NULL;
 
-	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 2, l1, &key, &layer, &value),
+	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 2, l1, &key, &value),
 		"Parsed bad notify argument count");
 	l1[0].type = INT32;
-	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 1, l1, &key, &layer, &value),
-		"Parsed bad notify type");
+	l1[1].type = STRING;
+	l1[2].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 3, l1, &key, &value),
+		"Parsed bad notify type 1");
 	l1[0].type = STRING;
+	l1[1].type = FLOAT;
+	l1[2].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 3, l1, &key, &value),
+		"Parsed bad notify type 3");
+	l1[0].type = STRING;
+	l1[1].type = STRING;
+	l1[2].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_NOTIFY, 3, l1, &key, &value),
+		"Parsed bad notify type 3");
+	l1[0].type = STRING;
+	l1[1].type = STRING;
+	l1[2].type = UINT32;
 	l1[0].store.d_string = buxton_string_pack("s1");
-	fail_if(!parse_list(BUXTON_CONTROL_NOTIFY, 1, l1, &key, &layer, &value),
+	l1[1].store.d_string = buxton_string_pack("s2");
+	l1[2].store.d_uint32 = STRING;
+	fail_if(!parse_list(BUXTON_CONTROL_NOTIFY, 3, l1, &key, &value),
 		"Unable to parse valid notify");
-	fail_if(!streq(key->value, l1[0].store.d_string.value),
-		"Failed to set correct notify key");
+	fail_if(!streq(key.group.value, l1[0].store.d_string.value),
+		"Failed to set correct notify group");
+	fail_if(!streq(key.name.value, l1[1].store.d_string.value),
+		"Failed to set correct notify name");
+	fail_if(key.type != l1[2].store.d_uint32,
+		"Failed to set correct notify type");
 
-	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 2, l1, &key, &layer, &value),
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 2, l1, &key, &value),
 		"Parsed bad unnotify argument count");
 	l1[0].type = INT32;
-	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &layer, &value),
-		"Parsed bad unnotify type");
+	l1[1].type = STRING;
+	l1[2].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &value),
+		"Parsed bad unnotify type 1");
 	l1[0].type = STRING;
-	l1[0].store.d_string = buxton_string_pack("s1");
-	fail_if(!parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &layer, &value),
+	l1[1].type = FLOAT;
+	l1[2].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &value),
+		"Parsed bad unnotify type 2");
+	l1[0].type = INT32;
+	l1[1].type = STRING;
+	l1[2].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &value),
+		"Parsed bad unnotify type 3");
+	l1[0].type = STRING;
+	l1[1].type = STRING;
+	l1[2].type = UINT32;
+	l1[0].store.d_string = buxton_string_pack("s3");
+	l1[1].store.d_string = buxton_string_pack("s4");
+	l1[2].store.d_uint32 = STRING;
+	fail_if(!parse_list(BUXTON_CONTROL_UNNOTIFY, 3, l1, &key, &value),
 		"Unable to parse valid unnotify");
-	fail_if(!streq(key->value, l1[0].store.d_string.value),
-		"Failed to set correct unnotify key");
+	fail_if(!streq(key.group.value, l1[0].store.d_string.value),
+		"Failed to set correct unnotify group");
+	fail_if(!streq(key.name.value, l1[1].store.d_string.value),
+		"Failed to set correct unnotify name");
+	fail_if(key.type != l1[2].store.d_uint32,
+		"Failed to set correct unnotify type");
 
-	fail_if(parse_list(BUXTON_CONTROL_GET, 3, l2, &key, &layer, &value),
+	fail_if(parse_list(BUXTON_CONTROL_GET, 5, l2, &key, &value),
 		"Parsed bad get argument count");
 	l2[0].type = INT32;
 	l2[1].type = STRING;
-	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
+	l2[2].type = STRING;
+	l2[3].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &value),
 		"Parsed bad get type 1");
 	l2[0].type = STRING;
-	l2[1].type = INT32;
-	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
+	l2[1].type = FLOAT;
+	l2[2].type = STRING;
+	l2[3].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &value),
 		"Parsed bad get type 2");
 	l2[0].type = STRING;
 	l2[1].type = STRING;
-	l2[0].store.d_string = buxton_string_pack("s2");
-	l2[1].store.d_string = buxton_string_pack("s3");
-	fail_if(!parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &layer, &value),
+	l2[2].type = BOOLEAN;
+	l2[3].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &value),
+		"Parsed bad get type 3");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &value),
+		"Parsed bad get type 4");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = UINT32;
+	l2[0].store.d_string = buxton_string_pack("s5");
+	l2[1].store.d_string = buxton_string_pack("s6");
+	l2[2].store.d_string = buxton_string_pack("s7");
+	l2[3].store.d_uint32 = STRING;
+	fail_if(!parse_list(BUXTON_CONTROL_GET, 4, l2, &key, &value),
 		"Unable to parse valid get 1");
-	fail_if(!streq(layer->value, l2[0].store.d_string.value),
+	fail_if(!streq(key.layer.value, l2[0].store.d_string.value),
 		"Failed to set correct get layer 1");
-	fail_if(!streq(key->value, l2[1].store.d_string.value),
-		"Failed to set correct get key 1");
-	fail_if(!parse_list(BUXTON_CONTROL_GET, 1, l2, &key, &layer, &value),
+	fail_if(!streq(key.group.value, l2[1].store.d_string.value),
+		"Failed to set correct get group 1");
+	fail_if(!streq(key.name.value, l2[2].store.d_string.value),
+		"Failed to set correct get name");
+	fail_if(key.type != l2[3].store.d_uint32,
+		"Failed to set correct get type 1");
+	l2[0].store.d_string = buxton_string_pack("s6");
+	l2[1].store.d_string = buxton_string_pack("s6");
+	l2[2].type = UINT32;
+	l2[2].store.d_uint32 = STRING;
+	fail_if(!parse_list(BUXTON_CONTROL_GET, 3, l2, &key, &value),
 		"Unable to parse valid get 2");
-	fail_if(!streq(key->value, l2[0].store.d_string.value),
-		"Failed to set correct get key 2");
-	l2[0].type = INT32;
-	fail_if(parse_list(BUXTON_CONTROL_GET, 1, l2, &key, &layer, &value),
-		"Unable to parse valid get 2");
+	fail_if(!streq(key.group.value, l2[0].store.d_string.value),
+		"Failed to set correct get group 2");
+	fail_if(!streq(key.name.value, l2[1].store.d_string.value),
+		"Failed to set correct get name 2");
+	fail_if(key.type != l2[2].store.d_uint32,
+		"Failed to set correct get type 2");
 
-	fail_if(parse_list(BUXTON_CONTROL_SET, 1, l3, &key, &layer, &value),
+	fail_if(parse_list(BUXTON_CONTROL_SET, 1, l2, &key, &value),
 		"Parsed bad set argument count");
-	l3[0].type = INT32;
-	l3[1].type = STRING;
-	l3[2].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
+	l2[0].type = INT32;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l2, &key, &value),
 		"Parsed bad set type 1");
-	l3[0].type = STRING;
-	l3[1].type = INT32;
-	l3[2].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
+	l2[0].type = STRING;
+	l2[1].type = FLOAT;
+	l2[2].type = STRING;
+	l2[3].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l2, &key, &value),
 		"Parsed bad set type 2");
-	l3[0].type = STRING;
-	l3[1].type = STRING;
-	l3[2].type = FLOAT;
-	l3[0].store.d_string = buxton_string_pack("s4");
-	l3[1].store.d_string = buxton_string_pack("s5");
-	l3[2].store.d_float = 3.14F;
-	fail_if(!parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = BOOLEAN;
+	l2[3].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l2, &key, &value),
+		"Parsed bad set type 3");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = FLOAT;
+	l2[0].store.d_string = buxton_string_pack("s8");
+	l2[1].store.d_string = buxton_string_pack("s9");
+	l2[2].store.d_string = buxton_string_pack("s10");
+	l2[3].store.d_float = 3.14F;
+	fail_if(!parse_list(BUXTON_CONTROL_SET, 4, l2, &key, &value),
 		"Unable to parse valid set 1");
-	fail_if(!streq(layer->value, l3[0].store.d_string.value),
+	fail_if(!streq(key.layer.value, l2[0].store.d_string.value),
 		"Failed to set correct set layer 1");
-	fail_if(!streq(key->value, l3[1].store.d_string.value),
-		"Failed to set correct set key 1");
-	fail_if(value->store.d_float != l3[2].store.d_float,
+	fail_if(!streq(key.group.value, l2[1].store.d_string.value),
+		"Failed to set correct set group 1");
+	fail_if(!streq(key.name.value, l2[2].store.d_string.value),
+		"Failed to set correct set name 1");
+	fail_if(value->store.d_float != l2[3].store.d_float,
 		"Failed to set correct set value 1");
 
-	fail_if(parse_list(BUXTON_CONTROL_UNSET, 1, l2, &key, &layer, &value),
+	fail_if(parse_list(BUXTON_CONTROL_UNSET, 1, l2, &key, &value),
 		"Parsed bad unset argument count");
 	l2[0].type = INT32;
 	l2[1].type = STRING;
-	fail_if(parse_list(BUXTON_CONTROL_UNSET, 2, l2, &key, &layer, &value),
+	l2[2].type = STRING;
+	l2[3].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_UNSET, 4, l2, &key, &value),
 		"Parsed bad unset type 1");
 	l2[0].type = STRING;
-	l2[1].type = INT32;
-	fail_if(parse_list(BUXTON_CONTROL_UNSET, 2, l2, &key, &layer, &value),
+	l2[1].type = FLOAT;
+	l2[2].type = STRING;
+	l2[3].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_UNSET, 4, l2, &key, &value),
 		"Parsed bad unset type 2");
 	l2[0].type = STRING;
 	l2[1].type = STRING;
-	l2[0].store.d_string = buxton_string_pack("s6");
-	l2[1].store.d_string = buxton_string_pack("s7");
-	fail_if(!parse_list(BUXTON_CONTROL_UNSET, 2, l2, &key, &layer, &value),
-		"Unable to parse valid get 1");
-	fail_if(!streq(layer->value, l2[0].store.d_string.value),
+	l2[2].type = BOOLEAN;
+	l2[3].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_UNSET, 4, l2, &key, &value),
+		"Parsed bad unset type 3");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_UNSET, 4, l2, &key, &value),
+		"Parsed bad unset type 4");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = UINT32;
+	l2[0].store.d_string = buxton_string_pack("s11");
+	l2[1].store.d_string = buxton_string_pack("s12");
+	l2[2].store.d_string = buxton_string_pack("s13");
+	l2[3].store.d_uint32 = STRING;
+	fail_if(!parse_list(BUXTON_CONTROL_UNSET, 4, l2, &key, &value),
+		"Unable to parse valid unset 1");
+	fail_if(!streq(key.layer.value, l2[0].store.d_string.value),
 		"Failed to set correct unset layer 1");
-	fail_if(!streq(key->value, l2[1].store.d_string.value),
-		"Failed to set correct unset key 1");
+	fail_if(!streq(key.group.value, l2[1].store.d_string.value),
+		"Failed to set correct unset group 1");
+	fail_if(!streq(key.name.value, l2[2].store.d_string.value),
+		"Failed to set correct unset name 1");
+	fail_if(key.type != l2[3].store.d_uint32,
+		"Failed to set correct unset type 1");
 
-	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 1, l3, &key, &layer, &value),
-		"Parsed bad set argument count");
-	l3[0].type = INT32;
-	l3[1].type = STRING;
-	l3[2].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 3, l3, &key, &layer, &value),
-		"Parsed bad set type 1");
-	l3[0].type = STRING;
-	l3[1].type = INT32;
-	l3[2].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 3, l3, &key, &layer, &value),
-		"Parsed bad set type 2");
-	l3[0].type = STRING;
-	l3[1].type = STRING;
-	l3[2].type = STRING;
-	l3[0].store.d_string = buxton_string_pack("s8");
-	l3[1].store.d_string = buxton_string_pack("s9");
-	l3[2].store.d_string = buxton_string_pack("_");
-	fail_if(!parse_list(BUXTON_CONTROL_SET, 3, l3, &key, &layer, &value),
-		"Unable to parse valid set 1");
-	fail_if(!streq(layer->value, l3[0].store.d_string.value),
-		"Failed to set correct set layer 1");
-	fail_if(!streq(key->value, l3[1].store.d_string.value),
-		"Failed to set correct set key 1");
-	fail_if(!streq(value->store.d_string.value, l3[2].store.d_string.value),
-		"Failed to set correct set label 1");
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 1, l2, &key, &value),
+		"Parsed bad set label argument count");
+	l1[0].type = INT32;
+	l1[1].type = STRING;
+	l1[2].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 3, l1, &key, &value),
+		"Parsed bad set label type 1");
+	l1[0].type = STRING;
+	l1[1].type = FLOAT;
+	l1[2].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 3, l1, &key, &value),
+		"Parsed bad set label type 2");
+	l1[0].type = STRING;
+	l1[1].type = STRING;
+	l1[2].type = BOOLEAN;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 3, l1, &key, &value),
+		"Parsed bad set label type 3");
+	l1[0].type = STRING;
+	l1[1].type = STRING;
+	l1[2].type = STRING;
+	l1[0].store.d_string = buxton_string_pack("s14");
+	l1[1].store.d_string = buxton_string_pack("s15");
+	l1[2].store.d_string = buxton_string_pack("_");
+	fail_if(!parse_list(BUXTON_CONTROL_SET_LABEL, 3, l1, &key, &value),
+		"Unable to parse valid set label 1");
+	fail_if(!streq(key.layer.value, l1[0].store.d_string.value),
+		"Failed to set correct set label layer 1");
+	fail_if(!streq(key.group.value, l1[1].store.d_string.value),
+		"Failed to set correct set label group 1");
+	fail_if(!streq(value->store.d_string.value, l1[2].store.d_string.value),
+		"Failed to set correct set label label 1");
 }
 END_TEST
 
 START_TEST(set_value_check)
 {
-	BuxtonString layer, key;
+	_BuxtonKey key;
 	BuxtonData value;
 	client_list_item client;
 	BuxtonStatus status;
@@ -447,16 +557,18 @@ START_TEST(set_value_check)
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
+	fail_if(!buxton_cache_smack_rules(),
+		"Failed to cache smack rules");
 	client.cred.uid = getuid();
 	client.smack_label = &clabel;
 	server.buxton.client.uid = 0;
-	layer = buxton_string_pack("test-gdbm");
-	key = buxton_string_pack("key");
+	key.layer = buxton_string_pack("test-gdbm");
+	key.group = buxton_string_pack("group");
+	key.name = buxton_string_pack("name");
 	value.type = FLOAT;
 	value.store.d_float = 3.14F;
-	value.label = buxton_string_pack("label");
 
-	set_value(&server, &client, &layer, &key, &value, &status);
+	set_value(&server, &client, &key, &value, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
 	buxton_client_close(&server.buxton.client);
@@ -465,7 +577,7 @@ END_TEST
 
 START_TEST(set_label_check)
 {
-	BuxtonString layer, group;
+	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData value;
 	client_list_item client;
 	BuxtonStatus status;
@@ -478,13 +590,13 @@ START_TEST(set_label_check)
 	client.cred.uid = 0;
 	client.smack_label = &clabel;
 	server.buxton.client.uid = 0;
-	layer = buxton_string_pack("test-gdbm");
-	group = buxton_string_pack("groupfoo");
+	key.layer = buxton_string_pack("test-gdbm");
+	key.group = buxton_string_pack("groupfoo");
+	key.type = STRING;
 	value.type = STRING;
 	value.store.d_string = buxton_string_pack("_");
-	value.label = buxton_string_pack("dummy");
 
-	set_label(&server, &client, &layer, &group, &value, &status);
+	set_label(&server, &client, &key, &value, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to set label");
 	buxton_client_close(&server.buxton.client);
 }
@@ -492,7 +604,7 @@ END_TEST
 
 START_TEST(get_value_check)
 {
-	BuxtonString layer, key;
+	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData *value;
 	client_list_item client;
 	BuxtonStatus status;
@@ -502,33 +614,33 @@ START_TEST(get_value_check)
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
+	fail_if(!buxton_cache_smack_rules(),
+		"Failed to cache smack rules");
 	client.cred.uid = getuid();
 	client.smack_label = &clabel;
 	server.buxton.client.uid = 0;
-	layer = buxton_string_pack("test-gdbm");
-	key = buxton_string_pack("key");
+	key.layer = buxton_string_pack("test-gdbm");
+	key.group = buxton_string_pack("group");
+	key.name = buxton_string_pack("name");
+	key.type = FLOAT;
 
-	value = get_value(&server, &client, &layer, &key, &status);
+	value = get_value(&server, &client, &key, &status);
 	fail_if(!value, "Failed to get value");
 	fail_if(status != BUXTON_STATUS_OK, "Failed to get value");
 	fail_if(value->type != FLOAT, "Failed to get correct type");
-	fail_if(!value->label.value, "Failed to get label");
-	fail_if(!streq(value->label.value, "label"), "Failed to get correct label");
 	fail_if(value->store.d_float != 3.14F, "Failed to get correct value");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
-	free(value->label.value);
 	free(value);
 
 	server.buxton.client.uid = 0;
-	value = get_value(&server, &client, NULL, &key, &status);
+	key.layer.value = NULL;
+	key.layer.length = 0;
+	value = get_value(&server, &client, &key, &status);
 	fail_if(!value, "Failed to get value 2");
 	fail_if(status != BUXTON_STATUS_OK, "Failed to get value 2");
-	fail_if(value->type != FLOAT, "Failed to get correct type 2");
-	fail_if(!value->label.value, "Failed to get label 2");
-	fail_if(!streq(value->label.value, "label"), "Failed to get correct label 2");
-	fail_if(value->store.d_float != 3.14F, "Failed to get correct value 2");
+	fail_if(value->type != STRING, "Failed to get correct type 2");
+	fail_if(!streq(value->store.d_string.value, "bxt_test_value2"), "Failed to get correct value 2");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid 2");
-	free(value->label.value);
 	free(value);
 
 	buxton_client_close(&server.buxton.client);
@@ -537,13 +649,15 @@ END_TEST
 
 START_TEST(register_notification_check)
 {
-	BuxtonString key;
+	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	client_list_item client, no_client;
 	BuxtonString clabel;
 	BuxtonStatus status;
 	BuxtonDaemon server;
 	uint64_t msgid;
 
+	fail_if(!buxton_cache_smack_rules(),
+		"Failed to cache smack rules");
 	client.smack_label = &clabel;
 	client.cred.uid = 1002;
 	fail_if(!buxton_direct_open(&server.buxton),
@@ -551,18 +665,19 @@ START_TEST(register_notification_check)
 	server.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!server.notify_mapping, "Failed to allocate hashmap");
 
-	key = buxton_string_pack("key");
+	key.group = buxton_string_pack("group");
+	key.name = buxton_string_pack("name");
 	register_notification(&server, &client, &key, 1, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
 	register_notification(&server, &client, &key, 1, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
 	//FIXME: Figure out what to do with duplicates
-	key = buxton_string_pack("no-key");
+	key.group = buxton_string_pack("no-key");
 	msgid = unregister_notification(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_FAILED,
 		"Unregistered from notifications with invalid key");
 	fail_if(msgid != 0, "Got unexpected notify message id");
-	key = buxton_string_pack("key");
+	key.group = buxton_string_pack("group");
 	msgid = unregister_notification(&server, &no_client, &key, &status);
 	fail_if(status != BUXTON_STATUS_FAILED,
 		"Unregistered from notifications with invalid client");
@@ -571,7 +686,7 @@ START_TEST(register_notification_check)
 	fail_if(status != BUXTON_STATUS_OK,
 		"Unable to unregister from notifications");
 	fail_if(msgid != 1, "Failed to get correct notify message id");
-	key = buxton_string_pack("key2");
+	key.group = buxton_string_pack("key2");
 	register_notification(&server, &client, &key, 0, &status);
 	fail_if(status == BUXTON_STATUS_OK, "Registered notification with key not in db");
 
@@ -583,7 +698,6 @@ START_TEST(bt_daemon_handle_message_error_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
-	BuxtonString *string;
 	BuxtonString slabel;
 	size_t size;
 	BuxtonData data1;
@@ -620,11 +734,7 @@ START_TEST(bt_daemon_handle_message_error_check)
 	free(cl.data);
 
 	data1.type = STRING;
-	string = buxton_make_key("group", "name");
-	fail_if(!string, "Failed to allocate key");
-	data1.store.d_string.value = string->value;
-	data1.store.d_string.length = string->length;
-	data1.label = buxton_string_pack("dummy");
+	data1.store.d_string = buxton_string_pack("group");
 	r = buxton_array_add(list, &data1);
 	fail_if(!r, "Failed to add element to array");
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 0,
@@ -639,8 +749,6 @@ START_TEST(bt_daemon_handle_message_error_check)
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(r, "Failed to detect max control size");
-	free(string->value);
-	free(string);
 
 	close(client);
 	buxton_direct_close(&daemon.buxton);
@@ -651,10 +759,9 @@ END_TEST
 START_TEST(bt_daemon_handle_message_set_check)
 {
 	BuxtonDaemon daemon;
-	BuxtonString *string;
 	BuxtonString slabel;
 	size_t size;
-	BuxtonData data1, data2, data3;
+	BuxtonData data1, data2, data3, data4;
 	client_list_item cl;
 	bool r;
 	BuxtonData *list;
@@ -686,22 +793,20 @@ START_TEST(bt_daemon_handle_message_set_check)
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
 
 	data1.type = STRING;
-	string = buxton_make_key("group", "name");
-	fail_if(!string, "Failed to allocate key");
-	data1.label = buxton_string_pack("base/sample/key");
 	data1.store.d_string = buxton_string_pack("base");
 	data2.type = STRING;
-	data2.store.d_string.value = string->value;
-	data2.store.d_string.length = string->length;
-	data2.label = buxton_string_pack("base/sample/key");
-	data3.type = INT32;
-	data3.store.d_int32 = 1;
-	data3.label = buxton_string_pack("base/sample/key");
+	data2.store.d_string = buxton_string_pack("group");
+	data3.type = STRING;
+	data3.store.d_string = buxton_string_pack("name");
+	data4.type = INT32;
+	data4.store.d_int32 = 1;
 	r = buxton_array_add(out_list, &data1);
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data3);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data4);
 	fail_if(!r, "Failed to add element to array");
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 0,
 					out_list);
@@ -711,23 +816,16 @@ START_TEST(bt_daemon_handle_message_set_check)
 	fail_if(r, "Failed to detect parse_list failure");
 
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET, 0,
-					 out_list);
+					out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to handle set message");
 
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET_LABEL, 0,
-					 out_list);
-	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
-	free(cl.data);
-	fail_if(!r, "Failed to handle set_label message");
-
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2, "Failed to get correct response to set");
+	fail_if(csize != 3, "Failed to get correct response to set");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
@@ -735,16 +833,19 @@ START_TEST(bt_daemon_handle_message_set_check)
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to set");
 	fail_if(list[1].type != STRING,
-		"Failed to get correct key type");
-	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct key");
+		"Failed to get correct group type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       data2.store.d_string.value) != 0,
+		"Failed to get correct group");
+	fail_if(list[2].type != STRING,
+		"Failed to get correct name type");
+	fail_if(strcmp(list[2].store.d_string.value,
+		       data3.store.d_string.value) != 0,
+		"Failed to get correct name");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
-	free(list[1].label.value);
 	free(list[1].store.d_string.value);
+	free(list[2].store.d_string.value);
 	free(list);
 	cleanup_callbacks();
 	close(client);
@@ -758,10 +859,9 @@ START_TEST(bt_daemon_handle_message_get_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
-	BuxtonString *string;
 	BuxtonString slabel;
 	size_t size;
-	BuxtonData data1, data2;
+	BuxtonData data1, data2, data3, data4;
 	client_list_item cl;
 	bool r;
 	BuxtonData *list;
@@ -787,17 +887,20 @@ START_TEST(bt_daemon_handle_message_get_check)
 		"Failed to open buxton direct connection");
 
 	data1.type = STRING;
-	string = buxton_make_key("group", "name");
-	fail_if(!string, "Failed to allocate key");
-	data1.label = buxton_string_pack("dummy");
 	data1.store.d_string = buxton_string_pack("base");
 	data2.type = STRING;
-	data2.store.d_string.value = string->value;
-	data2.store.d_string.length = string->length;
-	data2.label = buxton_string_pack("dummy");
+	data2.store.d_string = buxton_string_pack("group");
+	data3.type = STRING;
+	data3.store.d_string = buxton_string_pack("name");
+	data4.type = UINT32;
+	data4.store.d_uint32 = STRING;
 	r = buxton_array_add(out_list, &data1);
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data3);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data4);
 	fail_if(!r, "Failed to add element to array");
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, 0,
 					out_list);
@@ -809,30 +912,37 @@ START_TEST(bt_daemon_handle_message_get_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 3, "Failed to get valid message from buffer");
+	fail_if(csize != 4, "Failed to get valid message from buffer");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
 	fail_if(list[0].type != INT32, "Failed to get correct response type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get value");
-	fail_if(list[1].type != STRING, "Failed to get correct key type");
-	fail_if(memcmp(list[1].store.d_string.value, string->value,
-		       string->length) != 0,
-		"Failed to get correct key");
-	fail_if(list[2].type != INT32, "Failed to get correct value type");
-	fail_if(list[2].store.d_int32 != 1,
+	fail_if(list[1].type != STRING, "Failed to get correct group type");
+	printf("group=%s\n", data2.store.d_string.value);
+	fail_if(strcmp(list[1].store.d_string.value,
+		       data2.store.d_string.value) != 0,
+		"Failed to get correct group");
+	fail_if(list[2].type != STRING, "Failed to get correct name type");
+	fail_if(strcmp(list[2].store.d_string.value,
+		       data3.store.d_string.value) != 0,
+		"Failed to get correct name");
+	fail_if(list[3].type != INT32, "Failed to get correct value type");
+	fail_if(list[3].store.d_int32 != 1,
 		"Failed to get correct value");
 
-	free(list[0].label.value);
-	free(list[1].label.value);
 	free(list[1].store.d_string.value);
-	free(list[2].label.value);
+	free(list[2].store.d_string.value);
 	free(list);
 
 	out_list2 = buxton_array_new();
 	fail_if(!out_list2, "Failed to allocate list 2");
 	r = buxton_array_add(out_list2, &data2);
+	fail_if(!r, "Failed to add element to array 2");
+	r = buxton_array_add(out_list2, &data3);
+	fail_if(!r, "Failed to add element to array 2");
+	r = buxton_array_add(out_list2, &data4);
 	fail_if(!r, "Failed to add element to array 2");
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, 0,
 					out_list2);
@@ -844,27 +954,27 @@ START_TEST(bt_daemon_handle_message_get_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed 2");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 3, "Failed to get correct response to get 2");
+	fail_if(csize != 4, "Failed to get correct response to get 2");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type 2");
 	fail_if(msgid != 0, "Failed to get correct message id 2");
 	fail_if(list[0].type != INT32, "Failed to get correct response type 2");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get value 2");
-	fail_if(list[1].type != STRING, "Failed to get correct key type 2");
-	fail_if(memcmp(list[1].store.d_string.value, string->value,
-		       string->length) != 0,
-		"Failed to get correct key 2");
-	fail_if(list[2].type != INT32, "Failed to get correct value type 2");
-	fail_if(list[2].store.d_int32 != 1,
+	fail_if(list[1].type != STRING, "Failed to get correct group type 2");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       data2.store.d_string.value) != 0,
+		"Failed to get correct group 2");
+	fail_if(list[2].type != STRING, "Failed to get correct name type 2");
+	fail_if(strcmp(list[2].store.d_string.value,
+		       data3.store.d_string.value) != 0,
+		"Failed to get correct name 2");
+	fail_if(list[3].type != FLOAT, "Failed to get correct value type 2");
+	fail_if(list[3].store.d_float != 3.14F,
 		"Failed to get correct value 2");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
-	free(list[1].label.value);
 	free(list[1].store.d_string.value);
-	free(list[2].label.value);
+	free(list[2].store.d_string.value);
 	free(list);
 	close(client);
 	buxton_direct_close(&daemon.buxton);
@@ -877,10 +987,9 @@ START_TEST(bt_daemon_handle_message_notify_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
-	BuxtonString *string;
 	BuxtonString slabel;
 	size_t size;
-	BuxtonData data2;
+	BuxtonData data1, data2, data3;
 	client_list_item cl;
 	bool r;
 	BuxtonData *list;
@@ -906,13 +1015,17 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	fail_if(!buxton_direct_open(&daemon.buxton),
 		"Failed to open buxton direct connection");
 
-	string = buxton_make_key("group", "name");
-	fail_if(!string, "Failed to allocate key");
+	data1.type = STRING;
+	data1.store.d_string = buxton_string_pack("group");
 	data2.type = STRING;
-	data2.store.d_string.value = string->value;
-	data2.store.d_string.length = string->length;
-	data2.label = buxton_string_pack("dummy");
+	data2.store.d_string = buxton_string_pack("name");
+	data3.type = UINT32;
+	data3.store.d_uint32 = STRING;
+	r = buxton_array_add(out_list, &data1);
+	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data3);
 	fail_if(!r, "Failed to add element to array");
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 0,
 					out_list);
@@ -924,31 +1037,27 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2, "Failed to get correct response to notify");
+	fail_if(csize != 3, "Failed to get correct response to notify");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct notify message id");
 	fail_if(list[0].type != INT32, "Failed to get correct response type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to register notification");
-	fail_if(list[1].type != STRING, "Failed to get correct response type");
-	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct register notification key back");
+	fail_if(list[1].type != STRING, "Failed to get correct group type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       data1.store.d_string.value) != 0,
+		"Failed to get correct register notification group back");
+	fail_if(list[2].type != STRING, "Failed to get correct name type");
+	fail_if(strcmp(list[2].store.d_string.value,
+		       data2.store.d_string.value) != 0,
+		"Failed to get correct register notification name back");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[1].store.d_string.value);
-	free(list[1].label.value);
+	free(list[2].store.d_string.value);
 	free(list);
 
 	/* UNNOTIFY */
-	string = buxton_make_key("group", "name");
-	fail_if(!string, "Failed to allocate key");
-	data2.type = STRING;
-	data2.store.d_string.value = string->value;
-	data2.store.d_string.length = string->length;
-	data2.label = buxton_string_pack("dummy");
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNNOTIFY, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
@@ -959,29 +1068,31 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed 2");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 3, "Failed to get correct response to unnotify");
+	fail_if(csize != 4, "Failed to get correct response to unnotify");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type 2");
 	fail_if(list[0].type != INT32,
-		"Failed to get correct indicator type");
+		"Failed to get correct indicator type 2");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to unregister for notification");
 	fail_if(list[1].type != STRING,
-		"Failed to get correct key type");
-	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct key");
-	fail_if(list[2].type != UINT64,
+		"Failed to get correct group type 2");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       data1.store.d_string.value) != 0,
+		"Failed to get correct unregister notification group back");
+	fail_if(list[2].type != STRING,
+		"Failed to get correct name type 2");
+	fail_if(strcmp(list[2].store.d_string.value,
+		       data2.store.d_string.value) != 0,
+		"Failed to get correct unregister notification name back");
+	fail_if(list[3].type != UINT64,
 		"Failed to get correct unnotify message id type");
-	fail_if(list[0].store.d_uint64 != 0,
+	fail_if(list[3].store.d_uint64 != 0,
 		"Failed to get correct unnotify message id");
 	fail_if(msgid != 0, "Failed to get correct message id 2");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[1].store.d_string.value);
-	free(list[1].label.value);
-	free(list[2].label.value);
+	free(list[2].store.d_string.value);
 	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
@@ -994,10 +1105,9 @@ START_TEST(bt_daemon_handle_message_unset_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
-	BuxtonString *string;
 	BuxtonString slabel;
 	size_t size;
-	BuxtonData data1, data2;
+	BuxtonData data1, data2, data3, data4;
 	client_list_item cl;
 	bool r;
 	BuxtonData *list;
@@ -1024,17 +1134,20 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
 
 	data1.type = STRING;
-	string = buxton_make_key("group", "name");
-	fail_if(!string, "Failed to allocate key");
-	data1.label = buxton_string_pack("dummy");
 	data1.store.d_string = buxton_string_pack("base");
 	data2.type = STRING;
-	data2.store.d_string.value = string->value;
-	data2.store.d_string.length = string->length;
-	data2.label = buxton_string_pack("dummy");
+	data2.store.d_string = buxton_string_pack("group");
+	data3.type = STRING;
+	data3.store.d_string = buxton_string_pack("name");
+	data4.type = UINT32;
+	data4.store.d_uint32 = STRING;
 	r = buxton_array_add(out_list, &data1);
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data3);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data4);
 	fail_if(!r, "Failed to add element to array");
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNSET, 0,
 					out_list);
@@ -1046,7 +1159,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2, "Failed to get correct response to unset");
+	fail_if(csize != 3, "Failed to get correct response to unset");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
@@ -1054,16 +1167,19 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to unset");
 	fail_if(list[1].type != STRING,
-		"Failed to get correct key type");
-	fail_if(memcmp(list[1].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct key");
+		"Failed to get correct group type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       data2.store.d_string.value) != 0,
+		"Failed to get correct unset group back");
+	fail_if(list[2].type != STRING,
+		"Failed to get correct name type");
+	fail_if(strcmp(list[2].store.d_string.value,
+		       data3.store.d_string.value) != 0,
+		"Failed to get correct unset name back");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[1].store.d_string.value);
-	free(list[1].label.value);
+	free(list[2].store.d_string.value);
 	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
@@ -1076,10 +1192,8 @@ START_TEST(bt_daemon_notify_clients_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
-	BuxtonString key;
+	_BuxtonKey key;
 	BuxtonString slabel;
-	BuxtonString layer;
-	BuxtonString *string;
 	BuxtonData value1, value2;
 	client_list_item cl;
 	BuxtonStatus status;
@@ -1102,23 +1216,19 @@ START_TEST(bt_daemon_notify_clients_check)
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
 	fail_if(!buxton_cache_smack_rules(),
 		"Failed to cache Smack rules");
-	string = buxton_make_key("group", "name");
-	fail_if(!string, "Failed to allocate key");
 	fail_if(!buxton_direct_open(&daemon.buxton),
 		"Failed to open buxton direct connection");
 
 	value1.type = STRING;
 	value1.store.d_string = buxton_string_pack("dummy value");
-	value1.label = buxton_string_pack("dummy");
-	key = buxton_string_pack("dummy key");
+	key.group = buxton_string_pack("dummy key");
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value1);
 
 	value1.store.d_string = buxton_string_pack("real value");
-	value1.label = buxton_string_pack("base/sample/key");
-	key.value = string->value;
-	key.length = string->length;
-	layer = buxton_string_pack("base");
-	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+	key.group = buxton_string_pack("group");
+	key.name = buxton_string_pack("name");
+	key.layer = buxton_string_pack("base");
+	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
@@ -1128,42 +1238,43 @@ START_TEST(bt_daemon_notify_clients_check)
 
 	value2.type = STRING;
 	value2.store.d_string = buxton_string_pack("new value");
-	value2.label = buxton_string_pack("dummy2");
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2,
+	fail_if(csize != 3,
 		"Failed to get correct response to notify string");
 	fail_if(msg != BUXTON_CONTROL_CHANGED,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
-	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct notification key string");
+	fail_if(list[0].type != STRING,
+		"Failed to get correct string group type");
+	fail_if(strcmp(list[0].store.d_string.value,
+		       key.group.value) != 0,
+		"Failed to get correct string group back");
 	fail_if(list[1].type != STRING,
+		"Failed to get correct string name type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       key.name.value) != 0,
+		"Failed to get correct string name back");
+	fail_if(list[2].type != STRING,
 		"Failed to get correct notification value type string");
-	fail_if(!streq(list[1].store.d_string.value, "new value"),
+	fail_if(!streq(list[2].store.d_string.value, "new value"),
 		"Failed to get correct notification value data string");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[0].store.d_string.value);
-	free(list[1].label.value);
 	free(list[1].store.d_string.value);
+	free(list[2].store.d_string.value);
 	free(list);
 
 	value1.type = INT32;
 	value1.store.d_int32 = 1;
 	value2.type = INT32;
 	value2.store.d_int32 = 2;
-	string = buxton_make_key("group32", "name32");
-	fail_if(!string, "Failed to allocate key");
-	key.value = string->value;
-	key.length = string->length;
-	layer = buxton_string_pack("base");
-	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+	key.group = buxton_string_pack("group32");
+	key.name = buxton_string_pack("name32");
+	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
@@ -1174,35 +1285,37 @@ START_TEST(bt_daemon_notify_clients_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2,
+	fail_if(csize != 3,
 		"Failed to get correct response to notify int32");
 	fail_if(msg != BUXTON_CONTROL_CHANGED,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
-	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct notification key32");
-	fail_if(list[1].type != INT32,
+	fail_if(list[0].type != STRING,
+		"Failed to get correct int32 group type");
+	fail_if(strcmp(list[0].store.d_string.value,
+		       key.group.value) != 0,
+		"Failed to get correct int32 group back");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct int32 name type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       key.name.value) != 0,
+		"Failed to get correct int32 name back");
+	fail_if(list[2].type != INT32,
 		"Failed to get correct notification value type int32");
-	fail_if(list[1].store.d_int32 != 2,
+	fail_if(list[2].store.d_int32 != 2,
 		"Failed to get correct notification value data int32");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[0].store.d_string.value);
-	free(list[1].label.value);
+	free(list[1].store.d_string.value);
 	free(list);
 
 	value1.type = UINT32;
 	value1.store.d_uint32 = 1;
 	value2.type = UINT32;
 	value2.store.d_uint32 = 2;
-	string = buxton_make_key("groupu32", "nameu32");
-	fail_if(!string, "Failed to allocate key");
-	key.value = string->value;
-	key.length = string->length;
-	layer = buxton_string_pack("base");
-	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+	key.group = buxton_string_pack("groupu32");
+	key.name = buxton_string_pack("nameu32");
+	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
@@ -1213,35 +1326,37 @@ START_TEST(bt_daemon_notify_clients_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2,
+	fail_if(csize != 3,
 		"Failed to get correct response to notify uint32");
 	fail_if(msg != BUXTON_CONTROL_CHANGED,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
-	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct notification keyu32");
-	fail_if(list[1].type != UINT32,
+	fail_if(list[0].type != STRING,
+		"Failed to get correct uint32 group type");
+	fail_if(strcmp(list[0].store.d_string.value,
+		       key.group.value) != 0,
+		"Failed to get correct uint32 group back");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct uint32 name type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       key.name.value) != 0,
+		"Failed to get correct uint32 name back");
+	fail_if(list[2].type != UINT32,
 		"Failed to get correct notification value type uint32");
-	fail_if(list[1].store.d_uint32 != 2,
+	fail_if(list[2].store.d_uint32 != 2,
 		"Failed to get correct notification value data uint32");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[0].store.d_string.value);
-	free(list[1].label.value);
+	free(list[1].store.d_string.value);
 	free(list);
 
 	value1.type = INT64;
 	value1.store.d_int64 = 2;
 	value2.type = INT64;
 	value2.store.d_int64 = 3;
-	string = buxton_make_key("group64", "name64");
-	fail_if(!string, "Failed to allocate key");
-	key.value = string->value;
-	key.length = string->length;
-	layer = buxton_string_pack("base");
-	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+	key.group = buxton_string_pack("group64");
+	key.name = buxton_string_pack("name64");
+	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
@@ -1252,35 +1367,37 @@ START_TEST(bt_daemon_notify_clients_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2,
+	fail_if(csize != 3,
 		"Failed to get correct response to notify int64");
 	fail_if(msg != BUXTON_CONTROL_CHANGED,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
-	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct notification key64");
-	fail_if(list[1].type != INT64,
+	fail_if(list[0].type != STRING,
+		"Failed to get correct int64 group type");
+	fail_if(strcmp(list[0].store.d_string.value,
+		       key.group.value) != 0,
+		"Failed to get correct int64 group back");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct int64 name type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       key.name.value) != 0,
+		"Failed to get correct int64 name back");
+	fail_if(list[2].type != INT64,
 		"Failed to get correct notification value type int 64");
-	fail_if(list[1].store.d_int64 != 3,
+	fail_if(list[2].store.d_int64 != 3,
 		"Failed to get correct notification value data int64");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[0].store.d_string.value);
-	free(list[1].label.value);
+	free(list[1].store.d_string.value);
 	free(list);
 
 	value1.type = UINT64;
 	value1.store.d_uint64 = 2;
 	value2.type = UINT64;
 	value2.store.d_uint64 = 3;
-	string = buxton_make_key("group64", "name64");
-	fail_if(!string, "Failed to allocate key");
-	key.value = string->value;
-	key.length = string->length;
-	layer = buxton_string_pack("base");
-	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+	key.group = buxton_string_pack("groupu64");
+	key.name = buxton_string_pack("nameu64");
+	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
@@ -1291,35 +1408,37 @@ START_TEST(bt_daemon_notify_clients_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2,
+	fail_if(csize != 3,
 		"Failed to get correct response to notify uint64");
 	fail_if(msg != BUXTON_CONTROL_CHANGED,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
-	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct notification keyu64");
-	fail_if(list[1].type != UINT64,
+	fail_if(list[0].type != STRING,
+		"Failed to get correct uint64 group type");
+	fail_if(strcmp(list[0].store.d_string.value,
+		       key.group.value) != 0,
+		"Failed to get correct uint64 group back");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct uint64 name type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       key.name.value) != 0,
+		"Failed to get correct uint64 name back");
+	fail_if(list[2].type != UINT64,
 		"Failed to get correct notification value type uint64");
-	fail_if(list[1].store.d_uint64 != 3,
+	fail_if(list[2].store.d_uint64 != 3,
 		"Failed to get correct notification value data uint64");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[0].store.d_string.value);
-	free(list[1].label.value);
+	free(list[1].store.d_string.value);
 	free(list);
 
 	value1.type = FLOAT;
 	value1.store.d_float = 3.1F;
 	value2.type = FLOAT;
 	value2.store.d_float = 3.14F;
-	string = buxton_make_key("groupf", "namef");
-	fail_if(!string, "Failed to allocate key");
-	key.value = string->value;
-	key.length = string->length;
-	layer = buxton_string_pack("base");
-	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+	key.group = buxton_string_pack("groupf");
+	key.name = buxton_string_pack("namef");
+	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
@@ -1330,35 +1449,37 @@ START_TEST(bt_daemon_notify_clients_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2,
+	fail_if(csize != 3,
 		"Failed to get correct response to notify float");
 	fail_if(msg != BUXTON_CONTROL_CHANGED,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
-	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct notification keyf");
-	fail_if(list[1].type != FLOAT,
+	fail_if(list[0].type != STRING,
+		"Failed to get correct float group type");
+	fail_if(strcmp(list[0].store.d_string.value,
+		       key.group.value) != 0,
+		"Failed to get correct float group back");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct float name type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       key.name.value) != 0,
+		"Failed to get correct float name back");
+	fail_if(list[2].type != FLOAT,
 		"Failed to get correct notification value type float");
-	fail_if(list[1].store.d_float != 3.14F,
+	fail_if(list[2].store.d_float != 3.14F,
 		"Failed to get correct notification value data float");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[0].store.d_string.value);
-	free(list[1].label.value);
+	free(list[1].store.d_string.value);
 	free(list);
 
 	value1.type = DOUBLE;
 	value1.store.d_double = 3.141F;
 	value2.type = DOUBLE;
 	value2.store.d_double = 3.1415F;
-	string = buxton_make_key("groupd", "named");
-	fail_if(!string, "Failed to allocate key");
-	key.value = string->value;
-	key.length = string->length;
-	layer = buxton_string_pack("base");
-	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+	key.group = buxton_string_pack("groupd");
+	key.name = buxton_string_pack("named");
+	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
@@ -1369,35 +1490,37 @@ START_TEST(bt_daemon_notify_clients_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2,
+	fail_if(csize != 3,
 		"Failed to get correct response to notify double");
 	fail_if(msg != BUXTON_CONTROL_CHANGED,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
-	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct notification keyd");
-	fail_if(list[1].type != DOUBLE,
+	fail_if(list[0].type != STRING,
+		"Failed to get correct double group type");
+	fail_if(strcmp(list[0].store.d_string.value,
+		       key.group.value) != 0,
+		"Failed to get correct double group back");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct double name type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       key.name.value) != 0,
+		"Failed to get correct double name back");
+	fail_if(list[2].type != DOUBLE,
 		"Failed to get correct notification value type double");
-	fail_if(list[1].store.d_double != 3.1415F,
+	fail_if(list[2].store.d_double != 3.1415F,
 		"Failed to get correct notification value data double");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[0].store.d_string.value);
-	free(list[1].label.value);
+	free(list[1].store.d_string.value);
 	free(list);
 
 	value1.type = BOOLEAN;
 	value1.store.d_boolean = false;
 	value2.type = BOOLEAN;
 	value2.store.d_int32 = true;
-	string = buxton_make_key("groupb", "nameb");
-	fail_if(!string, "Failed to allocate key");
-	key.value = string->value;
-	key.length = string->length;
-	layer = buxton_string_pack("base");
-	r = buxton_direct_set_value(&daemon.buxton, &layer, &key,
+	key.group = buxton_string_pack("groupb");
+	key.name = buxton_string_pack("nameb");
+	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
@@ -1408,23 +1531,28 @@ START_TEST(bt_daemon_notify_clients_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2,
+	fail_if(csize != 3,
 		"Failed to get correct response to notify bool");
 	fail_if(msg != BUXTON_CONTROL_CHANGED,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
-	fail_if(memcmp(list[0].store.d_string.value, string->value, string->length) != 0,
-		"Failed to get correct notification keyb");
-	fail_if(list[1].type != BOOLEAN,
+	fail_if(list[0].type != STRING,
+		"Failed to get correct bool group type");
+	fail_if(strcmp(list[0].store.d_string.value,
+		       key.group.value) != 0,
+		"Failed to get correct bool group back");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct bool name type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       key.name.value) != 0,
+		"Failed to get correct bool name back");
+	fail_if(list[2].type != BOOLEAN,
 		"Failed to get correct notification value type bool");
-	fail_if(list[1].store.d_boolean != true,
+	fail_if(list[2].store.d_boolean != true,
 		"Failed to get correct notification value data bool");
 
-	free(string->value);
-	free(string);
-	free(list[0].label.value);
 	free(list[0].store.d_string.value);
-	free(list[1].label.value);
+	free(list[1].store.d_string.value);
 	free(list);
 	close(client);
 	buxton_direct_close(&daemon.buxton);
@@ -1549,6 +1677,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 		FuzzContext fuzz;
 		time_t start;
 		bool keep_going = true;
+		int fd;
 
 
 		srand(0);
@@ -1569,7 +1698,8 @@ START_TEST(bt_daemon_eat_garbage_check)
 				keep_going = false;
 			}
 
-			fail_if(buxton_client_open(&c) == false,
+			fd = buxton_client_open(&c);
+			fail_if(fd == -1,
 				"Open failed with daemon%s", dump_fuzz(&fuzz));
 
 			fuzz.size = (unsigned int)rand() % 4096;
@@ -1590,11 +1720,11 @@ START_TEST(bt_daemon_eat_garbage_check)
 				memcpy((void *)(fuzz.buf + 4), (void *)(&fuzz.size), sizeof(uint32_t));
 			}
 
-			bytes = write(c.fd, (void*)(fuzz.buf), fuzz.size);
+			bytes = write(fd, (void*)(fuzz.buf), fuzz.size);
 			fail_if(bytes == -1, "write failed: %m%s", dump_fuzz(&fuzz));
 			fail_unless(bytes == fuzz.size, "write was %d instead of %d", bytes, fuzz.size);
 
-			buxton_client_close(&c);
+			buxton_client_close(c);
 			usleep(1*1000);
 
 			check_did_not_crash(daemon_pid, &fuzz);

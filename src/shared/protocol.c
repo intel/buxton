@@ -10,7 +10,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <assert.h>
@@ -19,6 +19,10 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#include "buxtonclient.h"
+#include "buxtonkey.h"
+#include "buxtonresponse.h"
+#include "buxtonstring.h"
 #include "hashmap.h"
 #include "log.h"
 #include "protocol.h"
@@ -91,9 +95,10 @@ void cleanup_callbacks(void)
 }
 
 void run_callback(BuxtonCallback callback, void *data, size_t count,
-		  BuxtonData *list)
+		  BuxtonData *list, BuxtonControlMessage type)
 {
 	BuxtonArray *array = NULL;
+	_BuxtonResponse response;
 
 	if (!callback)
 		goto out;
@@ -106,13 +111,15 @@ void run_callback(BuxtonCallback callback, void *data, size_t count,
 		if (!buxton_array_add(array, &list[i]))
 			goto out;
 
-	callback(array, data);
+	response.type = type;
+	response.data = array;
+	callback(&response, data);
 
 out:
 	buxton_array_free(&array, NULL);
 }
 
-bool send_message(BuxtonClient *client, uint8_t *send, size_t send_len,
+bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 		  BuxtonCallback callback, void *data, uint64_t msgid,
 		  BuxtonControlMessage type)
 {
@@ -175,7 +182,8 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 		if (!nv)
 			return;
 
-		run_callback((BuxtonCallback)(nv->cb), nv->data, count, list);
+		run_callback((BuxtonCallback)(nv->cb), nv->data, count, list,
+			     BUXTON_CONTROL_CHANGED);
 		return;
 	}
 
@@ -200,12 +208,12 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 
 	/* callback should be run on notfiy or unnotify failure */
 	/* and on any other server message we are waiting for */
-	run_callback((BuxtonCallback)(nv->cb), nv->data, count, list);
+	run_callback((BuxtonCallback)(nv->cb), nv->data, count, list, nv->type);
 
 	free(nv);
 }
 
-ssize_t buxton_wire_handle_response(BuxtonClient *client)
+ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 {
 	ssize_t l;
 	_cleanup_free_ uint8_t *response = NULL;
@@ -268,7 +276,6 @@ ssize_t buxton_wire_handle_response(BuxtonClient *client)
 			for (int i = 0; i < count; i++) {
 				if (r_list[i].type == STRING)
 					free(r_list[i].store.d_string.value);
-				free(r_list[i].label.value);
 			}
 			free(r_list);
 		}
@@ -281,7 +288,7 @@ ssize_t buxton_wire_handle_response(BuxtonClient *client)
 	return handled;
 }
 
-bool buxton_wire_get_response(BuxtonClient *client)
+bool buxton_wire_get_response(_BuxtonClient *client)
 {
 	struct pollfd pfd[1];
 	int r;
@@ -301,47 +308,76 @@ bool buxton_wire_get_response(BuxtonClient *client)
 	return false;
 }
 
-bool buxton_wire_set_value(BuxtonClient *client, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonData *value,
+bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
 			   BuxtonCallback callback, void *data)
 {
-	assert(client);
-	assert(layer_name);
-	assert(key);
-	assert(value);
-	assert(value->label.value);
-
 	_cleanup_free_ uint8_t *send = NULL;
 	bool ret = false;
 	size_t send_len = 0;
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
-	BuxtonData d_key;
+	BuxtonData d_group;
+	BuxtonData d_name;
+	BuxtonData d_value;
 	uint64_t msgid = get_msgid();
 
-	buxton_string_to_data(layer_name, &d_layer);
-	buxton_string_to_data(key, &d_key);
-	d_layer.label = buxton_string_pack("dummy");
-	d_key.label = buxton_string_pack("dummy");
-	value->label = buxton_string_pack("dummy");
+	buxton_string_to_data(&key->layer, &d_layer);
+	buxton_string_to_data(&key->group, &d_group);
+	buxton_string_to_data(&key->name, &d_name);
+	d_value.type = key->type;
+	switch (key->type) {
+	case STRING:
+		d_value.store.d_string.value = (char *)value;
+		d_value.store.d_string.length = (uint32_t)strlen((char *)value) + 1;
+		break;
+	case INT32:
+		d_value.store.d_int32 = *(int32_t *)value;
+		break;
+	case INT64:
+		d_value.store.d_int64 = *(int64_t *)value;
+		break;
+	case UINT32:
+		d_value.store.d_uint32 = *(uint32_t *)value;
+		break;
+	case UINT64:
+		d_value.store.d_uint64 = *(uint64_t *)value;
+		break;
+	case FLOAT:
+		d_value.store.d_float = *(float *)value;
+		break;
+	case DOUBLE:
+		d_value.store.d_double = *(double *)value;
+		break;
+	case BOOLEAN:
+		d_value.store.d_boolean = *(bool *)value;
+		break;
+	default:
+		break;
+	}
 
 	list = buxton_array_new();
 	if (!buxton_array_add(list, &d_layer)) {
 		buxton_log("Failed to add layer to set_value array\n");
 		goto end;
 	}
-	if (!buxton_array_add(list, &d_key)) {
-		buxton_log("Failed to add key to set_value array\n");
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Failed to add group to set_value array\n");
 		goto end;
 	}
-	if (!buxton_array_add(list, value)) {
+	if (!buxton_array_add(list, &d_name)) {
+		buxton_log("Failed to add name to set_value array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_value)) {
 		buxton_log("Failed to add value to set_value array\n");
 		goto end;
 	}
-	/* Attempt to serialize our send message */
+
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, msgid, list);
+
 	if (send_len == 0)
 		goto end;
+
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
 			  BUXTON_CONTROL_SET))
@@ -354,44 +390,43 @@ end:
 	return ret;
 }
 
-bool buxton_wire_set_label(BuxtonClient *client, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonData *value,
+bool buxton_wire_set_label(_BuxtonClient *client,
+			   _BuxtonKey *key, BuxtonString *value,
 			   BuxtonCallback callback, void *data)
 {
 	assert(client);
-	assert(layer_name);
 	assert(key);
 	assert(value);
-	assert(value->label.value);
 
 	_cleanup_free_ uint8_t *send = NULL;
 	bool ret = false;
 	size_t send_len = 0;
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
-	BuxtonData d_key;
+	BuxtonData d_group;
+	BuxtonData d_value;
 	uint64_t msgid = get_msgid();
 
-	buxton_string_to_data(layer_name, &d_layer);
-	buxton_string_to_data(key, &d_key);
-	d_layer.label = buxton_string_pack("dummy");
-	d_key.label = buxton_string_pack("dummy");
+	buxton_string_to_data(&key->layer, &d_layer);
+	buxton_string_to_data(&key->group, &d_group);
+	buxton_string_to_data(value, &d_value);
 
 	list = buxton_array_new();
 	if (!buxton_array_add(list, &d_layer)) {
 		buxton_log("Failed to add layer to set_label array\n");
 		goto end;
 	}
-	if (!buxton_array_add(list, &d_key)) {
-		buxton_log("Failed to add group/key to set_label array\n");
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Failed to add group to set_label array\n");
 		goto end;
 	}
-	if (!buxton_array_add(list, value)) {
-		buxton_log("Failed to add label to set_label array\n");
+	if (!buxton_array_add(list, &d_value)) {
+		buxton_log("Failed to add value to set_label array\n");
 		goto end;
 	}
-	/* Attempt to serialize our send message */
+
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET_LABEL, msgid, list);
+
 	if (send_len == 0)
 		goto end;
 
@@ -406,36 +441,42 @@ end:
 	return ret;
 }
 
-bool buxton_wire_get_value(BuxtonClient *client, BuxtonString *layer_name,
-			   BuxtonString *key, BuxtonCallback callback,
-			   void *data)
+bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
+			   BuxtonCallback callback, void *data)
 {
-	assert(client);
-	assert(key);
-
 	bool ret = false;
 	size_t send_len = 0;
 	_cleanup_free_ uint8_t *send = NULL;
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
-	BuxtonData d_key;
+	BuxtonData d_group;
+	BuxtonData d_name;
+	BuxtonData d_type;
 	uint64_t msgid = get_msgid();
 
-	buxton_string_to_data(key, &d_key);
-	d_key.label = buxton_string_pack("dummy");
+	buxton_string_to_data(&key->group, &d_group);
+	buxton_string_to_data(&key->name, &d_name);
+	d_type.type = UINT32;
+	d_type.store.d_int32 = key->type;
 
-	/* Attempt to serialize our send message */
 	list = buxton_array_new();
-	if (layer_name != NULL) {
-		buxton_string_to_data(layer_name, &d_layer);
-		d_layer.label = buxton_string_pack("dummy");
+	if (key->layer.value) {
+		buxton_string_to_data(&key->layer, &d_layer);
 		if (!buxton_array_add(list, &d_layer)) {
 			buxton_log("Unable to prepare get_value message\n");
 			goto end;
 		}
 	}
-	if (!buxton_array_add(list, &d_key)) {
-		buxton_log("Unable to prepare get_value message\n");
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Failed to add group to set_value array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_name)) {
+		buxton_log("Failed to add name to set_value array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_type)) {
+		buxton_log("Failed to add type to set_value array\n");
 		goto end;
 	}
 
@@ -455,38 +496,48 @@ end:
 	return ret;
 }
 
-bool buxton_wire_unset_value(BuxtonClient *client,
-			     BuxtonString *layer_name,
-			     BuxtonString *key,
+bool buxton_wire_unset_value(_BuxtonClient *client,
+			     _BuxtonKey *key,
 			     BuxtonCallback callback,
 			     void *data)
 {
 	assert(client);
-	assert(layer_name);
 	assert(key);
 
 	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
 	BuxtonArray *list = NULL;
-	BuxtonData d_key, d_layer;
+	BuxtonData d_group;
+	BuxtonData d_name;
+	BuxtonData d_layer;
+	BuxtonData d_type;
 	bool ret = false;
 	uint64_t msgid = get_msgid();
 
-	buxton_string_to_data(key, &d_key);
-	d_key.label = buxton_string_pack("dummy");
-	buxton_string_to_data(layer_name, &d_layer);
-	d_layer.label = buxton_string_pack("dummy");
+	buxton_string_to_data(&key->group, &d_group);
+	buxton_string_to_data(&key->name, &d_name);
+	buxton_string_to_data(&key->layer, &d_layer);
+	d_type.type = UINT32;
+	d_type.store.d_int32 = key->type;
 
-	/* Attempt to serialize our send message */
 	list = buxton_array_new();
 	if (!buxton_array_add(list, &d_layer)) {
-		buxton_log("Unable to add layer to get_value array\n");
+		buxton_log("Failed to add layer to set_value array\n");
 		goto end;
 	}
-	if (!buxton_array_add(list, &d_key)) {
-		buxton_log("Unable to add key to get_value array\n");
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Failed to add group to set_value array\n");
 		goto end;
 	}
+	if (!buxton_array_add(list, &d_name)) {
+		buxton_log("Failed to add name to set_value array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_type)) {
+		buxton_log("Failed to add type to set_value array\n");
+		goto end;
+	}
+
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNSET,
 					    msgid, list);
 
@@ -504,7 +555,7 @@ end:
 	return ret;
 }
 
-bool buxton_wire_list_keys(BuxtonClient *client,
+bool buxton_wire_list_keys(_BuxtonClient *client,
 			   BuxtonString *layer,
 			   BuxtonCallback callback,
 			   void *data)
@@ -520,16 +571,16 @@ bool buxton_wire_list_keys(BuxtonClient *client,
 	uint64_t msgid = get_msgid();
 
 	buxton_string_to_data(layer, &d_layer);
-	d_layer.label = buxton_string_pack("dummy");
 
-	/* Attempt to serialize our send message */
 	list = buxton_array_new();
 	if (!buxton_array_add(list, &d_layer)) {
 		buxton_log("Unable to add layer to list_keys array\n");
 		goto end;
 	}
+
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_LIST, msgid,
 					    list);
+
 	if (send_len == 0)
 		goto end;
 
@@ -545,8 +596,8 @@ end:
 	return ret;
 }
 
-bool buxton_wire_register_notification(BuxtonClient *client,
-				       BuxtonString *key,
+bool buxton_wire_register_notification(_BuxtonClient *client,
+				       _BuxtonKey *key,
 				       BuxtonCallback callback,
 				       void *data)
 {
@@ -556,21 +607,34 @@ bool buxton_wire_register_notification(BuxtonClient *client,
 	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
 	BuxtonArray *list = NULL;
-	BuxtonData d_key;
+	BuxtonData d_group;
+	BuxtonData d_name;
+	BuxtonData d_type;
 	bool ret = false;
 	uint64_t msgid = get_msgid();
 
-	buxton_string_to_data(key, &d_key);
-	d_key.label = buxton_string_pack("dummy");
+	buxton_string_to_data(&key->group, &d_group);
+	buxton_string_to_data(&key->name, &d_name);
+	d_type.type = UINT32;
+	d_type.store.d_int32 = key->type;
 
-	/* Attempt to serialize our send message */
 	list = buxton_array_new();
-	if (!buxton_array_add(list, &d_key)) {
-		buxton_log("Unable to add key to register_notification array\n");
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Failed to add group to set_value array\n");
 		goto end;
 	}
+	if (!buxton_array_add(list, &d_name)) {
+		buxton_log("Failed to add name to set_value array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_type)) {
+		buxton_log("Failed to add type to set_value array\n");
+		goto end;
+	}
+
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_NOTIFY, msgid,
 					    list);
+
 	if (send_len == 0)
 		goto end;
 
@@ -585,8 +649,8 @@ end:
 	return ret;
 }
 
-bool buxton_wire_unregister_notification(BuxtonClient *client,
-					 BuxtonString *key,
+bool buxton_wire_unregister_notification(_BuxtonClient *client,
+					 _BuxtonKey *key,
 					 BuxtonCallback callback,
 					 void *data)
 {
@@ -596,19 +660,31 @@ bool buxton_wire_unregister_notification(BuxtonClient *client,
 	_cleanup_free_ uint8_t *send = NULL;
 	size_t send_len = 0;
 	BuxtonArray *list = NULL;
-	BuxtonData d_key;
+	BuxtonData d_group;
+	BuxtonData d_name;
+	BuxtonData d_type;
 	bool ret = false;
 	uint64_t msgid = get_msgid();
 
-	buxton_string_to_data(key, &d_key);
-	d_key.label = buxton_string_pack("dummy");
+	buxton_string_to_data(&key->group, &d_group);
+	buxton_string_to_data(&key->name, &d_name);
+	d_type.type = UINT32;
+	d_type.store.d_int32 = key->type;
 
-	/* Attempt to serialize our send message */
 	list = buxton_array_new();
-	if (!buxton_array_add(list, &d_key)) {
-		buxton_log("Unable to add key to unregister_notification array\n");
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Failed to add group to set_value array\n");
 		goto end;
 	}
+	if (!buxton_array_add(list, &d_name)) {
+		buxton_log("Failed to add name to set_value array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_type)) {
+		buxton_log("Failed to add type to set_value array\n");
+		goto end;
+	}
+
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNNOTIFY,
 					    msgid, list);
 
@@ -632,7 +708,7 @@ void include_protocol(void)
 }
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

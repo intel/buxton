@@ -26,37 +26,46 @@
 #include "buxtonlist.h"
 
 bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
-		       BuxtonString **key, BuxtonString **layer, BuxtonData **value)
+		_BuxtonKey *key, BuxtonData **value)
 {
 	switch (msg) {
 	case BUXTON_CONTROL_SET:
-		if (count != 3)
+		if (count != 4)
 			return false;
-		if (list[0].type != STRING || list[1].type != STRING)
+		if (list[0].type != STRING || list[1].type != STRING ||
+		    list[2].type != STRING)
 			return false;
-		*layer = &(list[0].store.d_string);
-		*key = &(list[1].store.d_string);
-		*value = &(list[2]);
+		key->layer = list[0].store.d_string;
+		key->group = list[1].store.d_string;
+		key->name = list[2].store.d_string;
+		*value = &(list[3]);
 		break;
 	case BUXTON_CONTROL_SET_LABEL:
 		if (count != 3)
 			return false;
-		if (list[0].type != STRING || list[1].type != STRING)
+		if (list[0].type != STRING || list[1].type != STRING ||
+		    list[2].type != STRING)
 			return false;
-		*layer = &(list[0].store.d_string);
-		*key = &(list[1].store.d_string);
-		*value = &(list[2]);
+		key->layer = list[0].store.d_string;
+		key->group = list[1].store.d_string;
+		*value = &list[2];
 		break;
 	case BUXTON_CONTROL_GET:
-		if (count == 2) {
-			if(list[0].type != STRING || list[1].type != STRING)
+		if (count == 4) {
+			if(list[0].type != STRING || list[1].type != STRING ||
+			   list[2].type != STRING || list[3].type != UINT32)
 				return false;
-			*layer = &(list[0].store.d_string);
-			*key = &(list[1].store.d_string);
-		} else if (count == 1) {
-			if (list[0].type != STRING)
+			key->layer = list[0].store.d_string;
+			key->group = list[1].store.d_string;
+			key->name = list[2].store.d_string;
+			key->type = list[3].store.d_uint32;
+		} else if (count == 3) {
+			if(list[0].type != STRING || list[1].type != STRING ||
+			   list[2].type != UINT32)
 				return false;
-			*key = &(list[0].store.d_string);
+			key->group = list[0].store.d_string;
+			key->name = list[1].store.d_string;
+			key->type = list[2].store.d_uint32;
 		} else {
 			return false;
 		}
@@ -66,29 +75,38 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		if (list[0].type != STRING)
 			return false;
-		*layer = &(list[0].store.d_string);
+		*value = &list[0];
 		break;
 	case BUXTON_CONTROL_UNSET:
-		if (count != 2)
+		if (count != 4)
 			return false;
-		if (list[0].type != STRING || list[1].type != STRING)
+		if(list[0].type != STRING || list[1].type != STRING ||
+		   list[2].type != STRING || list[3].type != UINT32)
 			return false;
-		*layer = &(list[0].store.d_string);
-		*key = &(list[1].store.d_string);
+		key->layer = list[0].store.d_string;
+		key->group = list[1].store.d_string;
+		key->name = list[2].store.d_string;
+		key->type = list[3].store.d_uint32;
 		break;
 	case BUXTON_CONTROL_NOTIFY:
-		if (count != 1)
+		if (count != 3)
 			return false;
-		if (list[0].type != STRING)
+		if(list[0].type != STRING || list[1].type != STRING ||
+		   list[2].type != UINT32)
 			return false;
-		*key = &(list[0].store.d_string);
+		key->group = list[0].store.d_string;
+		key->name = list[1].store.d_string;
+		key->type = list[2].store.d_uint32;
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
-		if (count != 1)
+		if (count != 3)
 			return false;
-		if (list[0].type != STRING)
+		if(list[0].type != STRING || list[1].type != STRING ||
+		   list[2].type != UINT32)
 			return false;
-		*key = &(list[0].store.d_string);
+		key->group = list[0].store.d_string;
+		key->name = list[1].store.d_string;
+		key->type = list[2].store.d_uint32;
 		break;
 	default:
 		return false;
@@ -107,10 +125,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	uint16_t i;
 	size_t p_count;
 	size_t response_len;
-	BuxtonData response_data, kdata, mdata;
+	BuxtonData response_data, gdata, ndata, mdata;
 	BuxtonData *value = NULL;
-	BuxtonString *key = NULL;
-	BuxtonString *layer = NULL;
+	_BuxtonKey key = {{0}, {0}, {0}, 0};
 	BuxtonArray *out_list = NULL, *key_list = NULL;
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
@@ -121,7 +138,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	assert(self);
 	assert(client);
 
-	kdata.label = buxton_string_pack("dummy");
 	uid = self->buxton.client.uid;
 	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size,
 					     &msgid, &list);
@@ -135,31 +151,32 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	if (msg <= BUXTON_CONTROL_MIN || msg >= BUXTON_CONTROL_MAX)
 		goto end;
 
-	if (!parse_list(msg, p_count, list, &key, &layer, &value))
+	if (!parse_list(msg, p_count, list, &key, &value))
 		goto end;
 
 	/* use internal function from bt-daemon */
 	switch (msg) {
 	case BUXTON_CONTROL_SET:
-		set_value(self, client, layer, key, value, &response);
+		set_value(self, client, &key, value, &response);
 		break;
 	case BUXTON_CONTROL_SET_LABEL:
-		set_label(self, client, layer, key, value, &response);
+		set_label(self, client, &key, value, &response);
 		break;
 	case BUXTON_CONTROL_GET:
-		data = get_value(self, client, layer, key, &response);
+		data = get_value(self, client, &key, &response);
 		break;
 	case BUXTON_CONTROL_UNSET:
-		unset_value(self, client, layer, key, &response);
+		unset_value(self, client, &key, &response);
 		break;
 	case BUXTON_CONTROL_LIST:
-		key_list = list_keys(self, client, layer, &response);
+		key_list = list_keys(self, client, &value->store.d_string,
+				     &response);
 		break;
 	case BUXTON_CONTROL_NOTIFY:
-		register_notification(self, client, key, msgid, &response);
+		register_notification(self, client, &key, msgid, &response);
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
-		n_msgid = unregister_notification(self, client, key, &response);
+		n_msgid = unregister_notification(self, client, &key, &response);
 		break;
 	default:
 		goto end;
@@ -167,7 +184,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	/* Set a response code */
 	response_data.type = INT32;
 	response_data.store.d_int32 = response;
-	response_data.label = buxton_string_pack("dummy");
 	out_list = buxton_array_new();
 	if (!out_list)
 		goto end;
@@ -177,11 +193,16 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	}
 
 	switch (msg) {
-	/* TODO: Use cascading switch */
+		/* TODO: Use cascading switch */
 	case BUXTON_CONTROL_SET:
-		buxton_string_to_data(key, &kdata);
-		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare SET array key data\n");
+		buxton_string_to_data(&key.group, &gdata);
+		if (!buxton_array_add(out_list, &gdata)) {
+			buxton_log("Failed to prepare SET array group data\n");
+			goto end;
+		}
+		buxton_string_to_data(&key.name, &ndata);
+		if (!buxton_array_add(out_list, &ndata)) {
+			buxton_log("Failed to prepare SET array name data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
@@ -193,10 +214,17 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_SET_LABEL:
-		buxton_string_to_data(key, &kdata);
-		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare SET_LABEL array key data\n");
+		buxton_string_to_data(&key.group, &gdata);
+		if (!buxton_array_add(out_list, &gdata)) {
+			buxton_log("Failed to prepare SET_LABEL array group data\n");
 			goto end;
+		}
+		if (key.name.value) {
+			buxton_string_to_data(&key.name, &ndata);
+			if (!buxton_array_add(out_list, &ndata)) {
+				buxton_log("Failed to prepare SET_LABEL array name data\n");
+				goto end;
+			}
 		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
@@ -207,9 +235,14 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_GET:
-		buxton_string_to_data(key, &kdata);
-		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare GET array key data\n");
+		buxton_string_to_data(&key.group, &gdata);
+		if (!buxton_array_add(out_list, &gdata)) {
+			buxton_log("Failed to prepare GET array group data\n");
+			goto end;
+		}
+		buxton_string_to_data(&key.name, &ndata);
+		if (!buxton_array_add(out_list, &ndata)) {
+			buxton_log("Failed to prepare GET array name data\n");
 			goto end;
 		}
 		if (data && !buxton_array_add(out_list, data)) {
@@ -225,9 +258,14 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_UNSET:
-		buxton_string_to_data(key, &kdata);
-		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare UNSET array key data\n");
+		buxton_string_to_data(&key.group, &gdata);
+		if (!buxton_array_add(out_list, &gdata)) {
+			buxton_log("Failed to prepare UNSET array group data\n");
+			goto end;
+		}
+		buxton_string_to_data(&key.name, &ndata);
+		if (!buxton_array_add(out_list, &ndata)) {
+			buxton_log("Failed to prepare UNSET array name data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
@@ -255,9 +293,14 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_NOTIFY:
-		buxton_string_to_data(key, &kdata);
-		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare NOTIFY array key data\n");
+		buxton_string_to_data(&key.group, &gdata);
+		if (!buxton_array_add(out_list, &gdata)) {
+			buxton_log("Failed to prepare NOTIFY array group data\n");
+			goto end;
+		}
+		buxton_string_to_data(&key.name, &ndata);
+		if (!buxton_array_add(out_list, &ndata)) {
+			buxton_log("Failed to prepare NOTIFY array name data\n");
 			goto end;
 		}
 		response_len = buxton_serialize_message(&response_store,
@@ -269,12 +312,16 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
-		buxton_string_to_data(key, &kdata);
-		if (!buxton_array_add(out_list, &kdata)) {
-			buxton_log("Failed to prepare UNNOTIFY array key data\n");
+		buxton_string_to_data(&key.group, &gdata);
+		if (!buxton_array_add(out_list, &gdata)) {
+			buxton_log("Failed to prepare UNNOTIFY array group data\n");
 			goto end;
 		}
-		mdata.label = buxton_string_pack("dummy");
+		buxton_string_to_data(&key.name, &ndata);
+		if (!buxton_array_add(out_list, &ndata)) {
+			buxton_log("Failed to prepare UNNOTIFY array name data\n");
+			goto end;
+		}
 		mdata.type = UINT64;
 		mdata.store.d_uint64 = n_msgid;
 		if (!buxton_array_add(out_list, &mdata)) {
@@ -299,9 +346,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	ret = _write(client->fd, response_store, response_len);
 	if (ret) {
 		if (msg == BUXTON_CONTROL_SET && response == BUXTON_STATUS_OK)
-			bt_daemon_notify_clients(self, client, key, value);
+			bt_daemon_notify_clients(self, client, &key, value);
 		else if (msg == BUXTON_CONTROL_UNSET && response == BUXTON_STATUS_OK)
-			bt_daemon_notify_clients(self, client, key, NULL);
+			bt_daemon_notify_clients(self, client, &key, NULL);
 	}
 
 end:
@@ -309,7 +356,6 @@ end:
 	self->buxton.client.uid = uid;
 	if (list) {
 		for (i=0; i < p_count; i++) {
-			free(list[i].label.value);
 			if (list[i].type == STRING)
 				free(list[i].store.d_string.value);
 		}
@@ -318,26 +364,28 @@ end:
 	return ret;
 }
 
-void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, BuxtonString *key, BuxtonData *value)
+void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
+			      _BuxtonKey *key, BuxtonData *value)
 {
 	BuxtonList *list = NULL;
 	BuxtonList *elem = NULL;
 	BuxtonNotification *nitem;
 	_cleanup_free_ uint8_t* response = NULL;
 	size_t response_len;
-	BuxtonData data;
+	BuxtonData group;
+	BuxtonData name;
 	BuxtonArray *out_list = NULL;
 
 	assert(self);
 	assert(client);
 	assert(key);
 
-	list = hashmap_get(self->notify_mapping, key->value);
+	list = hashmap_get(self->notify_mapping, key->group.value);
 	if (!list)
 		return;
 
-	data.type = STRING;
-	data.label = buxton_string_pack("dummy");
+	group.type = STRING;
+	name.type = STRING;
 	BUXTON_LIST_FOREACH(list, elem) {
 		if (!elem)
 			break;
@@ -407,13 +455,20 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 		if (nitem->old_data && value)
 			buxton_data_copy(value, nitem->old_data);
 
-		data.store.d_string.value = key->value;
-		data.store.d_string.length = key->length;
+		group.store.d_string.value = key->group.value;
+		group.store.d_string.length = key->group.length;
+		name.store.d_string.value = key->name.value;
+		name.store.d_string.length = key->name.length;
 		out_list = buxton_array_new();
 		if (!out_list)
 			return;
-		if (!buxton_array_add(out_list, &data)) {
-			buxton_log("Failed to add notify array data\n");
+		if (!buxton_array_add(out_list, &group)) {
+			buxton_log("Failed to add notify array group\n");
+			buxton_array_free(&out_list, NULL);
+			return;
+		}
+		if (!buxton_array_add(out_list, &name)) {
+			buxton_log("Failed to add notify array name\n");
 			buxton_array_free(&out_list, NULL);
 			return;
 		}
@@ -433,63 +488,59 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client, Buxt
 			return;
 		}
 		buxton_debug("Notification to %d of key change (%s)\n", nitem->client->fd,
-			     key->value);
+			     key->group.value);
 
 		unused = _write(nitem->client->fd, response, response_len);
 	}
 }
 
-void set_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
-		      BuxtonString *key, BuxtonData *value, BuxtonStatus *status)
+void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
+	       BuxtonData *value, BuxtonStatus *status)
 {
 
 	assert(self);
 	assert(client);
-	assert(layer);
 	assert(key);
 	assert(value);
 	assert(status);
 
 	*status = BUXTON_STATUS_FAILED;
 
-	buxton_debug("Daemon setting [%s][%s][%s]\n",
-		     layer->value,
-		     key->value,
-		     value->label.value);
+	buxton_debug("Daemon setting [%s][%s]\n",
+		     key->layer.value,
+		     key->group.value);
 
 	self->buxton.client.uid = client->cred.uid;
 
 	//FIXME move direct functions to daemon only file
 	/* Use internal library to set value */
-	if (!buxton_direct_set_value(&self->buxton, layer, key, value, client->smack_label))
+	if (!buxton_direct_set_value(&self->buxton, key, value, client->smack_label))
 		return;
 
 	*status = BUXTON_STATUS_OK;
 	buxton_debug("Daemon set value completed\n");
 }
 
-void set_label(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
-		      BuxtonString *key, BuxtonData *value, BuxtonStatus *status)
+void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
+	       BuxtonData *value, BuxtonStatus *status)
 {
 
 	assert(self);
 	assert(client);
-	assert(layer);
 	assert(key);
 	assert(value);
 	assert(status);
 
 	*status = BUXTON_STATUS_FAILED;
 
-	buxton_debug("Daemon setting [%s][%s][%s]\n",
-		     layer->value,
-		     key->value,
-		     value->label.value);
+	buxton_debug("Daemon setting [%s][%s]\n",
+		     key->layer.value,
+		     key->group.value);
 
 	self->buxton.client.uid = client->cred.uid;
 
 	/* Use internal library to set label */
-	if (!buxton_direct_set_label(&self->buxton, layer, key, &value->label))
+	if (!buxton_direct_set_label(&self->buxton, key, &value->store.d_string))
 		return;
 
 	*status = BUXTON_STATUS_OK;
@@ -497,8 +548,7 @@ void set_label(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer
 }
 
 void unset_value(BuxtonDaemon *self, client_list_item *client,
-		 BuxtonString *layer, BuxtonString *key,
-		 BuxtonStatus *status)
+		 _BuxtonKey *key, BuxtonStatus *status)
 {
 	assert(self);
 	assert(client);
@@ -508,12 +558,12 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 	*status = BUXTON_STATUS_FAILED;
 
 	buxton_debug("Daemon unsetting [%s][%s]\n",
-		     layer->value,
-		     key->value);
+		     key->layer.value,
+		     key->group.value);
 
 	/* Use internal library to unset value */
 	self->buxton.client.uid = client->cred.uid;
-	if (!buxton_direct_unset_value(&self->buxton, layer, key, client->smack_label))
+	if (!buxton_direct_unset_value(&self->buxton, key, client->smack_label))
 		return;
 
 	buxton_debug("unset value returned successfully from db\n");
@@ -522,10 +572,11 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 	buxton_debug("Daemon unset value completed\n");
 }
 
-BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString *layer,
-		      BuxtonString *key, BuxtonStatus *status)
+BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
+		      _BuxtonKey *key, BuxtonStatus *status)
 {
 	BuxtonData *data = NULL;
+	BuxtonString label;
 
 	assert(self);
 	assert(client);
@@ -538,23 +589,17 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client, BuxtonString
 	if (!data)
 		goto end;
 
-	if (layer) {
-		buxton_debug("Daemon getting [%s][%s]\n", layer->value,
-			     key->value);
+	if (key->layer.value) {
+		buxton_debug("Daemon getting [%s][%s]\n", key->layer.value,
+			     key->group.value);
 	} else {
-		buxton_debug("Daemon getting [%s]\n", key->value);
+		buxton_debug("Daemon getting [%s]\n", key->group.value);
 	}
 	self->buxton.client.uid = client->cred.uid;
-	/* Attempt to retrieve key */
-	if (layer) {
-		/* Layer + key */
-		if (!buxton_direct_get_value_for_layer(&self->buxton, layer, key, data, client->smack_label))
-			goto fail;
-	} else {
-		/* Key only */
-		if (!buxton_direct_get_value(&self->buxton, key, data, client->smack_label))
-			goto fail;
-	}
+	if (!buxton_direct_get_value(&self->buxton, key, data, &label,
+				     client->smack_label))
+		goto fail;
+
 	buxton_debug("get value returned successfully from db\n");
 
 	*status = BUXTON_STATUS_OK;
@@ -584,7 +629,7 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 }
 
 void register_notification(BuxtonDaemon *self, client_list_item *client,
-			   BuxtonString *key, uint64_t msgid,
+			   _BuxtonKey *key, uint64_t msgid,
 			   BuxtonStatus *status)
 {
 	BuxtonList *n_list = NULL;
@@ -606,7 +651,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	nitem->client = client;
 
 	/* Store data now, cheap */
-	old_data = get_value(self, client, NULL, key, &key_status);
+	old_data = get_value(self, client, key, &key_status);
 	if (key_status != BUXTON_STATUS_OK) {
 		free(nitem);
 		return;
@@ -615,10 +660,10 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	nitem->msgid = msgid;
 
 	/* May be null, but will append regardless */
-	n_list = hashmap_get(self->notify_mapping, key->value);
+	n_list = hashmap_get(self->notify_mapping, key->group.value);
 
 	if (!n_list) {
-		key_name = strdup(key->value);
+		key_name = strdup(key->group.value);
 		if (!key_name) {
 			free(nitem);
 			return;
@@ -639,7 +684,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 }
 
 uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
-			     BuxtonString *key, BuxtonStatus *status)
+				 _BuxtonKey *key, BuxtonStatus *status)
 {
 	BuxtonList *n_list = NULL;
 	BuxtonList *elem = NULL;
@@ -652,7 +697,7 @@ uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	assert(status);
 
 	*status = BUXTON_STATUS_FAILED;
-	n_list = hashmap_get(self->notify_mapping, key->value);
+	n_list = hashmap_get(self->notify_mapping, key->group.value);
 	/* This key isn't actually registered for notifications */
 	if (!n_list)
 		return 0;
@@ -664,7 +709,7 @@ uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 		/* Find the list item for this client */
 		if (nitem->client == client)
 			citem = nitem;
-			break;
+		break;
 	};
 
 	/* Client hasn't registered for notifications on this key */
@@ -678,7 +723,7 @@ uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 
 	/* If we removed the last item, remove the mapping too */
 	if (!n_list)
-		hashmap_remove(self->notify_mapping, key->value);
+		hashmap_remove(self->notify_mapping, key->group.value);
 
 	*status = BUXTON_STATUS_OK;
 
@@ -747,12 +792,12 @@ void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a)
 	assert(fd >= 0);
 
 	if (!greedy_realloc((void **) &(self->pollfds), &(self->nfds_alloc),
-	    (size_t)((self->nfds + 1) * (sizeof(struct pollfd))))) {
+			    (size_t)((self->nfds + 1) * (sizeof(struct pollfd))))) {
 		buxton_log("realloc(): %m\n");
 		exit(EXIT_FAILURE);
 	}
 	if (!greedy_realloc((void **) &(self->accepting), &(self->accepting_alloc),
-	    (size_t)((self->nfds + 1) * (sizeof(self->accepting))))) {
+			    (size_t)((self->nfds + 1) * (sizeof(self->accepting))))) {
 		buxton_log("realloc(): %m\n");
 		exit(EXIT_FAILURE);
 	}

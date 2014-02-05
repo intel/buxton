@@ -20,7 +20,10 @@
 	#include "config.h"
 #endif
 
-#include "buxton.h"
+#include "buxtonarray.h"
+#include "buxtondata.h"
+#include "buxtonstring.h"
+#include "protocol.h"
 #include "hashmap.h"
 
 /**
@@ -63,10 +66,11 @@ typedef struct BuxtonLayer {
  * @param layer The layer to manipulate or query
  * @param key The key to manipulate or query
  * @param data Set or get data, dependant on operation
+ * @param label The key's label
  * @return a boolean value, indicating success of the operation
  */
-typedef bool (*module_value_func) (BuxtonLayer *layer, BuxtonString *key,
-				   BuxtonData *data);
+typedef bool (*module_value_func) (BuxtonLayer *layer, _BuxtonKey *key,
+				   BuxtonData *data, BuxtonString *label);
 
 /**
  * Backend key list function
@@ -108,7 +112,7 @@ typedef struct BuxtonConfig {
  * Internal controller for Buxton
  */
 typedef struct BuxtonControl {
-	BuxtonClient client; /**<Valid client connection */
+	_BuxtonClient client; /**<Valid client connection */
 	BuxtonConfig config; /**<Valid configuration (unused) */
 } BuxtonControl;
 

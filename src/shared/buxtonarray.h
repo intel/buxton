@@ -12,12 +12,23 @@
 #pragma once
 
 #ifdef HAVE_CONFIG_H
-    #include "config.h"
+	#include "config.h"
 #endif
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <buxton.h>
+
+#include "buxtondata.h"
+
+/**
+ * A dynamic array
+ * Represents daemon's reply to client
+ */
+typedef struct BuxtonArray {
+	void **data; /**<Dynamic array contents */
+	uint len; /**<Length of the array */
+} BuxtonArray;
+
 
 /**
  * Valid function prototype for 'free' method
@@ -55,13 +66,13 @@ void buxton_array_free(BuxtonArray **array,
  * Retrieve a BuxtonData from the array by index
  * @param array valid BuxtonArray reference
  * @param index index of the element in the array
- * @return a BuxtonData refered to by index, or NULL
+ * @return a data pointer refered to by index, or NULL
  */
-BuxtonData *buxton_array_get(BuxtonArray *array, uint16_t index)
+void *buxton_array_get(BuxtonArray *array, uint16_t index)
 	__attribute__((warn_unused_result));
 
 /*
- * Editor modelines  -  http://www.wireshark.org/tools/modelines.html
+ * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
  * Local variables:
  * c-basic-offset: 8

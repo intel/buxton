@@ -46,6 +46,7 @@
 
 #include "macro.h"
 #include "buxton.h"
+#include "buxtonkey.h"
 #include "backend.h"
 
 size_t page_size(void);
@@ -68,8 +69,6 @@ static inline void freep(void *p)
 static inline void free_buxton_data(void *p)
 {
 	BuxtonData *s = (*(void**) p);
-	if (s)
-		free(s->label.value);
 	if (s && s->type == STRING)
 		free(s->store.d_string.value);
 	free(s);
@@ -125,7 +124,7 @@ char* get_layer_path(BuxtonLayer *layer)
  * @param original The data being copied
  * @param copy Pointer where original should be copied to
  */
-void buxton_data_copy(BuxtonData* original, BuxtonData *copy);
+void buxton_data_copy(BuxtonData *original, BuxtonData *copy);
 
 /**
  * Perform a deep copy of one BuxtonString to another
@@ -149,18 +148,26 @@ void string_free(BuxtonString *string);
 
 /**
  * Get the group portion of a buxton key
- * @param key Pointer to BuxtonString representing a buxton key
+ * @param key Pointer to _BuxtonKey
  * @return A pointer to a character string containing the key's group
  */
-char *get_group(BuxtonString *key)
+char *get_group(_BuxtonKey *key)
 	__attribute__((warn_unused_result));
 
 /**
  * Get the name portion of a buxton key
- * @param key Pointer to BuxtonString representing a buxton key
+ * @param key Pointer to _BuxtonKey
  * @return A pointer to a character string containing the key's name
  */
-char *get_name(BuxtonString *key)
+char *get_name(_BuxtonKey *key)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the layer portion of a buxton key
+ * @param key Pointer to _BuxtonKey
+ * @return A pointer to a character string containing the key's layer
+ */
+char *get_layer(_BuxtonKey *key)
 	__attribute__((warn_unused_result));
 
 /**

@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "buxton-array.h"
+#include "buxtonarray.h"
 #include "util.h"
 
 BuxtonArray *buxton_array_new(void)
@@ -53,13 +53,13 @@ bool buxton_array_add(BuxtonArray *array,
 	return true;
 }
 
-BuxtonData *buxton_array_get(BuxtonArray *array, uint16_t index)
+void *buxton_array_get(BuxtonArray *array, uint16_t index)
 {
 	if (!array)
 		return NULL;
 	if (index > array->len)
 		return NULL;
-	return (BuxtonData*) array->data[index];
+	return array->data[index];
 }
 
 

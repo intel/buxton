@@ -19,26 +19,26 @@
 #include <string.h>
 
 #include "buxton.h"
+#include "buxtonarray.h"
+#include "buxtonresponse.h"
 #include "client.h"
 #include "direct.h"
 #include "hashmap.h"
 #include "protocol.h"
 #include "util.h"
-#include "buxton-array.h"
 
-bool cli_set_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataType type,
+
+bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, char *four)
 {
-	BuxtonString layer, label;
-	_cleanup_buxton_string_ BuxtonString *key = NULL;
+	BuxtonString label;
+	BuxtonKey key;
 	bool ret = false;
 
-	layer = buxton_string_pack(one);
-
 	if (four != NULL)
-		key = buxton_make_key(two, three);
+		key = buxton_make_key(two, three, one, type);
 	else
-		key = buxton_make_key(two, NULL);
+		key = buxton_make_key(two, NULL, one, type);
 
 	if (!key)
 		return ret;
@@ -48,75 +48,67 @@ bool cli_set_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataTyp
 	else
 		label = buxton_string_pack(three);
 
-	ret = buxton_direct_set_label(control, &layer, key, &label);
+	ret = buxton_direct_set_label(control, (_BuxtonKey *)key, &label);
 
 	if (!ret)
 		printf("Failed to update key \'%s:%s\' label in layer '%s'\n",
-		       get_group(key), get_name(key), layer.value);
+		       two, get_name(key), one);
+
+	buxton_free_key(key);
 	return ret;
 }
 
-bool cli_get_label(BuxtonControl *control, __attribute__((unused)) BuxtonDataType type,
-		   char *one, char *two, char *three, __attribute__((unused)) char *four)
+bool cli_get_label(BuxtonControl *control, BuxtonDataType type,
+		   char *one, char *two, char *three,
+		   __attribute__((unused)) char *four)
 {
-	BuxtonString layer;
-	_cleanup_buxton_string_ BuxtonString *key = NULL;
-	BuxtonData get;
-	bool ret = false;
-
-	memzero((void*)&get, sizeof(BuxtonData));
-	layer = buxton_string_pack(one);
-	key = buxton_make_key(two, three);
-	if (!key)
-		return ret;
-
-	if (control->client.direct)
-		ret = buxton_direct_get_value_for_layer(control, &layer, key,
-							&get, NULL);
-	else
-		ret = buxton_client_get_value_for_layer(&control->client, &layer,
-							key, NULL, NULL, true);
-	if (!ret)
-		printf("Failed to get key \'%s:%s\' in layer '%s'\n", get_group(key),
-		       get_name(key), layer.value);
-	else
-		printf("[%s][%s:%s] = %s\n", layer.value, get_group(key),
-		       get_name(key),
-		       get.label.value ? get.label.value : "");
-
-	return ret;
+	/* Not yet implemented */
+	return false;
 }
 
 bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, char *four)
 {
-	BuxtonString layer, value;
-	_cleanup_buxton_string_ BuxtonString *key = NULL;
+	BuxtonString value;
+	BuxtonKey key;
 	BuxtonData set;
 	bool ret = false;
 
 	memzero((void*)&set, sizeof(BuxtonData));
-	layer.value = one;
-	layer.length = (uint32_t)strlen(one) + 1;
-	key = buxton_make_key(two, three);
+	key = buxton_make_key(two, three, one, type);
 	if (!key)
 		return ret;
+
 	value.value = four;
 	value.length = (uint32_t)strlen(four) + 1;
 
-	set.label = buxton_string_pack("_");
 	set.type = type;
 	switch (set.type) {
 	case STRING:
 		set.store.d_string.value = value.value;
 		set.store.d_string.length = value.length;
+		if (control->client.direct)
+			ret = buxton_direct_set_value(control,
+						      (_BuxtonKey *)key,
+						      &set, NULL);
+		else
+			ret = buxton_client_set_value(&control->client, key,
+						      four, NULL, NULL, true);
 		break;
 	case INT32:
-		set.store.d_int32 = (int32_t)strtol(value.value, NULL, 10);
+		set.store.d_int32 = (int32_t)strtol(four, NULL, 10);
 		if (errno) {
 			printf("Invalid int32_t value\n");
 			return ret;
 		}
+		if (control->client.direct)
+			ret = buxton_direct_set_value(control,
+						      (_BuxtonKey *)key,
+						      &set, NULL);
+		else
+			ret = buxton_client_set_value(&control->client, key,
+						      &set.store.d_int32, NULL,
+						      NULL, true);
 		break;
 	case UINT32:
 		set.store.d_uint32 = (uint32_t)strtol(value.value, NULL, 10);
@@ -124,6 +116,14 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 			printf("Invalid uint32_t value\n");
 			return ret;
 		}
+		if (control->client.direct)
+			ret = buxton_direct_set_value(control,
+						      (_BuxtonKey *)key,
+						      &set, NULL);
+		else
+			ret = buxton_client_set_value(&control->client, key,
+						      &set.store.d_uint32, NULL,
+						      NULL, true);
 		break;
 	case INT64:
 		set.store.d_int64 = strtoll(value.value, NULL, 10);
@@ -131,6 +131,14 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 			printf("Invalid int64_t value\n");
 			return ret;
 		}
+		if (control->client.direct)
+			ret = buxton_direct_set_value(control,
+						      (_BuxtonKey *)key,
+						      &set, NULL);
+		else
+			ret = buxton_client_set_value(&control->client, key,
+						      &set.store.d_int64, NULL,
+						      NULL, true);
 		break;
 	case UINT64:
 		set.store.d_uint64 = strtoull(value.value, NULL, 10);
@@ -138,6 +146,14 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 			printf("Invalid uint64_t value\n");
 			return ret;
 		}
+		if (control->client.direct)
+			ret = buxton_direct_set_value(control,
+						      (_BuxtonKey *)key,
+						      &set, NULL);
+		else
+			ret = buxton_client_set_value(&control->client, key,
+						      &set.store.d_uint64, NULL,
+						      NULL, true);
 		break;
 	case FLOAT:
 		set.store.d_float = strtof(value.value, NULL);
@@ -145,6 +161,14 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 			printf("Invalid float value\n");
 			return ret;
 		}
+		if (control->client.direct)
+			ret = buxton_direct_set_value(control,
+						      (_BuxtonKey *)key,
+						      &set, NULL);
+		else
+			ret = buxton_client_set_value(&control->client, key,
+						      &set.store.d_float, NULL,
+						      NULL, true);
 		break;
 	case DOUBLE:
 		set.store.d_double = strtod(value.value, NULL);
@@ -152,6 +176,14 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 			printf("Invalid double value\n");
 			return ret;
 		}
+		if (control->client.direct)
+			ret = buxton_direct_set_value(control,
+						      (_BuxtonKey *)key,
+						      &set, NULL);
+		else
+			ret = buxton_client_set_value(&control->client, key,
+						      &set.store.d_double, NULL,
+						      NULL, true);
 		break;
 	case BOOLEAN:
 		if (strcaseeq(value.value, "true") ||
@@ -174,81 +206,93 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 			printf("Invalid bool value\n");
 			return ret;
 		}
+		if (control->client.direct)
+			ret = buxton_direct_set_value(control,
+						      (_BuxtonKey *)key,
+						      &set, NULL);
+		else
+			ret = buxton_client_set_value(&control->client, key,
+						      &set.store.d_boolean,
+						      NULL, NULL, true);
 		break;
 	default:
 		break;
 	}
-	if (control->client.direct)
-		ret = buxton_direct_set_value(control, &layer, key, &set, NULL);
-	else
-		ret = buxton_client_set_value(&control->client, &layer, key,
-					      &set, NULL, NULL, true);
+
 	if (!ret)
 		printf("Failed to update key \'%s:%s\' in layer '%s'\n", get_group(key),
-		       get_name(key), layer.value);
+		       get_name(key), get_layer(key));
+
+	free(key);
 	return ret;
 }
 
-void get_value_callback(BuxtonArray *array, void *data)
+void get_value_callback(BuxtonResponse response, void *data)
 {
-	BuxtonData *r;
-	BuxtonData *d = buxton_array_get(array, 0);
-	if ((d == NULL) || (d->store.d_int32 != BUXTON_STATUS_OK))
+	BuxtonKey key;
+	BuxtonData *r = (BuxtonData *)data;
+	void *p;
+
+	if (response_status(response) != BUXTON_STATUS_OK)
 		return;
 
-	d = buxton_array_get(array, 2);
-	if (d == NULL)
+	p = response_value(response);
+	if (!p)
 		return;
-	r = (BuxtonData *)data;
-	r->type = d->type;
-	switch (r->type) {
+	key = response_key(response);
+	if (!key) {
+		free(p);
+		return;
+	}
+
+	switch (buxton_get_type(key)) {
 	case STRING:
-		r->store.d_string.value = strdup(d->store.d_string.value);
-		r->store.d_string.length = d->store.d_string.length;
+		r->store.d_string.value = (char *)p;
+		r->store.d_string.length = (uint32_t)strlen(r->store.d_string.value) + 1;
 		break;
 	case INT32:
-		r->store.d_int32 = d->store.d_int32;
+		r->store.d_int32 = *(int32_t *)p;
 		break;
 	case UINT32:
-		r->store.d_uint32 = d->store.d_uint32;
+		r->store.d_uint32 = *(uint32_t *)p;
 		break;
 	case INT64:
-		r->store.d_int64 = d->store.d_int64;
+		r->store.d_int64 = *(int64_t *)p;
 		break;
 	case UINT64:
-		r->store.d_uint64 = d->store.d_uint64;
+		r->store.d_uint64 = *(uint64_t *)p;
 		break;
 	case FLOAT:
-		r->store.d_float = d->store.d_float;
+		r->store.d_float = *(float *)p;
 		break;
 	case DOUBLE:
-		r->store.d_double = d->store.d_double;
+		r->store.d_double = *(double *)p;
 		break;
 	case BOOLEAN:
-		r->store.d_boolean = d->store.d_boolean;
+		r->store.d_boolean = *(bool *)p;
 		break;
 	default:
 		break;
 	}
+
+	free(p);
+	free(key);
 }
 
 bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, __attribute__((unused)) char * four)
 {
-	BuxtonString layer;
-	_cleanup_buxton_string_ BuxtonString *key = NULL;
+	BuxtonKey key;
 	BuxtonData get;
 	_cleanup_free_ char *prefix = NULL;
 	bool ret = false;
 
 	memzero((void*)&get, sizeof(BuxtonData));
 	if (three != NULL) {
-		layer.value = one;
-		layer.length = (uint32_t)strlen(one) + 1;
-		key = buxton_make_key(two, three);
-		asprintf(&prefix, "[%s] ", layer.value);
+		key = buxton_make_key(two, three, one, type);
+		asprintf(&prefix, "[%s] ", one);
 	} else {
-		key = buxton_make_key(one, two);
+		key = buxton_make_key(one, two, NULL, type);
 		asprintf(&prefix, " ");
 	}
 
@@ -257,21 +301,22 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 
 	if (three != NULL) {
 		if (control->client.direct)
-			ret = buxton_direct_get_value_for_layer(control, &layer,
-								key, &get, NULL);
+			ret = buxton_direct_get_value_for_layer(control, key,
+								&get, NULL,
+								NULL);
 		else
-			ret = buxton_client_get_value_for_layer(&control->client,
-								&layer, key,
-								get_value_callback,
-								&get, true);
+			ret = buxton_client_get_value(&control->client,
+						      key,
+						      get_value_callback,
+						      &get, true);
 		if (!ret) {
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
-			       layer.value, get_group(key), get_name(key));
+			       one, get_group(key), get_name(key));
 			return false;
 		}
 	} else {
 		if (control->client.direct)
-			ret = buxton_direct_get_value(control, key, &get, NULL);
+			ret = buxton_direct_get_value(control, key, &get, NULL, NULL);
 		else
 			ret = buxton_client_get_value(&control->client, key,
 						      get_value_callback, &get,
@@ -281,14 +326,6 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 			       get_name(key));
 			return false;
 		}
-	}
-
-	if (get.type != type) {
-		const char *type_req, *type_got;
-		type_req = buxton_type_as_string(type);
-		type_got = buxton_type_as_string(get.type);
-		printf("You requested a key with type \'%s\', but value is of type \'%s\'.\n\n", type_req, type_got);
-		return false;
 	}
 
 	switch (get.type) {
@@ -336,28 +373,29 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 
 	if (get.type == STRING)
 		free(get.store.d_string.value);
-	free(get.label.value);
 	return true;
 }
 
-static void list_keys_callback(BuxtonArray *array, void *data)
+static void list_keys_callback(BuxtonResponse response, void *data)
 {
-	BuxtonData *r;
-	BuxtonData *d = buxton_array_get(array, 0);
-	if ((d == NULL) || (d->store.d_int32 != BUXTON_STATUS_OK))
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonArray *array = r->data;
+	BuxtonData *d;
+	//FIXME change to use api (make api first)
+	if (response_status(response) != BUXTON_STATUS_OK)
 		return;
 
-	BuxtonString *layer = (BuxtonString*)data;
+	BuxtonString *layer = (BuxtonString *)data;
 	if (!layer)
 		return;
 
 	/* Print all of the keys in this layer */
 	printf("%d keys found in layer \'%s\':\n", array->len - 1, layer->value);
 	for (uint16_t i = 1; i < array->len; i++) {
-		r = buxton_array_get(array, i);
-		if (!r)
+		d = buxton_array_get(array, i);
+		if (!d)
 			break;
-		printf("%s\n", r->store.d_string.value);
+		printf("%s\n", d->store.d_string.value);
 	}
 }
 
@@ -378,7 +416,7 @@ bool cli_list_keys(BuxtonControl *control,
 	if (control->client.direct)
 		ret = buxton_direct_list_keys(control, &layer, &results);
 	else
-		ret = buxton_client_list_keys(&(control->client), &layer,
+		ret = buxton_client_list_keys(&(control->client), one,
 					      list_keys_callback, &layer, true);
 	if (!ret) {
 		printf("No keys found for layer \'%s\'\n", one);
@@ -402,35 +440,38 @@ bool cli_list_keys(BuxtonControl *control,
 	return true;
 }
 
-void unset_value_callback(BuxtonArray *array, void *data)
+void unset_value_callback(BuxtonResponse response, void *data)
 {
-	BuxtonData *d = buxton_array_get(array, 1);
-	if (d == NULL)
+	BuxtonKey key = response_key(response);
+
+	if (!key)
 		return;
-	printf("unset key %s\n", d->store.d_string.value);
+
+	printf("unset key %s:%s\n", buxton_get_group(key), buxton_get_name(key));
+
+	buxton_free_key(key);
 }
 
 bool cli_unset_value(BuxtonControl *control,
-		     __attribute__((unused))BuxtonDataType type,
+		     BuxtonDataType type,
 		     char *one, char *two, char *three,
 		     __attribute__((unused)) char *four)
 {
-	BuxtonString layer;
-	_cleanup_buxton_string_ BuxtonString *key = NULL;
+	BuxtonKey key;
 
-	layer.value = one;
-	layer.length = (uint32_t)strlen(one) + 1;
-	key = buxton_make_key(two, three);
+	key = buxton_make_key(two, three, one, type);
 
 	if (!key)
 		return false;
 
 	if (control->client.direct)
-		return buxton_direct_unset_value(control, &layer, key, NULL);
+		return buxton_direct_unset_value(control, key, NULL);
 	else
-		return buxton_client_unset_value(&control->client, &layer,
+		return buxton_client_unset_value(&control->client,
 						 key, unset_value_callback,
 						 NULL, true);
+
+	buxton_free_key(key);
 }
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

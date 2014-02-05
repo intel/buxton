@@ -42,29 +42,25 @@ void buxton_direct_close(BuxtonControl *control);
 /**
  * Set a value within Buxton
  * @param control An initialized control structure
- * @param layer The layer to manipulate
- * @param key The key name
+ * @param key The key struct
  * @param label A BuxtonString containing the label to set
  * @return A boolean value, indicating success of the operation
  */
 bool buxton_direct_set_label(BuxtonControl *control,
-			     BuxtonString *layer,
-			     BuxtonString *key,
+			     _BuxtonKey *key,
 			     BuxtonString *label)
 	__attribute__((warn_unused_result));
 
 /**
  * Set a value within Buxton
  * @param control An initialized control structure
- * @param layer The layer to manipulate
- * @param key The key name
+ * @param key The key struct
  * @param data A struct containing the data to set
  * @param label The Smack label for the client
  * @return A boolean value, indicating success of the operation
  */
 bool buxton_direct_set_value(BuxtonControl *control,
-			     BuxtonString *layer_name,
-			     BuxtonString *key,
+			     _BuxtonKey *key,
 			     BuxtonData *data,
 			     BuxtonString *label)
 	__attribute__((warn_unused_result));
@@ -74,29 +70,31 @@ bool buxton_direct_set_value(BuxtonControl *control,
  * @param control An initialized control structure
  * @param key The key to retrieve
  * @param data An empty BuxtonData, where data is stored
- * @param label The Smack label of the client
+ * @param data_label The Smack label of the data
+ * @param client_label The Smack label of the client
  * @return A boolean value, indicating success of the operation
  */
 bool buxton_direct_get_value(BuxtonControl *control,
-			     BuxtonString *key,
+			     _BuxtonKey *key,
 			     BuxtonData *data,
-			     BuxtonString *label)
+			     BuxtonString *data_label,
+			     BuxtonString *client_label)
 	__attribute__((warn_unused_result));
 
 /**
- * Retrieve a value from Buxton
+ * Retrieve a value from Buxton by layer
  * @param control An initialized control structure
- * @param layer The layer where the key is set
  * @param key The key to retrieve
  * @param data An empty BuxtonData, where data is stored
- * @param label The Smack label of the client
+ * @param data_label The Smack label of the data
+ * @param client_label The Smack label of the client
  * @return A boolean value, indicating success of the operation
  */
 bool buxton_direct_get_value_for_layer(BuxtonControl *control,
-				       BuxtonString *layer,
-				       BuxtonString *key,
+				       _BuxtonKey *key,
 				       BuxtonData *data,
-				       BuxtonString *label)
+				       BuxtonString *data_label,
+				       BuxtonString *client_label)
 	__attribute__((warn_unused_result));
 
 /**
@@ -114,14 +112,12 @@ bool buxton_direct_list_keys(BuxtonControl *control,
 /**
  * Unset a value by key in the given BuxtonLayer
  * @param control An initialized control structure
- * @param layer The layer to remove the value from
  * @param key The key to remove
  * @param label The Smack label of the client
  * @return a boolean value, indicating success of the operation
  */
 bool buxton_direct_unset_value(BuxtonControl *control,
-			       BuxtonString *layer,
-			       BuxtonString *key,
+			       _BuxtonKey *key,
 			       BuxtonString *label)
 	__attribute__((warn_unused_result));
 

@@ -120,11 +120,16 @@ noinst_LTLIBRARIES += \
 libbuxton_shared_la_SOURCES = \
 	src/security/smack.c \
 	src/security/smack.h \
-	src/shared/array.c \
 	src/shared/backend.c \
 	src/shared/backend.h \
+	src/shared/buxtonarray.c \
+	src/shared/buxtonarray.h \
+	src/shared/buxtondata.h \
+	src/shared/buxtonkey.h \
 	src/shared/buxtonlist.c \
 	src/shared/buxtonlist.h \
+	src/shared/buxtonresponse.h \
+	src/shared/buxtonstring.h \
 	src/shared/configurator.c \
 	src/shared/configurator.h \
 	src/shared/direct.c \
@@ -156,8 +161,7 @@ libbuxton_shared_la_LDFLAGS = \
 	-static
 
 include_HEADERS += \
-	src/include/buxton.h \
-	src/include/buxton-array.h
+	src/include/buxton.h
 
 lib_LTLIBRARIES += \
 	libbuxton.la

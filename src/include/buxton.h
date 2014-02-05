@@ -41,16 +41,6 @@
 #endif
 
 /**
- * Used to communicate with Buxton
- */
-typedef struct BuxtonClient {
-	int fd; /**<The file descriptor for the connection */
-	bool direct; /**<Only used for direction connections */
-	pid_t pid; /**<Process ID, used within libbuxton */
-	uid_t uid; /**<User ID of currently using user */
-} BuxtonClient;
-
-/**
  * Possible data types for use in Buxton
  */
 typedef enum BuxtonDataType {
@@ -67,62 +57,51 @@ typedef enum BuxtonDataType {
 } BuxtonDataType;
 
 /**
- * Stores a string entity in Buxton
+ * Buxton message types
  */
-typedef struct BuxtonString {
-	char *value; /**<The content of the string */
-	uint32_t length; /**<The length of the string */
-} BuxtonString;
+typedef enum BuxtonControlMessage {
+	BUXTON_CONTROL_MIN,
+	BUXTON_CONTROL_SET, /**<Set a value within Buxton */
+	BUXTON_CONTROL_SET_LABEL, /**<Set a label within Buxton */
+	BUXTON_CONTROL_GET, /**<Retrieve a value from Buxton */
+	BUXTON_CONTROL_UNSET, /**<Unset a value within Buxton */
+	BUXTON_CONTROL_LIST, /**<List keys within a Buxton layer */
+	BUXTON_CONTROL_STATUS, /**<Status code follows */
+	BUXTON_CONTROL_NOTIFY, /**<Register for notification */
+	BUXTON_CONTROL_UNNOTIFY, /**<Opt out of notifications */
+	BUXTON_CONTROL_CHANGED, /**<A key changed in Buxton */
+	BUXTON_CONTROL_MAX
+} BuxtonControlMessage;
 
 /**
- * Stores values in Buxton, may have only one value
+ * Buxton Status Codes
  */
-typedef union BuxtonDataStore {
-	BuxtonString d_string; /**<Stores a string value */
-	int32_t d_int32; /**<Stores an int32_t value */
-	uint32_t d_uint32; /**<Stores an uint32_t value */
-	int64_t d_int64; /**<Stores a int64_t value */
-	uint64_t d_uint64; /**<Stores a uint64_t value */
-	float d_float; /**<Stores a float value */
-	double d_double; /**<Stores a double value */
-	bool d_boolean; /**<Stores a boolean value */
-} BuxtonDataStore;
+typedef enum BuxtonStatus {
+	BUXTON_STATUS_OK = 0, /**<Operation succeeded */
+	BUXTON_STATUS_FAILED /**<Operation failed */
+} BuxtonStatus;
 
 /**
- * Represents data in Buxton
- *
- * In Buxton we operate on all data using BuxtonData, for both set and
- * get operations. The type must be set to the type of value being set
- * in the BuxtonDataStore
+ * Used to communicate with Buxton
  */
-typedef struct BuxtonData {
-	BuxtonDataType type; /**<Type of data stored */
-	BuxtonDataStore store; /**<Contains one value, correlating to
-			       * type */
-	BuxtonString label; /**<SMACK label for data */
-} BuxtonData;
+typedef struct BuxtonClient *BuxtonClient;
 
 /**
- * A dynamic array
+ * Represents a data key in Buxton
  */
-typedef struct BuxtonArray {
-	void **data; /**<Dynamic array contents */
-	uint len; /**<Length of the array */
-} BuxtonArray;
+typedef struct BuxtonKey *BuxtonKey;
+
+/**
+ * Represents daemon's reply to client
+ */
+typedef struct BuxtonResponse *BuxtonResponse;
 
 /**
  * Prototype for callback functions
  *
- * Takes a BuxtonArray pointer and returns void.
+ * Takes a BuxtonResponse and returns void.
  */
-typedef void (*BuxtonCallback)(BuxtonArray *, void *);
-
-static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)
-{
-	d->type = STRING;
-	d->store.d_string.value = s->value;
-	d->store.d_string.length = s->length;
-}
+typedef void (*BuxtonCallback)(BuxtonResponse, void *);
 
 /* Buxton API Methods */
 
@@ -135,33 +114,32 @@ _bx_export_ bool buxton_client_set_conf_file(char *path);
 
 /**
  * Open a connection to Buxton
- * @param client A BuxtonClient
+ * @param client A BuxtonClient pointer
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_open(BuxtonClient *client)
+_bx_export_ int buxton_client_open(BuxtonClient *client)
 	__attribute__((warn_unused_result));
 
 /**
  * Close the connection to Buxton
  * @param client A BuxtonClient
  */
-_bx_export_ void buxton_client_close(BuxtonClient *client);
+_bx_export_ void buxton_client_close(BuxtonClient client);
 
 /**
  * Set a value within Buxton
  * @param client An open client connection
  * @param layer The layer to manipulate
- * @param key The key name
- * @param value A struct containing the data to set
+ * @param key The key to set
+ * @param value A pointer to a supported data type
  * @param callback A callback function to handle daemon reply
  * @param data User data to be used with callback function
  * @param sync Indicator for running a synchronous request
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_set_value(BuxtonClient *client,
-					 BuxtonString *layer,
-					 BuxtonString *key,
-					 BuxtonData *value,
+_bx_export_ bool buxton_client_set_value(BuxtonClient client,
+					 BuxtonKey key,
+					 void *value,
 					 BuxtonCallback callback,
 					 void *data,
 					 bool sync)
@@ -181,10 +159,9 @@ _bx_export_ bool buxton_client_set_value(BuxtonClient *client,
  * @param sync Indicator for running a synchronous request
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_set_label(BuxtonClient *client,
-					 BuxtonString *layer,
-					 BuxtonString *key,
-					 BuxtonData *value,
+_bx_export_ bool buxton_client_set_label(BuxtonClient client,
+					 BuxtonKey key,
+					 char *value,
 					 BuxtonCallback callback,
 					 void *data,
 					 bool sync)
@@ -199,43 +176,24 @@ _bx_export_ bool buxton_client_set_label(BuxtonClient *client,
  * @param sync Indicator for running a synchronous request
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_get_value(BuxtonClient *client,
-					 BuxtonString *key,
+_bx_export_ bool buxton_client_get_value(BuxtonClient client,
+					 BuxtonKey key,
 					 BuxtonCallback callback,
 					 void *data,
 					 bool sync)
-	__attribute__((warn_unused_result));
-
-/**
- * Retrieve a value from Buxton
- * @param client An open client connection
- * @param layer The layer where the key is set
- * @param key The key to retrieve
- * @param callback A callback function to handle daemon reply
- * @param data User data to be used with callback function
- * @param sync Indicator for running a synchronous request
- * @return A boolean value, indicating success of the operation
- */
-_bx_export_ bool buxton_client_get_value_for_layer(BuxtonClient *client,
-						   BuxtonString *layer,
-						   BuxtonString *key,
-						   BuxtonCallback callback,
-						   void *data,
-						   bool sync)
 	__attribute__((warn_unused_result));
 
 /**
  * List all keys within a given layer in Buxon
  * @param client An open client connection
  * @param layer_name The layer to query
- * @param list Pointer to store a BuxtonArray in
  * @param callback A callback function to handle daemon reply
  * @param data User data to be used with callback function
  * @param sync Indicator for running a synchronous request
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
-					 BuxtonString *layer_name,
+_bx_export_ bool buxton_client_list_keys(BuxtonClient client,
+					 char *layer_name,
 					 BuxtonCallback callback,
 					 void *data,
 					 bool sync)
@@ -250,8 +208,8 @@ _bx_export_ bool buxton_client_list_keys(BuxtonClient *client,
  * @param sync Indicator for running a synchronous request
  * @return a boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
-						     BuxtonString *key,
+_bx_export_ bool buxton_client_register_notification(BuxtonClient client,
+						     BuxtonKey key,
 						     BuxtonCallback callback,
 						     void *data,
 						     bool sync)
@@ -266,8 +224,8 @@ _bx_export_ bool buxton_client_register_notification(BuxtonClient *client,
  * @param sync Indicator for running a synchronous request
  * @return a boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
-						       BuxtonString *key,
+_bx_export_ bool buxton_client_unregister_notification(BuxtonClient client,
+						       BuxtonKey key,
 						       BuxtonCallback callback,
 						       void *data,
 						       bool sync)
@@ -277,16 +235,14 @@ _bx_export_ bool buxton_client_unregister_notification(BuxtonClient *client,
 /**
  * Unset a value by key in the given BuxtonLayer
  * @param client An open client connection
- * @param layer The layer to remove the value from
  * @param key The key to remove
  * @param callback A callback function to handle daemon reply
  * @param data User data to be used with callback function
  * @param sync Indicator for running a synchronous request
  * @return a boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
-					   BuxtonString *layer,
-					   BuxtonString *key,
+_bx_export_ bool buxton_client_unset_value(BuxtonClient client,
+					   BuxtonKey key,
 					   BuxtonCallback callback,
 					   void *data,
 					   bool sync)
@@ -298,32 +254,88 @@ _bx_export_ bool buxton_client_unset_value(BuxtonClient *client,
  * @param client An open client connection
  * @return Number of messages processed or -1 if there was an error
  */
-_bx_export_ ssize_t buxton_client_handle_response(BuxtonClient *client)
+_bx_export_ ssize_t buxton_client_handle_response(BuxtonClient client)
 	__attribute__((warn_unused_result));
 
 /**
  * Create a key for item lookup in buxton
  * @param group Pointer to a character string representing a group
  * @param name Pointer to a character string representing a name
+ * @param layer Pointer to a character string representing a layer (optional)
  * @return A pointer to a BuxtonString containing the key
  */
-_bx_export_ BuxtonString *buxton_make_key(char *group, char *name)
+_bx_export_ BuxtonKey buxton_make_key(char *group, char *name, char *layer,
+				      BuxtonDataType type)
 	__attribute__((warn_unused_result));
 
 /**
  * Get the group portion of a buxton key
- * @param key Pointer to BuxtonString representing a buxton key
+ * @param key A BuxtonKey
  * @return A pointer to a character string containing the key's group
  */
-_bx_export_ char *buxton_get_group(BuxtonString *key)
+_bx_export_ char *buxton_get_group(BuxtonKey key)
 	__attribute__((warn_unused_result));
 
 /**
  * Get the name portion of a buxton key
- * @param key Pointer to BuxtonString representing a buxton key
+ * @param key a BuxtonKey
  * @return A pointer to a character string containing the key's name
  */
-_bx_export_ char *buxton_get_name(BuxtonString *key)
+_bx_export_ char *buxton_get_name(BuxtonKey key)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the layer portion of a buxton key
+ * @param key a BuxtonKey
+ * @return A pointer to a character string containing the key's layer
+ */
+_bx_export_ char *buxton_get_layer(BuxtonKey key)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the type portion of a buxton key
+ * @param key a BuxtonKey
+ * @return The BuxtonDataType of a key
+ */
+_bx_export_ BuxtonDataType buxton_get_type(BuxtonKey key)
+	__attribute__((warn_unused_result));
+
+/**
+ * Free BuxtonKey
+ * @param key a BuxtonKey
+ */
+_bx_export_ void buxton_free_key(BuxtonKey key);
+
+/**
+ * Get the type of a buxton response
+ * @param response a BuxtonResponse
+ * @return BuxtonControlMessage enum indicating the type of the response
+ */
+_bx_export_ BuxtonControlMessage response_type(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the status of a buxton response
+ * @param response a BuxtonResponse
+ * @return BuxtonStatus enum indicating the status of the response
+ */
+_bx_export_ BuxtonStatus response_status(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the key for a buxton response
+ * @param response a BuxtonResponse
+ * @return BuxtonKey from the response
+ */
+_bx_export_ BuxtonKey response_key(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the value for a buxton response
+ * @param response a BuxtonResponse
+ * @return pointer to data from the response
+ */
+_bx_export_ void *response_value(BuxtonResponse response)
 	__attribute__((warn_unused_result));
 
 /*

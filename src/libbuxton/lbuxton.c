@@ -30,12 +30,17 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "util.h"
 #include "buxton.h"
-#include "log.h"
-#include "hashmap.h"
-#include "protocol.h"
+#include "buxtonclient.h"
+#include "buxtonkey.h"
+#include "buxtonresponse.h"
+#include "buxtonstring.h"
 #include "configurator.h"
+#include "hashmap.h"
+#include "log.h"
+#include "protocol.h"
+#include "util.h"
+
 
 bool buxton_client_set_conf_file(char *path)
 {
@@ -54,59 +59,71 @@ bool buxton_client_set_conf_file(char *path)
 	return true;
 }
 
-bool buxton_client_open(BuxtonClient *client)
+int buxton_client_open(BuxtonClient *client)
 {
+	_BuxtonClient **c = (_BuxtonClient **)client;
 	int bx_socket, r;
 	struct sockaddr_un remote;
 
-	if (!client)
-		return false;
-
 	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
-		return false;
+		return -1;
 
 	remote.sun_family = AF_UNIX;
 	strncpy(remote.sun_path, buxton_socket(), sizeof(remote.sun_path));
 	r = connect(bx_socket, (struct sockaddr *)&remote, sizeof(remote));
 	if ( r == -1) {
 		close(bx_socket);
-		return false;
+		return -1;
 	}
 
 	if (fcntl(bx_socket, F_SETFL, O_NONBLOCK)) {
 		close(bx_socket);
-		return false;
+		return -1;
 	}
 
 	if (!setup_callbacks()) {
 		close(bx_socket);
-		return false;
+		return -1;
 	}
 
-	client->fd = bx_socket;
-	return true;
+	*c = malloc0(sizeof(_BuxtonClient *));
+	if (!(*c)) {
+		close(bx_socket);
+		return -1;
+	}
+
+	(*c)->fd = bx_socket;
+	return bx_socket;
 }
 
-void buxton_client_close(BuxtonClient *client)
+void buxton_client_close(BuxtonClient client)
 {
+	_BuxtonClient *c;
 	if (!client)
 		return;
 
+	c = (_BuxtonClient *)client;
+
 	cleanup_callbacks();
-	close(client->fd);
-	client->direct = 0;
-	client->fd = -1;
+	close(c->fd);
+	c->direct = 0;
+	c->fd = -1;
 }
 
-bool buxton_client_get_value(BuxtonClient *client,
-			     BuxtonString *key,
+bool buxton_client_get_value(BuxtonClient client,
+			     BuxtonKey key,
 			     BuxtonCallback callback,
 			     void *data,
 			     bool sync)
 {
 	bool r;
+	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	r = buxton_wire_get_value(client, NULL, key, callback, data);
+	if (!k || !(k->group.value) || !(k->name.value) ||
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+		return false;
+
+	r = buxton_wire_get_value((_BuxtonClient *)client, k, callback, data);
 	if (!r)
 		return false;
 
@@ -116,83 +133,97 @@ bool buxton_client_get_value(BuxtonClient *client,
 	return r;
 }
 
-bool buxton_client_get_value_for_layer(BuxtonClient *client,
-				       BuxtonString *layer_name,
-				       BuxtonString *key,
-				       BuxtonCallback callback,
-				       void *data,
-				       bool sync)
-{
-	bool r;
-
-	r = buxton_wire_get_value(client, layer_name, key, callback, data);
-	if (!r)
-		return false;
-
-	if (sync)
-		r = buxton_wire_get_response(client);
-
-	return r;
-}
-
-bool buxton_client_register_notification(BuxtonClient *client,
-					 BuxtonString *key,
+bool buxton_client_register_notification(BuxtonClient client,
+					 BuxtonKey key,
 					 BuxtonCallback callback,
-					 void * data,
+					 void *data,
 					 bool sync)
 {
-	return buxton_wire_register_notification(client, key, callback, data);
+	bool r;
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	if (!k || !k->group.value || !k->name.value ||
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+		return false;
+
+	r = buxton_wire_register_notification((_BuxtonClient *)client, k,
+					      callback, data);
+	if (!r)
+		return false;
+
+	if (sync)
+		r = buxton_wire_get_response((_BuxtonClient *)client);
+
+	return r;
 }
 
-bool buxton_client_unregister_notification(BuxtonClient *client,
-					   BuxtonString *key,
+bool buxton_client_unregister_notification(BuxtonClient client,
+					   BuxtonKey key,
 					   BuxtonCallback callback,
 					   void *data,
 					   bool sync)
 {
 	bool r;
+	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	r = buxton_wire_unregister_notification(client, key, callback, data);
+	if (!k || !k->group.value || !k->name.value ||
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+		return false;
+
+	r = buxton_wire_unregister_notification((_BuxtonClient *)client, k,
+						callback, data);
 	if (!r)
 		return false;
 
 	if (sync)
-		r = buxton_wire_get_response(client);
+		r = buxton_wire_get_response((_BuxtonClient *)client);
 
 	return r;
 }
 
-bool buxton_client_set_value(BuxtonClient *client,
-			     BuxtonString *layer_name,
-			     BuxtonString *key,
-			     BuxtonData *value,
+bool buxton_client_set_value(BuxtonClient client,
+			     BuxtonKey key,
+			     void *value,
 			     BuxtonCallback callback,
 			     void *data,
 			     bool sync)
 {
 	bool r;
+	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	r = buxton_wire_set_value(client, layer_name, key, value, callback, data);
+	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX || !value)
+		return false;
+
+	r = buxton_wire_set_value((_BuxtonClient *)client, k, value, callback,
+				  data);
 	if (!r)
 		return false;
 
 	if (sync)
-		r = buxton_wire_get_response(client);
+		r = buxton_wire_get_response((_BuxtonClient *)client);
 
 	return r;
 }
 
-bool buxton_client_set_label(BuxtonClient *client,
-			     BuxtonString *layer_name,
-			     BuxtonString *key,
-			     BuxtonData *value,
+bool buxton_client_set_label(BuxtonClient client,
+			     BuxtonKey key,
+			     char *value,
 			     BuxtonCallback callback,
 			     void *data,
 			     bool sync)
 {
 	bool r;
+	BuxtonString v;
+	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	r = buxton_wire_set_label(client, layer_name, key, value, callback, data);
+	if (!k || !k->group.value || !k->layer.value || !value)
+		return false;
+
+	v = buxton_string_pack(value);
+
+	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
+				  data);
 	if (!r)
 		return false;
 
@@ -202,88 +233,363 @@ bool buxton_client_set_label(BuxtonClient *client,
 	return r;
 }
 
-bool buxton_client_list_keys(BuxtonClient *client,
-			     BuxtonString *layer_name,
+bool buxton_client_list_keys(BuxtonClient client,
+			     char *layer_name,
 			     BuxtonCallback callback,
 			     void *data,
 			     bool sync)
 {
 	bool r;
+	BuxtonString l;
 
-	r = buxton_wire_list_keys(client, layer_name, callback, data);
+	if (!layer_name)
+		return false;
+
+	l = buxton_string_pack(layer_name);
+
+	r = buxton_wire_list_keys((_BuxtonClient *)client, &l, callback, data);
 	if (!r)
 		return false;
 
 	if (sync)
-		r = buxton_wire_get_response(client);
+		r = buxton_wire_get_response((_BuxtonClient *)client);
 
 	return r;
 }
 
-bool buxton_client_unset_value(BuxtonClient *client,
-			       BuxtonString *layer_name,
-			       BuxtonString *key,
+bool buxton_client_unset_value(BuxtonClient client,
+			       BuxtonKey key,
 			       BuxtonCallback callback,
 			       void *data,
 			       bool sync)
 {
 	bool r;
+	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	r = buxton_wire_unset_value(client, layer_name, key, callback, data);
+	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+		return false;
+
+	r = buxton_wire_unset_value((_BuxtonClient *)client, k, callback, data);
 	if (!r)
 		return false;
 
 	if (sync)
-		r = buxton_wire_get_response(client);
+		r = buxton_wire_get_response((_BuxtonClient *)client);
 
 	return r;
 }
 
-BuxtonString *buxton_make_key(char *group, char *name)
+BuxtonKey buxton_make_key(char *group, char *name, char *layer,
+			  BuxtonDataType type)
 {
-	BuxtonString *key;
-	int len;
+	_BuxtonKey *key = NULL;
+	char *g = NULL;
+	char *n = NULL;
+	char *l = NULL;
 
 	if (!group)
-		return NULL;
+		goto fail;
 
-	key = malloc0(sizeof(BuxtonString));
+	if (type <= BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX)
+		goto fail;
+
+	g = strdup(group);
+	if (!g)
+		goto fail;
+
+	if (name) {
+		n = strdup(name);
+		if (!n)
+			goto fail;
+	}
+
+	if (layer) {
+		l = strdup(layer);
+		if (!l)
+			goto fail;
+	}
+
+	key = malloc0(sizeof(_BuxtonKey));
+	if (!key)
+		goto fail;
+
+	key->group.value = g;
+	key->group.length = (uint32_t)strlen(g) + 1;
+	if (name) {
+		key->name.value = n;
+		key->name.length = (uint32_t)strlen(n) + 1;
+	} else {
+		key->name.value = NULL;
+		key->name.length = 0;
+	}
+	if (layer) {
+		key->layer.value = l;
+		key->layer.length = (uint32_t)strlen(l) + 1;
+	} else {
+		key->layer.value = NULL;
+		key->layer.length = 0;
+	}
+	key->type = type;
+
+	return (BuxtonKey)key;
+
+fail:
+	free(g);
+	free(n);
+	free(l);
+	return NULL;
+}
+
+char *buxton_get_group(BuxtonKey key)
+{
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
 	if (!key)
 		return NULL;
 
-	if (!name) {
-		key->value = strdup(group);
-		if (!key->value) {
-			free(key);
-			return NULL;
-		}
-		key->length = (uint32_t)strlen(key->value) + 1;
-		return key;
-	}
+	return get_group(k);
+}
 
-	len = asprintf(&(key->value), "%s%c%s", group, 0, name);
-	if (len < 0) {
-		free(key);
+char *buxton_get_name(BuxtonKey key)
+{
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	if (!key)
 		return NULL;
+
+	return get_name(k);
+}
+
+char *buxton_get_layer(BuxtonKey key)
+{
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	if (!key)
+		return NULL;
+
+	return get_layer(k);
+}
+
+BuxtonDataType buxton_get_type(BuxtonKey key)
+{
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	if (!key)
+		return -1;
+
+	return k->type;
+}
+
+void buxton_free_key(BuxtonKey key)
+{
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	if (!k)
+		return;
+
+	free(k->group.value);
+	free(k->name.value);
+	free(k->layer.value);
+	free(k);
+}
+
+ssize_t buxton_client_handle_response(BuxtonClient client)
+{
+	return buxton_wire_handle_response((_BuxtonClient *)client);
+}
+
+BuxtonControlMessage response_type(BuxtonResponse response)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+
+	if (!response)
+		return -1;
+
+	return r->type;
+}
+
+BuxtonStatus response_status(BuxtonResponse response)
+{
+	BuxtonData *d;
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+
+	if (!response)
+		return -1;
+
+	if (response_type(response) == BUXTON_CONTROL_CHANGED)
+		return BUXTON_STATUS_OK;
+
+	d = buxton_array_get(r->data, 0);
+
+	if (d)
+		return d->store.d_int32;
+
+	return -1;
+}
+
+BuxtonKey response_key(BuxtonResponse response)
+{
+	_BuxtonKey *key;
+	BuxtonData *d;
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+
+	if (!response)
+		goto fail;
+
+	key = malloc0(sizeof(_BuxtonKey));
+	if (!key)
+		goto fail;
+
+	type = response_type(response);
+	switch (type) {
+	case BUXTON_CONTROL_GET:
+		d = buxton_array_get(r->data, 1);
+		if (!buxton_string_copy(&d->store.d_string, &key->group))
+			goto fail;
+		d = buxton_array_get(r->data, 2);
+		if (!buxton_string_copy(&d->store.d_string, &key->name))
+			goto fail;
+		break;
+	case BUXTON_CONTROL_SET:
+		d = buxton_array_get(r->data, 1);
+		if (!buxton_string_copy(&d->store.d_string, &key->group))
+			goto fail;
+		d = buxton_array_get(r->data, 2);
+		if (!buxton_string_copy(&d->store.d_string, &key->name))
+			goto fail;
+		break;
+	case BUXTON_CONTROL_SET_LABEL:
+		d = buxton_array_get(r->data, 1);
+		if (!buxton_string_copy(&d->store.d_string, &key->group))
+			goto fail;
+		if (r->data->len == 3) {
+			d = buxton_array_get(r->data, 2);
+			if (!buxton_string_copy(&d->store.d_string, &key->name))
+				goto fail;
+		}
+		break;
+	case BUXTON_CONTROL_UNSET:
+		d = buxton_array_get(r->data, 1);
+		if (!buxton_string_copy(&d->store.d_string, &key->group))
+			goto fail;
+		d = buxton_array_get(r->data, 2);
+		if (!buxton_string_copy(&d->store.d_string, &key->name))
+			goto fail;
+		break;
+	case BUXTON_CONTROL_NOTIFY:
+		d = buxton_array_get(r->data, 1);
+		if (!buxton_string_copy(&d->store.d_string, &key->group))
+			goto fail;
+		d = buxton_array_get(r->data, 2);
+		if (!buxton_string_copy(&d->store.d_string, &key->name))
+			goto fail;
+		break;
+	case BUXTON_CONTROL_UNNOTIFY:
+		d = buxton_array_get(r->data, 1);
+		if (!buxton_string_copy(&d->store.d_string, &key->group))
+			goto fail;
+		d = buxton_array_get(r->data, 2);
+		if (!buxton_string_copy(&d->store.d_string, &key->name))
+			goto fail;
+		break;
+	case BUXTON_CONTROL_CHANGED:
+		d = buxton_array_get(r->data, 0);
+		if (!buxton_string_copy(&d->store.d_string, &key->group))
+			goto fail;
+		d = buxton_array_get(r->data, 1);
+		if (!buxton_string_copy(&d->store.d_string, &key->name))
+			goto fail;
+	default:
+		goto fail;
+		break;
 	}
-	key->length = (uint32_t)len + 1;
 
-	return key;
+	return (BuxtonKey)key;
+
+fail:
+	if (key) {
+		free(key->group.value);
+		free(key->name.value);
+		free(key);
+	}
+
+	return NULL;
 }
 
-char *buxton_get_group(BuxtonString *key)
+void *response_value(BuxtonResponse response)
 {
-	return get_group(key);
-}
+	void *p = NULL;
+	BuxtonData *d;
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
 
-char *buxton_get_name(BuxtonString *key)
-{
-	return get_name(key);
-}
+	if (!response)
+		return NULL;
 
-ssize_t buxton_client_handle_response(BuxtonClient *client)
-{
-	return buxton_wire_handle_response(client);
+	type = response_type(response);
+	if (type == BUXTON_CONTROL_GET)
+		d = buxton_array_get(r->data, 3);
+	else if (type == BUXTON_CONTROL_NOTIFY)
+		d = buxton_array_get(r->data, 2);
+	else
+		goto out;
+
+	if (!d)
+		goto out;
+
+	switch (d->type) {
+	case STRING:
+		return strdup(d->store.d_string.value);
+	case INT32:
+		p = malloc0(sizeof(int32_t));
+		if (!p)
+			goto out;
+		*(int32_t *)p = (int32_t)d->store.d_int32;
+		break;
+	case UINT32:
+		p = malloc0(sizeof(uint32_t));
+		if (!p)
+			goto out;
+		*(uint32_t *)p = (uint32_t)d->store.d_uint32;
+		break;
+	case INT64:
+		p = malloc0(sizeof(int64_t));
+		if (!p)
+			goto out;
+		*(int64_t *)p = (int64_t)d->store.d_int64;
+		break;
+	case UINT64:
+		p = malloc0(sizeof(uint64_t));
+		if (!p)
+			goto out;
+		*(uint64_t *)p = (uint64_t)d->store.d_uint64;
+		break;
+	case FLOAT:
+		p = malloc0(sizeof(float));
+		if (!p)
+			goto out;
+		*(float *)p = (float)d->store.d_float;
+		break;
+	case DOUBLE:
+		p = malloc0(sizeof(double));
+		if (!p)
+			goto out;
+		*(double *)p = (double)d->store.d_double;
+		break;
+	case BOOLEAN:
+		p = malloc0(sizeof(bool));
+		if (!p)
+			goto out;
+		*(bool *)p = (bool)d->store.d_boolean;
+		break;
+	default:
+		break;
+	}
+
+out:
+	return p;
 }
 
 /*

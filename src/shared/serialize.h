@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 #include "buxton.h"
-#include "buxton-array.h"
+#include "buxtonarray.h"
 
 /**
  * Magic for Buxton messages
@@ -41,30 +41,13 @@
  * 1 is the mimimum number of characters in a valid value
  */
 #define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) \
-	+ (sizeof(uint32_t) * 2) \
+	+ (sizeof(uint32_t) * 2)		\
 	+ 2 + 1
-
-/**
- * A control message for the wire protocol
- */
-typedef enum BuxtonControlMessage{
-	BUXTON_CONTROL_MIN,
-	BUXTON_CONTROL_SET, /**<Set a value within Buxton */
-	BUXTON_CONTROL_SET_LABEL, /**<Set a label within Buxton */
-	BUXTON_CONTROL_GET, /**<Retrieve a value from Buxton */
-	BUXTON_CONTROL_UNSET, /**<Unset a value within Buxton */
-	BUXTON_CONTROL_LIST, /**<List keys within a Buxton layer */
-	BUXTON_CONTROL_STATUS, /**<Status code follows */
-	BUXTON_CONTROL_NOTIFY, /**<Register for notification */
-	BUXTON_CONTROL_UNNOTIFY, /**<Opt out of notifications */
-	BUXTON_CONTROL_CHANGED, /**<A key changed in Buxton */
-	BUXTON_CONTROL_MAX
-} BuxtonControlMessage;
 
 /**
  * Length of valid message header
  */
-#define BUXTON_MESSAGE_HEADER_LENGTH sizeof(uint32_t) \
+#define BUXTON_MESSAGE_HEADER_LENGTH sizeof(uint32_t)	\
 	+ sizeof(uint32_t)
 /**
  * Maximum length of valid control message
@@ -79,19 +62,23 @@ typedef enum BuxtonControlMessage{
 /**
  * Serialize data internally for backend consumption
  * @param source Data to be serialized
- * @param dest Pointer to store serialized data in
+ * @param label Label to be serialized
+ * @param target Pointer to store serialized data in
  * @return a size_t value, indicating the size of serialized data
  */
-size_t buxton_serialize(BuxtonData *source, uint8_t **dest)
+size_t buxton_serialize(BuxtonData *source, BuxtonString *label,
+			uint8_t **target)
 	__attribute__((warn_unused_result));
 
 /**
  * Deserialize internal data for client consumption
  * @param source Serialized data pointer
- * @param dest A pointer where the deserialize data will be stored
+ * @param target A pointer where the deserialize data will be stored
+ * @param label A pointer where the deserialize label will be stored
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_deserialize(uint8_t *source, BuxtonData *dest)
+bool buxton_deserialize(uint8_t *source, BuxtonData *target,
+			BuxtonString *label)
 	__attribute__((warn_unused_result));
 
 /**
