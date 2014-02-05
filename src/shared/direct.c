@@ -157,11 +157,22 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	assert(key);
 	assert(data);
 
+
 	/* Access checks are not needed for direct clients, where label is NULL */
 	if (label) {
-		if(!buxton_check_write_access(control, key, &data_label, label))
+		/* FIXME: need to check client->group access here instead */
+		if (!buxton_check_smack_access(label, label, ACCESS_WRITE))
 			return false;
-		l = &data_label;
+		if (buxton_direct_get_value_for_layer(control, key, &d, &data_label, NULL)) {
+			if (!buxton_check_smack_access(label, &data_label, ACCESS_WRITE)) {
+				if (d.type == STRING)
+					free(d.store.d_string.value);
+				return false;
+			}
+			l = &data_label;
+		} else {
+			l = label;
+		}
 	} else {
 		if (buxton_direct_get_value_for_layer(control, key, &d, &data_label, NULL)) {
 			l = &data_label;
