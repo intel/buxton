@@ -16,6 +16,7 @@
 #endif
 
 #include "buxtonarray.h"
+#include "buxtonkey.h"
 
 /**
  * Represents daemon's reply to client
@@ -23,6 +24,7 @@
 typedef struct BuxtonResponse {
 	BuxtonArray *data; /**<Array containing BuxtonData elements */
 	BuxtonControlMessage type; /**<Type of message in the response */
+	_BuxtonKey *key; /**<Key used by client to make the request */
 } _BuxtonResponse;
 
 /*

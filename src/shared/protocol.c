@@ -96,7 +96,7 @@ void cleanup_callbacks(void)
 }
 
 void run_callback(BuxtonCallback callback, void *data, size_t count,
-		  BuxtonData *list, BuxtonControlMessage type)
+		  BuxtonData *list, BuxtonControlMessage type, _BuxtonKey *key)
 {
 	BuxtonArray *array = NULL;
 	_BuxtonResponse response;
@@ -114,6 +114,7 @@ void run_callback(BuxtonCallback callback, void *data, size_t count,
 
 	response.type = type;
 	response.data = array;
+	response.key = key;
 	callback(&response, data);
 
 out:
@@ -197,7 +198,7 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 			return;
 
 		run_callback((BuxtonCallback)(nv->cb), nv->data, count, list,
-			     BUXTON_CONTROL_CHANGED);
+			     BUXTON_CONTROL_CHANGED, nv->key);
 		return;
 	}
 
@@ -222,7 +223,8 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 
 	/* callback should be run on notfiy or unnotify failure */
 	/* and on any other server message we are waiting for */
-	run_callback((BuxtonCallback)(nv->cb), nv->data, count, list, nv->type);
+	run_callback((BuxtonCallback)(nv->cb), nv->data, count, list, nv->type,
+		     nv->key);
 
 	key_free(nv->key);
 	free(nv);

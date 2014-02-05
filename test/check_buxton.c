@@ -331,6 +331,9 @@ static void run_callback_cb_test(BuxtonResponse response, void *data)
 
 	fail_if(r->type != BUXTON_CONTROL_SET, "Unexpected response type");
 
+	fail_if(!streq(r->key->group.value, "group"),
+		"Failed to set key's group");
+
 	switch (run_callback_test_value) {
 	case 0:
 		/* first pass through */
@@ -360,15 +363,20 @@ START_TEST(run_callback_check)
 	BuxtonData list[] = {
 		{INT32, {.d_int32 = 1}}
 	};
+	_BuxtonKey key;
+	key.group = buxton_string_pack("group");
 
-	run_callback(NULL, (void *)&data, 1, list, BUXTON_CONTROL_SET);
-	run_callback(run_callback_cb_test, NULL, 0, NULL, BUXTON_CONTROL_SET);
+	run_callback(NULL, (void *)&data, 1, list, BUXTON_CONTROL_SET, &key);
+	run_callback(run_callback_cb_test, NULL, 0, NULL, BUXTON_CONTROL_SET,
+		     &key);
 	fail_if(run_callback_test_value != 1,
 		"Failed to update callback test value 1");
-	run_callback(run_callback_cb_test, NULL, 1, list, BUXTON_CONTROL_SET);
+	run_callback(run_callback_cb_test, NULL, 1, list, BUXTON_CONTROL_SET,
+		     &key);
 	fail_if(run_callback_test_value != 2,
 		"Failed to update callback test value 2");
-	run_callback(run_callback_cb_test, (void *)&data, 0, NULL, BUXTON_CONTROL_SET);
+	run_callback(run_callback_cb_test, (void *)&data, 0, NULL,
+		     BUXTON_CONTROL_SET, &key);
 	fail_if(!data, "Failed to update callback test value 3");
 }
 END_TEST

@@ -46,9 +46,11 @@ void cleanup_callbacks(void);
  * @param count number of elements in list
  * @param list Data from bt-daemon
  * @param type Message type of the callback
+ * @param key Key used to make the request
  */
 void run_callback(BuxtonCallback callback, void *data, size_t count,
-		  BuxtonData *list, BuxtonControlMessage type);
+		  BuxtonData *list, BuxtonControlMessage type,
+		  _BuxtonKey *key);
 
 /**
  * Write message to bt-daemon
