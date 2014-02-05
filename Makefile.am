@@ -76,6 +76,7 @@ endif
 # set flags
 
 EXTRA_DIST = \
+	check_db_clean \
 	src/libbuxton/lbuxton.sym \
 	test/test.load2 \
 	test/test.conf \
@@ -124,6 +125,7 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/backend.h \
 	src/shared/buxtonarray.c \
 	src/shared/buxtonarray.h \
+	src/shared/buxtonclient.h \
 	src/shared/buxtondata.h \
 	src/shared/buxtonkey.h \
 	src/shared/buxtonlist.c \
