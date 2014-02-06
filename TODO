@@ -74,13 +74,6 @@ Time to complete: 1
 Target: v1
 Status:
 
-Description: Add opaque BuxtonResponse and helper functions so only BuxtonData
-	     is needed as a type clients need to use
-Difficulty: Medium
-Time to complete: 5
-Target: v1
-Status:
-
 Description: When selecting a layer for get_value based on priority, ignore
              user layers altogether if the key is accessible in a system layer.
 Difficulty: Simple
@@ -94,13 +87,6 @@ Time to complete: 3
 Target: ??
 Status:
 
-Description: Remove label member from BuxtonData; instead, store the label in
-             a BuxtonData adjacent to its corresponding value.
-Difficulty: Medium
-Time to complete: 2
-Target: v1
-Status:
-
 Description: Add client library support for list_keys
 Difficulty: Medium
 Time to complete: 3
@@ -111,7 +97,7 @@ Description: Ensure all public apis give copies of data
 Difficulty: Simple
 Time to complete: 1
 Target: v1
-Status:
+Status: All done aside from list_keys which needs to be updated for the new api
 
 Description: Make set fail if types don't align, must unset to change type
 Difficulty: Simple
