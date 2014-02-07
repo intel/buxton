@@ -224,7 +224,7 @@ START_TEST(buxton_client_set_label_check)
 	fail_if(!key, "Failed to create key");
 	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_client_set_label(c, key, "label",
+	fail_if(!buxton_client_set_label(c, key, "*",
 					 client_set_label_test,
 					 "bxt_group", true),
 		"Setting label in buxton failed.");
@@ -533,7 +533,7 @@ START_TEST(parse_list_check)
 	l1[2].type = STRING;
 	l1[0].store.d_string = buxton_string_pack("s14");
 	l1[1].store.d_string = buxton_string_pack("s15");
-	l1[2].store.d_string = buxton_string_pack("_");
+	l1[2].store.d_string = buxton_string_pack("*");
 	fail_if(!parse_list(BUXTON_CONTROL_SET_LABEL, 3, l1, &key, &value),
 		"Unable to parse valid set label 1");
 	fail_if(!streq(key.layer.value, l1[0].store.d_string.value),
@@ -594,7 +594,7 @@ START_TEST(set_label_check)
 	key.group = buxton_string_pack("groupfoo");
 	key.type = STRING;
 	value.type = STRING;
-	value.store.d_string = buxton_string_pack("_");
+	value.store.d_string = buxton_string_pack("*");
 
 	set_label(&server, &client, &key, &value, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to set label");

@@ -200,7 +200,7 @@ END_TEST
 START_TEST(buxton_set_label_check)
 {
 	BuxtonControl c;
-	BuxtonString label = buxton_string_pack("System");
+	BuxtonString label = buxton_string_pack("*");
 	_BuxtonKey key;
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("bxt_test");
@@ -228,7 +228,7 @@ START_TEST(buxton_group_label_check)
 	BuxtonControl c;
 	BuxtonData result;
 	BuxtonString dlabel;
-	BuxtonString label = buxton_string_pack("System");
+	BuxtonString label = buxton_string_pack("*");
 	_BuxtonKey key;
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("test-group");
@@ -243,7 +243,7 @@ START_TEST(buxton_group_label_check)
 		"Failed to set group label.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Retrieving group label failed.");
-	fail_if(!streq("System", dlabel.value),
+	fail_if(!streq("*", dlabel.value),
 		"Retrieved group label is incorrect.");
 
 	free(dlabel.value);
@@ -262,7 +262,7 @@ START_TEST(buxton_name_label_check)
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("group-foo");
 	key.name.value = NULL;
-	label = buxton_string_pack("System");
+	label = buxton_string_pack("*");
 
 	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
@@ -271,7 +271,7 @@ START_TEST(buxton_name_label_check)
 		"Failed to set group label.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Retrieving group label failed.");
-	fail_if(!streq("System", dlabel.value),
+	fail_if(!streq("*", dlabel.value),
 		"Retrieved group label is incorrect.");
 	free(dlabel.value);
 	free(result.store.d_string.value);
@@ -295,7 +295,7 @@ START_TEST(buxton_name_label_check)
 		"Failed to get value for name-foo 2");
 	fail_if(!streq("value1-foo", result.store.d_string.value),
 		"Retrieved key value is incorrect 2");
-	fail_if(!streq("System", dlabel.value),
+	fail_if(!streq("*", dlabel.value),
 		"Retrieved key label is incorrect.");
 	free(dlabel.value);
 	free(result.store.d_string.value);
@@ -308,7 +308,7 @@ START_TEST(buxton_name_label_check)
 		"Failed to get new value for name-foo.");
 	fail_if(!streq("value2-foo", result.store.d_string.value),
 		"New key value is incorrect.");
-	fail_if(!streq("System", dlabel.value),
+	fail_if(!streq("*", dlabel.value),
 		"Key label has been modified.");
 
 	/* modify the key label directly once it has been created */
@@ -734,7 +734,7 @@ START_TEST(buxton_wire_set_label_check)
 	key.layer = buxton_string_pack("layer");
 	key.group = buxton_string_pack("group");
 	key.name.value = NULL;
-	value = buxton_string_pack("_");
+	value = buxton_string_pack("*");
 	fail_if(buxton_wire_set_label(&client, &key, &value, NULL,
 				      NULL) != true,
 		"Failed to properly set label");
@@ -752,7 +752,7 @@ START_TEST(buxton_wire_set_label_check)
 		"Failed to set correct layer");
 	fail_if(!streq(list[1].store.d_string.value, "group"),
 		"Failed to set correct group");
-	fail_if(!streq(list[2].store.d_string.value, "_"),
+	fail_if(!streq(list[2].store.d_string.value, "*"),
 		"Failed to set correct label");
 
 	free(list[0].store.d_string.value);
