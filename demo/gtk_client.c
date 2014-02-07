@@ -43,8 +43,7 @@ static void buxton_test_dispose(GObject *object);
 static void update_key(GtkWidget *self, gpointer userdata);
 static void update_value(BuxtonTest *self);
 static void report_error(BuxtonTest *self, gchar *error);
-static void buxton_callback(BuxtonResponse response, void *userdata);
-static void notify_callback(BuxtonResponse response, void *userdata);
+static void buxton_callback(BuxtonResponse response, gpointer userdata);
 static gboolean buxton_update(gint fd, GIOCondition cond, gpointer userdata);
 
 /**
@@ -191,7 +190,7 @@ static gboolean buxton_init(BuxtonTest *self)
 	/* Register primary key */
 	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
 	if (!buxton_client_register_notification(self->client, key,
-		notify_callback, self, false))
+		buxton_callback, self, false))
 		report_error(self, "Unable to register for notifications");
 
 	return TRUE;
@@ -257,52 +256,39 @@ static gboolean buxton_update(gint fd, GIOCondition cond, gpointer userdata)
 	return (handled >= 0);
 }
 
-static void buxton_callback(BuxtonResponse response, void *userdata)
+static void buxton_callback(BuxtonResponse response, gpointer userdata)
 {
-	gchar *data = NULL;
 	BuxtonKey key;
-	gchar *key_name;
 	BuxtonTest *self;
-	gchar *lab;
+	void *value;
+	gchar *key_name = NULL;
 
 	if (!userdata)
 		return;
 
 	self = BUXTON_TEST(userdata);
-	data = response_value(response);
 	key = response_key(response);
 	key_name = buxton_get_name(key);
+	value = response_value(response);
 
-	/* Include key in the callback update */
-	lab = g_strdup_printf("<big>\'%s\' value: %s</big>",
-		key_name, data);
-	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
-	g_free(lab);
-	free(data);
+	/* Handle PRIMARY_KEY (string) */
+	if (g_str_equal(key_name, PRIMARY_KEY) && buxton_get_type(key) == STRING) {
+		gchar *lab;
+		/* Key unset */
+		if (!value)
+			lab = g_strdup_printf("<big>\'%s\' unset</big>", key_name);
+		else
+			lab = g_strdup_printf("<big>\'%s\' value: %s</big>",
+				key_name, (gchar*)value);
+		/* Update UI */
+		gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
+		g_free(lab);
+	}
+
+	free(value);
 	free(key_name);
 	buxton_free_key(key);
 }
-
-static void notify_callback(BuxtonResponse response, void *userdata)
-{
-	gchar *data = NULL;
-	BuxtonTest *self = NULL;
-	gchar *lab;
-
-	if (!userdata)
-		return;
-
-	self = (BuxtonTest*)userdata;
-	data = response_value(response);
-
-	/* Include key in the callback update */
-	lab = g_strdup_printf("<big>\'test\' value: %s</big>",
-		data);
-	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
-	free(lab);
-	free(data);
-}
-
 
 /** Main entry */
 int main(int argc, char **argv)
