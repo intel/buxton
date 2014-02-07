@@ -24,6 +24,10 @@ typedef struct _BuxtonTestClass   BuxtonTestClass;
 #define IS_BUXTON_TEST_CLASS(klass)       (G_TYPE_CHECK_CLASS_TYPE ((klass), BUXTON_TEST_TYPE))
 #define BUXTON_TEST_GET_CLASS(obj)        (G_TYPE_INSTANCE_GET_CLASS ((obj), BUXTON_TEST_TYPE, BuxtonTestClass))
 
+#define PRIMARY_KEY "test"
+#define GROUP "test"
+#define LAYER "base"
+
 GType buxton_test_get_type(void);
 
 /* BuxtonTest methods */
