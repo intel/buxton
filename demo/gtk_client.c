@@ -25,7 +25,6 @@ struct _BuxtonTest {
         GtkWidget *info;
         GtkWidget *value_label;
         GtkWidget *entry;
-        gboolean registered;
         guint tag;
 };
 
@@ -44,9 +43,13 @@ static void buxton_test_dispose(GObject *object);
 static void update_key(GtkWidget *self, gpointer userdata);
 static void update_value(BuxtonTest *self);
 static void report_error(BuxtonTest *self, gchar *error);
-static void buxton_callback(BuxtonResponse response, void *userdata);
-static void notify_callback(BuxtonResponse response, void *userdata);
+static void buxton_callback(BuxtonResponse response, gpointer userdata);
 static gboolean buxton_update(gint fd, GIOCondition cond, gpointer userdata);
+
+/**
+ * Initialise Buxton
+ */
+static gboolean buxton_init(BuxtonTest *self);
 
 /* Initialisation */
 static void buxton_test_class_init(BuxtonTestClass *klass)
@@ -126,25 +129,27 @@ static void buxton_test_init(BuxtonTest *self)
 	gtk_widget_show_all(GTK_WIDGET(self));
 	gtk_widget_grab_focus(button);
 
+	self->fd = -1;
+
 	/* Attempt connection to Buxton */
-	if ((self->fd = buxton_client_open(&self->client)) < 0) {
+	if (!buxton_init(self)) {
 		gtk_info_bar_set_message_type(GTK_INFO_BAR(info),
 			GTK_MESSAGE_ERROR);
 		gtk_label_set_markup(GTK_LABEL(self->info_label), "No connection!");
 		gtk_widget_show(info);
 	} else {
 		gtk_widget_hide(info);
-		self->tag = g_unix_fd_add(self->fd, G_IO_IN | G_IO_PRI | G_IO_HUP,
-			buxton_update, self->client);
 		update_value(self);
 	}
-	self->registered = FALSE;
 }
 
 static void buxton_test_dispose(GObject *object)
 {
 	BuxtonTest *self = BUXTON_TEST(object);
-	g_source_remove(self->tag);
+	if (self->tag > 0) {
+		g_source_remove(self->tag);
+		self->tag = 0;
+	}
 	buxton_client_close(self->client);
         /* Destruct */
         G_OBJECT_CLASS (buxton_test_parent_class)->dispose (object);
@@ -158,6 +163,38 @@ GtkWidget* buxton_test_new(void)
 	self = g_object_new(BUXTON_TEST_TYPE, NULL);
 	return GTK_WIDGET(self);
 }
+static gboolean buxton_init(BuxtonTest *self)
+{
+	gint fd;
+	BuxtonKey key;
+
+	/* Bail if initialized */
+	if (self->fd > 0)
+		return TRUE;
+	/* Stop probing Buxton */
+	if (self->tag > 0) {
+		g_source_remove(self->tag);
+		self->tag = 0;
+	}
+
+	fd = buxton_client_open(&self->client);
+	if (fd <= 0)
+		return FALSE;
+	self->fd = fd;
+
+	/* Poll Buxton events on idle loop, Buxton will then dispatch them
+	 * to appropriate callbacks */
+	self->tag = g_unix_fd_add(self->fd, G_IO_IN | G_IO_PRI | G_IO_HUP,
+		buxton_update, self->client);
+
+	/* Register primary key */
+	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
+	if (!buxton_client_register_notification(self->client, key,
+		buxton_callback, self, false))
+		report_error(self, "Unable to register for notifications");
+
+	return TRUE;
+}
 
 static void update_key(GtkWidget *widget, gpointer userdata)
 {
@@ -169,7 +206,7 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	if (strlen(value) == 0 || g_str_equal(value, ""))
 		return;
 
-	key = buxton_make_key("test", "test", "base", STRING);
+	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
 
 	if (!buxton_client_set_value(self->client, key, (void*)value,
 		buxton_callback, NULL, false))
@@ -181,7 +218,7 @@ static void update_value(BuxtonTest *self)
 {
 	BuxtonKey key;
 
-	key = buxton_make_key("test", "test", "base", STRING);
+	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
 
 	if (!buxton_client_get_value(self->client, key,
 		buxton_callback, self, false)) {
@@ -189,18 +226,13 @@ static void update_value(BuxtonTest *self)
 		 * We force a reconnect */
 		report_error(self, "Cannot retrieve value");
 		buxton_client_close(self->client);
-		if (!buxton_client_open(&self->client))
-			report_error(self, "Unable to connect to Buxton!");
-		return;
+		self->fd = -1;
+		/* Just try reconnecting */
+		if (!buxton_init(self))
+			report_error(self, "Unable to connect");
 	}
 
-	if (!self->registered) {
-		if (!buxton_client_register_notification(self->client, key,
-			notify_callback, self, false))
-			report_error(self, "Unable to register for notifications");
-		else
-			self->registered = TRUE;
-	}
+
 	buxton_free_key(key);
 }
 
@@ -224,50 +256,38 @@ static gboolean buxton_update(gint fd, GIOCondition cond, gpointer userdata)
 	return (handled >= 0);
 }
 
-static void buxton_callback(BuxtonResponse response, void *userdata)
+static void buxton_callback(BuxtonResponse response, gpointer userdata)
 {
-	gchar *data = NULL;
 	BuxtonKey key;
-	gchar *key_name;
 	BuxtonTest *self;
-	gchar *lab;
+	void *value;
+	gchar *key_name = NULL;
 
 	if (!userdata)
 		return;
 
 	self = BUXTON_TEST(userdata);
-	data = response_value(response);
 	key = response_key(response);
 	key_name = buxton_get_name(key);
+	value = response_value(response);
 
-	/* Include key in the callback update */
-	lab = g_strdup_printf("<big>\'%s\' value: %s</big>",
-		key_name, data);
-	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
-	g_free(lab);
+	/* Handle PRIMARY_KEY (string) */
+	if (g_str_equal(key_name, PRIMARY_KEY) && buxton_get_type(key) == STRING) {
+		gchar *lab;
+		/* Key unset */
+		if (!value)
+			lab = g_strdup_printf("<big>\'%s\' unset</big>", key_name);
+		else
+			lab = g_strdup_printf("<big>\'%s\' value: %s</big>",
+				key_name, (gchar*)value);
+		/* Update UI */
+		gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
+		g_free(lab);
+	}
+
 	free(key_name);
 	buxton_free_key(key);
 }
-
-static void notify_callback(BuxtonResponse response, void *userdata)
-{
-	gchar *data = NULL;
-	BuxtonTest *self = NULL;
-	gchar *lab;
-
-	if (!userdata)
-		return;
-
-	self = (BuxtonTest*)userdata;
-	data = response_value(response);
-
-	/* Include key in the callback update */
-	lab = g_strdup_printf("<big>\'test\' value: %s</big>",
-		data);
-	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
-	free(lab);
-}
-
 
 /** Main entry */
 int main(int argc, char **argv)
