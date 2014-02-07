@@ -50,10 +50,12 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 
 	ret = buxton_direct_set_label(control, (_BuxtonKey *)key, &label);
 
-	if (!ret)
+	if (!ret) {
+		char *name = get_name(key);
 		printf("Failed to update key \'%s:%s\' label in layer '%s'\n",
-		       two, get_name(key), one);
-
+		       two, name, one);
+		free(name);
+	}
 	buxton_free_key(key);
 	return ret;
 }
