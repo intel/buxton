@@ -25,6 +25,7 @@ typedef struct _BuxtonTestClass   BuxtonTestClass;
 #define BUXTON_TEST_GET_CLASS(obj)        (G_TYPE_INSTANCE_GET_CLASS ((obj), BUXTON_TEST_TYPE, BuxtonTestClass))
 
 #define PRIMARY_KEY "test"
+#define SECRET_KEY "secret"
 #define GROUP "test"
 #define LAYER "base"
 
