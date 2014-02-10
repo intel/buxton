@@ -110,6 +110,9 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 	BuxtonBackend *backend = NULL;
 	BuxtonLayer *layer = NULL;
 	BuxtonConfig *config;
+	BuxtonData g;
+	_BuxtonKey group;
+	BuxtonString group_label;
 
 	assert(control);
 	assert(key);
@@ -129,6 +132,21 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 	}
 	layer->uid = control->client.uid;
 
+	/* The group checks are only needed for key lookups, or we recurse endlessly */
+	if (key->name.value && client_label) {
+		if (!buxton_copy_key_group(key, &group))
+			goto fail;
+
+		/* Groups must be created first, so bail if this key's group doesn't exist */
+		if (!buxton_direct_get_value_for_layer(control, &group, &g, &group_label, NULL)) {
+			buxton_debug("Group %s for key %s does not exist\n", key->group.value, key->name.value);
+			goto fail;
+		}
+
+		if (!buxton_check_smack_access(client_label, &group_label, ACCESS_READ))
+			goto fail;
+	}
+
 	if (backend->get_value(layer, key, data, data_label)) {
 		/* Access checks are not needed for direct clients, where client_label is NULL */
 		if (data_label->value && client_label && client_label->value &&
@@ -143,6 +161,9 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 	} else {
 		return false;
 	}
+
+fail:
+	return false;
 }
 
 bool buxton_direct_set_value(BuxtonControl *control,
