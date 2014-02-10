@@ -349,7 +349,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		       get_name(key), get.store.d_int32);
 		break;
 	case UINT32:
-		printf("%s%s:%s = %" PRIo32 "\n", prefix, get_group(key),
+		printf("%s%s:%s = %" PRIu32 "\n", prefix, get_group(key),
 		       get_name(key), get.store.d_uint32);
 		break;
 	case INT64:
@@ -357,7 +357,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		       get_name(key), get.store.d_int64);
 		break;
 	case UINT64:
-		printf("%s%s:%s = %" PRIo64 "\n", prefix, get_group(key),
+		printf("%s%s:%s = %" PRIu64 "\n", prefix, get_group(key),
 		       get_name(key), get.store.d_uint64);
 		break;
 	case FLOAT:
