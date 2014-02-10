@@ -48,7 +48,11 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 	else
 		label = buxton_string_pack(three);
 
-	ret = buxton_direct_set_label(control, (_BuxtonKey *)key, &label);
+	if (control->client.direct)
+		ret = buxton_direct_set_label(control, (_BuxtonKey *)key, &label);
+	else
+		ret = buxton_client_set_label(&control->client, key, label.value,
+					      NULL, NULL, true);
 
 	if (!ret) {
 		char *name = get_name(key);
