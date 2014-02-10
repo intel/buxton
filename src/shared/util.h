@@ -143,6 +143,14 @@ bool buxton_key_copy(_BuxtonKey *original, _BuxtonKey *copy)
 	__attribute__((warn_unused_result));
 
 /**
+ * Perform a partial deep copy of a _BuxtonKey, omitting the 'name' member
+ * @param original The _BuxtonKey being copied
+ * @param group Pointer to the destination of the partial copy
+ */
+bool buxton_copy_key_group(_BuxtonKey *original, _BuxtonKey *group)
+	__attribute__((warn_unused_result));
+
+/**
  * Perform a deep free of BuxtonData
  * @param data The BuxtonData being free'd
  */
