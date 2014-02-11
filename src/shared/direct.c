@@ -338,16 +338,52 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
-	BuxtonString data_label = (BuxtonString){ NULL, 0 };
+	_cleanup_buxton_string_ BuxtonString *data_label = NULL;
+	_cleanup_buxton_string_ BuxtonString *group_label = NULL;
+	_cleanup_buxton_data_ BuxtonData *d = NULL;
+	_cleanup_buxton_data_ BuxtonData *g = NULL;
+	_cleanup_buxton_key_ _BuxtonKey *group = NULL;
 
 	assert(control);
 	assert(key);
 
+	group = malloc0(sizeof(_BuxtonKey));
+	if (!group)
+		goto fail;
+	g = malloc0(sizeof(BuxtonData));
+	if (!g)
+		goto fail;
+	group_label = malloc0(sizeof(BuxtonString));
+	if (!group_label)
+		goto fail;
+
+	d = malloc0(sizeof(BuxtonData));
+	if (!d)
+		goto fail;
+	data_label = malloc0(sizeof(BuxtonString));
+	if (!data_label)
+		goto fail;
+
+	if (!buxton_copy_key_group(key, group))
+		goto fail;
+
+	if (!buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
+		buxton_debug("Group %s for key %s does not exist\n", key->group.value, key->name.value);
+		goto fail;
+	}
+
 	/* Access checks are not needed for direct clients, where label is NULL */
 	if (label) {
-		if (!buxton_check_write_access(control, key, &data_label, label))
-			return false;
-		free(data_label.value);
+		if (!buxton_check_smack_access(label, group_label, ACCESS_WRITE))
+			goto fail;
+		if (buxton_direct_get_value_for_layer(control, key, d, data_label, NULL)) {
+			if (!buxton_check_smack_access(label, data_label, ACCESS_WRITE)) {
+				goto fail;
+			}
+		} else {
+			buxton_debug("Key %s not found, so unset fails\n", key->name.value);
+			goto fail;
+		}
 	}
 
 	config = &control->config;
@@ -361,6 +397,9 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	}
 	layer->uid = control->client.uid;
 	return backend->unset_value(layer, key, NULL, NULL);
+
+fail:
+	return false;
 }
 
 void buxton_direct_close(BuxtonControl *control)
