@@ -372,8 +372,6 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
 	BuxtonNotification *nitem;
 	_cleanup_free_ uint8_t* response = NULL;
 	size_t response_len;
-	BuxtonData group;
-	BuxtonData name;
 	BuxtonArray *out_list = NULL;
 
 	assert(self);
@@ -384,8 +382,6 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
 	if (!list)
 		return;
 
-	group.type = STRING;
-	name.type = STRING;
 	BUXTON_LIST_FOREACH(list, elem) {
 		if (!elem)
 			break;
@@ -455,23 +451,9 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
 		if (nitem->old_data && value)
 			buxton_data_copy(value, nitem->old_data);
 
-		group.store.d_string.value = key->group.value;
-		group.store.d_string.length = key->group.length;
-		name.store.d_string.value = key->name.value;
-		name.store.d_string.length = key->name.length;
 		out_list = buxton_array_new();
 		if (!out_list)
 			return;
-		if (!buxton_array_add(out_list, &group)) {
-			buxton_log("Failed to add notify array group\n");
-			buxton_array_free(&out_list, NULL);
-			return;
-		}
-		if (!buxton_array_add(out_list, &name)) {
-			buxton_log("Failed to add notify array name\n");
-			buxton_array_free(&out_list, NULL);
-			return;
-		}
 		if (value) {
 			if (!buxton_array_add(out_list, value)) {
 				buxton_log("Failed to add notify array value\n");
