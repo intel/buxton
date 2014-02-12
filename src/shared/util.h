@@ -81,9 +81,24 @@ static inline void free_buxton_string(void *p)
 	free(s);
 }
 
+static inline void free_buxton_key(void *p)
+{
+	_BuxtonKey *k = (*(void**) p);
+	if (k) {
+		if (k->group.value)
+			free(k->group.value);
+		if (k->name.value)
+			free(k->name.value);
+		if (k->layer.value)
+			free(k->layer.value);
+	}
+	free(k);
+}
+
 #define _cleanup_free_ _cleanup_(freep)
 #define _cleanup_buxton_data_ _cleanup_(free_buxton_data)
 #define _cleanup_buxton_string_ _cleanup_(free_buxton_string)
+#define _cleanup_buxton_key_ _cleanup_(free_buxton_key)
 
 #define new(t, n) ((t*) malloc_multiply(sizeof(t), (n)))
 
