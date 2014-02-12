@@ -40,6 +40,8 @@
 #  define _bx_export_
 #endif
 
+#define _cleanup_key_ __attribute__ ((cleanup(free_keyp)))
+
 /**
  * Possible data types for use in Buxton
  */
@@ -337,6 +339,14 @@ _bx_export_ BuxtonKey response_key(BuxtonResponse response)
  */
 _bx_export_ void *response_value(BuxtonResponse response)
 	__attribute__((warn_unused_result));
+
+static inline void free_keyp(void *p)
+{
+        BuxtonKey key = *(BuxtonKey*)p;
+        if (!key)
+                return;
+        buxton_free_key(key);
+}
 
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

@@ -19,7 +19,7 @@
 
 void set_cb(BuxtonResponse response, void *data)
 {
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 	char *name;
 
 	if (response_status(response) != BUXTON_STATUS_OK) {
@@ -30,14 +30,13 @@ void set_cb(BuxtonResponse response, void *data)
 	key = response_key(response);
 	name = buxton_get_name(key);
 	printf("Set value for key %s\n", buxton_get_name(key));
-	buxton_free_key(key);
 	free(name);
 }
 
 int main(void)
 {
 	BuxtonClient client;
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 	struct pollfd pfd[1];
 	int r;
 	int fd;
@@ -75,7 +74,6 @@ int main(void)
 		return -1;
 	}
 
-	buxton_free_key(key);
 	buxton_client_close(client);
 	return 0;
 }

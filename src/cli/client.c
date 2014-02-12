@@ -32,7 +32,7 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, char *four)
 {
 	BuxtonString label;
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 	bool ret = false;
 
 	if (four != NULL)
@@ -56,7 +56,6 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 		       two, name, one);
 		free(name);
 	}
-	buxton_free_key(key);
 	return ret;
 }
 
@@ -458,14 +457,12 @@ bool cli_list_keys(BuxtonControl *control,
 
 void unset_value_callback(BuxtonResponse response, void *data)
 {
-	BuxtonKey key = response_key(response);
+	_cleanup_key_ BuxtonKey key = response_key(response);
 
 	if (!key)
 		return;
 
 	printf("unset key %s:%s\n", buxton_get_group(key), buxton_get_name(key));
-
-	buxton_free_key(key);
 }
 
 bool cli_unset_value(BuxtonControl *control,
@@ -473,7 +470,7 @@ bool cli_unset_value(BuxtonControl *control,
 		     char *one, char *two, char *three,
 		     __attribute__((unused)) char *four)
 {
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 
 	key = buxton_make_key(two, three, one, type);
 
@@ -486,8 +483,6 @@ bool cli_unset_value(BuxtonControl *control,
 		return buxton_client_unset_value(&control->client,
 						 key, unset_value_callback,
 						 NULL, true);
-
-	buxton_free_key(key);
 }
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

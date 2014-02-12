@@ -32,7 +32,7 @@ void get_cb(BuxtonResponse response, void *data)
 int main(void)
 {
 	BuxtonClient client;
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 	struct pollfd pfd[1];
 	int r;
 	int32_t gvalue = -1;
@@ -71,7 +71,6 @@ int main(void)
 	if (gvalue >= 0)
 		printf("got value: %d\n", gvalue);
 
-	buxton_free_key(key);
 	buxton_client_close(client);
 	return 0;
 }
