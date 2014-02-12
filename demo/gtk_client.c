@@ -166,7 +166,7 @@ GtkWidget* buxton_test_new(void)
 static gboolean buxton_init(BuxtonTest *self)
 {
 	gint fd;
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 
 	/* Bail if initialized */
 	if (self->fd > 0)
@@ -199,7 +199,7 @@ static gboolean buxton_init(BuxtonTest *self)
 static void update_key(GtkWidget *widget, gpointer userdata)
 {
 	BuxtonTest *self = BUXTON_TEST(userdata);
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 	const gchar *value;
 
 	value = gtk_entry_get_text(GTK_ENTRY(self->entry));
@@ -211,12 +211,11 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	if (!buxton_client_set_value(self->client, key, (void*)value,
 		buxton_callback, NULL, false))
 		report_error(self, "Unable to set value!");
-	buxton_free_key(key);
 }
 
 static void update_value(BuxtonTest *self)
 {
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 
 	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
 
@@ -231,9 +230,6 @@ static void update_value(BuxtonTest *self)
 		if (!buxton_init(self))
 			report_error(self, "Unable to connect");
 	}
-
-
-	buxton_free_key(key);
 }
 
 static void report_error(BuxtonTest *self, gchar *error)
@@ -258,7 +254,7 @@ static gboolean buxton_update(gint fd, GIOCondition cond, gpointer userdata)
 
 static void buxton_callback(BuxtonResponse response, gpointer userdata)
 {
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 	BuxtonTest *self;
 	void *value;
 	gchar *key_name = NULL;
@@ -286,7 +282,6 @@ static void buxton_callback(BuxtonResponse response, gpointer userdata)
 	}
 
 	free(key_name);
-	buxton_free_key(key);
 }
 
 /** Main entry */

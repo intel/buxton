@@ -19,7 +19,7 @@
 void notify_cb(BuxtonResponse response, void *data)
 {
 	bool *status = (bool *)data;
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 	int32_t value;
 	char *name;
 
@@ -35,14 +35,13 @@ void notify_cb(BuxtonResponse response, void *data)
 	printf("key %s updated with new value %d\n", buxton_get_name(key),
 		value);
 
-	buxton_free_key(key);
 	free(name);
 }
 
 int main(void)
 {
 	BuxtonClient client;
-	BuxtonKey key;
+	_cleanup_key_ BuxtonKey key = NULL;
 	bool status = true;
 	struct pollfd pfd[1];
 	int r;
@@ -86,7 +85,6 @@ repoll:
 
 	goto repoll;
 
-	buxton_free_key(key);
 	buxton_client_close(client);
 
 	return 0;
