@@ -72,7 +72,7 @@ Description: Free notification lists
 Difficulty: Simple
 Time to complete: 1
 Target: v1
-Status:
+Status: Done
 
 Description: When selecting a layer for get_value based on priority, ignore
              user layers altogether if the key is accessible in a system layer.
@@ -110,4 +110,4 @@ Description: Store and use copy of client key in notify (daemon no longer
 Difficulty: Medium
 Time to complete: 4
 Target: ??
-Status: Mostly implemented, daemon still sends the group and key data
+Status: Done
