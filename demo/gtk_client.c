@@ -14,19 +14,18 @@
 #include <glib-unix.h>
 
 #include "buxton.h"
-#include "buxton-array.h"
 #include "gtk_client.h"
 
 /* BuxtonTest object */
 struct _BuxtonTest {
         GtkWindow parent;
         BuxtonClient client;
+        gint fd;
         GtkWidget *info_label;
         GtkWidget *info;
-        GtkWidget *value_label;
         GtkWidget *entry;
-        gboolean registered;
         guint tag;
+        GHashTable *mapping;
 };
 
 /* BuxtonTest class definition */
@@ -42,11 +41,16 @@ static void buxton_test_init(BuxtonTest *self);
 static void buxton_test_dispose(GObject *object);
 
 static void update_key(GtkWidget *self, gpointer userdata);
-static void update_value(BuxtonTest *self);
+static void update_secret_key(GtkWidget *self, gpointer userdata);
+static void update_value(gpointer hkey, gpointer hvalue, gpointer userdata);
 static void report_error(BuxtonTest *self, gchar *error);
-static void buxton_callback(BuxtonArray *list, void *userdata);
-static void notify_callback(BuxtonArray *list, void *userdata);
+static void buxton_callback(BuxtonResponse response, gpointer userdata);
 static gboolean buxton_update(gint fd, GIOCondition cond, gpointer userdata);
+
+/**
+ * Initialise Buxton
+ */
+static gboolean buxton_init(BuxtonTest *self);
 
 /* Initialisation */
 static void buxton_test_class_init(BuxtonTestClass *klass)
@@ -62,7 +66,15 @@ static void buxton_test_init(BuxtonTest *self)
 	GtkWidget *header, *info, *layout;
 	GtkWidget *label, *container, *box, *box2;
 	GtkWidget *entry, *button;
+	GtkWidget *check;
 	GtkStyleContext *style;
+
+	/* We use the key name as our key in the hashtable, and a GtkWidget
+	 * as the value. This means we can lookup the appropriate widget
+	 * to set based on the hashmap. In your application you'll most
+	 * likely be using GtkBuilder, and can do something similar to
+	 * look up a widget by using the key name as a component */
+	self->mapping = g_hash_table_new(g_str_hash, g_str_equal);
 
 	/* Window setup */
 	g_signal_connect(self, "destroy", gtk_main_quit, NULL);
@@ -71,6 +83,7 @@ static void buxton_test_init(BuxtonTest *self)
 
 	/* layout */
 	layout = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	gtk_widget_set_halign(layout, GTK_ALIGN_CENTER);
 	gtk_container_add(GTK_CONTAINER(self), layout);
 
 	info = gtk_info_bar_new();
@@ -96,7 +109,7 @@ static void buxton_test_init(BuxtonTest *self)
 
 	/* Updated to key value */
 	label = gtk_label_new("<big>\'test\' value:</big>");
-	self->value_label = label;
+	g_hash_table_insert(self->mapping, PRIMARY_KEY, label);
 	gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
 	gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 10);
 
@@ -117,6 +130,12 @@ static void buxton_test_init(BuxtonTest *self)
 	g_signal_connect(button, "clicked", G_CALLBACK(update_key), self);
 	gtk_box_pack_start(GTK_BOX(box2), button, FALSE, FALSE, 0);
 
+	/* Add sample check button */
+	check = gtk_check_button_new_with_label("Super secret setting");
+	gtk_box_pack_start(GTK_BOX(layout), check, FALSE, FALSE, 10);
+	g_hash_table_insert(self->mapping, SECRET_KEY, check);
+	g_signal_connect(check, "clicked", G_CALLBACK(update_secret_key), self);
+
 	/* Integrate with Mutter based desktops */
 	header = gtk_header_bar_new();
 	gtk_header_bar_set_title(GTK_HEADER_BAR(header), "BuxtonTest");
@@ -126,26 +145,29 @@ static void buxton_test_init(BuxtonTest *self)
 	gtk_widget_show_all(GTK_WIDGET(self));
 	gtk_widget_grab_focus(button);
 
+	self->fd = -1;
+
 	/* Attempt connection to Buxton */
-	if (!buxton_client_open(&self->client)) {
+	if (!buxton_init(self)) {
 		gtk_info_bar_set_message_type(GTK_INFO_BAR(info),
 			GTK_MESSAGE_ERROR);
 		gtk_label_set_markup(GTK_LABEL(self->info_label), "No connection!");
 		gtk_widget_show(info);
 	} else {
 		gtk_widget_hide(info);
+		g_hash_table_foreach(self->mapping, update_value, self);
 	}
-	self->registered = FALSE;
-	self->tag = g_unix_fd_add(self->client.fd, G_IO_IN | G_IO_PRI | G_IO_HUP,
-		buxton_update, &self->client);
-	update_value(self);
 }
 
 static void buxton_test_dispose(GObject *object)
 {
 	BuxtonTest *self = BUXTON_TEST(object);
-	g_source_remove(self->tag);
-	buxton_client_close(&self->client);
+	if (self->tag > 0) {
+		g_source_remove(self->tag);
+		self->tag = 0;
+	}
+	buxton_client_close(self->client);
+	g_hash_table_unref(self->mapping);
         /* Destruct */
         G_OBJECT_CLASS (buxton_test_parent_class)->dispose (object);
 }
@@ -158,68 +180,115 @@ GtkWidget* buxton_test_new(void)
 	self = g_object_new(BUXTON_TEST_TYPE, NULL);
 	return GTK_WIDGET(self);
 }
+static gboolean buxton_init(BuxtonTest *self)
+{
+	gint fd;
+	BuxtonKey key;
+
+	/* Bail if initialized */
+	if (self->fd > 0)
+		return TRUE;
+	/* Stop probing Buxton */
+	if (self->tag > 0) {
+		g_source_remove(self->tag);
+		self->tag = 0;
+	}
+
+	fd = buxton_client_open(&self->client);
+	if (fd <= 0)
+		return FALSE;
+	self->fd = fd;
+
+	/* Poll Buxton events on idle loop, Buxton will then dispatch them
+	 * to appropriate callbacks */
+	self->tag = g_unix_fd_add(self->fd, G_IO_IN | G_IO_PRI | G_IO_HUP,
+		buxton_update, self->client);
+
+	/* Register primary key */
+	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
+	if (!buxton_client_register_notification(self->client, key,
+		buxton_callback, self, true))
+		report_error(self, "Unable to register for notifications");
+	buxton_free_key(key);
+
+	/* Register secret key */
+	key = buxton_make_key(GROUP, SECRET_KEY, LAYER, BOOLEAN);
+	if (!buxton_client_register_notification(self->client, key,
+		buxton_callback, self, true))
+		report_error(self, "Unable to register for notifications");
+	buxton_free_key(key);
+
+	return TRUE;
+}
 
 static void update_key(GtkWidget *widget, gpointer userdata)
 {
 	BuxtonTest *self = BUXTON_TEST(userdata);
-	BuxtonData data;
-	BuxtonString *key;
-	BuxtonString layer;
-	BuxtonString value;
-	char *layer_name = "base";
-	const gchar *t_value;
+	BuxtonKey key;
+	const gchar *value;
 
-	t_value = gtk_entry_get_text(GTK_ENTRY(self->entry));
-	if (strlen(t_value) == 0 || g_str_equal(t_value, ""))
+	value = gtk_entry_get_text(GTK_ENTRY(self->entry));
+	if (strlen(value) == 0 || g_str_equal(value, ""))
 		return;
 
-	key = buxton_make_key("test", "test");
-	layer.value = layer_name;
-	layer.length = (uint32_t)strlen(layer_name)+1;
+	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
 
-	/* Set data */
-	value.value = (char*)t_value;
-	value.length = (uint32_t)strlen(t_value)+1;
-	buxton_string_to_data(&value, &data);
-
-	/* Clients should **not** be setting their own smack label */
-	data.label.value = "_";
-	data.label.length = 2;
-
-	if (!buxton_client_set_value(&self->client, &layer, key, &data,
-		buxton_callback, NULL, false))
+	if (!buxton_client_set_value(self->client, key, (void*)value,
+		buxton_callback, NULL, true))
 		report_error(self, "Unable to set value!");
-	free(key);
+	buxton_free_key(key);
 }
 
-static void update_value(BuxtonTest *self)
+static void update_secret_key(GtkWidget *widget, gpointer userdata)
 {
-	BuxtonString *key;
-	BuxtonString layer;
-	layer.value = "base";
-	layer.length = (uint32_t)strlen("base")+1;
+	BuxtonTest *self = BUXTON_TEST(userdata);
+	BuxtonKey key;
+	gboolean active;
 
-	key = buxton_make_key("test", "test");
+	active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
 
-	if (!buxton_client_get_value_for_layer(&self->client, &layer, key,
-		buxton_callback, self, false)) {
+	key = buxton_make_key(GROUP, SECRET_KEY, LAYER, BOOLEAN);
+
+	if (!buxton_client_set_value(self->client, key, &active,
+		buxton_callback, NULL, false))
+		report_error(self, "Unable to set value!");
+	buxton_free_key(key);
+}
+
+static void update_value(gpointer hkey, gpointer hvalue, gpointer userdata)
+{
+	BuxtonTest *self = BUXTON_TEST(userdata);
+	BuxtonDataType type;
+	BuxtonKey key;
+	GtkWidget *widget = GTK_WIDGET(hvalue);
+
+	if (!hkey || !hvalue)
+		return;
+
+	/* We deal with a limited set right now in this example */
+	if (GTK_IS_LABEL(widget))
+		type = STRING;
+	else if (GTK_IS_CHECK_BUTTON(widget))
+		type = BOOLEAN;
+	else
+		return;
+
+	key = buxton_make_key(GROUP, (gchar*)hkey, LAYER, type);
+
+	if (!buxton_client_get_value(self->client, key,
+		buxton_callback, self, true)) {
 		/* Buxton disconnects us when this happens. ##FIXME##
 		 * We force a reconnect */
 		report_error(self, "Cannot retrieve value");
-		buxton_client_close(&self->client);
-		if (!buxton_client_open(&self->client))
-			report_error(self, "Unable to connect to Buxton!");
-		return;
+		buxton_client_close(self->client);
+		self->fd = -1;
+		/* Just try reconnecting */
+		if (!buxton_init(self))
+			report_error(self, "Unable to connect");
 	}
 
-	if (!self->registered) {
-		if (!buxton_client_register_notification(&self->client, key,
-			notify_callback, self, false))
-			report_error(self, "Unable to register for notifications");
-		else
-			self->registered = TRUE;
-	}
-	free(key);
+
+	buxton_free_key(key);
 }
 
 static void report_error(BuxtonTest *self, gchar *error)
@@ -237,52 +306,57 @@ static void report_error(BuxtonTest *self, gchar *error)
 
 static gboolean buxton_update(gint fd, GIOCondition cond, gpointer userdata)
 {
-	BuxtonClient *client = (BuxtonClient*)userdata;
+	BuxtonClient client = (BuxtonClient)userdata;
 	ssize_t handled = buxton_client_handle_response(client);
 	return (handled >= 0);
 }
 
-static void buxton_callback(BuxtonArray *list, void *userdata)
+static void buxton_callback(BuxtonResponse response, gpointer userdata)
 {
-	BuxtonData *data, *key;
+	BuxtonKey key;
 	BuxtonTest *self;
-	gchar *lab;
+	void *value;
+	gchar *key_name = NULL;
+	GtkWidget *widget;
 
 	if (!userdata)
 		return;
 
 	self = BUXTON_TEST(userdata);
-	data = buxton_array_get(list, 2);
-	key = buxton_array_get(list, 1);
+	key = response_key(response);
+	key_name = buxton_get_name(key);
+	value = response_value(response);
 
-	/* Include key in the callback update */
-	lab = g_strdup_printf("<big>\'%s\' value: %s</big>",
-		key->store.d_string.value,
-		data->store.d_string.value);
-	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
-	free(lab);
+	widget = g_hash_table_lookup(self->mapping, key_name);
+	if (!widget) {
+		/* We have no widgets hooked up to this key */
+		goto end;
+	}
+
+	/* Handle PRIMARY_KEY (string) */
+	if (g_str_equal(key_name, PRIMARY_KEY) && buxton_get_type(key) == STRING) {
+		gchar *lab;
+		/* Key unset */
+		if (!value)
+			lab = g_strdup_printf("<big>\'%s\' unset</big>", key_name);
+		else
+			lab = g_strdup_printf("<big>\'%s\' value: %s</big>",
+				key_name, (gchar*)value);
+		/* Update UI */
+		gtk_label_set_markup(GTK_LABEL(widget), lab);
+		g_free(lab);
+	} else if (g_str_equal(key_name, SECRET_KEY) && buxton_get_type(key) == BOOLEAN) {
+		/* Handle SECRET_KEY (boolean) */
+		if (!value)
+			goto end;
+		gboolean b = *(gboolean*)value;
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), b);
+	}
+
+end:
+	free(key_name);
+	buxton_free_key(key);
 }
-
-static void notify_callback(BuxtonArray *list, void *userdata)
-{
-	BuxtonData *data;
-	BuxtonTest *self = NULL;
-	gchar *lab;
-
-	if (!userdata)
-		return;
-
-	self = (BuxtonTest*)userdata;
-
-	data = buxton_array_get(list, 1);
-
-	/* Include key in the callback update */
-	lab = g_strdup_printf("<big>\'test\' value: %s</big>",
-		data->store.d_string.value);
-	gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
-	free(lab);
-}
-
 
 /** Main entry */
 int main(int argc, char **argv)
