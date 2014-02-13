@@ -21,6 +21,8 @@
 #include "smack.h"
 #include "util.h"
 
+#define BUXTON_ROOT_CHECK_ENV "BUXTON_ROOT_CHECK"
+
 bool buxton_direct_open(BuxtonControl *control)
 {
 
@@ -262,13 +264,17 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	BuxtonConfig *config;
 	BuxtonString data_label = (BuxtonString){ NULL, 0 };
 	bool r;
+	char *root_check;
 
 	assert(control);
 	assert(key);
 	assert(label);
 
 	/* FIXME: should check if client has CAP_MAC_ADMIN instead */
-	if (control->client.uid != 0)
+	root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+	if (root_check && streq(root_check, "0"))
+		; /* skip uid check */
+	else if (control->client.uid != 0)
 		return false;
 
 	config = &control->config;
