@@ -26,6 +26,7 @@ struct _BuxtonTest {
         GtkWidget *value_label;
         GtkWidget *entry;
         guint tag;
+        gboolean setting;
 };
 
 /* BuxtonTest class definition */
@@ -130,6 +131,8 @@ static void buxton_test_init(BuxtonTest *self)
 	gtk_widget_grab_focus(button);
 
 	self->fd = -1;
+        self->setting = FALSE;
+        gtk_widget_hide(info);
 
 	/* Attempt connection to Buxton */
 	if (!buxton_init(self)) {
@@ -138,7 +141,6 @@ static void buxton_test_init(BuxtonTest *self)
 		gtk_label_set_markup(GTK_LABEL(self->info_label), "No connection!");
 		gtk_widget_show(info);
 	} else {
-		gtk_widget_hide(info);
 		update_value(self);
 	}
 }
@@ -208,8 +210,9 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 
 	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
 
+        self->setting = TRUE;
 	if (!buxton_client_set_value(self->client, key, (void*)value,
-		buxton_callback, NULL, false))
+		buxton_callback, self, false))
 		report_error(self, "Unable to set value!");
 	buxton_free_key(key);
 }
@@ -262,11 +265,34 @@ static void buxton_callback(BuxtonResponse response, gpointer userdata)
 	BuxtonTest *self;
 	void *value;
 	gchar *key_name = NULL;
-
-	if (!userdata)
-		return;
-
 	self = BUXTON_TEST(userdata);
+
+        /* Handle all potential async cases we're utilizing */
+        if (response_status(response) != BUXTON_STATUS_OK) {
+                switch (response_type(response)) {
+                        case BUXTON_CONTROL_GET:
+                                report_error(self, "Cannot retrieve value");
+                                return;
+                        case BUXTON_CONTROL_SET:
+                                self->setting = FALSE;
+                                report_error(self, "Unable to set value");
+                                return;
+                        case BUXTON_CONTROL_CHANGED:
+                                report_error(self, "Unable to get notification value");
+                                return;
+                        case BUXTON_CONTROL_NOTIFY:
+                                report_error(self, "Unable to register for notification");
+                                return;
+                        default:
+                                report_error(self, "Unhandled error!");
+                                return;
+                }
+        }
+        if (self->setting) {
+                self->setting = FALSE;
+                return;
+        }
+
 	key = response_key(response);
 	key_name = buxton_get_name(key);
 	value = response_value(response);
