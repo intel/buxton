@@ -45,14 +45,25 @@ START_TEST(buxton_direct_set_value_check)
 	BuxtonControl c;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
-	BuxtonData data;
+	_BuxtonKey group;
+	BuxtonString glabel;
 	_BuxtonKey key;
-	key.layer = buxton_string_pack("test-gdbm");
-	key.group = buxton_string_pack("bxt_test");
-	key.name.value = NULL;
+	BuxtonData data;
+
+	group.layer = buxton_string_pack("test-gdbm");
+	group.group = buxton_string_pack("bxt_test_group");
+	group.name = (BuxtonString){ NULL, 0 };
+	group.type = STRING;
+	glabel = buxton_string_pack("*");
+
+	key.layer = group.layer;
+	key.group = group.group;
+	key.name = buxton_string_pack("bxt_test_key");
 	key.type = STRING;
 
 	c.client.uid = getuid();
+	fail_if(buxton_direct_set_label(&c, &group, &glabel) == false,
+		"Setting group label failed.");
 	data.type = STRING;
 	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
@@ -67,9 +78,10 @@ START_TEST(buxton_direct_get_value_for_layer_check)
 	BuxtonData result;
 	BuxtonString dlabel;
 	_BuxtonKey key;
+
 	key.layer = buxton_string_pack("test-gdbm");
-	key.group = buxton_string_pack("bxt_test");
-	key.name.value = NULL;
+	key.group = buxton_string_pack("bxt_test_group");
+	key.name = buxton_string_pack("bxt_test_key");
 	key.type = STRING;
 
 	c.client.uid = getuid();
@@ -94,9 +106,9 @@ START_TEST(buxton_direct_get_value_check)
 	BuxtonData data, result;
 	BuxtonString dlabel;
 	_BuxtonKey key;
-	key.layer = buxton_string_pack("test-gdbm-user");
-	key.group = buxton_string_pack("bxt_test");
-	key.name.value = NULL;
+	key.layer = buxton_string_pack("test-gdbm");
+	key.group = buxton_string_pack("bxt_test_group");
+	key.name = buxton_string_pack("bxt_test_key");
 	key.type = STRING;
 
 	fail_if(buxton_direct_open(&c) == false,
@@ -126,17 +138,27 @@ START_TEST(buxton_memory_backend_check)
 {
 	BuxtonControl c;
 	BuxtonData data, result;
-	BuxtonString dlabel;
+	BuxtonString dlabel, glabel;
+	_BuxtonKey group;
 	_BuxtonKey key;
-	key.layer = buxton_string_pack("temp");
-	key.group = buxton_string_pack("bxt_mem_test");
-	key.name.value = NULL;
+
+	group.layer = buxton_string_pack("temp");
+	group.group = buxton_string_pack("bxt_mem_test_group");
+	group.name = (BuxtonString){ NULL, 0 };
+	group.type = STRING;
+	glabel = buxton_string_pack("*");
+
+	key.layer = group.layer;
+	key.group = group.group;
+	key.name = buxton_string_pack("bxt_mem_test_key");
 	key.type = STRING;
 
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 
 	c.client.uid = getuid();
+	fail_if(buxton_direct_set_label(&c, &group, &glabel) == false,
+		"Setting group label failed.");
 	data.type = STRING;
 	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
