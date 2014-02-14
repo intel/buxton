@@ -304,6 +304,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	data_label.length = label->length;
 	data_label.value = label->value;
 
+	layer->uid = control->client.uid;
 	r = backend->set_value(layer, key, &data, &data_label);
 	if (name && data.type == STRING)
 		free(data.store.d_string.value);
