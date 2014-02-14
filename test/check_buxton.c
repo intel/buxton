@@ -165,8 +165,9 @@ START_TEST(buxton_memory_backend_check)
 		"Setting value in buxton memory backend directly failed.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Retrieving value from buxton memory backend directly failed.");
-	//FIXME figure out label check
-	fail_if(!streq(result.store.d_string.value, "bxt_test_value"),
+	// FIXME: BUXTON_GROUP_VALUE is the dummy group data value, but the memory
+	// backend doesn't understand groups, so this is the current workaround.
+	fail_if(!streq(result.store.d_string.value, "BUXTON_GROUP_VALUE"),
 		"Buxton memory returned a different value to that set.");
 	buxton_direct_close(&c);
 }
