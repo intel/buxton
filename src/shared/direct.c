@@ -130,6 +130,7 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 		    !buxton_check_read_access(control, key, data_label,
 					      client_label)) {
 			/* Client lacks permission to read the value */
+			free(data_label->value);
 			return false;
 		}
 		buxton_debug("SMACK check succeeded for get_value for layer %s\n", key->layer.value);

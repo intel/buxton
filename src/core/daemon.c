@@ -582,6 +582,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 				     client->smack_label))
 		goto fail;
 
+	free(label.value);
 	buxton_debug("get value returned successfully from db\n");
 
 	*status = BUXTON_STATUS_OK;
