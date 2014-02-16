@@ -311,6 +311,7 @@ _bx_export_ void buxton_module_destroy(void)
 
 	/* close all gdbm handles */
 	HASHMAP_FOREACH_KEY(db, key, _resources, iterator) {
+		hashmap_remove(_resources, key);
 		gdbm_close(db);
 		free((void *)key);
 	}

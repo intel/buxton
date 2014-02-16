@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
 	bool help = false;
 	BuxtonList *map_list = NULL;
 	Iterator iter;
+	char *notify_key;
 
 	static struct option opts[] = {
 		{ "config-file", 1, NULL, 'c' },
@@ -345,13 +346,15 @@ int main(int argc, char *argv[])
 		i = j;
 	}
 	/* Clean up notification lists */
-	HASHMAP_FOREACH(map_list, self.notify_mapping, iter) {
+	HASHMAP_FOREACH_KEY(map_list, notify_key, self.notify_mapping, iter) {
+		hashmap_remove(self.notify_mapping, notify_key);
 		BuxtonList *elem;
 		BUXTON_LIST_FOREACH(map_list, elem) {
 			BuxtonNotification *notif = (BuxtonNotification*)elem->data;
 			if (notif->old_data)
 				free_buxton_data(&(notif->old_data));
 		}
+		free(notify_key);
 		buxton_list_free_all(&map_list);
 	}
 

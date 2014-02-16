@@ -179,7 +179,7 @@ static bool unset_value(BuxtonLayer *layer,
 
 _bx_export_ void buxton_module_destroy(void)
 {
-	const char *key;
+	const char *key1, *key2;
 	Iterator iteratori, iteratoro;
 	Hashmap *map;
 	BuxtonArray *array;
@@ -187,16 +187,18 @@ _bx_export_ void buxton_module_destroy(void)
 	BuxtonString *l;
 
 	/* free all hashmaps */
-	HASHMAP_FOREACH_KEY(map, key, _resources, iteratoro) {
-		HASHMAP_FOREACH(array, map, iteratori) {
+	HASHMAP_FOREACH_KEY(map, key1, _resources, iteratoro) {
+		HASHMAP_FOREACH_KEY(array, key2, map, iteratori) {
+			hashmap_remove(map, key2);
 			d = buxton_array_get(array, 0);
 			data_free(d);
 			l = buxton_array_get(array, 1);
 			string_free(l);
 			buxton_array_free(&array, NULL);
 		}
+		hashmap_remove(_resources, key1);
 		hashmap_free(map);
-		free((void *)key);
+		free((void *)key1);
 		map = NULL;
 	}
 	hashmap_free(_resources);

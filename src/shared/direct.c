@@ -317,6 +317,7 @@ void buxton_direct_close(BuxtonControl *control)
 	Iterator iterator;
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
+	BuxtonString *key;
 
 	control->client.direct = false;
 
@@ -326,7 +327,8 @@ void buxton_direct_close(BuxtonControl *control)
 	hashmap_free(control->config.backends);
 	hashmap_free(control->config.databases);
 
-	HASHMAP_FOREACH(layer, control->config.layers, iterator) {
+	HASHMAP_FOREACH_KEY(layer, key, control->config.layers, iterator) {
+		hashmap_remove(control->config.layers, key);
 		free(layer->name.value);
 		free(layer->description);
 		free(layer);
