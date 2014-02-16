@@ -50,14 +50,18 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 	GDBM_FILE db;
 	_cleanup_free_ char *path = NULL;
 	char *name = NULL;
+	int r;
 
 	assert(layer);
 	assert(_resources);
 
 	if (layer->type == LAYER_USER)
-		asprintf(&name, "%s-%d", layer->name.value, layer->uid);
+		r = asprintf(&name, "%s-%d", layer->name.value, layer->uid);
 	else
-		asprintf(&name, "%s", layer->name.value);
+		r = asprintf(&name, "%s", layer->name.value);
+	if (r == -1)
+		return 0;
+
 	db = hashmap_get(_resources, name);
 	if (!db) {
 		path = get_layer_path(layer);

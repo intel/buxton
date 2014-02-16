@@ -37,14 +37,18 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 {
 	Hashmap *db;
 	char *name = NULL;
+	int r;
 
 	assert(layer);
 	assert(_resources);
 
 	if (layer->type == LAYER_USER)
-		asprintf(&name, "%s-%d", layer->name.value, layer->uid);
+		r = asprintf(&name, "%s-%d", layer->name.value, layer->uid);
 	else
-		asprintf(&name, "%s", layer->name.value);
+		r = asprintf(&name, "%s", layer->name.value);
+	if (r == -1)
+		return NULL;
+
 	db = hashmap_get(_resources, name);
 	if (!db) {
 		db = hashmap_new(string_hash_func, string_compare_func);
