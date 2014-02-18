@@ -68,12 +68,6 @@ Time to complete: 10
 Target: v1
 Status:
 
-Description: Free notification lists
-Difficulty: Simple
-Time to complete: 1
-Target: v1
-Status: Done
-
 Description: When selecting a layer for get_value based on priority, ignore
              user layers altogether if the key is accessible in a system layer.
 Difficulty: Simple
