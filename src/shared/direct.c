@@ -48,6 +48,7 @@ bool buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 	BuxtonData d;
 	int priority = 0;
 	int r;
+	BuxtonLayerType layer_origin = -1;
 
 	assert(control);
 	assert(key);
@@ -73,7 +74,11 @@ bool buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 			data_label->length = 0;
 			if (d.type == STRING)
 				free(d.store.d_string.value);
-			if (priority <= l->priority) {
+
+			if ((l->type == LAYER_SYSTEM && (layer_origin != LAYER_SYSTEM ||
+							 priority <= l->priority)) ||
+			    (l->type == LAYER_USER && layer_origin != LAYER_SYSTEM &&
+			     priority <= l->priority)) {
 				priority = l->priority;
 				layer.value = l->name.value;
 				layer.length = l->name.length;
