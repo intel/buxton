@@ -142,7 +142,7 @@ bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
 	if (!original || !copy)
 		return false;
 
-	copy->value = malloc(original->length);
+	copy->value = malloc0(original->length);
 	if (!copy->value)
 		return false;
 
