@@ -802,7 +802,93 @@ START_TEST(bt_daemon_handle_message_error_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_set_check)
+START_TEST(bt_daemon_handle_message_set_label_check)
+{
+	BuxtonDaemon daemon;
+	BuxtonString slabel;
+	size_t size;
+	BuxtonData data1, data2, data3;
+	client_list_item cl;
+	bool r;
+	BuxtonData *list;
+	BuxtonArray *out_list;
+	BuxtonControlMessage msg;
+	size_t csize;
+	int client, server;
+	ssize_t s;
+	uint8_t buf[4096];
+	uint64_t msgid;
+
+	setup_socket_pair(&client, &server);
+	fail_if(fcntl(client, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	out_list = buxton_array_new();
+	fail_if(!out_list, "Failed to allocate list");
+	cl.fd = server;
+	slabel = buxton_string_pack("_");
+	if (use_smack())
+		cl.smack_label = &slabel;
+	else
+		cl.smack_label = NULL;
+	cl.cred.uid = 1002;
+	daemon.buxton.client.uid = 1001;
+	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
+	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+
+	data1.type = STRING;
+	data1.store.d_string = buxton_string_pack("base");
+	data2.type = STRING;
+	data2.store.d_string = buxton_string_pack("daemon-check");
+	data3.type = STRING;
+	data3.store.d_string = buxton_string_pack("handle_label");
+	r = buxton_array_add(out_list, &data1);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data2);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data3);
+	fail_if(!r, "Failed to add element to array");
+
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET_LABEL, 0,
+					out_list);
+	fail_if(size == 0, "Failed to serialize message");
+	r = bt_daemon_handle_message(&daemon, &cl, size);
+	free(cl.data);
+	fail_if(!r, "Failed to handle set label message");
+
+	s = read(client, buf, 4096);
+	fail_if(s < 0, "Read from client failed");
+	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
+	fail_if(csize != 2, "Failed to get correct response to set label");
+	fail_if(msg != BUXTON_CONTROL_STATUS,
+		"Failed to get correct control type");
+	fail_if(list[0].type != INT32,
+		"Failed to get correct indicator type");
+	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+		"Failed to set label");
+	fail_if(list[1].type != STRING,
+		"Failed to get correct group type");
+	fail_if(strcmp(list[1].store.d_string.value,
+		       data2.store.d_string.value) != 0,
+		"Failed to get correct group");
+	fail_if(msgid != 0, "Failed to get correct message id");
+
+	free(list[1].store.d_string.value);
+	free(list);
+	cleanup_callbacks();
+	close(client);
+	hashmap_free(daemon.notify_mapping);
+	buxton_direct_close(&daemon.buxton);
+	buxton_array_free(&out_list, NULL);
+}
+END_TEST
+
+START_TEST(bt_daemon_handle_message_set_value_check)
 {
 	BuxtonDaemon daemon;
 	BuxtonString slabel;
@@ -829,7 +915,10 @@ START_TEST(bt_daemon_handle_message_set_check)
 	fail_if(!out_list, "Failed to allocate list");
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
-	cl.smack_label = &slabel;
+	if (use_smack())
+		cl.smack_label = &slabel;
+	else
+		cl.smack_label = NULL;
 	cl.cred.uid = 1002;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
@@ -841,11 +930,11 @@ START_TEST(bt_daemon_handle_message_set_check)
 	data1.type = STRING;
 	data1.store.d_string = buxton_string_pack("base");
 	data2.type = STRING;
-	data2.store.d_string = buxton_string_pack("group");
+	data2.store.d_string = buxton_string_pack("daemon-check");
 	data3.type = STRING;
 	data3.store.d_string = buxton_string_pack("name");
-	data4.type = INT32;
-	data4.store.d_int32 = 1;
+	data4.type = STRING;
+	data4.store.d_string = buxton_string_pack("bxt_test_value3");
 	r = buxton_array_add(out_list, &data1);
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
@@ -925,17 +1014,20 @@ START_TEST(bt_daemon_handle_message_get_check)
 
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
-	cl.smack_label = &slabel;
-	cl.cred.uid = 1002;
+	if (use_smack())
+		cl.smack_label = &slabel;
+	else
+		cl.smack_label = NULL;
+	cl.cred.uid = getuid();
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 	fail_if(!buxton_direct_open(&daemon.buxton),
 		"Failed to open buxton direct connection");
 
 	data1.type = STRING;
-	data1.store.d_string = buxton_string_pack("base");
+	data1.store.d_string = buxton_string_pack("test-gdbm-user");
 	data2.type = STRING;
-	data2.store.d_string = buxton_string_pack("group");
+	data2.store.d_string = buxton_string_pack("daemon-check");
 	data3.type = STRING;
 	data3.store.d_string = buxton_string_pack("name");
 	data4.type = UINT32;
@@ -966,7 +1058,6 @@ START_TEST(bt_daemon_handle_message_get_check)
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get value");
 	fail_if(list[1].type != STRING, "Failed to get correct group type");
-	printf("group=%s\n", data2.store.d_string.value);
 	fail_if(strcmp(list[1].store.d_string.value,
 		       data2.store.d_string.value) != 0,
 		"Failed to get correct group");
@@ -974,12 +1065,14 @@ START_TEST(bt_daemon_handle_message_get_check)
 	fail_if(strcmp(list[2].store.d_string.value,
 		       data3.store.d_string.value) != 0,
 		"Failed to get correct name");
-	fail_if(list[3].type != INT32, "Failed to get correct value type");
-	fail_if(list[3].store.d_int32 != 1,
+	fail_if(list[3].type != STRING, "Failed to get correct value type");
+	printf("list3=%s\n", list[3].store.d_string.value);
+	fail_if(!streq(list[3].store.d_string.value, "user-layer-value"),
 		"Failed to get correct value");
 
 	free(list[1].store.d_string.value);
 	free(list[2].store.d_string.value);
+	free(list[3].store.d_string.value);
 	free(list);
 
 	out_list2 = buxton_array_new();
@@ -1015,8 +1108,9 @@ START_TEST(bt_daemon_handle_message_get_check)
 	fail_if(strcmp(list[2].store.d_string.value,
 		       data3.store.d_string.value) != 0,
 		"Failed to get correct name 2");
-	fail_if(list[3].type != FLOAT, "Failed to get correct value type 2");
-	fail_if(list[3].store.d_float != 3.14F,
+	fail_if(list[3].type != STRING, "Failed to get correct value type 2");
+	printf("data3=%s\n", list[3].store.d_string.value);
+	fail_if(streq(list[3].store.d_string.value, "bxt_test_value2"),
 		"Failed to get correct value 2");
 
 	free(list[1].store.d_string.value);
@@ -1052,7 +1146,10 @@ START_TEST(bt_daemon_handle_message_notify_check)
 
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
-	cl.smack_label = &slabel;
+	if (use_smack())
+		cl.smack_label = &slabel;
+	else
+		cl.smack_label = NULL;
 	cl.cred.uid = 1002;
 	daemon.buxton.client.uid = 1001;
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
@@ -1170,7 +1267,10 @@ START_TEST(bt_daemon_handle_message_unset_check)
 
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
-	cl.smack_label = &slabel;
+	if (use_smack())
+		cl.smack_label = &slabel;
+	else
+		cl.smack_label = NULL;
 	cl.cred.uid = 1002;
 	daemon.buxton.client.uid = 1001;
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
@@ -1182,7 +1282,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	data1.type = STRING;
 	data1.store.d_string = buxton_string_pack("base");
 	data2.type = STRING;
-	data2.store.d_string = buxton_string_pack("group");
+	data2.store.d_string = buxton_string_pack("daemon-check");
 	data3.type = STRING;
 	data3.store.d_string = buxton_string_pack("name");
 	data4.type = UINT32;
@@ -1255,7 +1355,10 @@ START_TEST(bt_daemon_notify_clients_check)
 
 	cl.fd = server;
 	slabel = buxton_string_pack("_");
-	cl.smack_label = &slabel;
+	if (use_smack())
+		cl.smack_label = &slabel;
+	else
+		cl.smack_label = NULL;
 	cl.cred.uid = 1002;
 	daemon.notify_mapping = hashmap_new(string_hash_func,
 					    string_compare_func);
@@ -1271,7 +1374,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	bt_daemon_notify_clients(&daemon, &cl, &key, &value1);
 
 	value1.store.d_string = buxton_string_pack("real value");
-	key.group = buxton_string_pack("group");
+	key.group = buxton_string_pack("daemon-check");
 	key.name = buxton_string_pack("name");
 	key.layer = buxton_string_pack("base");
 	r = buxton_direct_set_value(&daemon.buxton, &key,
@@ -1302,11 +1405,17 @@ START_TEST(bt_daemon_notify_clients_check)
 	free(list[0].store.d_string.value);
 	free(list);
 
+	key.group = buxton_string_pack("group");
+	key.name.value = NULL;
+	key.name.length = 0;
+	r = buxton_direct_set_label(&daemon.buxton, &key, &slabel);
+	fail_if(!r, "Unable set group label");
+
 	value1.type = INT32;
 	value1.store.d_int32 = 1;
 	value2.type = INT32;
 	value2.store.d_int32 = 2;
-	key.group = buxton_string_pack("group32");
+	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name32");
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
@@ -1335,7 +1444,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value1.store.d_uint32 = 1;
 	value2.type = UINT32;
 	value2.store.d_uint32 = 2;
-	key.group = buxton_string_pack("groupu32");
+	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("nameu32");
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
@@ -1364,7 +1473,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value1.store.d_int64 = 2;
 	value2.type = INT64;
 	value2.store.d_int64 = 3;
-	key.group = buxton_string_pack("group64");
+	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name64");
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
@@ -1393,7 +1502,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value1.store.d_uint64 = 2;
 	value2.type = UINT64;
 	value2.store.d_uint64 = 3;
-	key.group = buxton_string_pack("groupu64");
+	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("nameu64");
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
@@ -1422,7 +1531,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value1.store.d_float = 3.1F;
 	value2.type = FLOAT;
 	value2.store.d_float = 3.14F;
-	key.group = buxton_string_pack("groupf");
+	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("namef");
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
@@ -1451,7 +1560,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value1.store.d_double = 3.141F;
 	value2.type = DOUBLE;
 	value2.store.d_double = 3.1415F;
-	key.group = buxton_string_pack("groupd");
+	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("named");
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
@@ -1480,7 +1589,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value1.store.d_boolean = false;
 	value2.type = BOOLEAN;
 	value2.store.d_int32 = true;
-	key.group = buxton_string_pack("groupb");
+	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("nameb");
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
@@ -1709,7 +1818,8 @@ daemon_suite(void)
 	tcase_add_test(tc, get_value_check);
 	tcase_add_test(tc, register_notification_check);
 	tcase_add_test(tc, bt_daemon_handle_message_error_check);
-	tcase_add_test(tc, bt_daemon_handle_message_set_check);
+	tcase_add_test(tc, bt_daemon_handle_message_set_label_check);
+	tcase_add_test(tc, bt_daemon_handle_message_set_value_check);
 	tcase_add_test(tc, bt_daemon_handle_message_get_check);
 	tcase_add_test(tc, bt_daemon_handle_message_notify_check);
 	tcase_add_test(tc, bt_daemon_handle_message_unset_check);
