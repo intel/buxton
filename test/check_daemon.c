@@ -846,7 +846,7 @@ START_TEST(bt_daemon_handle_message_set_label_check)
 	data2.type = STRING;
 	data2.store.d_string = buxton_string_pack("daemon-check");
 	data3.type = STRING;
-	data3.store.d_string = buxton_string_pack("handle_label");
+	data3.store.d_string = buxton_string_pack("*");
 	r = buxton_array_add(out_list, &data1);
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
