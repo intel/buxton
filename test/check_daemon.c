@@ -1845,6 +1845,7 @@ int main(void)
 	SRunner *sr;
 
 	putenv("BUXTON_CONF_FILE=" ABS_TOP_BUILDDIR "/test/test.conf");
+	putenv("BUXTON_ROOT_CHECK=0");
 	s = daemon_suite();
 	sr = srunner_create(s);
 	srunner_run_all(sr, CK_VERBOSE);
