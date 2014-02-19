@@ -256,8 +256,6 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 		switch (param->type) {
 		case STRING:
-			//FIXME - this assert should likely go away
-			assert(param->store.d_string.value);
 			p_length = param->store.d_string.length;
 			break;
 		case INT32:
@@ -419,7 +417,7 @@ size_t buxton_deserialize_message(uint8_t *data,
 		buxton_debug("param: %d\n", c_param + 1);
 		buxton_debug("offset=%lu\n", offset);
 		/* Don't read past the end of the buffer */
-		if (offset + sizeof(BuxtonDataType) + sizeof(uint32_t) >= size)
+		if (offset + sizeof(BuxtonDataType) + sizeof(uint32_t) > size)
 			goto end;
 
 		/* Now unpack type */
@@ -431,7 +429,7 @@ size_t buxton_deserialize_message(uint8_t *data,
 
 		/* Retrieve the length of the value */
 		c_length = *(uint32_t*)(data+offset);
-		if (c_length == 0)
+		if (c_length == 0 && c_type != STRING)
 			goto end;
 		offset += sizeof(uint32_t);
 		buxton_debug("value length: %lu\n", c_length);
@@ -442,15 +440,20 @@ size_t buxton_deserialize_message(uint8_t *data,
 
 		switch (c_type) {
 		case STRING:
-			c_data.store.d_string.value = malloc(c_length);
-			if (!c_data.store.d_string.value)
-				goto end;
-			memcpy(c_data.store.d_string.value, data+offset, c_length);
-			c_data.store.d_string.length = (uint32_t)c_length;
-			if (c_data.store.d_string.value[c_length-1] != 0x00) {
-				buxton_debug("buxton_deserialize_message(): Garbage message\n");
-				free(c_data.store.d_string.value);
-				goto end;
+			if (c_length) {
+				c_data.store.d_string.value = malloc(c_length);
+				if (!c_data.store.d_string.value)
+					goto end;
+				memcpy(c_data.store.d_string.value, data+offset, c_length);
+				c_data.store.d_string.length = (uint32_t)c_length;
+				if (c_data.store.d_string.value[c_length-1] != 0x00) {
+					buxton_debug("buxton_deserialize_message(): Garbage message\n");
+					free(c_data.store.d_string.value);
+					goto end;
+				}
+			} else {
+				c_data.store.d_string.value = NULL;
+				c_data.store.d_string.length = 0;
 			}
 			break;
 		case INT32:

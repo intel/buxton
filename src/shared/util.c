@@ -142,7 +142,7 @@ bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
 	if (!original || !copy)
 		return false;
 
-	copy->value = malloc(original->length);
+	copy->value = malloc0(original->length);
 	if (!copy->value)
 		return false;
 
@@ -178,6 +178,32 @@ fail:
 	if (original->layer.value)
 		free(copy->layer.value);
 	copy->type = BUXTON_TYPE_MIN;
+
+	return false;
+}
+
+bool buxton_copy_key_group(_BuxtonKey *original, _BuxtonKey *group)
+{
+	if (!original || !group)
+		return false;
+
+	if (original->group.value)
+		if(!buxton_string_copy(&original->group, &group->group))
+			goto fail;
+	group->name = (BuxtonString){ NULL, 0 };
+	if (original->layer.value)
+		if(!buxton_string_copy(&original->layer, &group->layer))
+			goto fail;
+	group->type = original->type;
+
+	return true;
+
+fail:
+	if (original->group.value)
+		free(group->group.value);
+	if (original->layer.value)
+		free(group->layer.value);
+	group->type = BUXTON_TYPE_MIN;
 
 	return false;
 }

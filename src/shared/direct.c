@@ -21,6 +21,8 @@
 #include "smack.h"
 #include "util.h"
 
+#define BUXTON_ROOT_CHECK_ENV "BUXTON_ROOT_CHECK"
+
 bool buxton_direct_open(BuxtonControl *control)
 {
 
@@ -79,6 +81,10 @@ bool buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 							 priority <= l->priority)) ||
 			    (l->type == LAYER_USER && layer_origin != LAYER_SYSTEM &&
 			     priority <= l->priority)) {
+				if (l->type == LAYER_SYSTEM)
+					layer_origin = LAYER_SYSTEM;
+				else
+					layer_origin = LAYER_USER;
 				priority = l->priority;
 				layer.value = l->name.value;
 				layer.length = l->name.length;
@@ -110,24 +116,45 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 	BuxtonBackend *backend = NULL;
 	BuxtonLayer *layer = NULL;
 	BuxtonConfig *config;
+	BuxtonData g;
+	_BuxtonKey group;
+	BuxtonString group_label;
+	bool r = false;
 
 	assert(control);
 	assert(key);
 	assert(data_label);
 
+	buxton_debug("get_value for layer start\n");
+
 	if (!key->layer.value)
-		return false;
+		goto fail;
 
 	config = &control->config;
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
-		return false;
+		goto fail;
 	}
 	backend = backend_for_layer(config, layer);
 	if (!backend) {
 		/* Already logged */
-		return false;
+		goto fail;
 	}
 	layer->uid = control->client.uid;
+
+	/* Groups must be created first, so bail if this key's group doesn't exist */
+	if (key->name.value) {
+		if (!buxton_copy_key_group(key, &group))
+			goto fail;
+		if (!buxton_direct_get_value_for_layer(control, &group, &g, &group_label, NULL)) {
+			buxton_debug("Group %s for name %s missing for get value\n", key->group.value, key->name.value);
+			goto fail;
+		}
+	}
+
+	/* The group checks are only needed for key lookups, or we recurse endlessly */
+	if (key->name.value && client_label)
+		if (!buxton_check_smack_access(client_label, &group_label, ACCESS_READ))
+			goto fail;
 
 	if (backend->get_value(layer, key, data, data_label)) {
 		/* Access checks are not needed for direct clients, where client_label is NULL */
@@ -136,13 +163,17 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 					      client_label)) {
 			/* Client lacks permission to read the value */
 			free(data_label->value);
-			return false;
+			goto fail;
 		}
 		buxton_debug("SMACK check succeeded for get_value for layer %s\n", key->layer.value);
-		return true;
+		r = true;
 	} else {
-		return false;
+		goto fail;
 	}
+
+fail:
+	buxton_debug("get_value for layer end\n");
+	return r;
 }
 
 bool buxton_direct_set_value(BuxtonControl *control,
@@ -153,37 +184,62 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
-	BuxtonString data_label = (BuxtonString){ NULL, 0 };
 	BuxtonString default_label = buxton_string_pack("_");
 	BuxtonString *l;
-	BuxtonData d;
-	bool r;
+	_cleanup_buxton_data_ BuxtonData *d = NULL;
+	_cleanup_buxton_data_ BuxtonData *g = NULL;
+	_cleanup_buxton_key_ _BuxtonKey *group = NULL;
+	_cleanup_buxton_string_ BuxtonString *data_label = NULL;
+	_cleanup_buxton_string_ BuxtonString *group_label = NULL;
+	bool r = false;
 
 	assert(control);
 	assert(key);
 	assert(data);
 
+	buxton_debug("set_value start\n");
+
+	group = malloc0(sizeof(_BuxtonKey));
+	if (!group)
+		goto fail;
+	g = malloc0(sizeof(BuxtonData));
+	if (!g)
+		goto fail;
+	group_label = malloc0(sizeof(BuxtonString));
+	if (!group_label)
+		goto fail;
+
+	d = malloc0(sizeof(BuxtonData));
+	if (!d)
+		goto fail;
+	data_label = malloc0(sizeof(BuxtonString));
+	if (!data_label)
+		goto fail;
+
+	/* Groups must be created first, so bail if this key's group doesn't exist */
+	if (!buxton_copy_key_group(key, group))
+		goto fail;
+
+	if (!buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
+		buxton_debug("Group %s for name %s missing for set value\n", key->group.value, key->name.value);
+		goto fail;
+	}
 
 	/* Access checks are not needed for direct clients, where label is NULL */
 	if (label) {
-		/* FIXME: need to check client->group access here instead */
-		if (!buxton_check_smack_access(label, label, ACCESS_WRITE))
-			return false;
-		if (buxton_direct_get_value_for_layer(control, key, &d, &data_label, NULL)) {
-			if (!buxton_check_smack_access(label, &data_label, ACCESS_WRITE)) {
-				if (d.type == STRING)
-					free(d.store.d_string.value);
-				return false;
+		if (!buxton_check_smack_access(label, group_label, ACCESS_WRITE))
+			goto fail;
+		if (buxton_direct_get_value_for_layer(control, key, d, data_label, NULL)) {
+			if (!buxton_check_smack_access(label, data_label, ACCESS_WRITE)) {
+				goto fail;
 			}
-			l = &data_label;
+			l = data_label;
 		} else {
 			l = label;
 		}
 	} else {
-		if (buxton_direct_get_value_for_layer(control, key, &d, &data_label, NULL)) {
-			l = &data_label;
-			if (d.type == STRING)
-				free(d.store.d_string.value);
+		if (buxton_direct_get_value_for_layer(control, key, d, data_label, NULL)) {
+			l = data_label;
 		} else {
 			l = &default_label;
 		}
@@ -191,19 +247,19 @@ bool buxton_direct_set_value(BuxtonControl *control,
 
 	config = &control->config;
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL)
-		return false;
+		goto fail;
 
 	backend = backend_for_layer(config, layer);
 	if (!backend) {
 		/* Already logged */
-		return false;
+		goto fail;
 	}
 
 	layer->uid = control->client.uid;
 	r = backend->set_value(layer, key, data, l);
-	if (l == &data_label)
-		free(l->value);
 
+fail:
+	buxton_debug("set_value end\n");
 	return r;
 }
 
@@ -217,13 +273,17 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	BuxtonConfig *config;
 	BuxtonString data_label = (BuxtonString){ NULL, 0 };
 	bool r;
+	char *root_check;
 
 	assert(control);
 	assert(key);
 	assert(label);
 
 	/* FIXME: should check if client has CAP_MAC_ADMIN instead */
-	if (control->client.uid != 0)
+	root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+	if (root_check && streq(root_check, "0"))
+		; /* skip uid check */
+	else if (control->client.uid != 0)
 		return false;
 
 	config = &control->config;
@@ -253,6 +313,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	data_label.length = label->length;
 	data_label.value = label->value;
 
+	layer->uid = control->client.uid;
 	r = backend->set_value(layer, key, &data, &data_label);
 	if (name && data.type == STRING)
 		free(data.store.d_string.value);
@@ -293,16 +354,52 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
-	BuxtonString data_label = (BuxtonString){ NULL, 0 };
+	_cleanup_buxton_string_ BuxtonString *data_label = NULL;
+	_cleanup_buxton_string_ BuxtonString *group_label = NULL;
+	_cleanup_buxton_data_ BuxtonData *d = NULL;
+	_cleanup_buxton_data_ BuxtonData *g = NULL;
+	_cleanup_buxton_key_ _BuxtonKey *group = NULL;
 
 	assert(control);
 	assert(key);
 
+	group = malloc0(sizeof(_BuxtonKey));
+	if (!group)
+		goto fail;
+	g = malloc0(sizeof(BuxtonData));
+	if (!g)
+		goto fail;
+	group_label = malloc0(sizeof(BuxtonString));
+	if (!group_label)
+		goto fail;
+
+	d = malloc0(sizeof(BuxtonData));
+	if (!d)
+		goto fail;
+	data_label = malloc0(sizeof(BuxtonString));
+	if (!data_label)
+		goto fail;
+
+	if (!buxton_copy_key_group(key, group))
+		goto fail;
+
+	if (!buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
+		buxton_debug("Group %s for name %s missing for unset value\n", key->group.value, key->name.value);
+		goto fail;
+	}
+
 	/* Access checks are not needed for direct clients, where label is NULL */
 	if (label) {
-		if (!buxton_check_write_access(control, key, &data_label, label))
-			return false;
-		free(data_label.value);
+		if (!buxton_check_smack_access(label, group_label, ACCESS_WRITE))
+			goto fail;
+		if (buxton_direct_get_value_for_layer(control, key, d, data_label, NULL)) {
+			if (!buxton_check_smack_access(label, data_label, ACCESS_WRITE)) {
+				goto fail;
+			}
+		} else {
+			buxton_debug("Key %s not found, so unset fails\n", key->name.value);
+			goto fail;
+		}
 	}
 
 	config = &control->config;
@@ -316,6 +413,9 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	}
 	layer->uid = control->client.uid;
 	return backend->unset_value(layer, key, NULL, NULL);
+
+fail:
+	return false;
 }
 
 void buxton_direct_close(BuxtonControl *control)
