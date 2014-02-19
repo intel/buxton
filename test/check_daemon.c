@@ -41,6 +41,8 @@
 #error "re-run configure with --enable-debug"
 #endif
 
+#define BUXTON_ROOT_CHECK_ENV "BUXTON_ROOT_CHECK"
+
 static pid_t daemon_pid;
 
 typedef struct _fuzz_context_t {
@@ -48,6 +50,15 @@ typedef struct _fuzz_context_t {
 	size_t size;
 	int iteration;
 } FuzzContext;
+
+static bool use_smack(void)
+{
+	bool __attribute__((unused))dummy;
+
+	dummy = buxton_cache_smack_rules();
+
+	return buxton_smack_enabled();
+}
 
 static char* dump_fuzz(FuzzContext *fuzz)
 {
@@ -202,6 +213,8 @@ static void client_set_label_test(BuxtonResponse response, void *data)
 	BuxtonKey key;
 	char *group;
 	uid_t uid = getuid();
+	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+	bool skip_check = (root_check && streq(root_check, "0"));
 
 	fail_if(response_type(response) != BUXTON_CONTROL_SET_LABEL,
 		"Failed to get set label response type");
@@ -218,7 +231,7 @@ static void client_set_label_test(BuxtonResponse response, void *data)
 		free(group);
 		buxton_free_key(key);
 	} else {
-		fail_if(response_status(response) != BUXTON_STATUS_FAILED,
+		fail_if(response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
 			"Set label succeeded, but the client is not root");
 	}
 }
@@ -556,9 +569,9 @@ START_TEST(parse_list_check)
 }
 END_TEST
 
-START_TEST(set_value_check)
+START_TEST(set_label_check)
 {
-	_BuxtonKey key;
+	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData value;
 	client_list_item client;
 	BuxtonStatus status;
@@ -568,47 +581,63 @@ START_TEST(set_value_check)
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
 
-	fail_if(!buxton_cache_smack_rules(),
-		"Failed to cache smack rules");
 	client.cred.uid = getuid();
-	client.smack_label = &clabel;
+	if (use_smack())
+		client.smack_label = &clabel;
+	else
+		client.smack_label = NULL;
 	server.buxton.client.uid = 0;
-	key.layer = buxton_string_pack("test-gdbm");
-	key.group = buxton_string_pack("group");
-	key.name = buxton_string_pack("name");
-	value.type = FLOAT;
-	value.store.d_float = 3.14F;
-
-	set_value(&server, &client, &key, &value, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
-	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
-	buxton_client_close(&server.buxton.client);
-}
-END_TEST
-
-START_TEST(set_label_check)
-{
-	_BuxtonKey key = { {0}, {0}, {0}, 0};
-	BuxtonData value;
-	client_list_item client;
-	BuxtonStatus status;
-	BuxtonDaemon server;
-	BuxtonString clabel;
-
-	fail_if(!buxton_direct_open(&server.buxton),
-		"Failed to open buxton direct connection");
-
-	client.cred.uid = 0;
-	client.smack_label = &clabel;
-	server.buxton.client.uid = 0;
-	key.layer = buxton_string_pack("test-gdbm");
-	key.group = buxton_string_pack("groupfoo");
+	key.layer = buxton_string_pack("test-gdbm-user");
+	key.group = buxton_string_pack("daemon-check");
 	key.type = STRING;
 	value.type = STRING;
 	value.store.d_string = buxton_string_pack("*");
 
 	set_label(&server, &client, &key, &value, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to set label");
+
+	key.layer = buxton_string_pack("test-gdbm");
+	set_label(&server, &client, &key, &value, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Failed to set label 2");
+	buxton_client_close(&server.buxton.client);
+}
+END_TEST
+
+START_TEST(set_value_check)
+{
+	_BuxtonKey key = { {0}, {0}, {0}, 0};
+	BuxtonData value;
+	client_list_item client;
+	BuxtonStatus status;
+	BuxtonDaemon server;
+	BuxtonString clabel = buxton_string_pack("_");
+
+	fail_if(!buxton_direct_open(&server.buxton),
+		"Failed to open buxton direct connection");
+
+	client.cred.uid = getuid();
+	server.buxton.client.uid = 0;
+
+	if (use_smack())
+		client.smack_label = &clabel;
+	else
+		client.smack_label = NULL;
+
+	key.layer = buxton_string_pack("test-gdbm-user");
+	key.group = buxton_string_pack("daemon-check");
+	key.name = buxton_string_pack("name");
+	value.type = STRING;
+	value.store.d_string = buxton_string_pack("user-layer-value");
+
+	set_value(&server, &client, &key, &value, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
+	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
+
+	key.layer = buxton_string_pack("test-gdbm");
+	value.store.d_string = buxton_string_pack("system-layer-value");
+	set_value(&server, &client, &key, &value, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
+
 	buxton_client_close(&server.buxton.client);
 }
 END_TEST
@@ -628,18 +657,21 @@ START_TEST(get_value_check)
 	fail_if(!buxton_cache_smack_rules(),
 		"Failed to cache smack rules");
 	client.cred.uid = getuid();
-	client.smack_label = &clabel;
+	if (use_smack())
+		client.smack_label = &clabel;
+	else
+		client.smack_label = NULL;
 	server.buxton.client.uid = 0;
-	key.layer = buxton_string_pack("test-gdbm");
-	key.group = buxton_string_pack("group");
+	key.layer = buxton_string_pack("test-gdbm-user");
+	key.group = buxton_string_pack("daemon-check");
 	key.name = buxton_string_pack("name");
-	key.type = FLOAT;
+	key.type = STRING;
 
 	value = get_value(&server, &client, &key, &status);
 	fail_if(!value, "Failed to get value");
 	fail_if(status != BUXTON_STATUS_OK, "Failed to get value");
-	fail_if(value->type != FLOAT, "Failed to get correct type");
-	fail_if(value->store.d_float != 3.14F, "Failed to get correct value");
+	fail_if(value->type != STRING, "Failed to get correct type");
+	fail_if(!streq(value->store.d_string.value, "user-layer-value"), "Failed to get correct value");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
 	free(value);
 
@@ -650,7 +682,7 @@ START_TEST(get_value_check)
 	fail_if(!value, "Failed to get value 2");
 	fail_if(status != BUXTON_STATUS_OK, "Failed to get value 2");
 	fail_if(value->type != STRING, "Failed to get correct type 2");
-	fail_if(!streq(value->store.d_string.value, "bxt_test_value2"), "Failed to get correct value 2");
+	fail_if(!streq(value->store.d_string.value, "system-layer-value"), "Failed to get correct value 2");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid 2");
 	free(value);
 
@@ -669,7 +701,10 @@ START_TEST(register_notification_check)
 
 	fail_if(!buxton_cache_smack_rules(),
 		"Failed to cache smack rules");
-	client.smack_label = &clabel;
+	if (use_smack())
+		client.smack_label = &clabel;
+	else
+		client.smack_label = NULL;
 	client.cred.uid = 1002;
 	fail_if(!buxton_direct_open(&server.buxton),
 		"Failed to open buxton direct connection");
@@ -1669,8 +1704,8 @@ daemon_suite(void)
 
 	tc = tcase_create("buxton_daemon_functions");
 	tcase_add_test(tc, parse_list_check);
-	tcase_add_test(tc, set_value_check);
 	tcase_add_test(tc, set_label_check);
+	tcase_add_test(tc, set_value_check);
 	tcase_add_test(tc, get_value_check);
 	tcase_add_test(tc, register_notification_check);
 	tcase_add_test(tc, bt_daemon_handle_message_error_check);
