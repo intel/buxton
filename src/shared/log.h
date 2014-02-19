@@ -17,7 +17,7 @@
 
 #ifdef DEBUG
 #define buxton_debug(...) do { \
-	buxton_log("%s():[%d]: %s",  __func__, __LINE__ , __VA_ARGS__); \
+	(buxton_log("%s():[%d]: ",  __func__, __LINE__), buxton_log(__VA_ARGS__)); \
 } while(0);
 #else
 #define buxton_debug(...) do {} while(0);
