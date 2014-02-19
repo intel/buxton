@@ -31,6 +31,8 @@
 #error "re-run configure with --enable-debug"
 #endif
 
+#define BUXTON_ROOT_CHECK_ENV "BUXTON_ROOT_CHECK"
+
 START_TEST(buxton_direct_open_check)
 {
 	BuxtonControl c;
@@ -229,6 +231,8 @@ START_TEST(buxton_set_label_check)
 	key.group = buxton_string_pack("bxt_test");
 	key.name.value = NULL;
 	key.type = STRING;
+	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+	bool skip_check = (root_check && streq(root_check, "0"));
 
 	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
@@ -237,10 +241,13 @@ START_TEST(buxton_set_label_check)
 		"Failed to set label as root user.");
 
 	c.client.uid = 1000;
-	fail_if(buxton_direct_open(&c) == false,
-		"Direct open failed without daemon.");
-	fail_if(buxton_direct_set_label(&c, &key, &label) == true,
-		"Able to set label as non-root user.");
+
+	if (skip_check)
+		fail_if(!buxton_direct_set_label(&c, &key, &label),
+			"Unable to set label with root check disabled");
+	else
+		fail_if(buxton_direct_set_label(&c, &key, &label),
+			"Able to set label as non-root user.");
 
 	buxton_direct_close(&c);
 }
@@ -546,7 +553,6 @@ START_TEST(handle_callback_response_check)
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
 			      &test_data, 6, BUXTON_CONTROL_UNNOTIFY, NULL),
 		"Failed to send message 6");
-	printf("non_notify start\n");
 	handle_callback_response(BUXTON_CONTROL_STATUS, 6, bad1, 1);
 	fail_if(test_data, "Failed to set unnotify bad1 data");
 
