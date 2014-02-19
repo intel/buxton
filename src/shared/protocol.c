@@ -457,6 +457,49 @@ end:
 	return ret;
 }
 
+bool buxton_wire_create_group(_BuxtonClient *client, _BuxtonKey *key,
+			      BuxtonCallback callback, void *data)
+{
+	assert(client);
+	assert(key);
+
+	_cleanup_free_ uint8_t *send = NULL;
+	bool ret = false;
+	size_t send_len = 0;
+	BuxtonArray *list = NULL;
+	BuxtonData d_layer;
+	BuxtonData d_group;
+	uint64_t msgid = get_msgid();
+
+	buxton_string_to_data(&key->layer, &d_layer);
+	buxton_string_to_data(&key->group, &d_group);
+
+	list = buxton_array_new();
+	if (!buxton_array_add(list, &d_layer)) {
+		buxton_log("Failed to add layer to set_label array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Failed to add group to set_label array\n");
+		goto end;
+	}
+
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_CREATE_GROUP, msgid, list);
+
+	if (send_len == 0)
+		goto end;
+
+	if (!send_message(client, send, send_len, callback, data, msgid,
+			  BUXTON_CONTROL_CREATE_GROUP, key))
+		goto end;
+
+	ret = true;
+
+end:
+	buxton_array_free(&list, NULL);
+	return ret;
+}
+
 bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 			   BuxtonCallback callback, void *data)
 {

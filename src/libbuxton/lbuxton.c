@@ -234,6 +234,29 @@ bool buxton_client_set_label(BuxtonClient client,
 	return r;
 }
 
+bool buxton_client_create_group(BuxtonClient client,
+				BuxtonKey key,
+				BuxtonCallback callback,
+				void *data,
+				bool sync)
+{
+	bool r;
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	/* We require the key name to be NULL, since it is not used for groups */
+	if (!k || !k->group.value || k->name.value || !k->layer.value)
+		return false;
+
+	r = buxton_wire_create_group((_BuxtonClient *)client, k, callback, data);
+	if (!r)
+		return false;
+
+	if (sync)
+		r = buxton_wire_get_response(client);
+
+	return r;
+}
+
 bool buxton_client_list_keys(BuxtonClient client,
 			     char *layer_name,
 			     BuxtonCallback callback,

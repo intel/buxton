@@ -322,6 +322,95 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	return r;
 }
 
+bool buxton_direct_create_group(BuxtonControl *control,
+				_BuxtonKey *key,
+				BuxtonString *label)
+{
+	BuxtonBackend *backend;
+	BuxtonLayer *layer;
+	BuxtonConfig *config;
+	BuxtonString s, l;
+	_cleanup_buxton_data_ BuxtonData *data = NULL;
+	_cleanup_buxton_data_ BuxtonData *group = NULL;
+	_cleanup_buxton_string_ BuxtonString *dlabel = NULL;
+	_cleanup_buxton_string_ BuxtonString *glabel = NULL;
+	bool r = false;
+
+	assert(control);
+	assert(key);
+
+	data = malloc0(sizeof(BuxtonData));
+	if (!data)
+		goto fail;
+	group = malloc0(sizeof(BuxtonData));
+	if (!group)
+		goto fail;
+	dlabel = malloc0(sizeof(BuxtonString));
+	if (!dlabel)
+		goto fail;
+	glabel = malloc0(sizeof(BuxtonString));
+	if (!glabel)
+		goto fail;
+
+	config = &control->config;
+
+	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+		goto fail;
+	}
+
+	if (layer->type == LAYER_SYSTEM) {
+		char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+		bool skip_check = (root_check && streq(root_check, "0"));
+
+		/* FIXME: should check client's capability set instead of UID */
+		if (control->client.uid != 0 && !skip_check) {
+			buxton_debug("Not permitted to create group '%s'\n", key->group.value);
+			goto fail;
+		}
+	}
+
+	if (buxton_direct_get_value_for_layer(control, key, group, glabel, NULL)) {
+		buxton_debug("Group '%s' already exists\n", key->group.value);
+		goto fail;
+	}
+
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		/* Already logged */
+		goto fail;
+	}
+
+	/* Since groups don't have a value, we create a dummy value */
+	data->type = STRING;
+	s = buxton_string_pack("BUXTON_GROUP_VALUE");
+	if (!buxton_string_copy(&s, &data->store.d_string)) {
+		buxton_debug("Failed to set group data value\n");
+		goto fail;
+	}
+
+	if (label) {
+		if (!buxton_string_copy(label, dlabel)) {
+			buxton_debug("Failed to copy group label\n");
+			goto fail;
+		}
+	} else {
+		/* _ (floor) is our current default label */
+		l = buxton_string_pack("_");
+		if (!buxton_string_copy(&l, dlabel)) {
+			buxton_debug("Failed to copy default group label\n");
+			goto fail;
+		}
+	}
+
+	layer->uid = control->client.uid;
+	r = backend->set_value(layer, key, data, dlabel);
+	if (!r)
+		buxton_debug("create group failed\n");
+
+fail:
+	return r;
+}
+
 bool buxton_direct_list_keys(BuxtonControl *control,
 			     BuxtonString *layer_name,
 			     BuxtonArray **list)

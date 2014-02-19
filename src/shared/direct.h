@@ -52,6 +52,18 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	__attribute__((warn_unused_result));
 
 /**
+ * Create a group within Buxton
+ * @param control An initialized control structure
+ * @param key The key struct with group and layer members initialized
+ * @param label The Smack label of the client
+ * @return A boolean value, indicating success of the operation
+ */
+bool buxton_direct_create_group(BuxtonControl *control,
+				_BuxtonKey *key,
+				BuxtonString *label)
+	__attribute__((warn_unused_result));
+
+/**
  * Set a value within Buxton
  * @param control An initialized control structure
  * @param key The key struct

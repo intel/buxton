@@ -125,6 +125,17 @@ void set_label(BuxtonDaemon *self, client_list_item *client,
 	       _BuxtonKey *key, BuxtonData *value, BuxtonStatus *status);
 
 /**
+ * Buxton daemon function for creating a group
+ * @param self bt-daemon instance being run
+ * @param client Used to validate smack access
+ * @param key Key with layer and group members initialized
+ * @param value Label being set
+ * @param status Will be set with the BuxtonStatus result of the operation
+ */
+void create_group(BuxtonDaemon *self, client_list_item *client,
+		  _BuxtonKey *key, BuxtonStatus *status);
+
+/**
  * Buxton daemon function for getting a value
  * @param self bt-daemon instance being run
  * @param client Used to validate smack access

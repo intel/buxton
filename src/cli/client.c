@@ -64,6 +64,31 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 	return ret;
 }
 
+bool cli_create_group(BuxtonControl *control, BuxtonDataType type,
+		      char *one, char *two, char *three, char *four)
+{
+	BuxtonKey key;
+	bool ret = false;
+
+	key = buxton_make_key(two, NULL, one, type);
+	if (!key)
+		return ret;
+
+	if (control->client.direct)
+		ret = buxton_direct_create_group(control, (_BuxtonKey *)key, NULL);
+	else
+		ret = buxton_client_create_group(&control->client, key, NULL, NULL, true);
+
+	if (!ret) {
+		char *group = get_group(key);
+		printf("Failed to create group \'%s\' in layer '%s'\n",
+		       group, one);
+		free(group);
+	}
+	buxton_free_key(key);
+	return ret;
+}
+
 bool cli_get_label(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three,
 		   __attribute__((unused)) char *four)

@@ -46,9 +46,18 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (list[0].type != STRING || list[1].type != STRING ||
 		    list[2].type != STRING)
 			return false;
+		key->type = STRING;
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		*value = &list[2];
+		break;
+	case BUXTON_CONTROL_CREATE_GROUP:
+		if (count != 2)
+			return false;
+		if (list[0].type != STRING || list[1].type != STRING)
+			return false;
+		key->layer = list[0].store.d_string;
+		key->group = list[1].store.d_string;
 		break;
 	case BUXTON_CONTROL_GET:
 		if (count == 4) {
@@ -162,6 +171,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_SET_LABEL:
 		set_label(self, client, &key, value, &response);
 		break;
+	case BUXTON_CONTROL_CREATE_GROUP:
+		create_group(self, client, &key, &response);
+		break;
 	case BUXTON_CONTROL_GET:
 		data = get_value(self, client, &key, &response);
 		break;
@@ -209,6 +221,15 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 							msgid, out_list);
 		if (response_len == 0) {
 			buxton_log("Failed to serialize set_label response message\n");
+			goto end;
+		}
+		break;
+	case BUXTON_CONTROL_CREATE_GROUP:
+		response_len = buxton_serialize_message(&response_store,
+							BUXTON_CONTROL_STATUS,
+							msgid, out_list);
+		if (response_len == 0) {
+			buxton_log("Failed to serialize create_group response message\n");
 			goto end;
 		}
 		break;
@@ -465,6 +486,30 @@ void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 
 	*status = BUXTON_STATUS_OK;
 	buxton_debug("Daemon set label completed\n");
+}
+
+void create_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
+		  BuxtonStatus *status)
+{
+	assert(self);
+	assert(client);
+	assert(key);
+	assert(status);
+
+	*status = BUXTON_STATUS_FAILED;
+
+	buxton_debug("Daemon setting [%s][%s]\n",
+		     key->layer.value,
+		     key->group.value);
+
+	self->buxton.client.uid = client->cred.uid;
+
+	/* Use internal library to create group */
+	if (!buxton_direct_create_group(&self->buxton, key, client->smack_label))
+		return;
+
+	*status = BUXTON_STATUS_OK;
+	buxton_debug("Daemon create group completed\n");
 }
 
 void unset_value(BuxtonDaemon *self, client_list_item *client,

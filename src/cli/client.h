@@ -65,6 +65,21 @@ bool cli_set_label(BuxtonControl *control,
 	__attribute__((warn_unused_result));
 
 /**
+ * Create a group in Buxton
+ * @param control An initialized control structure
+ * @param type Type of group being created (unused)
+ * @param one Layer for the group being created
+ * @param two Name of the group
+ * @returns bool indicating success or failure
+ */
+bool cli_create_group(BuxtonControl *control,
+		      __attribute__((unused)) BuxtonDataType type,
+		      char *one, char *two,
+		      __attribute__((unused)) char *three,
+		      __attribute__((unused)) char *four)
+	__attribute__((warn_unused_result));
+
+/**
  * Get a label from Buxton
  * @param control An initialized control structure
  * @param type Type of label being sought (unused)

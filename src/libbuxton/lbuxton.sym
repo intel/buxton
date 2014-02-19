@@ -5,6 +5,7 @@ BUXTON_1 {
 		buxton_client_close;
 		buxton_client_set_value;
 		buxton_client_set_label;
+		buxton_client_create_group;
 		buxton_client_get_value;
 		buxton_client_get_value_for_layer;
 		buxton_client_list_keys;
