@@ -179,9 +179,9 @@ static void client_set_value_test(BuxtonResponse response, void *data)
 START_TEST(buxton_client_set_value_check)
 {
 	BuxtonClient c;
-	BuxtonKey group = buxton_make_key("group", NULL, "test-gdbm", STRING);
+	BuxtonKey group = buxton_make_key("group", NULL, "test-gdbm-user", STRING);
 	fail_if(!group, "Failed to create key for group");
-	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm", STRING);
+	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm-user", STRING);
 	fail_if(!key, "Failed to create key");
 	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
@@ -272,7 +272,7 @@ static void client_get_value_test(BuxtonResponse response, void *data)
 START_TEST(buxton_client_get_value_for_layer_check)
 {
 	BuxtonClient c = NULL;
-	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm", STRING);
+	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm-user", STRING);
 
 	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
@@ -287,9 +287,9 @@ START_TEST(buxton_client_get_value_check)
 {
 	BuxtonClient c = NULL;
 
-	BuxtonKey group = buxton_make_key("group", NULL, "test-gdbm-user", STRING);
+	BuxtonKey group = buxton_make_key("group", NULL, "test-gdbm", STRING);
 	fail_if(!group, "Failed to create key for group");
-	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm-user", STRING);
+	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm", STRING);
 
 	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");

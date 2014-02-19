@@ -81,6 +81,10 @@ bool buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 							 priority <= l->priority)) ||
 			    (l->type == LAYER_USER && layer_origin != LAYER_SYSTEM &&
 			     priority <= l->priority)) {
+				if (l->type == LAYER_SYSTEM)
+					layer_origin = LAYER_SYSTEM;
+				else
+					layer_origin = LAYER_USER;
 				priority = l->priority;
 				layer.value = l->name.value;
 				layer.length = l->name.length;
