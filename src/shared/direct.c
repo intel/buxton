@@ -119,22 +119,25 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 	BuxtonData g;
 	_BuxtonKey group;
 	BuxtonString group_label;
+	bool r = false;
 
 	assert(control);
 	assert(key);
 	assert(data_label);
 
+	buxton_debug("get_value for layer start\n");
+
 	if (!key->layer.value)
-		return false;
+		goto fail;
 
 	config = &control->config;
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
-		return false;
+		goto fail;
 	}
 	backend = backend_for_layer(config, layer);
 	if (!backend) {
 		/* Already logged */
-		return false;
+		goto fail;
 	}
 	layer->uid = control->client.uid;
 
@@ -160,16 +163,17 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 					      client_label)) {
 			/* Client lacks permission to read the value */
 			free(data_label->value);
-			return false;
+			goto fail;
 		}
 		buxton_debug("SMACK check succeeded for get_value for layer %s\n", key->layer.value);
-		return true;
+		r = true;
 	} else {
-		return false;
+		goto fail;
 	}
 
 fail:
-	return false;
+	buxton_debug("get_value for layer end\n");
+	return r;
 }
 
 bool buxton_direct_set_value(BuxtonControl *control,
@@ -187,11 +191,13 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	_cleanup_buxton_key_ _BuxtonKey *group = NULL;
 	_cleanup_buxton_string_ BuxtonString *data_label = NULL;
 	_cleanup_buxton_string_ BuxtonString *group_label = NULL;
-	bool r;
+	bool r = false;
 
 	assert(control);
 	assert(key);
 	assert(data);
+
+	buxton_debug("set_value start\n");
 
 	group = malloc0(sizeof(_BuxtonKey));
 	if (!group)
@@ -215,7 +221,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
 		goto fail;
 
 	if (!buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
-		buxton_debug("Group %s for key %s does not exist\n", key->group.value, key->name.value);
+		buxton_debug("Group %s for name %s missing for set value\n", key->group.value, key->name.value);
 		goto fail;
 	}
 
@@ -241,21 +247,20 @@ bool buxton_direct_set_value(BuxtonControl *control,
 
 	config = &control->config;
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL)
-		return false;
+		goto fail;
 
 	backend = backend_for_layer(config, layer);
 	if (!backend) {
 		/* Already logged */
-		return false;
+		goto fail;
 	}
 
 	layer->uid = control->client.uid;
 	r = backend->set_value(layer, key, data, l);
 
-	return r;
-
 fail:
-	return false;
+	buxton_debug("set_value end\n");
+	return r;
 }
 
 bool buxton_direct_set_label(BuxtonControl *control,
@@ -379,7 +384,7 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 		goto fail;
 
 	if (!buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
-		buxton_debug("Group %s for key %s does not exist\n", key->group.value, key->name.value);
+		buxton_debug("Group %s for name %s missing for unset value\n", key->group.value, key->name.value);
 		goto fail;
 	}
 
