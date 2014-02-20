@@ -217,7 +217,8 @@ bool buxton_client_set_label(BuxtonClient client,
 	BuxtonString v;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	if (!k || !k->group.value || !k->layer.value || !value)
+	if (!k || !k->group.value || !k->layer.value || !value ||
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
 		return false;
 
 	v = buxton_string_pack(value);

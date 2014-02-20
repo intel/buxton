@@ -194,7 +194,7 @@ bool buxton_copy_key_group(_BuxtonKey *original, _BuxtonKey *group)
 	if (original->layer.value)
 		if(!buxton_string_copy(&original->layer, &group->layer))
 			goto fail;
-	group->type = original->type;
+	group->type = STRING;
 
 	return true;
 

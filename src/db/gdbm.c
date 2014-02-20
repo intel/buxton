@@ -187,6 +187,12 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	if (!buxton_deserialize(data_store, data, label))
 		goto end;
 
+	if (data->type != key->type) {
+		free(label->value);
+		if (data->type == STRING)
+			free(data->store.d_string.value);
+		goto end;
+	}
 	ret = true;
 
 end:

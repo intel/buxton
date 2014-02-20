@@ -713,6 +713,7 @@ START_TEST(register_notification_check)
 
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name");
+	key.type = STRING;
 	register_notification(&server, &client, &key, 1, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
 	register_notification(&server, &client, &key, 1, &status);
@@ -1377,6 +1378,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	key.group = buxton_string_pack("daemon-check");
 	key.name = buxton_string_pack("name");
 	key.layer = buxton_string_pack("base");
+	key.type = STRING;
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
@@ -1417,6 +1419,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value2.store.d_int32 = 2;
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name32");
+	key.type = INT32;
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
@@ -1446,6 +1449,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value2.store.d_uint32 = 2;
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("nameu32");
+	key.type = UINT32;
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
@@ -1475,6 +1479,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value2.store.d_int64 = 3;
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name64");
+	key.type = INT64;
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
@@ -1504,6 +1509,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value2.store.d_uint64 = 3;
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("nameu64");
+	key.type = UINT64;
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
@@ -1533,6 +1539,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value2.store.d_float = 3.14F;
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("namef");
+	key.type = FLOAT;
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
@@ -1562,6 +1569,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value2.store.d_double = 3.1415F;
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("named");
+	key.type = DOUBLE;
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
@@ -1591,6 +1599,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value2.store.d_int32 = true;
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("nameb");
+	key.type = BOOLEAN;
 	r = buxton_direct_set_value(&daemon.buxton, &key,
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");

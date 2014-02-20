@@ -292,6 +292,7 @@ START_TEST(buxton_name_label_check)
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("group-foo");
 	key.name.value = NULL;
+	key.type = STRING;
 	label = buxton_string_pack("*");
 
 	c.client.uid = 0;
