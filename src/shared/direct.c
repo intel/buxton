@@ -268,57 +268,68 @@ bool buxton_direct_set_label(BuxtonControl *control,
 			     BuxtonString *label)
 {
 	BuxtonBackend *backend;
-	BuxtonData data;
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
-	BuxtonString data_label = (BuxtonString){ NULL, 0 };
-	bool r;
-	char *root_check;
+	_cleanup_buxton_data_ BuxtonData *data = NULL;
+	_cleanup_buxton_data_ BuxtonString *data_label = NULL;
+	bool r = false;
 
 	assert(control);
 	assert(key);
 	assert(label);
 
-	/* FIXME: should check if client has CAP_MAC_ADMIN instead */
-	root_check = getenv(BUXTON_ROOT_CHECK_ENV);
-	if (root_check && streq(root_check, "0"))
-		; /* skip uid check */
-	else if (control->client.uid != 0)
-		return false;
+	data = malloc0(sizeof(BuxtonData));
+	if (!data)
+		goto fail;
+	data_label = malloc0(sizeof(BuxtonString));
+	if (!data_label)
+		goto fail;
 
 	config = &control->config;
 
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
-		return false;
+		goto fail;
 	}
+
+	if (layer->type == LAYER_SYSTEM) {
+		char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+		bool skip_check = (root_check && streq(root_check, "0"));
+
+		/* FIXME: should check client's capability set instead of UID */
+		if (control->client.uid != 0 && !skip_check) {
+			buxton_debug("Not permitted to create group '%s'\n", key->group.value);
+			goto fail;
+		}
+	} else {
+		buxton_debug("Cannot set labels in a user layer\n");
+		goto fail;
+	}
+
 	backend = backend_for_layer(config, layer);
 	if (!backend) {
 		/* Already logged */
-		return false;
+		goto fail;
 	}
 
-	char *name = get_name(key);
-	if (name) {
-		r = buxton_direct_get_value_for_layer(control, key, &data, &data_label, NULL);
-		if (!r)
-			return false;
-
-		free(data_label.value);
-	} else {
-		/* we have a group, so initialize the data with a dummy value */
-		data.type = STRING;
-		data.store.d_string = buxton_string_pack("BUXTON_GROUP_VALUE");
+	r = buxton_direct_get_value_for_layer(control, key, data, data_label, NULL);
+	if (!r) {
+		buxton_debug("Group or key does not exist\n");
+		goto fail;
 	}
 
-	data_label.length = label->length;
-	data_label.value = label->value;
+	free(data_label->value);
+
+	if (!buxton_string_copy(label, data_label)) {
+		buxton_debug("Failed to copy data label\n");
+		goto fail;
+	}
 
 	layer->uid = control->client.uid;
-	r = backend->set_value(layer, key, &data, &data_label);
-	if (name && data.type == STRING)
-		free(data.store.d_string.value);
-	free(name);
+	r = backend->set_value(layer, key, data, data_label);
+	if (!r)
+		buxton_debug("set label failed\n");
 
+fail:
 	return r;
 }
 
