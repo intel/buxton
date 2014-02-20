@@ -865,21 +865,15 @@ START_TEST(bt_daemon_handle_message_set_label_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 2, "Failed to get correct response to set label");
+	fail_if(csize != 1, "Failed to get correct response to set label");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to set label");
-	fail_if(list[1].type != STRING,
-		"Failed to get correct group type");
-	fail_if(strcmp(list[1].store.d_string.value,
-		       data2.store.d_string.value) != 0,
-		"Failed to get correct group");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
-	free(list[1].store.d_string.value);
 	free(list);
 	cleanup_callbacks();
 	close(client);
@@ -961,27 +955,15 @@ START_TEST(bt_daemon_handle_message_set_value_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 3, "Failed to get correct response to set");
+	fail_if(csize != 1, "Failed to get correct response to set");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to set");
-	fail_if(list[1].type != STRING,
-		"Failed to get correct group type");
-	fail_if(strcmp(list[1].store.d_string.value,
-		       data2.store.d_string.value) != 0,
-		"Failed to get correct group");
-	fail_if(list[2].type != STRING,
-		"Failed to get correct name type");
-	fail_if(strcmp(list[2].store.d_string.value,
-		       data3.store.d_string.value) != 0,
-		"Failed to get correct name");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
-	free(list[1].store.d_string.value);
-	free(list[2].store.d_string.value);
 	free(list);
 	cleanup_callbacks();
 	close(client);
@@ -1051,29 +1033,18 @@ START_TEST(bt_daemon_handle_message_get_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 4, "Failed to get valid message from buffer");
+	fail_if(csize != 2, "Failed to get valid message from buffer");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
 	fail_if(list[0].type != INT32, "Failed to get correct response type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get value");
-	fail_if(list[1].type != STRING, "Failed to get correct group type");
-	fail_if(strcmp(list[1].store.d_string.value,
-		       data2.store.d_string.value) != 0,
-		"Failed to get correct group");
-	fail_if(list[2].type != STRING, "Failed to get correct name type");
-	fail_if(strcmp(list[2].store.d_string.value,
-		       data3.store.d_string.value) != 0,
-		"Failed to get correct name");
-	fail_if(list[3].type != STRING, "Failed to get correct value type");
-	printf("list3=%s\n", list[3].store.d_string.value);
-	fail_if(!streq(list[3].store.d_string.value, "user-layer-value"),
+	fail_if(list[1].type != STRING, "Failed to get correct value type");
+	fail_if(!streq(list[1].store.d_string.value, "user-layer-value"),
 		"Failed to get correct value");
 
 	free(list[1].store.d_string.value);
-	free(list[2].store.d_string.value);
-	free(list[3].store.d_string.value);
 	free(list);
 
 	out_list2 = buxton_array_new();
@@ -1094,28 +1065,18 @@ START_TEST(bt_daemon_handle_message_get_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed 2");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 4, "Failed to get correct response to get 2");
+	fail_if(csize != 2, "Failed to get correct response to get 2");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type 2");
 	fail_if(msgid != 0, "Failed to get correct message id 2");
 	fail_if(list[0].type != INT32, "Failed to get correct response type 2");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to get value 2");
-	fail_if(list[1].type != STRING, "Failed to get correct group type 2");
-	fail_if(strcmp(list[1].store.d_string.value,
-		       data2.store.d_string.value) != 0,
-		"Failed to get correct group 2");
-	fail_if(list[2].type != STRING, "Failed to get correct name type 2");
-	fail_if(strcmp(list[2].store.d_string.value,
-		       data3.store.d_string.value) != 0,
-		"Failed to get correct name 2");
-	fail_if(list[3].type != STRING, "Failed to get correct value type 2");
-	printf("data3=%s\n", list[3].store.d_string.value);
-	fail_if(streq(list[3].store.d_string.value, "bxt_test_value2"),
+	fail_if(list[1].type != STRING, "Failed to get correct value type 2");
+	fail_if(streq(list[1].store.d_string.value, "bxt_test_value2"),
 		"Failed to get correct value 2");
 
 	free(list[1].store.d_string.value);
-	free(list[2].store.d_string.value);
 	free(list);
 	close(client);
 	buxton_direct_close(&daemon.buxton);
@@ -1181,24 +1142,14 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 3, "Failed to get correct response to notify");
+	fail_if(csize != 1, "Failed to get correct response to notify");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct notify message id");
 	fail_if(list[0].type != INT32, "Failed to get correct response type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to register notification");
-	fail_if(list[1].type != STRING, "Failed to get correct group type");
-	fail_if(strcmp(list[1].store.d_string.value,
-		       data1.store.d_string.value) != 0,
-		"Failed to get correct register notification group back");
-	fail_if(list[2].type != STRING, "Failed to get correct name type");
-	fail_if(strcmp(list[2].store.d_string.value,
-		       data2.store.d_string.value) != 0,
-		"Failed to get correct register notification name back");
 
-	free(list[1].store.d_string.value);
-	free(list[2].store.d_string.value);
 	free(list);
 
 	/* UNNOTIFY */
@@ -1212,31 +1163,19 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed 2");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 4, "Failed to get correct response to unnotify");
+	fail_if(csize != 2, "Failed to get correct response to unnotify");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type 2");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type 2");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to unregister for notification");
-	fail_if(list[1].type != STRING,
-		"Failed to get correct group type 2");
-	fail_if(strcmp(list[1].store.d_string.value,
-		       data1.store.d_string.value) != 0,
-		"Failed to get correct unregister notification group back");
-	fail_if(list[2].type != STRING,
-		"Failed to get correct name type 2");
-	fail_if(strcmp(list[2].store.d_string.value,
-		       data2.store.d_string.value) != 0,
-		"Failed to get correct unregister notification name back");
-	fail_if(list[3].type != UINT64,
+	fail_if(list[1].type != UINT64,
 		"Failed to get correct unnotify message id type");
-	fail_if(list[3].store.d_uint64 != 0,
+	fail_if(list[1].store.d_uint64 != 0,
 		"Failed to get correct unnotify message id");
 	fail_if(msgid != 0, "Failed to get correct message id 2");
 
-	free(list[1].store.d_string.value);
-	free(list[2].store.d_string.value);
 	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
@@ -1306,27 +1245,15 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 3, "Failed to get correct response to unset");
+	fail_if(csize != 1, "Failed to get correct response to unset");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
 		"Failed to unset");
-	fail_if(list[1].type != STRING,
-		"Failed to get correct group type");
-	fail_if(strcmp(list[1].store.d_string.value,
-		       data2.store.d_string.value) != 0,
-		"Failed to get correct unset group back");
-	fail_if(list[2].type != STRING,
-		"Failed to get correct name type");
-	fail_if(strcmp(list[2].store.d_string.value,
-		       data3.store.d_string.value) != 0,
-		"Failed to get correct unset name back");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
-	free(list[1].store.d_string.value);
-	free(list[2].store.d_string.value);
 	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);

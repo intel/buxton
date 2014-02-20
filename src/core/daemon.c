@@ -125,7 +125,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	uint16_t i;
 	size_t p_count;
 	size_t response_len;
-	BuxtonData response_data, gdata, ndata, mdata;
+	BuxtonData response_data, mdata;
 	BuxtonData *value = NULL;
 	_BuxtonKey key = {{0}, {0}, {0}, 0};
 	BuxtonArray *out_list = NULL, *key_list = NULL;
@@ -195,16 +195,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	switch (msg) {
 		/* TODO: Use cascading switch */
 	case BUXTON_CONTROL_SET:
-		buxton_string_to_data(&key.group, &gdata);
-		if (!buxton_array_add(out_list, &gdata)) {
-			buxton_log("Failed to prepare SET array group data\n");
-			goto end;
-		}
-		buxton_string_to_data(&key.name, &ndata);
-		if (!buxton_array_add(out_list, &ndata)) {
-			buxton_log("Failed to prepare SET array name data\n");
-			goto end;
-		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -214,18 +204,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_SET_LABEL:
-		buxton_string_to_data(&key.group, &gdata);
-		if (!buxton_array_add(out_list, &gdata)) {
-			buxton_log("Failed to prepare SET_LABEL array group data\n");
-			goto end;
-		}
-		if (key.name.value) {
-			buxton_string_to_data(&key.name, &ndata);
-			if (!buxton_array_add(out_list, &ndata)) {
-				buxton_log("Failed to prepare SET_LABEL array name data\n");
-				goto end;
-			}
-		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -235,16 +213,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_GET:
-		buxton_string_to_data(&key.group, &gdata);
-		if (!buxton_array_add(out_list, &gdata)) {
-			buxton_log("Failed to prepare GET array group data\n");
-			goto end;
-		}
-		buxton_string_to_data(&key.name, &ndata);
-		if (!buxton_array_add(out_list, &ndata)) {
-			buxton_log("Failed to prepare GET array name data\n");
-			goto end;
-		}
 		if (data && !buxton_array_add(out_list, data)) {
 			buxton_log("Failed to prepare GET array data\n");
 			goto end;
@@ -258,16 +226,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_UNSET:
-		buxton_string_to_data(&key.group, &gdata);
-		if (!buxton_array_add(out_list, &gdata)) {
-			buxton_log("Failed to prepare UNSET array group data\n");
-			goto end;
-		}
-		buxton_string_to_data(&key.name, &ndata);
-		if (!buxton_array_add(out_list, &ndata)) {
-			buxton_log("Failed to prepare UNSET array name data\n");
-			goto end;
-		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -293,16 +251,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_NOTIFY:
-		buxton_string_to_data(&key.group, &gdata);
-		if (!buxton_array_add(out_list, &gdata)) {
-			buxton_log("Failed to prepare NOTIFY array group data\n");
-			goto end;
-		}
-		buxton_string_to_data(&key.name, &ndata);
-		if (!buxton_array_add(out_list, &ndata)) {
-			buxton_log("Failed to prepare NOTIFY array name data\n");
-			goto end;
-		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -312,16 +260,6 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		}
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
-		buxton_string_to_data(&key.group, &gdata);
-		if (!buxton_array_add(out_list, &gdata)) {
-			buxton_log("Failed to prepare UNNOTIFY array group data\n");
-			goto end;
-		}
-		buxton_string_to_data(&key.name, &ndata);
-		if (!buxton_array_add(out_list, &ndata)) {
-			buxton_log("Failed to prepare UNNOTIFY array name data\n");
-			goto end;
-		}
 		mdata.type = UINT64;
 		mdata.store.d_uint64 = n_msgid;
 		if (!buxton_array_add(out_list, &mdata)) {
