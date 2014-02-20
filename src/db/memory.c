@@ -80,10 +80,10 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	array = buxton_array_new();
 	if (!array)
 		goto fail;
-	data_copy = malloc0(sizeof(BuxtonData *));
+	data_copy = malloc0(sizeof(BuxtonData));
 	if (!data_copy)
 		goto fail;
-	label_copy = malloc0(sizeof(BuxtonString *));
+	label_copy = malloc0(sizeof(BuxtonString));
 	if (!label_copy)
 		goto fail;
 
