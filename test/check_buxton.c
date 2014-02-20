@@ -64,6 +64,8 @@ START_TEST(buxton_direct_set_value_check)
 	key.type = STRING;
 
 	c.client.uid = getuid();
+	fail_if(buxton_direct_create_group(&c, &group, NULL) == false,
+		"Creating group failed.");
 	fail_if(buxton_direct_set_label(&c, &group, &glabel) == false,
 		"Setting group label failed.");
 	data.type = STRING;
@@ -159,6 +161,8 @@ START_TEST(buxton_memory_backend_check)
 		"Direct open failed without daemon.");
 
 	c.client.uid = getuid();
+	fail_if(buxton_direct_create_group(&c, &group, NULL) == false,
+		"Creating group failed.");
 	fail_if(buxton_direct_set_label(&c, &group, &glabel) == false,
 		"Setting group label failed.");
 	data.type = STRING;
@@ -237,6 +241,8 @@ START_TEST(buxton_set_label_check)
 	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
+	fail_if(buxton_direct_create_group(&c, &key, NULL) == false,
+		"Creating group failed.");
 	fail_if(buxton_direct_set_label(&c, &key, &label) == false,
 		"Failed to set label as root user.");
 
@@ -269,6 +275,8 @@ START_TEST(buxton_group_label_check)
 	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
+	fail_if(buxton_direct_create_group(&c, &key, NULL) == false,
+		"Creating group failed.");
 	fail_if(buxton_direct_set_label(&c, &key, &label) == false,
 		"Failed to set group label.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
@@ -298,6 +306,8 @@ START_TEST(buxton_name_label_check)
 	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
+	fail_if(buxton_direct_create_group(&c, &key, NULL) == false,
+		"Creating group failed.");
 	fail_if(buxton_direct_set_label(&c, &key, &label) == false,
 		"Failed to set group label.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,

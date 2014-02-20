@@ -196,6 +196,8 @@ START_TEST(buxton_client_set_value_check)
 	fail_if(!key, "Failed to create key");
 	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
+	fail_if(!buxton_client_create_group(c, group, NULL, NULL, true),
+		"Creating group in buxton failed.");
 	fail_if(!buxton_client_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
 	fail_if(!buxton_client_set_value(c, key, "bxt_test_value",
@@ -242,6 +244,8 @@ START_TEST(buxton_client_set_label_check)
 	fail_if(!key, "Failed to create key");
 	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
+	fail_if(!buxton_client_create_group(c, key, NULL, NULL, true),
+		"Creating group in buxton failed.");
 	fail_if(!buxton_client_set_label(c, key, "*",
 					 client_set_label_test,
 					 "bxt_group", true),
@@ -307,6 +311,8 @@ START_TEST(buxton_client_get_value_check)
 	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
 
+	fail_if(!buxton_client_create_group(c, group, NULL, NULL, true),
+		"Creating group in buxton failed.");
 	fail_if(!buxton_client_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
 	fail_if(!buxton_client_set_value(c, key, "bxt_test_value2",
@@ -569,6 +575,39 @@ START_TEST(parse_list_check)
 }
 END_TEST
 
+START_TEST(create_group_check)
+{
+	_BuxtonKey key = { {0}, {0}, {0}, 0};
+	client_list_item client;
+	BuxtonStatus status;
+	BuxtonDaemon server;
+	BuxtonString clabel = buxton_string_pack("_");
+
+	fail_if(!buxton_direct_open(&server.buxton),
+		"Failed to open buxton direct connection");
+
+	client.cred.uid = getuid();
+	if (use_smack())
+		client.smack_label = &clabel;
+	else
+		client.smack_label = NULL;
+	server.buxton.client.uid = 0;
+
+	key.layer = buxton_string_pack("test-gdbm-user");
+	key.group = buxton_string_pack("daemon-check");
+	key.type = STRING;
+
+	create_group(&server, &client, &key, &status);
+
+	key.layer = buxton_string_pack("test-gdbm");
+
+	create_group(&server, &client, &key, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Failed to create group");
+
+	buxton_client_close(&server.buxton.client);
+}
+END_TEST
+
 START_TEST(set_label_check)
 {
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
@@ -592,9 +631,6 @@ START_TEST(set_label_check)
 	key.type = STRING;
 	value.type = STRING;
 	value.store.d_string = buxton_string_pack("*");
-
-	set_label(&server, &client, &key, &value, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to set label");
 
 	key.layer = buxton_string_pack("test-gdbm");
 	set_label(&server, &client, &key, &value, &status);
@@ -800,6 +836,82 @@ START_TEST(bt_daemon_handle_message_error_check)
 	close(client);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&list, NULL);
+}
+END_TEST
+
+START_TEST(bt_daemon_handle_message_create_group_check)
+{
+	BuxtonDaemon daemon;
+	BuxtonString slabel;
+	size_t size;
+	BuxtonData data1, data2;
+	client_list_item cl;
+	bool r;
+	BuxtonData *list;
+	BuxtonArray *out_list;
+	BuxtonControlMessage msg;
+	size_t csize;
+	int client, server;
+	ssize_t s;
+	uint8_t buf[4096];
+	uint64_t msgid;
+
+	setup_socket_pair(&client, &server);
+	fail_if(fcntl(client, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	out_list = buxton_array_new();
+	fail_if(!out_list, "Failed to allocate list");
+	cl.fd = server;
+	slabel = buxton_string_pack("_");
+	if (use_smack())
+		cl.smack_label = &slabel;
+	else
+		cl.smack_label = NULL;
+	cl.cred.uid = 1002;
+	daemon.buxton.client.uid = 1001;
+	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
+	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+
+	data1.type = STRING;
+	data1.store.d_string = buxton_string_pack("base");
+	data2.type = STRING;
+	data2.store.d_string = buxton_string_pack("daemon-check");
+	r = buxton_array_add(out_list, &data1);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list, &data2);
+	fail_if(!r, "Failed to add element to array");
+
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_CREATE_GROUP, 0,
+					out_list);
+	fail_if(size == 0, "Failed to serialize message");
+	r = bt_daemon_handle_message(&daemon, &cl, size);
+	free(cl.data);
+	fail_if(!r, "Failed to handle create group message");
+
+	s = read(client, buf, 4096);
+	fail_if(s < 0, "Read from client failed");
+	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
+	fail_if(csize != 1, "Failed to get correct response to create group");
+	fail_if(msg != BUXTON_CONTROL_STATUS,
+		"Failed to get correct control type");
+	fail_if(list[0].type != INT32,
+		"Failed to get correct indicator type");
+	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+		"Failed to create group");
+	fail_if(msgid != 0, "Failed to get correct message id");
+
+	free(list);
+	cleanup_callbacks();
+	close(client);
+	hashmap_free(daemon.notify_mapping);
+	buxton_direct_close(&daemon.buxton);
+	buxton_array_free(&out_list, NULL);
 }
 END_TEST
 
@@ -1337,6 +1449,8 @@ START_TEST(bt_daemon_notify_clients_check)
 	key.group = buxton_string_pack("group");
 	key.name.value = NULL;
 	key.name.length = 0;
+	r = buxton_direct_create_group(&daemon.buxton, &key, NULL);
+	fail_if(!r, "Unable to create group");
 	r = buxton_direct_set_label(&daemon.buxton, &key, &slabel);
 	fail_if(!r, "Unable set group label");
 
@@ -1749,11 +1863,13 @@ daemon_suite(void)
 
 	tc = tcase_create("buxton_daemon_functions");
 	tcase_add_test(tc, parse_list_check);
+	tcase_add_test(tc, create_group_check);
 	tcase_add_test(tc, set_label_check);
 	tcase_add_test(tc, set_value_check);
 	tcase_add_test(tc, get_value_check);
 	tcase_add_test(tc, register_notification_check);
 	tcase_add_test(tc, bt_daemon_handle_message_error_check);
+	tcase_add_test(tc, bt_daemon_handle_message_create_group_check);
 	tcase_add_test(tc, bt_daemon_handle_message_set_label_check);
 	tcase_add_test(tc, bt_daemon_handle_message_set_value_check);
 	tcase_add_test(tc, bt_daemon_handle_message_get_check);
