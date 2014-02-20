@@ -225,9 +225,17 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		break;
 	}
 
-	if (!ret)
+	if (!ret) {
+		char *group = get_group(key);
+		char *name = get_name(key);
+		char *layer = get_layer(key);
+
 		printf("Failed to update key \'%s:%s\' in layer '%s'\n", get_group(key),
-		       get_name(key), get_layer(key));
+		       get_name(key), layer ? layer : "");
+		free(group);
+		free(name);
+		free(layer);
+	}
 
 	free(key);
 	return ret;

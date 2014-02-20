@@ -126,6 +126,9 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(key);
 	assert(label);
 
+	if (!data)
+		return false;
+
 	db = _db_for_resource(layer);
 	if (!db)
 		return false;
