@@ -23,19 +23,19 @@ Description: add checks for data consistency, and determine if gdbm needs to be
 	     "reorganised" to ensure minimal I/O bottlenecking
 Difficulty: Medium
 Time to complete: 4
-Target: v1
+Target: ??
 Status:
 
 Description: Tests for nonblocking calls between client and server
 Difficulty: Simple
 Time to complete: 4
-Target: v1
+Target: ??
 Status:
 
-Description: Tests for list keys
-Difficulty: Simple
-Time to complete: 1
-Target: v1
+Description: Fixup list keys
+Difficulty: Medium
+Time to complete: 5
+Target: ??
 Status:
 
 Description: Bulk send receive messages
@@ -47,7 +47,7 @@ Status:
 Description: Complete code coverage (minus exceptional cases)
 Difficulty: Simple
 Time to complete: 10
-Target: v1
+Target: after v1
 Status: 79.6% of lines covered
 
 Description: Use BuxtonArray for message deserialization
@@ -68,13 +68,6 @@ Time to complete: 10
 Target: v1
 Status:
 
-Description: When selecting a layer for get_value based on priority, ignore
-             user layers altogether if the key is accessible in a system layer.
-Difficulty: Simple
-Time to complete: 1
-Target: v1
-Status:
-
 Description: Allow notification registration for non existant keys
 Difficulty: Simple
 Time to complete: 3
@@ -84,24 +77,11 @@ Status:
 Description: Add client library support for list_keys
 Difficulty: Medium
 Time to complete: 3
-Target: v1
+Target: ??
 Status:
 
 Description: Ensure all public apis give copies of data
 Difficulty: Simple
 Time to complete: 1
-Target: v1
-Status: All done aside from list_keys which needs to be updated for the new api
-
-Description: Make set fail if types don't align, must unset to change type
-Difficulty: Simple
-Time to complete: 3
-Target: v1
-Status:
-
-Description: Store and use copy of client key in notify (daemon no longer
-	     to send group and name in response)
-Difficulty: Medium
-Time to complete: 4
 Target: ??
-Status: Done
+Status: All done aside from list_keys which needs to be updated for the new api
