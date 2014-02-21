@@ -692,8 +692,11 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 			return;
 		}
 
-		if (!buxton_list_append(&n_list, nitem))
+		if (!buxton_list_append(&n_list, nitem)) {
+			free(key_name);
+			free(nitem);
 			return;
+		}
 		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0) {
 			free(key_name);
 			free(nitem);
