@@ -271,7 +271,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
 	_cleanup_buxton_data_ BuxtonData *data = NULL;
-	_cleanup_buxton_data_ BuxtonString *data_label = NULL;
+	_cleanup_buxton_string_ BuxtonString *data_label = NULL;
 	bool r = false;
 
 	assert(control);
