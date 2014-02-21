@@ -41,15 +41,26 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		*value = &(list[3]);
 		break;
 	case BUXTON_CONTROL_SET_LABEL:
-		if (count != 3)
+		if (count == 3) {
+			if (list[0].type != STRING || list[1].type != STRING ||
+			    list[2].type != STRING)
+				return false;
+			key->type = STRING;
+			key->layer = list[0].store.d_string;
+			key->group = list[1].store.d_string;
+			*value = &list[2];
+		} else if (count == 4) {
+			if (list[0].type != STRING || list[1].type != STRING ||
+			    list[2].type != STRING || list[3].type != STRING)
+				return false;
+			key->type = STRING;
+			key->layer = list[0].store.d_string;
+			key->group = list[1].store.d_string;
+			key->name = list[2].store.d_string;
+			*value = &list[3];
+		} else {
 			return false;
-		if (list[0].type != STRING || list[1].type != STRING ||
-		    list[2].type != STRING)
-			return false;
-		key->type = STRING;
-		key->layer = list[0].store.d_string;
-		key->group = list[1].store.d_string;
-		*value = &list[2];
+		}
 		break;
 	case BUXTON_CONTROL_CREATE_GROUP:
 		if (count != 2)

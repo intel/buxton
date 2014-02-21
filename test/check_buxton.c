@@ -803,6 +803,7 @@ START_TEST(buxton_wire_set_label_check)
 	fail_if(!setup_callbacks(),
 		"Failed to initialize callbacks");
 
+	/* first, set a label on a group */
 	key.layer = buxton_string_pack("layer");
 	key.group = buxton_string_pack("group");
 	key.name.value = NULL;
@@ -831,6 +832,41 @@ START_TEST(buxton_wire_set_label_check)
 	free(list[1].store.d_string.value);
 	free(list[2].store.d_string.value);
 	free(list);
+
+	/* ... then, set a label on a key */
+	key.layer = buxton_string_pack("layer");
+	key.group = buxton_string_pack("group");
+	key.name = buxton_string_pack("name");
+	value = buxton_string_pack("*");
+	fail_if(buxton_wire_set_label(&client, &key, &value, NULL,
+				      NULL) != true,
+		"Failed to properly set label");
+
+	r = read(server, buf, 4096);
+	fail_if(r < 0, "Read from client failed");
+	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
+	fail_if(size != 4, "Failed to get valid message from buffer");
+	fail_if(msg != BUXTON_CONTROL_SET_LABEL,
+		"Failed to get correct control type");
+	fail_if(list[0].type != STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != STRING, "Failed to set correct group type");
+	fail_if(list[2].type != STRING, "Failed to set correct name type");
+	fail_if(list[3].type != STRING, "Failed to set correct label type");
+	fail_if(!streq(list[0].store.d_string.value, "layer"),
+		"Failed to set correct layer");
+	fail_if(!streq(list[1].store.d_string.value, "group"),
+		"Failed to set correct group");
+	fail_if(!streq(list[2].store.d_string.value, "name"),
+		"Failed to set correct name");
+	fail_if(!streq(list[3].store.d_string.value, "*"),
+		"Failed to set correct label");
+
+	free(list[0].store.d_string.value);
+	free(list[1].store.d_string.value);
+	free(list[2].store.d_string.value);
+	free(list[3].store.d_string.value);
+	free(list);
+
 	cleanup_callbacks();
 	close(client.fd);
 	close(server);

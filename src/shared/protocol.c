@@ -420,6 +420,7 @@ bool buxton_wire_set_label(_BuxtonClient *client,
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_group;
+	BuxtonData d_name;
 	BuxtonData d_value;
 	uint64_t msgid = get_msgid();
 
@@ -435,6 +436,13 @@ bool buxton_wire_set_label(_BuxtonClient *client,
 	if (!buxton_array_add(list, &d_group)) {
 		buxton_log("Failed to add group to set_label array\n");
 		goto end;
+	}
+	if (key->name.value) {
+		buxton_string_to_data(&key->name, &d_name);
+		if (!buxton_array_add(list, &d_name)) {
+			buxton_log("Failed to add name to set_label array\n");
+			goto end;
+		}
 	}
 	if (!buxton_array_add(list, &d_value)) {
 		buxton_log("Failed to add value to set_label array\n");

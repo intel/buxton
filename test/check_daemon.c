@@ -295,9 +295,10 @@ END_TEST
 
 static void client_set_label_test(BuxtonResponse response, void *data)
 {
-	char *k = (char *)data;
+	BuxtonKey user_key = (BuxtonKey)data;
 	BuxtonKey key;
-	char *group;
+	char *user_group, *group;
+	char *user_name, *name;
 	uid_t uid = getuid();
 	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 	bool skip_check = (root_check && streq(root_check, "0"));
@@ -310,11 +311,24 @@ static void client_set_label_test(BuxtonResponse response, void *data)
 			"Set label failed");
 		key = response_key(response);
 		fail_if(!key, "Failed to get set label key");
+		user_group = buxton_get_group(user_key);
+		fail_if(!user_group, "Failed to get group from user key");
 		group = buxton_get_group(key);
 		fail_if(!group, "Failed to get group from key");
-		fail_if(!streq(group, k),
-			"Incorrect set key returned");
+		fail_if(!streq(group, user_group),
+			"Incorrect set label group returned");
+		free(user_group);
 		free(group);
+
+		user_name = buxton_get_name(user_key);
+		if (user_name) {
+			name = buxton_get_name(key);
+			fail_if(!name, "Failed to get name from key");
+			fail_if(!streq(name, user_name),
+				"Incorrect set label name returned");
+			free(user_name);
+			free(name);
+		}
 		buxton_free_key(key);
 	} else {
 		fail_if(response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
@@ -324,17 +338,26 @@ static void client_set_label_test(BuxtonResponse response, void *data)
 START_TEST(buxton_client_set_label_check)
 {
 	BuxtonClient c;
-	BuxtonKey key = buxton_make_key("bxt_group", NULL, "test-gdbm", STRING);
-	fail_if(!key, "Failed to create key");
+	BuxtonKey group = buxton_make_key("bxt_group", NULL, "test-gdbm", STRING);
+	fail_if(!group, "Failed to create key for group");
 	fail_if(buxton_client_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_client_create_group(c, key, NULL, NULL, true),
+	fail_if(!buxton_client_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
-	fail_if(!buxton_client_set_label(c, key, "*",
+	fail_if(!buxton_client_set_label(c, group, "*",
 					 client_set_label_test,
-					 "bxt_group", true),
-		"Setting label in buxton failed.");
-	buxton_free_key(key);
+					 group, true),
+		"Setting label for group in buxton failed.");
+
+	BuxtonKey name = buxton_make_key("bxt_group", "bxt_name", "test-gdbm", STRING);
+	fail_if(!name, "Failed to create key for name");
+	fail_if(!buxton_client_set_label(c, name, "*",
+					 client_set_label_test,
+					 name, true),
+		"Setting label for name in buxton failed.");
+
+	buxton_free_key(group);
+	buxton_free_key(name);
 }
 END_TEST
 
