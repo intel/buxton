@@ -422,6 +422,69 @@ fail:
 	return r;
 }
 
+bool buxton_direct_remove_group(BuxtonControl *control,
+				_BuxtonKey *key,
+				BuxtonString *client_label)
+{
+	BuxtonBackend *backend;
+	BuxtonLayer *layer;
+	BuxtonConfig *config;
+	_cleanup_buxton_data_ BuxtonData *group = NULL;
+	_cleanup_buxton_string_ BuxtonString *glabel = NULL;
+	bool r = false;
+
+	assert(control);
+	assert(key);
+
+	group = malloc0(sizeof(BuxtonData));
+	if (!group)
+		goto fail;
+	glabel = malloc0(sizeof(BuxtonString));
+	if (!glabel)
+		goto fail;
+
+	config = &control->config;
+
+	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+		goto fail;
+	}
+
+	if (layer->type == LAYER_SYSTEM) {
+		char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+		bool skip_check = (root_check && streq(root_check, "0"));
+
+		/* FIXME: should check client's capability set instead of UID */
+		if (control->client.uid != 0 && !skip_check) {
+			buxton_debug("Not permitted to remove group '%s'\n", key->group.value);
+			goto fail;
+		}
+	}
+
+	if (!buxton_direct_get_value_for_layer(control, key, group, glabel, NULL)) {
+		buxton_debug("Group '%s' doesn't exist\n", key->group.value);
+		goto fail;
+	}
+
+	if (client_label && !buxton_check_smack_access(client_label, glabel, ACCESS_WRITE)) {
+		goto fail;
+	}
+
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		/* Already logged */
+		goto fail;
+	}
+
+	layer->uid = control->client.uid;
+
+	r = backend->unset_value(layer, key, NULL, NULL);
+	if (!r)
+		buxton_debug("remove group failed\n");
+
+fail:
+	return r;
+}
+
 bool buxton_direct_list_keys(BuxtonControl *control,
 			     BuxtonString *layer_name,
 			     BuxtonArray **list)

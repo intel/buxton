@@ -42,6 +42,38 @@ START_TEST(buxton_direct_open_check)
 }
 END_TEST
 
+START_TEST(buxton_direct_create_group_check)
+{
+	BuxtonControl c;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	_BuxtonKey group;
+
+	group.layer = buxton_string_pack("base");
+	group.group = buxton_string_pack("tgroup");
+	group.name = (BuxtonString){ NULL, 0 };
+	group.type = STRING;
+	fail_if(!buxton_direct_create_group(&c, &group, NULL),
+		"Create group failed");
+}
+END_TEST
+
+START_TEST(buxton_direct_remove_group_check)
+{
+	BuxtonControl c;
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+	_BuxtonKey group;
+
+	group.layer = buxton_string_pack("base");
+	group.group = buxton_string_pack("tgroup");
+	group.name = (BuxtonString){ NULL, 0 };
+	group.type = STRING;
+	fail_if(!buxton_direct_remove_group(&c, &group, NULL),
+		"Failed to remove group");
+}
+END_TEST
+
 START_TEST(buxton_direct_set_value_check)
 {
 	BuxtonControl c;
@@ -958,6 +990,8 @@ buxton_suite(void)
 
 	tc = tcase_create("buxton_client_lib_functions");
 	tcase_add_test(tc, buxton_direct_open_check);
+	tcase_add_test(tc, buxton_direct_create_group_check);
+	tcase_add_test(tc, buxton_direct_remove_group_check);
 	tcase_add_test(tc, buxton_direct_set_value_check);
 	tcase_add_test(tc, buxton_direct_get_value_for_layer_check);
 	tcase_add_test(tc, buxton_direct_get_value_check);

@@ -64,6 +64,18 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	__attribute__((warn_unused_result));
 
 /**
+ * Remove a group within Buxton
+ * @param control An initialized control structure
+ * @param key The key struct with group and layer members initialized
+ * @param client_label The Smack label of the client
+ * @return A boolean value, indicating success of the operation
+ */
+bool buxton_direct_remove_group(BuxtonControl *control,
+				_BuxtonKey *key,
+				BuxtonString *client_label)
+	__attribute__((warn_unused_result));
+
+/**
  * Set a value within Buxton
  * @param control An initialized control structure
  * @param key The key struct
