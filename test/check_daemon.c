@@ -927,6 +927,112 @@ START_TEST(bt_daemon_handle_message_create_group_check)
 	client_list_item cl;
 	bool r;
 	BuxtonData *list;
+	BuxtonArray *out_list1, *out_list2;
+	BuxtonControlMessage msg;
+	size_t csize;
+	int client, server;
+	ssize_t s;
+	uint8_t buf[4096];
+	uint64_t msgid;
+
+	setup_socket_pair(&client, &server);
+	fail_if(fcntl(client, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	cl.fd = server;
+	slabel = buxton_string_pack("_");
+	if (use_smack())
+		cl.smack_label = &slabel;
+	else
+		cl.smack_label = NULL;
+	cl.cred.uid = 1002;
+	daemon.buxton.client.uid = 1001;
+	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
+	fail_if(!buxton_direct_open(&daemon.buxton),
+		"Failed to open buxton direct connection");
+	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+
+	out_list1 = buxton_array_new();
+	fail_if(!out_list1, "Failed to allocate list");
+	data1.type = STRING;
+	data1.store.d_string = buxton_string_pack("base");
+	data2.type = STRING;
+	data2.store.d_string = buxton_string_pack("tgroup");
+	r = buxton_array_add(out_list1, &data1);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list1, &data2);
+	fail_if(!r, "Failed to add element to array");
+
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_CREATE_GROUP, 0,
+					out_list1);
+	fail_if(size == 0, "Failed to serialize message");
+	r = bt_daemon_handle_message(&daemon, &cl, size);
+	free(cl.data);
+	fail_if(!r, "Failed to handle create group message");
+
+	s = read(client, buf, 4096);
+	fail_if(s < 0, "Read from client failed");
+	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
+	fail_if(csize != 1, "Failed to get correct response to create group");
+	fail_if(msg != BUXTON_CONTROL_STATUS,
+		"Failed to get correct control type");
+	fail_if(list[0].type != INT32,
+		"Failed to get correct indicator type");
+	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+		"Failed to create group");
+	fail_if(msgid != 0, "Failed to get correct message id");
+	free(list);
+
+	out_list2 = buxton_array_new();
+	fail_if(!out_list2, "Failed to allocate list");
+	data1.store.d_string = buxton_string_pack("base");
+	data2.store.d_string = buxton_string_pack("daemon-check");
+	r = buxton_array_add(out_list2, &data1);
+	fail_if(!r, "Failed to add element to array");
+	r = buxton_array_add(out_list2, &data2);
+	fail_if(!r, "Failed to add element to array");
+
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_CREATE_GROUP, 1,
+					out_list2);
+	fail_if(size == 0, "Failed to serialize message");
+	r = bt_daemon_handle_message(&daemon, &cl, size);
+	free(cl.data);
+	fail_if(!r, "Failed to handle create group message");
+
+	s = read(client, buf, 4096);
+	fail_if(s < 0, "Read from client failed");
+	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
+	fail_if(csize != 1, "Failed to get correct response to create group");
+	fail_if(msg != BUXTON_CONTROL_STATUS,
+		"Failed to get correct control type");
+	fail_if(list[0].type != INT32,
+		"Failed to get correct indicator type");
+	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+		"Failed to create group");
+	fail_if(msgid != 1, "Failed to get correct message id");
+
+	free(list);
+	cleanup_callbacks();
+	close(client);
+	hashmap_free(daemon.notify_mapping);
+	buxton_direct_close(&daemon.buxton);
+	buxton_array_free(&out_list1, NULL);
+	buxton_array_free(&out_list2, NULL);
+}
+END_TEST
+
+START_TEST(bt_daemon_handle_message_remove_group_check)
+{
+	BuxtonDaemon daemon;
+	BuxtonString slabel;
+	size_t size;
+	BuxtonData data1, data2;
+	client_list_item cl;
+	bool r;
+	BuxtonData *list;
 	BuxtonArray *out_list;
 	BuxtonControlMessage msg;
 	size_t csize;
@@ -960,29 +1066,29 @@ START_TEST(bt_daemon_handle_message_create_group_check)
 	data1.type = STRING;
 	data1.store.d_string = buxton_string_pack("base");
 	data2.type = STRING;
-	data2.store.d_string = buxton_string_pack("daemon-check");
+	data2.store.d_string = buxton_string_pack("tgroup");
 	r = buxton_array_add(out_list, &data1);
 	fail_if(!r, "Failed to add element to array");
 	r = buxton_array_add(out_list, &data2);
 	fail_if(!r, "Failed to add element to array");
 
-	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_CREATE_GROUP, 0,
+	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_REMOVE_GROUP, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
 	r = bt_daemon_handle_message(&daemon, &cl, size);
 	free(cl.data);
-	fail_if(!r, "Failed to handle create group message");
+	fail_if(!r, "Failed to handle remove group message");
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
 	csize = buxton_deserialize_message(buf, &msg, (size_t)s, &msgid, &list);
-	fail_if(csize != 1, "Failed to get correct response to create group");
+	fail_if(csize != 1, "Failed to get correct response to remove group");
 	fail_if(msg != BUXTON_CONTROL_STATUS,
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
 	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
-		"Failed to create group");
+		"Failed to remove group");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
 	free(list);
@@ -1950,6 +2056,7 @@ daemon_suite(void)
 	tcase_add_test(tc, register_notification_check);
 	tcase_add_test(tc, bt_daemon_handle_message_error_check);
 	tcase_add_test(tc, bt_daemon_handle_message_create_group_check);
+	tcase_add_test(tc, bt_daemon_handle_message_remove_group_check);
 	tcase_add_test(tc, bt_daemon_handle_message_set_label_check);
 	tcase_add_test(tc, bt_daemon_handle_message_set_value_check);
 	tcase_add_test(tc, bt_daemon_handle_message_get_check);

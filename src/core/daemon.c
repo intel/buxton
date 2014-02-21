@@ -184,6 +184,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_CREATE_GROUP:
 		create_group(self, client, &key, &response);
 		break;
+	case BUXTON_CONTROL_REMOVE_GROUP:
+		remove_group(self, client, &key, &response);
+		break;
 	case BUXTON_CONTROL_GET:
 		data = get_value(self, client, &key, &response);
 		break;
@@ -240,6 +243,15 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 							msgid, out_list);
 		if (response_len == 0) {
 			buxton_log("Failed to serialize create_group response message\n");
+			goto end;
+		}
+		break;
+	case BUXTON_CONTROL_REMOVE_GROUP:
+		response_len = buxton_serialize_message(&response_store,
+							BUXTON_CONTROL_STATUS,
+							msgid, out_list);
+		if (response_len == 0) {
+			buxton_log("Failed to serialize remove_group response message\n");
 			goto end;
 		}
 		break;
