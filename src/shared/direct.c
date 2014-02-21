@@ -465,8 +465,10 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 		goto fail;
 	}
 
-	if (client_label && !buxton_check_smack_access(client_label, glabel, ACCESS_WRITE)) {
-		goto fail;
+	if (layer->type == LAYER_USER) {
+		if (client_label && !buxton_check_smack_access(client_label, glabel, ACCESS_WRITE)) {
+			goto fail;
+		}
 	}
 
 	backend = backend_for_layer(config, layer);
