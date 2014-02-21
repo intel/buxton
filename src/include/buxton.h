@@ -76,11 +76,33 @@ typedef enum BuxtonControlMessage {
 
 /**
  * Buxton Status Codes
+ * Order matters for string lookup - add new codes only to the end
  */
 typedef enum BuxtonStatus {
 	BUXTON_STATUS_OK = 0, /**<Operation succeeded */
-	BUXTON_STATUS_FAILED /**<Operation failed */
+	BUXTON_STATUS_FAILED, /**<Operation failed */
+	BUXTON_STATUS_BAD_ARGS, /** Required args not provided */
+	BUXTON_STATUS_SERVER_DOWN, /** Unable to send request to server */
+	BUXTON_STATUS_SOCKET_WRITE, /** Unable to write to socket. Server down? */
+	BUXTON_STATUS_SOCKET_READ, /** Unable to read from socket */
+	BUXTON_STATUS_OOM, /** Out of memory, malloc failed */
+	BUXTON_STATUS_MUTEX_LOCK, /** Could not obtain lock */
+	BUXTON_STATUS_CALLBACK, /** Callback could not be added. Poor signature? */
+	BUXTON_STATUS_MESSAGE_CORRUPT, /** Msg read from socket but not correct format */
+	BUXTON_STATUS_EXCEEDED_MAX_PARAMS, /** Number params in msg exceeded max allowed */
+	BUXTON_STATUS_INVALID_TYPE,		/** Specified type not valid */
+	BUXTON_STATUS_INVALID_CONTROL_FIELD, /** Control option not in BuxtonControlMessage */
+	BUXTON_STATUS_MAX
 } BuxtonStatus;
+
+
+/**
+ * Map error codes to descriptive string for quick local lookup
+ */
+struct errormap {
+    ssize_t code;
+    const char *errstr;
+};
 
 /**
  * Used to communicate with Buxton
@@ -136,9 +158,12 @@ _bx_export_ void buxton_client_close(BuxtonClient client);
  * @param callback A callback function to handle daemon reply
  * @param data User data to be used with callback function
  * @param sync Indicator for running a synchronous request
- * @return A boolean value, indicating success of the operation
+ * @return Differs depending on sync or async: 
+     If synchronous: 0 for successful set, negative (BuxtonStatus) int for error
+     If async: 0 for success sending packet to server, 1 for failure. Error code
+            sent via callback.
  */
-_bx_export_ bool buxton_client_set_value(BuxtonClient client,
+_bx_export_ ssize_t buxton_client_set_value(BuxtonClient client,
 					 BuxtonKey key,
 					 void *value,
 					 BuxtonCallback callback,
@@ -178,7 +203,7 @@ _bx_export_ bool buxton_client_set_label(BuxtonClient client,
  * @param sync Indicator for running a synchronous request
  * @return A boolean value, indicating success of the operation
  */
-_bx_export_ bool buxton_client_create_group(BuxtonClient client,
+_bx_export_ ssize_t buxton_client_create_group(BuxtonClient client,
 					    BuxtonKey key,
 					    BuxtonCallback callback,
 					    void *data,
@@ -355,6 +380,15 @@ _bx_export_ BuxtonKey response_key(BuxtonResponse response)
  */
 _bx_export_ void *response_value(BuxtonResponse response)
 	__attribute__((warn_unused_result));
+
+/**
+ * Return the string describing a error code
+ * @param ssize_t ret which was returned from a client function call
+ * @return const char * string describing error code
+ */
+_bx_export_ const char *buxton_strerror(ssize_t code)
+	__attribute__((warn_unused_result));
+
 
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

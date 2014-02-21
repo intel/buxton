@@ -41,6 +41,25 @@
 #include "protocol.h"
 #include "util.h"
 
+/**
+ * Map error codes to descriptive string for quick local lookup
+ */
+struct errormap buxton_errmap[] = {
+    {BUXTON_STATUS_OK, "Operation succeeded"},
+    {BUXTON_STATUS_FAILED, "Operation Failed, reason unknown"},
+    {BUXTON_STATUS_BAD_ARGS, "Required args not provided or bad format"},
+    {BUXTON_STATUS_SERVER_DOWN, "Unable to send request to server"},
+    {BUXTON_STATUS_SOCKET_WRITE, "Unable to write to socket. Server down?"},
+    {BUXTON_STATUS_SOCKET_READ, "Unable to read from socket"},
+    {BUXTON_STATUS_OOM, "Out of memory, malloc failed"},
+    {BUXTON_STATUS_MUTEX_LOCK, "Could not obtain lock. Contention?"},
+    {BUXTON_STATUS_CALLBACK, "Callback could not be added. Poor signature?"},
+    {BUXTON_STATUS_MESSAGE_CORRUPT, "Msg read from socket but not correct format"},
+    {BUXTON_STATUS_EXCEEDED_MAX_PARAMS, "Number params in msg exceeded max allowed"},
+    {BUXTON_STATUS_INVALID_TYPE, "Specified data type not valid"},
+    {BUXTON_STATUS_INVALID_CONTROL_FIELD, "Control option not in BuxtonControlMessage"}
+};
+
 
 bool buxton_client_set_conf_file(char *path)
 {
@@ -181,29 +200,29 @@ bool buxton_client_unregister_notification(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_set_value(BuxtonClient client,
+ssize_t buxton_client_set_value(BuxtonClient client,
 			     BuxtonKey key,
 			     void *value,
 			     BuxtonCallback callback,
 			     void *data,
 			     bool sync)
 {
-	bool r;
+	ssize_t r;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
 	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX || !value)
-		return false;
+		return -BUXTON_STATUS_BAD_ARGS;
 
 	r = buxton_wire_set_value((_BuxtonClient *)client, k, value, callback,
 				  data);
-	if (!r)
-		return false;
+	if (r < 0)
+		return r;
 
 	if (sync)
-		r = buxton_wire_get_response((_BuxtonClient *)client);
+		return buxton_wire_get_response((_BuxtonClient *)client);
 
-	return r;
+	return BUXTON_STATUS_OK;
 }
 
 bool buxton_client_set_label(BuxtonClient client,
@@ -234,22 +253,22 @@ bool buxton_client_set_label(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_create_group(BuxtonClient client,
+ssize_t buxton_client_create_group(BuxtonClient client,
 				BuxtonKey key,
 				BuxtonCallback callback,
 				void *data,
 				bool sync)
 {
-	bool r;
+	ssize_t r;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	/* We require the key name to be NULL, since it is not used for groups */
 	if (!k || !k->group.value || k->name.value || !k->layer.value)
-		return false;
+		return -BUXTON_STATUS_OK;
 
 	r = buxton_wire_create_group((_BuxtonClient *)client, k, callback, data);
-	if (!r)
-		return false;
+	if (r < 0)
+		return r;
 
 	if (sync)
 		r = buxton_wire_get_response(client);
@@ -546,6 +565,26 @@ void *response_value(BuxtonResponse response)
 out:
 	return p;
 }
+
+
+const char *buxton_strerror(ssize_t code)
+{
+	ssize_t tmp = code;
+	struct errormap *c;
+
+	if (tmp < 0)
+		tmp = -tmp;
+
+	if (tmp >= BUXTON_STATUS_MAX)
+		return "Invalid error code";
+
+	c = buxton_errmap;
+	while (c->code != tmp)
+		c++;
+
+	return c->errstr;
+}
+
 
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

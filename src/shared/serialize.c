@@ -193,12 +193,12 @@ end:
 	return ret;
 }
 
-size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
+ssize_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 				uint64_t msgid, BuxtonArray *list)
 {
 	uint16_t i = 0;
 	uint8_t *data = NULL;
-	size_t ret = 0;
+	ssize_t ret = BUXTON_STATUS_OK;
 	size_t offset = 0;
 	size_t size = 0;
 	size_t curSize = 0;
@@ -209,10 +209,10 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	buxton_debug("Serializing message...\n");
 
 	if (list->len == 0 || list->len > BUXTON_MESSAGE_MAX_PARAMS)
-		return ret;
+		return -BUXTON_STATUS_BAD_ARGS;
 
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
-		return ret;
+		return -BUXTON_STATUS_BAD_ARGS;
 
 	/*
 	 * initial size =
@@ -223,8 +223,10 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	 */
 	data = malloc0(sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint64_t) +
 		       sizeof(uint32_t));
-	if (!data)
+	if (!data) {
+		ret = -BUXTON_STATUS_OOM;
 		goto end;
+	}
 
 	control = BUXTON_CONTROL_CODE;
 	memcpy(data, &control, sizeof(uint16_t));
@@ -281,6 +283,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			break;
 		default:
 			buxton_log("Invalid parameter type %lu\n", param->type);
+			ret = -BUXTON_STATUS_BAD_ARGS;
 			goto fail;
 		};
 
@@ -291,8 +294,10 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		size += sizeof(BuxtonDataType) + sizeof(uint32_t) + p_length;
 
 		if (curSize < size) {
-			if (!(data = greedy_realloc((void**)&data, &curSize, size)))
+			if (!(data = greedy_realloc((void**)&data, &curSize, size))) {
+				ret = -BUXTON_STATUS_OOM;
 				goto fail;
+			}
 			memzero(data+offset, size - offset);
 		}
 
@@ -331,6 +336,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 			break;
 		default:
 			buxton_log("Invalid parameter type %lu\n", param->type);
+			ret = -BUXTON_STATUS_BAD_ARGS;
 			goto fail;
 		};
 		offset += p_length;
@@ -339,25 +345,24 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 	memcpy(data+BUXTON_LENGTH_OFFSET, &offset, sizeof(uint32_t));
 
-	ret = offset;
-	*dest = data;
-
 fail:
 	/* Clean up */
-	if (ret == 0)
+	if (ret < 0)
 		free(data);
 end:
+	ret = (ssize_t) offset;
+	*dest = data;
 	buxton_debug("Serializing returned:%lu\n", ret);
 	return ret;
 }
 
-size_t buxton_deserialize_message(uint8_t *data,
+ssize_t buxton_deserialize_message(uint8_t *data,
 				  BuxtonControlMessage *r_message,
 				  size_t size, uint64_t *r_msgid,
 				  BuxtonData **list)
 {
 	size_t offset = 0;
-	size_t ret = 0;
+	ssize_t ret = 0;
 	size_t min_length = BUXTON_MESSAGE_HEADER_LENGTH;
 	uint16_t control, message;
 	size_t n_params, c_param, c_length;
@@ -373,24 +378,30 @@ size_t buxton_deserialize_message(uint8_t *data,
 	buxton_debug("Deserializing message...\n");
 	buxton_debug("size=%lu\n", size);
 
-	if (size < min_length)
+	if (size < min_length) {
+		ret = -BUXTON_STATUS_BAD_ARGS;
 		goto end;
+	}
 
 	/* Copy the control code */
 	control = *(uint16_t*)data;
 	offset += sizeof(uint16_t);
 
 	/* Check this is a valid buxton message */
-	if (control != BUXTON_CONTROL_CODE)
+	if (control != BUXTON_CONTROL_CODE) {
+		ret = -BUXTON_STATUS_BAD_ARGS;
 		goto end;
+	}
 
 	/* Obtain the control message */
 	message = *(BuxtonControlMessage*)(data+offset);
 	offset += sizeof(uint16_t);
 
 	/* Ensure control message is in valid range */
-	if (message <= BUXTON_CONTROL_MIN || message >= BUXTON_CONTROL_MAX)
+	if (message <= BUXTON_CONTROL_MIN || message >= BUXTON_CONTROL_MAX) {
+		ret = -BUXTON_STATUS_MESSAGE_CORRUPT;
 		goto end;
+	}
 
 	/* Skip size since our caller got this already */
 	offset += sizeof(uint32_t);
@@ -404,12 +415,16 @@ size_t buxton_deserialize_message(uint8_t *data,
 	offset += sizeof(uint32_t);
 	buxton_debug("total params: %d\n", n_params);
 
-	if (n_params > BUXTON_MESSAGE_MAX_PARAMS)
+	if (n_params > BUXTON_MESSAGE_MAX_PARAMS) {
+		ret = -BUXTON_STATUS_EXCEEDED_MAX_PARAMS;
 		goto end;
+	}
 
 	k_list = malloc0(sizeof(BuxtonData)*n_params);
-	if (!k_list)
+	if (!k_list) {
+		ret = -BUXTON_STATUS_OOM;
 		goto end;
+	}
 
 	memzero(&c_data, sizeof(BuxtonData));
 
@@ -424,30 +439,40 @@ size_t buxton_deserialize_message(uint8_t *data,
 		memcpy(&c_type, data+offset, sizeof(BuxtonDataType));
 		offset += sizeof(BuxtonDataType);
 
-		if (c_type >= BUXTON_TYPE_MAX || c_type <= BUXTON_TYPE_MIN)
+		if (c_type >= BUXTON_TYPE_MAX || c_type <= BUXTON_TYPE_MIN) {
+			ret = -BUXTON_STATUS_INVALID_TYPE;
 			goto end;
+		}
 
 		/* Retrieve the length of the value */
 		c_length = *(uint32_t*)(data+offset);
-		if (c_length == 0 && c_type != STRING)
+		if (c_length == 0 && c_type != STRING) {
+			ret = -BUXTON_STATUS_BAD_ARGS;
 			goto end;
+		}
+
 		offset += sizeof(uint32_t);
 		buxton_debug("value length: %lu\n", c_length);
 
 		/* Don't try to read past the end of our buffer */
-		if (offset + c_length > size)
+		if (offset + c_length > size) {
+			ret = -BUXTON_STATUS_BAD_ARGS;
 			goto end;
+		}
 
 		switch (c_type) {
 		case STRING:
 			if (c_length) {
 				c_data.store.d_string.value = malloc(c_length);
-				if (!c_data.store.d_string.value)
+				if (!c_data.store.d_string.value) {
+					ret = -BUXTON_STATUS_OOM;
 					goto end;
+				}
 				memcpy(c_data.store.d_string.value, data+offset, c_length);
 				c_data.store.d_string.length = (uint32_t)c_length;
 				if (c_data.store.d_string.value[c_length-1] != 0x00) {
 					buxton_debug("buxton_deserialize_message(): Garbage message\n");
+					ret = -BUXTON_STATUS_MESSAGE_CORRUPT;
 					free(c_data.store.d_string.value);
 					goto end;
 				}
@@ -488,9 +513,9 @@ size_t buxton_deserialize_message(uint8_t *data,
 	*r_message = message;
 	*r_msgid = msgid;
 	*list = k_list;
-	ret = n_params;
+	ret = (ssize_t) n_params;
 end:
-	if (ret == 0)
+	if (ret < 0)
 		free(k_list);
 
 	buxton_debug("Deserializing returned:%i\n", ret);

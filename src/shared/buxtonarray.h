@@ -47,9 +47,10 @@ BuxtonArray *buxton_array_new(void)
  * Append data to BuxtonArray
  * @param array Valid BuxtonArray
  * @param data Pointer to add to this array
- * @returns bool true if the data was added to the array
+ * @returns bool 0 if the data was added to the array, or -(BuxtonStatus)
+ *      on error
  */
-bool buxton_array_add(BuxtonArray *array,
+ssize_t buxton_array_add(BuxtonArray *array,
 		      void *data)
 	__attribute__((warn_unused_result));
 

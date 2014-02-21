@@ -24,18 +24,18 @@ BuxtonArray *buxton_array_new(void)
 	return ret;
 }
 
-bool buxton_array_add(BuxtonArray *array,
+ssize_t buxton_array_add(BuxtonArray *array,
 		      void *data)
 {
 	uint new_len;
 	size_t curr, new_size;
 
 	if (!array || !data)
-		return false;
+		return -BUXTON_STATUS_BAD_ARGS;
 	if (!array->data) {
 		array->data = calloc(1, sizeof(void*));
 		if (!array->data)
-			return false;
+			return -BUXTON_STATUS_OOM;
 	}
 
 	new_len = array->len += 1;
@@ -45,12 +45,12 @@ bool buxton_array_add(BuxtonArray *array,
 		/* Resize the array to hold one more pointer */
 		array->data = greedy_realloc((void**)&array->data, &curr, new_size);
 		if (!array->data)
-			return false;
+			return -BUXTON_STATUS_OOM;
 	}
 	/* Store the pointer at the end of the array */
 	array->len = new_len;
 	array->data[array->len-1] = data;
-	return true;
+	return BUXTON_STATUS_OK;
 }
 
 void *buxton_array_get(BuxtonArray *array, uint16_t index)

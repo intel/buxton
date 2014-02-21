@@ -23,6 +23,7 @@ BUXTON_1 {
 		response_type;
 		response_key;
 		response_value;
+		buxton_strerror;
 	local:
 		*;
 };

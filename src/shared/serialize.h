@@ -87,9 +87,10 @@ bool buxton_deserialize(uint8_t *source, BuxtonData *target,
  * @param message The type of message to be serialized
  * @param msgid The message ID to be serialized
  * @param list An array of BuxtonData's to be serialized
- * @return a size_t, 0 indicates failure otherwise size of dest
+ * @return a size_t, 0 indicates success, <0 is an error code (BuxtonStatus),
+     and >= 0 indicates success  and is the size of the serialized msg
  */
-size_t buxton_serialize_message(uint8_t **dest,
+ssize_t buxton_serialize_message(uint8_t **dest,
 				BuxtonControlMessage message,
 				uint64_t msgid,
 				BuxtonArray *list)
@@ -104,7 +105,7 @@ size_t buxton_serialize_message(uint8_t **dest,
  * @param list A pointer that will be filled out as an array of BuxtonData structs
  * @return the length of the array, or 0 if deserialization failed
  */
-size_t buxton_deserialize_message(uint8_t *data,
+ssize_t buxton_deserialize_message(uint8_t *data,
 				  BuxtonControlMessage *r_message,
 				  size_t size, uint64_t *r_msgid,
 				  BuxtonData **list)
@@ -114,7 +115,8 @@ size_t buxton_deserialize_message(uint8_t *data,
  * Get size of a buxton message data stream
  * @param data The source data stream
  * @param size The size of the data stream (from read)
- * @return a size_t length of the complete message or 0
+ * @return a size_t length of the complete message or a -(BuxtonStatus)
+ *     on error
  */
 size_t buxton_get_message_size(uint8_t *data, size_t size)
 	__attribute__((warn_unused_result));

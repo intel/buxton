@@ -125,7 +125,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	return true;
 }
 
-bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
+ssize_t bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
 {
 	BuxtonControlMessage msg;
 	BuxtonStatus response;
@@ -140,7 +140,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	BuxtonArray *out_list = NULL, *key_list = NULL;
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
-	bool ret = false;
+	ssize_t ret = BUXTON_STATUS_OK;
 	uint64_t msgid = 0;
 	uint64_t n_msgid = 0;
 
@@ -148,20 +148,27 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	assert(client);
 
 	uid = self->buxton.client.uid;
-	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size,
+	ret = buxton_deserialize_message((uint8_t*)client->data, &msg, size,
 					     &msgid, &list);
-	if (p_count == 0) {
+	if (ret < 0) {
 		/* Todo: terminate the client due to invalid message */
 		buxton_debug("Failed to deserialize message\n");
 		goto end;
 	}
+	else {
+		p_count = (size_t) ret;
+	}
 
 	/* Check valid range */
-	if (msg <= BUXTON_CONTROL_MIN || msg >= BUXTON_CONTROL_MAX)
+	if (msg <= BUXTON_CONTROL_MIN || msg >= BUXTON_CONTROL_MAX) {
+		ret = -BUXTON_STATUS_EXCEEDED_MAX_PARAMS;
 		goto end;
+	}
 
-	if (!parse_list(msg, p_count, list, &key, &value))
+	if (!parse_list(msg, p_count, list, &key, &value)) {
+		ret = -BUXTON_STATUS_BAD_ARGS;
 		goto end;
+	}
 
 	/* use internal function from bt-daemon */
 	switch (msg) {
@@ -191,15 +198,18 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		n_msgid = unregister_notification(self, client, &key, &response);
 		break;
 	default:
+		ret = -BUXTON_STATUS_INVALID_CONTROL_FIELD;
 		goto end;
 	}
 	/* Set a response code */
 	response_data.type = INT32;
 	response_data.store.d_int32 = response;
 	out_list = buxton_array_new();
-	if (!out_list)
+	if (!out_list) {
+		ret = -BUXTON_STATUS_OOM;
 		goto end;
-	if (!buxton_array_add(out_list, &response_data)) {
+	}
+	if ((ret = buxton_array_add(out_list, &response_data))) {
 		buxton_log("Failed to prepare response\n");
 		goto end;
 	}
@@ -207,53 +217,63 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	switch (msg) {
 		/* TODO: Use cascading switch */
 	case BUXTON_CONTROL_SET:
-		response_len = buxton_serialize_message(&response_store,
+		ret = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
-		if (response_len == 0) {
+		if (ret < 0) {
 			buxton_log("Failed to serialize set response message\n");
 			goto end;
 		}
+
+		response_len = (size_t) ret;
 		break;
 	case BUXTON_CONTROL_SET_LABEL:
-		response_len = buxton_serialize_message(&response_store,
+		ret = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
-		if (response_len == 0) {
+		if (ret < 0) {
 			buxton_log("Failed to serialize set_label response message\n");
 			goto end;
 		}
+
+		response_len = (size_t) ret;
 		break;
 	case BUXTON_CONTROL_CREATE_GROUP:
-		response_len = buxton_serialize_message(&response_store,
+		ret = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
-		if (response_len == 0) {
+		if (ret < 0) {
 			buxton_log("Failed to serialize create_group response message\n");
 			goto end;
 		}
+
+		response_len = (size_t) ret;
 		break;
 	case BUXTON_CONTROL_GET:
 		if (data && !buxton_array_add(out_list, data)) {
 			buxton_log("Failed to prepare GET array data\n");
 			goto end;
 		}
-		response_len = buxton_serialize_message(&response_store,
+		ret = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
-		if (response_len == 0) {
+		if (ret < 0) {
 			buxton_log("Failed to serialize get response message\n");
 			goto end;
 		}
+
+		response_len = (size_t) ret;
 		break;
 	case BUXTON_CONTROL_UNSET:
-		response_len = buxton_serialize_message(&response_store,
+		ret = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
-		if (response_len == 0) {
+		if (ret < 0) {
 			buxton_log("Failed to serialize unset response message\n");
 			goto end;
 		}
+
+		response_len = (size_t) ret;
 		break;
 	case BUXTON_CONTROL_LIST:
 		if (key_list) {
@@ -263,22 +283,26 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 			}
 			buxton_array_free(&key_list, NULL);
 		}
-		response_len = buxton_serialize_message(&response_store,
+		ret = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
-		if (response_len == 0) {
+		if (ret < 0) {
 			buxton_log("Failed to serialize list response message\n");
 			goto end;
 		}
+
+		response_len = (size_t) ret;
 		break;
 	case BUXTON_CONTROL_NOTIFY:
-		response_len = buxton_serialize_message(&response_store,
+		ret = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
-		if (response_len == 0) {
+		if (ret < 0) {
 			buxton_log("Failed to serialize notify response message\n");
 			goto end;
 		}
+
+		response_len = (size_t) ret;
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
 		mdata.type = UINT64;
@@ -287,13 +311,15 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 			buxton_log("Failed to prepare UNNOTIFY array msgid data\n");
 			goto end;
 		}
-		response_len = buxton_serialize_message(&response_store,
+		ret = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
-		if (response_len == 0) {
+		if (ret < 0) {
 			buxton_log("Failed to serialize unnotify response message\n");
 			goto end;
 		}
+
+		response_len = (size_t) ret;
 		break;
 	default:
 		goto end;
@@ -332,6 +358,7 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
 	_cleanup_free_ uint8_t* response = NULL;
 	size_t response_len;
 	BuxtonArray *out_list = NULL;
+	ssize_t ret = BUXTON_STATUS_OK;
 
 	assert(self);
 	assert(client);
@@ -407,6 +434,11 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
 		free(nitem->old_data);
 
 		nitem->old_data = malloc0(sizeof(BuxtonData));
+		if (!nitem->old_data) {
+			buxton_log("Out of memory\n");
+			return;
+		}
+
 		if (nitem->old_data && value)
 			buxton_data_copy(value, nitem->old_data);
 
@@ -420,14 +452,18 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
 				return;
 			}
 		}
-		response_len = buxton_serialize_message(&response,
+		ret = buxton_serialize_message(&response,
 							BUXTON_CONTROL_CHANGED,
 							nitem->msgid, out_list);
 		buxton_array_free(&out_list, NULL);
-		if (response_len == 0) {
+
+		if (ret < 0) {
 			buxton_log("Failed to serialize notification\n");
 			return;
 		}
+		else
+			response_len = (size_t) ret;
+
 		buxton_debug("Notification to %d of key change (%s)\n", nitem->client->fd,
 			     key->group.value);
 

@@ -87,7 +87,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
  * @param size Size of the data being handled
  * @returns bool True if message was successfully handled
  */
-bool bt_daemon_handle_message(BuxtonDaemon *self,
+ssize_t bt_daemon_handle_message(BuxtonDaemon *self,
 			      client_list_item *client,
 			      size_t size)
 	__attribute__((warn_unused_result));
