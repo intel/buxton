@@ -520,6 +520,30 @@ void create_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	buxton_debug("Daemon create group completed\n");
 }
 
+void remove_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
+		  BuxtonStatus *status)
+{
+	assert(self);
+	assert(client);
+	assert(key);
+	assert(status);
+
+	*status = BUXTON_STATUS_FAILED;
+
+	buxton_debug("Daemon removing [%s][%s]\n",
+		     key->layer.value,
+		     key->group.value);
+
+	self->buxton.client.uid = client->cred.uid;
+
+	/* Use internal library to create group */
+	if (!buxton_direct_remove_group(&self->buxton, key, client->smack_label))
+		return;
+
+	*status = BUXTON_STATUS_OK;
+	buxton_debug("Daemon remove group completed\n");
+}
+
 void unset_value(BuxtonDaemon *self, client_list_item *client,
 		 _BuxtonKey *key, BuxtonStatus *status)
 {

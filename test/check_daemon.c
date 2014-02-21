@@ -639,13 +639,46 @@ START_TEST(create_group_check)
 	key.layer = buxton_string_pack("test-gdbm-user");
 	key.group = buxton_string_pack("daemon-check");
 	key.type = STRING;
-
-	create_group(&server, &client, &key, &status);
-
-	key.layer = buxton_string_pack("test-gdbm");
-
 	create_group(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to create group");
+
+	key.layer = buxton_string_pack("test-gdbm");
+	create_group(&server, &client, &key, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Failed to create group");
+
+	key.layer = buxton_string_pack("base");
+	key.group = buxton_string_pack("tgroup");
+	create_group(&server, &client, &key, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Failed to create group");
+
+	buxton_client_close(&server.buxton.client);
+}
+END_TEST
+
+START_TEST(remove_group_check)
+{
+	_BuxtonKey key = { {0}, {0}, {0}, 0};
+	client_list_item client;
+	BuxtonStatus status;
+	BuxtonDaemon server;
+	BuxtonString clabel = buxton_string_pack("_");
+
+	fail_if(!buxton_direct_open(&server.buxton),
+		"Failed to open buxton direct connection");
+
+	client.cred.uid = getuid();
+	if (use_smack())
+		client.smack_label = &clabel;
+	else
+		client.smack_label = NULL;
+	server.buxton.client.uid = 0;
+
+	key.layer = buxton_string_pack("base");
+	key.group = buxton_string_pack("tgroup");
+	key.type = STRING;
+
+	remove_group(&server, &client, &key, &status);
+	fail_if(status != BUXTON_STATUS_OK, "Failed to remove group");
 
 	buxton_client_close(&server.buxton.client);
 }
@@ -1907,6 +1940,7 @@ daemon_suite(void)
 	tc = tcase_create("buxton_daemon_functions");
 	tcase_add_test(tc, parse_list_check);
 	tcase_add_test(tc, create_group_check);
+	tcase_add_test(tc, remove_group_check);
 	tcase_add_test(tc, set_label_check);
 	tcase_add_test(tc, set_value_check);
 	tcase_add_test(tc, get_value_check);
