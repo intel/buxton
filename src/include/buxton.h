@@ -187,6 +187,23 @@ _bx_export_ bool buxton_client_create_group(BuxtonClient client,
 	__attribute__((warn_unused_result));
 
 /**
+ * Remove a group within Buxton
+ *
+ * @param client An open client connection
+ * @param key A BuxtonKey with only layer and group names initialized
+ * @param callback A callback function to handle daemon reply
+ * @param data User data to be used with callback function
+ * @param sync Indicator for running a synchronous request
+ * @return A boolean value, indicating success of the operation
+ */
+_bx_export_ bool buxton_client_remove_group(BuxtonClient client,
+					    BuxtonKey key,
+					    BuxtonCallback callback,
+					    void *data,
+					    bool sync)
+	__attribute__((warn_unused_result));
+
+/**
  * Retrieve a value from Buxton
  * @param client An open client connection
  * @param key The key to retrieve

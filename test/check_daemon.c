@@ -168,6 +168,90 @@ START_TEST(buxton_client_open_check)
 }
 END_TEST
 
+static void client_create_group_test(BuxtonResponse response, void *data)
+{
+	char *k = (char *)data;
+	BuxtonKey key;
+	char *group;
+	uid_t uid = getuid();
+	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+	bool skip_check = (root_check && streq(root_check, "0"));
+
+	fail_if(response_type(response) != BUXTON_CONTROL_CREATE_GROUP,
+		"Failed to get create group response type");
+
+	if (uid == 0) {
+		fail_if(response_status(response) != BUXTON_STATUS_OK,
+			"Create group failed");
+		key = response_key(response);
+		fail_if(!key, "Failed to get create group key");
+		group = buxton_get_group(key);
+		fail_if(!group, "Failed to get group from key");
+		fail_if(!streq(group, k),
+			"Incorrect set key returned");
+		free(group);
+		buxton_free_key(key);
+	} else {
+		fail_if(response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
+			"Create group succeeded, but the client is not root");
+	}
+}
+START_TEST(buxton_client_create_group_check)
+{
+	BuxtonClient c;
+	BuxtonKey key = buxton_make_key("tgroup", NULL, "base", STRING);
+	fail_if(!key, "Failed to create key");
+	fail_if(buxton_client_open(&c) == -1,
+		"Open failed with daemon.");
+	fail_if(!buxton_client_create_group(c, key, client_create_group_test,
+					    "tgroup", true),
+		"Creating group in buxton failed.");
+	buxton_free_key(key);
+}
+END_TEST
+
+static void client_remove_group_test(BuxtonResponse response, void *data)
+{
+	char *k = (char *)data;
+	BuxtonKey key;
+	char *group;
+	uid_t uid = getuid();
+	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
+	bool skip_check = (root_check && streq(root_check, "0"));
+
+	fail_if(response_type(response) != BUXTON_CONTROL_REMOVE_GROUP,
+		"Failed to get remove group response type");
+
+	if (uid == 0) {
+		fail_if(response_status(response) != BUXTON_STATUS_OK,
+			"Remove group failed");
+		key = response_key(response);
+		fail_if(!key, "Failed to get create group key");
+		group = buxton_get_group(key);
+		fail_if(!group, "Failed to get group from key");
+		fail_if(!streq(group, k),
+			"Incorrect set key returned");
+		free(group);
+		buxton_free_key(key);
+	} else {
+		fail_if(response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
+			"Create group succeeded, but the client is not root");
+	}
+}
+START_TEST(buxton_client_remove_group_check)
+{
+	BuxtonClient c;
+	BuxtonKey key = buxton_make_key("tgroup", NULL, "base", STRING);
+	fail_if(!key, "Failed to create key");
+	fail_if(buxton_client_open(&c) == -1,
+		"Open failed with daemon.");
+	fail_if(!buxton_client_remove_group(c, key, client_remove_group_test,
+					    "tgroup", true),
+		"Removing group in buxton failed.");
+	buxton_free_key(key);
+}
+END_TEST
+
 static void client_set_value_test(BuxtonResponse response, void *data)
 {
 	char *k = (char *)data;
@@ -2040,6 +2124,8 @@ daemon_suite(void)
 	tc = tcase_create("daemon test functions");
 	tcase_add_checked_fixture(tc, setup, teardown);
 	tcase_add_test(tc, buxton_client_open_check);
+	tcase_add_test(tc, buxton_client_create_group_check);
+	tcase_add_test(tc, buxton_client_remove_group_check);
 	tcase_add_test(tc, buxton_client_set_value_check);
 	tcase_add_test(tc, buxton_client_set_label_check);
 	tcase_add_test(tc, buxton_client_get_value_for_layer_check);

@@ -217,10 +217,10 @@ bool buxton_client_set_label(BuxtonClient client,
 	BuxtonString v;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	if (!k || !k->group.value || !k->layer.value || !value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+	if (!k || !k->group.value || !k->layer.value || !value)
 		return false;
 
+	k->type = STRING;
 	v = buxton_string_pack(value);
 
 	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
@@ -247,7 +247,32 @@ bool buxton_client_create_group(BuxtonClient client,
 	if (!k || !k->group.value || k->name.value || !k->layer.value)
 		return false;
 
+	k->type = STRING;
 	r = buxton_wire_create_group((_BuxtonClient *)client, k, callback, data);
+	if (!r)
+		return false;
+
+	if (sync)
+		r = buxton_wire_get_response(client);
+
+	return r;
+}
+
+bool buxton_client_remove_group(BuxtonClient client,
+				BuxtonKey key,
+				BuxtonCallback callback,
+				void *data,
+				bool sync)
+{
+	bool r;
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	/* We require the key name to be NULL, since it is not used for groups */
+	if (!k || !k->group.value || k->name.value || !k->layer.value)
+		return false;
+
+	k->type = STRING;
+	r = buxton_wire_remove_group((_BuxtonClient *)client, k, callback, data);
 	if (!r)
 		return false;
 
