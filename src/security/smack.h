@@ -81,32 +81,6 @@ bool buxton_check_smack_access(BuxtonString *subject,
 int buxton_watch_smack_rules(void)
 	__attribute__((warn_unused_result));
 
-/**
- * Check whether the client has read access for a key in a layer
- * @param client The current BuxtonClient
- * @param key The key to check
- * @param label The label for the key
- * @param client_label The Smack label of the client
- * @return true if read access is granted, otherwise false
- */
-bool buxton_check_read_access(BuxtonControl *control, _BuxtonKey *key,
-			      BuxtonString *data_label,
-			      BuxtonString *client_label)
-	__attribute__((warn_unused_result));
-
-/**
- * Check whether the client has write access for a key in a layer
- * @param client The current BuxtonClient
- * @param key The key to check
- * @param label The label for the key
- * @param client_label The Smack label of the client
- * @return true if write access is granted, otherwise false
- */
-bool buxton_check_write_access(BuxtonControl *control, _BuxtonKey *key,
-			       BuxtonString *data_label,
-			       BuxtonString *client_label)
-	__attribute__((warn_unused_result));
-
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
