@@ -331,8 +331,13 @@ static void client_set_label_test(BuxtonResponse response, void *data)
 		}
 		buxton_free_key(key);
 	} else {
-		fail_if(response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
+		if (skip_check) {
+			fail_if(response_status(response) != BUXTON_STATUS_OK,
+			"Set label failed");
+		} else {
+			fail_if(response_status(response) != BUXTON_STATUS_FAILED,
 			"Set label succeeded, but the client is not root");
+		}
 	}
 }
 START_TEST(buxton_client_set_label_check)
@@ -351,6 +356,8 @@ START_TEST(buxton_client_set_label_check)
 
 	BuxtonKey name = buxton_make_key("bxt_group", "bxt_name", "test-gdbm", STRING);
 	fail_if(!name, "Failed to create key for name");
+	fail_if(!buxton_client_set_value(c, name, "bxt_value", NULL, NULL, true),
+		"Setting label for name in buxton failed.");
 	fail_if(!buxton_client_set_label(c, name, "*",
 					 client_set_label_test,
 					 name, true),
