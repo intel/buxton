@@ -44,6 +44,7 @@
 #define BUXTON_ROOT_CHECK_ENV "BUXTON_ROOT_CHECK"
 
 static pid_t daemon_pid;
+int fuzz_time;
 
 typedef struct _fuzz_context_t {
 	uint8_t buf[4096];
@@ -2102,7 +2103,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 			time_t now;
 
 			fail_if(time(&now) == -1, "call to time() failed");
-			if (now - start >= 2) {
+			if (now - start >= fuzz_time) {
 				keep_going = false;
 			}
 
@@ -2188,6 +2189,7 @@ daemon_suite(void)
 	tc = tcase_create("buxton daemon evil tests");
 	tcase_add_checked_fixture(tc, NULL, teardown);
 	tcase_add_test(tc, bt_daemon_eat_garbage_check);
+	tcase_set_timeout(tc, fuzz_time+2);
 	suite_add_tcase(s, tc);
 
 	return s;
@@ -2198,9 +2200,15 @@ int main(void)
 	int number_failed;
 	Suite *s;
 	SRunner *sr;
+	char *fuzzenv;
 
 	putenv("BUXTON_CONF_FILE=" ABS_TOP_BUILDDIR "/test/test.conf");
 	putenv("BUXTON_ROOT_CHECK=0");
+	fuzzenv = getenv("BUXTON_FUZZ_TIME");
+	if (fuzzenv)
+		fuzz_time = atoi(fuzzenv);
+	else
+		fuzz_time = 2;
 	s = daemon_suite();
 	sr = srunner_create(s);
 	srunner_run_all(sr, CK_VERBOSE);
