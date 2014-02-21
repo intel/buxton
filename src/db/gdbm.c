@@ -230,7 +230,11 @@ static bool unset_value(BuxtonLayer *layer,
 		memcpy(key_data.dptr + key->group.length, key->name.value,
 		       key->name.length);
 	} else {
-		key_data.dptr = key->group.value;
+		key_data.dptr = malloc(key->group.length);
+		if (!key_data.dptr)
+			return false;
+
+		memcpy(key_data.dptr, key->group.value, key->group.length);
 		key_data.dsize = (int)key->group.length;
 	}
 
