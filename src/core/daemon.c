@@ -59,6 +59,14 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		break;
+	case BUXTON_CONTROL_REMOVE_GROUP:
+		if (count != 2)
+			return false;
+		if (list[0].type != STRING || list[1].type != STRING)
+			return false;
+		key->layer = list[0].store.d_string;
+		key->group = list[1].store.d_string;
+		break;
 	case BUXTON_CONTROL_GET:
 		if (count == 4) {
 			if(list[0].type != STRING || list[1].type != STRING ||

@@ -331,6 +331,7 @@ END_TEST
 
 START_TEST(parse_list_check)
 {
+	BuxtonData l3[2];
 	BuxtonData l2[4];
 	BuxtonData l1[3];
 	_BuxtonKey key;
@@ -572,6 +573,48 @@ START_TEST(parse_list_check)
 		"Failed to set correct set label group 1");
 	fail_if(!streq(value->store.d_string.value, l1[2].store.d_string.value),
 		"Failed to set correct set label label 1");
+
+	fail_if(parse_list(BUXTON_CONTROL_CREATE_GROUP, 1, l3, &key, &value),
+		"Parsed bad create group argument count");
+	l3[0].type = INT32;
+	l3[1].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 2, l3, &key, &value),
+		"Parsed bad create group type 1");
+	l3[0].type = STRING;
+	l3[1].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 2, l3, &key, &value),
+		"Parsed bad create group type 2");
+	l3[0].type = STRING;
+	l3[1].type = STRING;
+	l3[0].store.d_string = buxton_string_pack("s16");
+	l3[1].store.d_string = buxton_string_pack("s17");
+	fail_if(!parse_list(BUXTON_CONTROL_CREATE_GROUP, 2, l3, &key, &value),
+		"Unable to parse valid create group 1");
+	fail_if(!streq(key.layer.value, l3[0].store.d_string.value),
+		"Failed to set correct create group layer 1");
+	fail_if(!streq(key.group.value, l3[1].store.d_string.value),
+		"Failed to set correct create group group 1");
+
+	fail_if(parse_list(BUXTON_CONTROL_REMOVE_GROUP, 1, l3, &key, &value),
+		"Parsed bad remove group argument count");
+	l3[0].type = INT32;
+	l3[1].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 2, l3, &key, &value),
+		"Parsed bad remove group type 1");
+	l3[0].type = STRING;
+	l3[1].type = FLOAT;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 2, l3, &key, &value),
+		"Parsed bad remove group type 2");
+	l3[0].type = STRING;
+	l3[1].type = STRING;
+	l3[0].store.d_string = buxton_string_pack("s18");
+	l3[1].store.d_string = buxton_string_pack("s19");
+	fail_if(!parse_list(BUXTON_CONTROL_REMOVE_GROUP, 2, l3, &key, &value),
+		"Unable to parse valid remove group 1");
+	fail_if(!streq(key.layer.value, l3[0].store.d_string.value),
+		"Failed to set correct remove group layer 1");
+	fail_if(!streq(key.group.value, l3[1].store.d_string.value),
+		"Failed to set correct remove group group 1");
 }
 END_TEST
 
