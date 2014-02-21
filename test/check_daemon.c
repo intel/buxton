@@ -573,6 +573,7 @@ START_TEST(parse_list_check)
 		"Failed to set correct set label group 1");
 	fail_if(!streq(value->store.d_string.value, l1[2].store.d_string.value),
 		"Failed to set correct set label label 1");
+	fail_if(key.type != STRING, "Failed to key type in set label");
 
 	fail_if(parse_list(BUXTON_CONTROL_CREATE_GROUP, 1, l3, &key, &value),
 		"Parsed bad create group argument count");
@@ -594,6 +595,7 @@ START_TEST(parse_list_check)
 		"Failed to set correct create group layer 1");
 	fail_if(!streq(key.group.value, l3[1].store.d_string.value),
 		"Failed to set correct create group group 1");
+	fail_if(key.type != STRING, "Failed to key type in create group");
 
 	fail_if(parse_list(BUXTON_CONTROL_REMOVE_GROUP, 1, l3, &key, &value),
 		"Parsed bad remove group argument count");
@@ -615,6 +617,7 @@ START_TEST(parse_list_check)
 		"Failed to set correct remove group layer 1");
 	fail_if(!streq(key.group.value, l3[1].store.d_string.value),
 		"Failed to set correct remove group group 1");
+	fail_if(key.type != STRING, "Failed to key type in remove group");
 }
 END_TEST
 

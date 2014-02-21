@@ -56,6 +56,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		if (list[0].type != STRING || list[1].type != STRING)
 			return false;
+		key->type = STRING;
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		break;
@@ -64,6 +65,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		if (list[0].type != STRING || list[1].type != STRING)
 			return false;
+		key->type = STRING;
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		break;
