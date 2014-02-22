@@ -222,11 +222,10 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	response_data.store.d_int32 = response;
 	out_list = buxton_array_new();
 	if (!out_list)
-		goto end;
-	if (!buxton_array_add(out_list, &response_data)) {
-		buxton_log("Failed to prepare response\n");
-		goto end;
-	}
+		abort();
+	if (!buxton_array_add(out_list, &response_data))
+		abort();
+
 
 	switch (msg) {
 		/* TODO: Use cascading switch */
@@ -292,7 +291,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 		if (key_list) {
 			for (i = 0; i < key_list->len; i++) {
 				if (!buxton_array_add(out_list, buxton_array_get(key_list, i)))
-					goto end;
+					abort();
 			}
 			buxton_array_free(&key_list, NULL);
 		}
@@ -316,10 +315,8 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	case BUXTON_CONTROL_UNNOTIFY:
 		mdata.type = UINT64;
 		mdata.store.d_uint64 = n_msgid;
-		if (!buxton_array_add(out_list, &mdata)) {
-			buxton_log("Failed to prepare UNNOTIFY array msgid data\n");
-			goto end;
-		}
+		if (!buxton_array_add(out_list, &mdata))
+			abort();
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -440,19 +437,18 @@ void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
 		free(nitem->old_data);
 
 		nitem->old_data = malloc0(sizeof(BuxtonData));
-		if (nitem->old_data && value)
+		if (!nitem->old_data)
+			abort();
+		if (value)
 			buxton_data_copy(value, nitem->old_data);
 
 		out_list = buxton_array_new();
 		if (!out_list)
-			return;
-		if (value) {
-			if (!buxton_array_add(out_list, value)) {
-				buxton_log("Failed to add notify array value\n");
-				buxton_array_free(&out_list, NULL);
-				return;
-			}
-		}
+			abort();
+		if (value)
+			if (!buxton_array_add(out_list, value))
+				abort();
+
 		response_len = buxton_serialize_message(&response,
 							BUXTON_CONTROL_CHANGED,
 							nitem->msgid, out_list);
@@ -609,7 +605,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 
 	data = malloc0(sizeof(BuxtonData));
 	if (!data)
-		goto end;
+		abort();
 
 	if (key->layer.value) {
 		buxton_debug("Daemon getting [%s][%s]\n", key->layer.value,
@@ -670,7 +666,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 
 	nitem = malloc0(sizeof(BuxtonNotification));
 	if (!nitem)
-		return;
+		abort();
 	nitem->client = client;
 
 	/* Store data now, cheap */
@@ -687,24 +683,17 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 
 	if (!n_list) {
 		key_name = strdup(key->group.value);
-		if (!key_name) {
-			free(nitem);
-			return;
-		}
+		if (!key_name)
+			abort();
 
-		if (!buxton_list_append(&n_list, nitem)) {
-			free(key_name);
-			free(nitem);
-			return;
-		}
-		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0) {
-			free(key_name);
-			free(nitem);
-			return;
-		}
+		if (!buxton_list_append(&n_list, nitem))
+			abort();
+
+		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0)
+			abort();
 	} else {
 		if (!buxton_list_append(&n_list, nitem))
-			return;
+			abort();
 	}
 	*status = BUXTON_STATUS_OK;
 }
@@ -818,15 +807,11 @@ void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a)
 	assert(fd >= 0);
 
 	if (!greedy_realloc((void **) &(self->pollfds), &(self->nfds_alloc),
-			    (size_t)((self->nfds + 1) * (sizeof(struct pollfd))))) {
-		buxton_log("realloc(): %m\n");
-		exit(EXIT_FAILURE);
-	}
+			    (size_t)((self->nfds + 1) * (sizeof(struct pollfd)))))
+		abort();
 	if (!greedy_realloc((void **) &(self->accepting), &(self->accepting_alloc),
-			    (size_t)((self->nfds + 1) * (sizeof(self->accepting))))) {
-		buxton_log("realloc(): %m\n");
-		exit(EXIT_FAILURE);
-	}
+			    (size_t)((self->nfds + 1) * (sizeof(self->accepting)))))
+		abort();
 	self->pollfds[self->nfds].fd = fd;
 	self->pollfds[self->nfds].events = events;
 	self->pollfds[self->nfds].revents = 0;
@@ -883,17 +868,13 @@ static void handle_smack_label(client_list_item *cl)
 	}
 
 	slabel = malloc0(sizeof(BuxtonString));
-	if (!slabel) {
-		buxton_log("malloc0() for BuxtonString: %m\n");
-		exit(EXIT_FAILURE);
-	}
+	if (!slabel)
+		abort();
 
 	/* already checked slabel_len positive above */
 	buf = malloc0((size_t)slabel_len + 1);
-	if (!buf) {
-		buxton_log("malloc0() for string value: %m\n");
-		exit(EXIT_FAILURE);
-	}
+	if (!buf)
+		abort();
 
 	ret = getsockopt(cl->fd, SOL_SOCKET, SO_PEERSEC, buf, &slabel_len);
 	if (ret < 0) {
@@ -925,7 +906,7 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	}
 	if (!cl->data)
-		goto cleanup;
+		abort();
 	/* client closed the connection, or some error occurred? */
 	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0)
 		goto terminate;
@@ -970,7 +951,7 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		if (cl->size != BUXTON_MESSAGE_HEADER_LENGTH) {
 			cl->data = realloc(cl->data, cl->size);
 			if (!cl->data)
-				goto cleanup;
+				abort();
 		}
 		if (cl->size != cl->offset)
 			continue;
