@@ -108,6 +108,7 @@ void buxton_client_close(BuxtonClient client)
 	close(c->fd);
 	c->direct = 0;
 	c->fd = -1;
+	free(c);
 }
 
 bool buxton_client_get_value(BuxtonClient client,

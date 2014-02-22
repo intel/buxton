@@ -769,7 +769,7 @@ START_TEST(create_group_check)
 	create_group(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to create group");
 
-	buxton_client_close(&server.buxton.client);
+	buxton_direct_close(&server.buxton);
 }
 END_TEST
 
@@ -798,7 +798,7 @@ START_TEST(remove_group_check)
 	remove_group(&server, &client, &key, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to remove group");
 
-	buxton_client_close(&server.buxton.client);
+	buxton_direct_close(&server.buxton);
 }
 END_TEST
 
@@ -829,7 +829,7 @@ START_TEST(set_label_check)
 	key.layer = buxton_string_pack("test-gdbm");
 	set_label(&server, &client, &key, &value, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to set label 2");
-	buxton_client_close(&server.buxton.client);
+	buxton_direct_close(&server.buxton);
 }
 END_TEST
 
@@ -868,7 +868,7 @@ START_TEST(set_value_check)
 	set_value(&server, &client, &key, &value, &status);
 	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
 
-	buxton_client_close(&server.buxton.client);
+	buxton_direct_close(&server.buxton);
 }
 END_TEST
 
@@ -916,7 +916,7 @@ START_TEST(get_value_check)
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid 2");
 	free(value);
 
-	buxton_client_close(&server.buxton.client);
+	buxton_direct_close(&server.buxton);
 }
 END_TEST
 
@@ -968,7 +968,7 @@ START_TEST(register_notification_check)
 	fail_if(status == BUXTON_STATUS_OK, "Registered notification with key not in db");
 
 	hashmap_free(server.notify_mapping);
-	buxton_client_close(&server.buxton.client);
+	buxton_direct_close(&server.buxton);
 }
 END_TEST
 START_TEST(bt_daemon_handle_message_error_check)
