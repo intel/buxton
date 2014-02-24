@@ -2099,6 +2099,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 
 		fail_if(time(&start) == -1, "call to time() failed");
 		do {
+			pid_t client;
 			ssize_t bytes;
 			time_t now;
 
@@ -2106,10 +2107,6 @@ START_TEST(bt_daemon_eat_garbage_check)
 			if (now - start >= fuzz_time) {
 				keep_going = false;
 			}
-
-			fd = buxton_client_open(&c);
-			fail_if(fd == -1,
-				"Open failed with daemon%s", dump_fuzz(&fuzz));
 
 			fuzz.size = (unsigned int)rand() % 4096;
 			for (int i=0; i < fuzz.size; i++) {
@@ -2128,16 +2125,29 @@ START_TEST(bt_daemon_eat_garbage_check)
 				/* valid size */
 				memcpy((void *)(fuzz.buf + 4), (void *)(&fuzz.size), sizeof(uint32_t));
 			}
+			client = fork();
+			fail_if(client == -1, "couldn't fork");
+			if (client == 0) {
+				fd = buxton_client_open(&c);
+				fail_if(fd == -1,
+					"Open failed with daemon%s", dump_fuzz(&fuzz));
 
-			bytes = write(fd, (void*)(fuzz.buf), fuzz.size);
-			fail_if(bytes == -1, "write failed: %m%s", dump_fuzz(&fuzz));
-			fail_unless(bytes == fuzz.size, "write was %d instead of %d", bytes, fuzz.size);
 
-			buxton_client_close(c);
-			usleep(1*1000);
+				bytes = write(fd, (void*)(fuzz.buf), fuzz.size);
+				fail_if(bytes == -1, "write failed: %m%s", dump_fuzz(&fuzz));
+				fail_unless(bytes == fuzz.size, "write was %d instead of %d", bytes, fuzz.size);
 
-			check_did_not_crash(daemon_pid, &fuzz);
-			fuzz.iteration++;
+				buxton_client_close(c);
+				usleep(1*1000);
+
+				check_did_not_crash(daemon_pid, &fuzz);
+			} else {
+				int status;
+				pid_t wait = waitpid(client, &status, 0);
+				fail_if(wait == -1, "waitpid failed");
+				fail_unless(WIFEXITED(status), "client died");
+				fuzz.iteration++;
+			}
 		} while (keep_going);
 	} else {		/* child */
 		exec_daemon();
