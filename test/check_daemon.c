@@ -2141,6 +2141,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 				usleep(1*1000);
 
 				check_did_not_crash(daemon_pid, &fuzz);
+				exit(0);
 			} else {
 				int status;
 				pid_t wait = waitpid(client, &status, 0);
