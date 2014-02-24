@@ -1,0 +1,39 @@
+Buxton
+======
+
+Buxton is a security-enabled configuration management system. It features a
+layered approach to configuration storage, with each layer containing an
+arbitrary number of groups, each of which may contain key-value pairs.
+Mandatory Access Control (MAC) is implemented at the group level and at the
+key-value level.
+
+Buxton provides a C library (libbuxton) for client applications to use.
+Internally, buxton uses a daemon (bt-daemon) for processing client requests and
+enforcing MAC. Also, a CLI (buxtonctl) is provided for interactive use and for
+use in shell scripts.
+
+
+Build dependencies
+==================
+
+- attr, to provide a required header file, xattr.h
+
+- check, to build the unit tests
+
+- gdbm, for key-value pair storage
+
+- Linux kernel headers, for the inotify header
+
+- systemd, for autodetection of service file locations, for socket activation
+  of bt-daemon, and the initialization of the Smack virtual filesystem
+
+
+Additional runtime dependencies
+===============================
+
+- Smack-enabled kernel, for MAC support
+  * CONFIG_SECURITY_SMACK=y
+
+
+Note: if running a kernel without Smack enabled, buxton can still be used for
+configuration management, but MAC will not be enforced.
