@@ -58,6 +58,10 @@ LIBBUXTON_CURRENT=0
 LIBBUXTON_REVISION=1
 LIBBUXTON_AGE=0
 
+man_MANS = \
+	docs/buxton.7 \
+	docs/buxtonctl.1
+
 TESTS = \
 	check_db_clean \
 	check_buxton \
