@@ -740,7 +740,7 @@ START_TEST(create_group_check)
 {
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -777,7 +777,7 @@ START_TEST(remove_group_check)
 {
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -807,7 +807,7 @@ START_TEST(set_label_check)
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData value;
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -838,7 +838,7 @@ START_TEST(set_value_check)
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData value;
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -877,7 +877,7 @@ START_TEST(get_value_check)
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData *value;
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -925,7 +925,7 @@ START_TEST(register_notification_check)
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	client_list_item client, no_client;
 	BuxtonString clabel = buxton_string_pack("_");
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	uint64_t msgid;
 
@@ -1682,7 +1682,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	BuxtonString slabel;
 	BuxtonData value1, value2;
 	client_list_item cl;
-	BuxtonStatus status;
+	int32_t status;
 	bool r;
 	BuxtonData *list;
 	BuxtonControlMessage msg;
