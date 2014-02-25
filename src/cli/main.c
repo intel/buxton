@@ -82,7 +82,6 @@ int main(int argc, char **argv)
 	Command c_get_bool, c_set_bool;
 	Command c_get_label, c_set_label;
 	Command c_create_group;
-	Command c_list_keys;
 	Command c_unset_value;
 	Command *command;
 	int i = 0;
@@ -188,12 +187,6 @@ int main(int argc, char **argv)
 	c_create_group = (Command) { "create-group", "Create a group in a layer",
 				     2, 2, "layer group", &cli_create_group, STRING };
 	hashmap_put(commands, c_create_group.name, &c_create_group);
-
-	/* List keys */
-	c_list_keys = (Command) { "list-keys", "List keys in the given layer",
-				  1, 1, "layer", &cli_list_keys, STRING };
-
-	hashmap_put(commands, c_list_keys.name, &c_list_keys);
 
 	/* Unset value */
 	c_unset_value = (Command) { "unset-value", "Unset a value by key",
