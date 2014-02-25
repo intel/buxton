@@ -165,7 +165,7 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 	s = hashmap_put(callbacks, (void *)msgid, nv);
 	(void)pthread_mutex_unlock(&callback_guard);
 
-	if (s < 1) {
+	if (s) {
 		buxton_debug("Error adding callback for msgid: %llu\n", msgid);
 		goto fail;
 	}
@@ -208,13 +208,12 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 
 	if (nv->type == BUXTON_CONTROL_NOTIFY) {
 		if (list[0].type == INT32 &&
-		    list[0].store.d_int32 == BUXTON_STATUS_OK)
-			if (hashmap_put(notify_callbacks, (void *)msgid, nv)
-			    >= 0)
+		    list[0].store.d_int32 == 0)
+			if (hashmap_put(notify_callbacks, (void *)msgid, nv) >= 0)
 				return;
 	} else if (nv->type == BUXTON_CONTROL_UNNOTIFY) {
 		if (list[0].type == INT32 &&
-		    list[0].store.d_int32 == BUXTON_STATUS_OK) {
+		    list[0].store.d_int32 == 0) {
 			(void)hashmap_remove(notify_callbacks,
 					     (void *)list[2].store.d_uint64);
 			return;

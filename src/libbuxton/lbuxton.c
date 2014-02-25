@@ -117,7 +117,7 @@ bool buxton_client_get_value(BuxtonClient client,
 			     void *data,
 			     bool sync)
 {
-	bool r;
+	bool r = false;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !(k->group.value) || !(k->name.value) ||
@@ -459,7 +459,7 @@ BuxtonControlMessage response_type(BuxtonResponse response)
 	return r->type;
 }
 
-BuxtonStatus response_status(BuxtonResponse response)
+int response_status(BuxtonResponse response)
 {
 	BuxtonData *d;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
@@ -468,12 +468,12 @@ BuxtonStatus response_status(BuxtonResponse response)
 		return -1;
 
 	if (response_type(response) == BUXTON_CONTROL_CHANGED)
-		return BUXTON_STATUS_OK;
+		return 0;
 
 	d = buxton_array_get(r->data, 0);
 
 	if (d)
-		return d->store.d_int32;
+		return (int) d->store.d_int32;
 
 	return -1;
 }

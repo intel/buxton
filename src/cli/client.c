@@ -272,7 +272,7 @@ void get_value_callback(BuxtonResponse response, void *data)
 	BuxtonData *r = (BuxtonData *)data;
 	void *p;
 
-	if (response_status(response) != BUXTON_STATUS_OK)
+	if (response_status(response) != 0)
 		return;
 
 	p = response_value(response);
@@ -435,7 +435,7 @@ static void list_keys_callback(BuxtonResponse response, void *data)
 	BuxtonArray *array = r->data;
 	BuxtonData *d;
 	//FIXME change to use api (make api first)
-	if (response_status(response) != BUXTON_STATUS_OK)
+	if (response_status(response) != 0)
 		return;
 
 	BuxtonString *layer = (BuxtonString *)data;

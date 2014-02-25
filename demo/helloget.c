@@ -21,7 +21,7 @@ void get_cb(BuxtonResponse response, void *data)
 {
 	int32_t* ret = (int32_t*)data;
 
-	if (response_status(response) != BUXTON_STATUS_OK) {
+	if (response_status(response) != 0) {
 		printf("Failed to get value\n");
 		return;
 	}
