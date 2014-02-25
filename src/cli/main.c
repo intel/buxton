@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 	Command c_get_float, c_set_float;
 	Command c_get_double, c_set_double;
 	Command c_get_bool, c_set_bool;
-	Command c_get_label, c_set_label;
+	Command c_set_label;
 	Command c_create_group;
 	Command c_unset_value;
 	Command *command;
@@ -175,10 +175,6 @@ int main(int argc, char **argv)
 	hashmap_put(commands, c_set_bool.name, &c_set_bool);
 
 	/* SMACK labels */
-	c_get_label = (Command) { "get-label", "Get a label for a value",
-				  2, 3, "layer group [name]", &cli_get_label, STRING };
-	hashmap_put(commands, c_get_label.name, &c_get_label);
-
 	c_set_label = (Command) { "set-label", "Set a value's label",
 				  3, 4, "layer group [name] label", &cli_set_label, STRING };
 
