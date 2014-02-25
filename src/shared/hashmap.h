@@ -63,9 +63,9 @@ void hashmap_free_free_free(Hashmap *h);
 Hashmap *hashmap_copy(Hashmap *h);
 int hashmap_ensure_allocated(Hashmap **h, hash_func_t hash_func, compare_func_t compare_func);
 
-int hashmap_put(Hashmap *h, const void *key, void *value);
-int hashmap_update(Hashmap *h, const void *key, void *value);
-int hashmap_replace(Hashmap *h, const void *key, void *value);
+int32_t hashmap_put(Hashmap *h, const void *key, void *value);
+int32_t hashmap_update(Hashmap *h, const void *key, void *value);
+int32_t hashmap_replace(Hashmap *h, const void *key, void *value);
 void *hashmap_get(Hashmap *h, const void *key);
 void *hashmap_get2(Hashmap *h, const void *key, void **rkey);
 bool hashmap_contains(Hashmap *h, const void *key);
@@ -76,7 +76,7 @@ int hashmap_remove_and_replace(Hashmap *h, const void *old_key, const void *new_
 
 int hashmap_merge(Hashmap *h, Hashmap *other);
 void hashmap_move(Hashmap *h, Hashmap *other);
-int hashmap_move_one(Hashmap *h, Hashmap *other, const void *key);
+int32_t hashmap_move_one(Hashmap *h, Hashmap *other, const void *key);
 
 unsigned hashmap_size(Hashmap *h) _pure_;
 bool hashmap_isempty(Hashmap *h) _pure_;

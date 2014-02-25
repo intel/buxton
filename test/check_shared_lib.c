@@ -80,7 +80,7 @@ START_TEST(hashmap_check)
 	map = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(map == NULL, "Failed to allocated hashmap");
 	r = hashmap_put(map, "test", "passed");
-	fail_if(r < 0, "Failed to add element to hashmap");
+	fail_if(r > 0, "Failed to add element to hashmap");
 
 	value = hashmap_get(map, "test");
 

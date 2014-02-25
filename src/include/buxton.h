@@ -40,6 +40,9 @@
 #  define _bx_export_
 #endif
 
+#define BUXTON_STATUS_OK 0
+#define BUXTON_STATUS_FAILED -1
+
 /**
  * Possible data types for use in Buxton
  */
@@ -74,14 +77,6 @@ typedef enum BuxtonControlMessage {
 	BUXTON_CONTROL_CHANGED, /**<A key changed in Buxton */
 	BUXTON_CONTROL_MAX
 } BuxtonControlMessage;
-
-/**
- * Buxton Status Codes
- */
-typedef enum BuxtonStatus {
-	BUXTON_STATUS_OK = 0, /**<Operation succeeded */
-	BUXTON_STATUS_FAILED /**<Operation failed */
-} BuxtonStatus;
 
 /**
  * Used to communicate with Buxton
@@ -353,9 +348,9 @@ _bx_export_ BuxtonControlMessage response_type(BuxtonResponse response)
 /**
  * Get the status of a buxton response
  * @param response a BuxtonResponse
- * @return BuxtonStatus enum indicating the status of the response
+ * @return int32_t enum indicating the status of the response
  */
-_bx_export_ BuxtonStatus response_status(BuxtonResponse response)
+_bx_export_ int32_t response_status(BuxtonResponse response)
 	__attribute__((warn_unused_result));
 
 /**

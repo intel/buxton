@@ -196,7 +196,7 @@ static bool init_backend(BuxtonConfig *config,
 	}
 
 	r = hashmap_put(config->backends, name, backend_tmp);
-	if (r != 1) {
+	if (r != BUXTON_STATUS_OK) {
 		dlclose(handle);
 		return false;
 	}

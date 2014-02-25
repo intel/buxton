@@ -46,7 +46,7 @@ void buxton_direct_close(BuxtonControl *control);
  * @param label A BuxtonString containing the label to set
  * @return A boolean value, indicating success of the operation
  */
-bool buxton_direct_set_label(BuxtonControl *control,
+int32_t buxton_direct_set_label(BuxtonControl *control,
 			     _BuxtonKey *key,
 			     BuxtonString *label)
 	__attribute__((warn_unused_result));
@@ -58,7 +58,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
  * @param label The Smack label of the client
  * @return A boolean value, indicating success of the operation
  */
-bool buxton_direct_create_group(BuxtonControl *control,
+int32_t buxton_direct_create_group(BuxtonControl *control,
 				_BuxtonKey *key,
 				BuxtonString *label)
 	__attribute__((warn_unused_result));
@@ -70,7 +70,7 @@ bool buxton_direct_create_group(BuxtonControl *control,
  * @param client_label The Smack label of the client
  * @return A boolean value, indicating success of the operation
  */
-bool buxton_direct_remove_group(BuxtonControl *control,
+int32_t buxton_direct_remove_group(BuxtonControl *control,
 				_BuxtonKey *key,
 				BuxtonString *client_label)
 	__attribute__((warn_unused_result));
@@ -83,7 +83,7 @@ bool buxton_direct_remove_group(BuxtonControl *control,
  * @param label The Smack label for the client
  * @return A boolean value, indicating success of the operation
  */
-bool buxton_direct_set_value(BuxtonControl *control,
+int32_t buxton_direct_set_value(BuxtonControl *control,
 			     _BuxtonKey *key,
 			     BuxtonData *data,
 			     BuxtonString *label)
@@ -98,7 +98,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
  * @param client_label The Smack label of the client
  * @return A boolean value, indicating success of the operation
  */
-bool buxton_direct_get_value(BuxtonControl *control,
+int32_t buxton_direct_get_value(BuxtonControl *control,
 			     _BuxtonKey *key,
 			     BuxtonData *data,
 			     BuxtonString *data_label,
@@ -114,7 +114,7 @@ bool buxton_direct_get_value(BuxtonControl *control,
  * @param client_label The Smack label of the client
  * @return A boolean value, indicating success of the operation
  */
-bool buxton_direct_get_value_for_layer(BuxtonControl *control,
+int32_t buxton_direct_get_value_for_layer(BuxtonControl *control,
 				       _BuxtonKey *key,
 				       BuxtonData *data,
 				       BuxtonString *data_label,

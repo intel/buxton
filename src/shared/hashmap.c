@@ -421,7 +421,7 @@ static bool resize_buckets(Hashmap *h) {
         return true;
 }
 
-int hashmap_put(Hashmap *h, const void *key, void *value) {
+int32_t hashmap_put(Hashmap *h, const void *key, void *value) {
         struct hashmap_entry *e;
         unsigned hash;
 
@@ -431,8 +431,8 @@ int hashmap_put(Hashmap *h, const void *key, void *value) {
         e = hash_scan(h, hash, key);
         if (e) {
                 if (e->value == value)
-                        return 0;
-                return -EEXIST;
+                        return BUXTON_STATUS_OK;
+                return EEXIST;
         }
 
         if (resize_buckets(h))
@@ -444,17 +444,17 @@ int hashmap_put(Hashmap *h, const void *key, void *value) {
                 e = new(struct hashmap_entry, 1);
 
         if (!e)
-                return -ENOMEM;
+                return ENOMEM;
 
         e->key = key;
         e->value = value;
 
         link_entry(h, e, hash);
 
-        return 1;
+        return BUXTON_STATUS_OK;
 }
 
-int hashmap_replace(Hashmap *h, const void *key, void *value) {
+int32_t hashmap_replace(Hashmap *h, const void *key, void *value) {
         struct hashmap_entry *e;
         unsigned hash;
 
@@ -465,13 +465,13 @@ int hashmap_replace(Hashmap *h, const void *key, void *value) {
         if (e) {
                 e->key = key;
                 e->value = value;
-                return 0;
+                return BUXTON_STATUS_OK;
         }
 
         return hashmap_put(h, key, value);
 }
 
-int hashmap_update(Hashmap *h, const void *key, void *value) {
+int32_t hashmap_update(Hashmap *h, const void *key, void *value) {
         struct hashmap_entry *e;
         unsigned hash;
 
@@ -480,10 +480,10 @@ int hashmap_update(Hashmap *h, const void *key, void *value) {
         hash = h->hash_func(key) % h->n_buckets;
         e = hash_scan(h, hash, key);
         if (!e)
-                return -ENOENT;
+                return ENOENT;
 
         e->value = value;
-        return 0;
+        return BUXTON_STATUS_OK;
 }
 
 void* hashmap_get(Hashmap *h, const void *key) {
@@ -557,15 +557,15 @@ int hashmap_remove_and_put(Hashmap *h, const void *old_key, const void *new_key,
         unsigned old_hash, new_hash;
 
         if (!h)
-                return -ENOENT;
+                return ENOENT;
 
         old_hash = h->hash_func(old_key) % h->n_buckets;
         if (!(e = hash_scan(h, old_hash, old_key)))
-                return -ENOENT;
+                return ENOENT;
 
         new_hash = h->hash_func(new_key) % h->n_buckets;
         if (hash_scan(h, new_hash, new_key))
-                return -EEXIST;
+                return EEXIST;
 
         unlink_entry(h, e, old_hash);
 
@@ -574,7 +574,7 @@ int hashmap_remove_and_put(Hashmap *h, const void *old_key, const void *new_key,
 
         link_entry(h, e, new_hash);
 
-        return 0;
+        return BUXTON_STATUS_OK;
 }
 
 int hashmap_remove_and_replace(Hashmap *h, const void *old_key, const void *new_key, void *value) {
@@ -582,11 +582,11 @@ int hashmap_remove_and_replace(Hashmap *h, const void *old_key, const void *new_
         unsigned old_hash, new_hash;
 
         if (!h)
-                return -ENOENT;
+                return ENOENT;
 
         old_hash = h->hash_func(old_key) % h->n_buckets;
         if (!(e = hash_scan(h, old_hash, old_key)))
-                return -ENOENT;
+                return ENOENT;
 
         new_hash = h->hash_func(new_key) % h->n_buckets;
         if ((k = hash_scan(h, new_hash, new_key)))
@@ -810,12 +810,15 @@ int hashmap_merge(Hashmap *h, Hashmap *other) {
         for (e = other->iterate_list_head; e; e = e->iterate_next) {
                 int r;
 
-                if ((r = hashmap_put(h, e->key, e->value)) < 0)
-                        if (r != -EEXIST)
-                                return r;
+                if ((r = hashmap_put(h, e->key, e->value))) {
+				/* We errored out. If error is EEXIST, no problem. Otherwise 
+					bail out */
+					if (r != EEXIST)
+						return r;
+				}
         }
 
-        return 0;
+        return BUXTON_STATUS_OK;
 }
 
 void hashmap_move(Hashmap *h, Hashmap *other) {
@@ -846,7 +849,7 @@ void hashmap_move(Hashmap *h, Hashmap *other) {
         }
 }
 
-int hashmap_move_one(Hashmap *h, Hashmap *other, const void *key) {
+int32_t hashmap_move_one(Hashmap *h, Hashmap *other, const void *key) {
         unsigned h_hash, other_hash;
         struct hashmap_entry *e;
 
@@ -857,12 +860,12 @@ int hashmap_move_one(Hashmap *h, Hashmap *other, const void *key) {
 
         h_hash = h->hash_func(key) % h->n_buckets;
         if (hash_scan(h, h_hash, key))
-                return -EEXIST;
+                return EEXIST;
 
         other_hash = other->hash_func(key) % other->n_buckets;
         e = hash_scan(other, other_hash, key);
         if (!e)
-                return -ENOENT;
+                return ENOENT;
 
         unlink_entry(other, e, other_hash);
         link_entry(h, e, h_hash);

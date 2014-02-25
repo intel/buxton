@@ -117,7 +117,7 @@ bool buxton_client_get_value(BuxtonClient client,
 			     void *data,
 			     bool sync)
 {
-	bool r;
+	bool r = false;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !(k->group.value) || !(k->name.value) ||
@@ -459,7 +459,7 @@ BuxtonControlMessage response_type(BuxtonResponse response)
 	return r->type;
 }
 
-BuxtonStatus response_status(BuxtonResponse response)
+int32_t response_status(BuxtonResponse response)
 {
 	BuxtonData *d;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
