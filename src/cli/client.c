@@ -429,68 +429,13 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	return true;
 }
 
-static void list_keys_callback(BuxtonResponse response, void *data)
-{
-	_BuxtonResponse *r = (_BuxtonResponse *)response;
-	BuxtonArray *array = r->data;
-	BuxtonData *d;
-	//FIXME change to use api (make api first)
-	if (buxton_response_status(response) != BUXTON_STATUS_OK)
-		return;
-
-	BuxtonString *layer = (BuxtonString *)data;
-	if (!layer)
-		return;
-
-	/* Print all of the keys in this layer */
-	printf("%d keys found in layer \'%s\':\n", array->len - 1, layer->value);
-	for (uint16_t i = 1; i < array->len; i++) {
-		d = buxton_array_get(array, i);
-		if (!d)
-			break;
-		printf("%s\n", d->store.d_string.value);
-	}
-}
-
 bool cli_list_keys(BuxtonControl *control,
 		   __attribute__((unused))BuxtonDataType type,
 		   char *one, char *two, char *three,
 		   __attribute__((unused)) char *four)
 {
-	BuxtonString layer;
-	BuxtonArray *results = NULL;
-	BuxtonData *current = NULL;
-	bool ret = false;
-	int i;
-
-	layer.value = one;
-	layer.length = (uint32_t)strlen(one) + 1;
-
-	if (control->client.direct)
-		ret = buxton_direct_list_keys(control, &layer, &results);
-	else
-		ret = buxton_client_list_keys(&(control->client), one,
-					      list_keys_callback, &layer, true);
-	if (!ret) {
-		printf("No keys found for layer \'%s\'\n", one);
-		return false;
-	}
-	if (results == NULL && control->client.direct)
-		return false;
-
-	if (control->client.direct) {
-		/* Print all of the keys in this layer */
-		printf("%d keys found in layer \'%s\':\n", results->len, one);
-		for (i = 0; i < results->len; i++) {
-			current = (BuxtonData*)results->data[i];
-			printf("%s\n", current->store.d_string.value);
-			free(current->store.d_string.value);
-		}
-
-		buxton_array_free(&results, NULL);
-	}
-
-	return true;
+	/* not yet implemented */
+	return false;
 }
 
 void unset_value_callback(BuxtonResponse response, void *data)
