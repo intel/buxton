@@ -60,7 +60,8 @@ LIBBUXTON_AGE=0
 
 dist_man_MANS = \
 	docs/buxton.7 \
-	docs/buxtonctl.1
+	docs/buxtonctl.1 \
+	docs/buxton-api.7
 
 TESTS = \
 	check_db_clean \

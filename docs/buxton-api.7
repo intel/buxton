@@ -1,0 +1,127 @@
+'\" t
+.TH "BUXTON\-API" "7" "" "buxton 1" "buxton\-api"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton\-api \- List of all Buxton API functions
+
+.SH "DESCRIPTION"
+.PP
+This document contains the complete list of buxton API functions,
+each having its own manual page\&.
+
+In addition, there are several "hello world" demo programs in the
+buxton source tree, in the demos/ directory, that demonstrate how to
+use these API functions\&.
+
+.SH "API functions"
+.SS "Client connections"
+.PP
+\fBbuxton_open\fR(3)
+\(em Open a buxton client connection
+.br
+\fBbuxton_close\fR(3)
+\(em Close a buxton client connection
+.br
+
+.SS "BuxtonKey utility functions"
+.PP
+\fBbuxton_key_create\fR(3)
+\(em Create a client\-side key (BuxtonKey)
+.br
+\fBbuxton_key_free\fR(3)
+\(em Free a BuxtonKey
+.br
+\fBbuxton_key_get_type\fR(3)
+\(em Get the type member of a BuxtonKey
+.br
+\fBbuxton_key_get_layer\fR(3)
+\(em Get the layer member of a BuxtonKey
+.br
+\fBbuxton_key_get_group\fR(3)
+\(em Get a group member of a BuxtonKey
+.br
+\fBbuxton_key_get_name\fR(3)
+\(em Get a name member of a BuxtonKey
+.br
+
+.SS "Group storage and manipulation"
+.PP
+\fBbuxton_create_group\fR(3)
+\(em Create a group within a layer
+.br
+\fBbuxton_remove_group\fR(3)
+\(em Remove a group within a layer
+.br
+\fBbuxton_set_label\fR(3)
+\(em Set the Smack label for a group
+.br
+
+.SS "Key storage and manipulation"
+.PP
+\fBbuxton_set_value\fR(3)
+\(em Set the value for a key
+.br
+\fBbuxton_get_value\fR(3)
+\(em Get the value of a key
+.br
+\fBbuxton_unset_value\fR(3)
+\(em Unset the value for a key
+.br
+\fBbuxton_set_label\fR(3)
+\(em Set the Smack label for a key
+.br
+
+.SS "Notifications"
+.PP
+\fBbuxton_register_notification\fR(3)
+\(em Register for a key notification
+.br
+\fBbuxton_unregister_notification\fR(3)
+\(em Unregister for a key notification
+.br
+\fBbuxton_handle_response\fR(3)
+\(em Notification response helper
+.br
+
+.SS "Callbacks"
+.PP
+\fBbuxton_response_status\fR(3)
+\(em Get the status for a BuxtonResponse in a callback
+.br
+\fBbuxton_response_key\fR(3)
+\(em Fetch the BuxtonKey within a callback
+.br
+\fBbuxton_response_type\fR(3)
+\(em Fetch the response type within a callback
+.br
+\fBbuxton_response_value\fR(3)
+\(em Fetch the response value within a callback
+.br
+
+.SS "Configuration"
+.PP
+\fBbuxton_set_conf_file\fR(3)
+\(em Set the path to the Buxton configuration file
+.br
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7)
