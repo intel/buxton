@@ -161,10 +161,10 @@ static void teardown(void)
 	}
 }
 
-START_TEST(buxton_client_open_check)
+START_TEST(buxton_open_check)
 {
 	BuxtonClient c = NULL;
-	fail_if(buxton_client_open(&c) == -1,
+	fail_if(buxton_open(&c) == -1,
 		"Connection failed to open with daemon.");
 }
 END_TEST
@@ -178,36 +178,36 @@ static void client_create_group_test(BuxtonResponse response, void *data)
 	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 	bool skip_check = (root_check && streq(root_check, "0"));
 
-	fail_if(response_type(response) != BUXTON_CONTROL_CREATE_GROUP,
+	fail_if(buxton_response_type(response) != BUXTON_CONTROL_CREATE_GROUP,
 		"Failed to get create group response type");
 
 	if (uid == 0) {
-		fail_if(response_status(response) != BUXTON_STATUS_OK,
+		fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
 			"Create group failed");
-		key = response_key(response);
+		key = buxton_response_key(response);
 		fail_if(!key, "Failed to get create group key");
-		group = buxton_get_group(key);
+		group = buxton_key_get_group(key);
 		fail_if(!group, "Failed to get group from key");
 		fail_if(!streq(group, k),
 			"Incorrect set key returned");
 		free(group);
-		buxton_free_key(key);
+		buxton_key_free(key);
 	} else {
-		fail_if(response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
+		fail_if(buxton_response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
 			"Create group succeeded, but the client is not root");
 	}
 }
-START_TEST(buxton_client_create_group_check)
+START_TEST(buxton_create_group_check)
 {
 	BuxtonClient c;
-	BuxtonKey key = buxton_make_key("tgroup", NULL, "base", STRING);
+	BuxtonKey key = buxton_key_create("tgroup", NULL, "base", STRING);
 	fail_if(!key, "Failed to create key");
-	fail_if(buxton_client_open(&c) == -1,
+	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_client_create_group(c, key, client_create_group_test,
+	fail_if(!buxton_create_group(c, key, client_create_group_test,
 					    "tgroup", true),
 		"Creating group in buxton failed.");
-	buxton_free_key(key);
+	buxton_key_free(key);
 }
 END_TEST
 
@@ -220,36 +220,36 @@ static void client_remove_group_test(BuxtonResponse response, void *data)
 	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 	bool skip_check = (root_check && streq(root_check, "0"));
 
-	fail_if(response_type(response) != BUXTON_CONTROL_REMOVE_GROUP,
+	fail_if(buxton_response_type(response) != BUXTON_CONTROL_REMOVE_GROUP,
 		"Failed to get remove group response type");
 
 	if (uid == 0) {
-		fail_if(response_status(response) != BUXTON_STATUS_OK,
+		fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
 			"Remove group failed");
-		key = response_key(response);
+		key = buxton_response_key(response);
 		fail_if(!key, "Failed to get create group key");
-		group = buxton_get_group(key);
+		group = buxton_key_get_group(key);
 		fail_if(!group, "Failed to get group from key");
 		fail_if(!streq(group, k),
 			"Incorrect set key returned");
 		free(group);
-		buxton_free_key(key);
+		buxton_key_free(key);
 	} else {
-		fail_if(response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
+		fail_if(buxton_response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
 			"Create group succeeded, but the client is not root");
 	}
 }
-START_TEST(buxton_client_remove_group_check)
+START_TEST(buxton_remove_group_check)
 {
 	BuxtonClient c;
-	BuxtonKey key = buxton_make_key("tgroup", NULL, "base", STRING);
+	BuxtonKey key = buxton_key_create("tgroup", NULL, "base", STRING);
 	fail_if(!key, "Failed to create key");
-	fail_if(buxton_client_open(&c) == -1,
+	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_client_remove_group(c, key, client_remove_group_test,
+	fail_if(!buxton_remove_group(c, key, client_remove_group_test,
 					    "tgroup", true),
 		"Removing group in buxton failed.");
-	buxton_free_key(key);
+	buxton_key_free(key);
 }
 END_TEST
 
@@ -259,38 +259,38 @@ static void client_set_value_test(BuxtonResponse response, void *data)
 	BuxtonKey key;
 	char *group;
 
-	fail_if(response_type(response) != BUXTON_CONTROL_SET,
+	fail_if(buxton_response_type(response) != BUXTON_CONTROL_SET,
 		"Failed to get set response type");
-	fail_if(response_status(response) != BUXTON_STATUS_OK,
+	fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
 		"Set value failed");
-	key = response_key(response);
+	key = buxton_response_key(response);
 	fail_if(!key, "Failed to get set key");
-	group = buxton_get_group(key);
+	group = buxton_key_get_group(key);
 	fail_if(!group, "Failed to get group from key");
 	fail_if(!streq(group, k),
 		"Incorrect set group returned");
 	free(group);
-	buxton_free_key(key);
+	buxton_key_free(key);
 }
-START_TEST(buxton_client_set_value_check)
+START_TEST(buxton_set_value_check)
 {
 	BuxtonClient c;
-	BuxtonKey group = buxton_make_key("group", NULL, "test-gdbm-user", STRING);
+	BuxtonKey group = buxton_key_create("group", NULL, "test-gdbm-user", STRING);
 	fail_if(!group, "Failed to create key for group");
-	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm-user", STRING);
+	BuxtonKey key = buxton_key_create("group", "name", "test-gdbm-user", STRING);
 	fail_if(!key, "Failed to create key");
-	fail_if(buxton_client_open(&c) == -1,
+	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_client_create_group(c, group, NULL, NULL, true),
+	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
-	fail_if(!buxton_client_set_label(c, group, "*", NULL, NULL, true),
+	fail_if(!buxton_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
-	fail_if(!buxton_client_set_value(c, key, "bxt_test_value",
+	fail_if(!buxton_set_value(c, key, "bxt_test_value",
 					 client_set_value_test,
 					 "group", true),
 		"Setting value in buxton failed.");
-	buxton_free_key(group);
-	buxton_free_key(key);
+	buxton_key_free(group);
+	buxton_key_free(key);
 }
 END_TEST
 
@@ -304,68 +304,68 @@ static void client_set_label_test(BuxtonResponse response, void *data)
 	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 	bool skip_check = (root_check && streq(root_check, "0"));
 
-	fail_if(response_type(response) != BUXTON_CONTROL_SET_LABEL,
+	fail_if(buxton_response_type(response) != BUXTON_CONTROL_SET_LABEL,
 		"Failed to get set label response type");
 
 	if (uid == 0) {
-		fail_if(response_status(response) != BUXTON_STATUS_OK,
+		fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
 			"Set label failed");
-		key = response_key(response);
+		key = buxton_response_key(response);
 		fail_if(!key, "Failed to get set label key");
-		user_group = buxton_get_group(user_key);
+		user_group = buxton_key_get_group(user_key);
 		fail_if(!user_group, "Failed to get group from user key");
-		group = buxton_get_group(key);
+		group = buxton_key_get_group(key);
 		fail_if(!group, "Failed to get group from key");
 		fail_if(!streq(group, user_group),
 			"Incorrect set label group returned");
 		free(user_group);
 		free(group);
 
-		user_name = buxton_get_name(user_key);
+		user_name = buxton_key_get_name(user_key);
 		if (user_name) {
-			name = buxton_get_name(key);
+			name = buxton_key_get_name(key);
 			fail_if(!name, "Failed to get name from key");
 			fail_if(!streq(name, user_name),
 				"Incorrect set label name returned");
 			free(user_name);
 			free(name);
 		}
-		buxton_free_key(key);
+		buxton_key_free(key);
 	} else {
 		if (skip_check) {
-			fail_if(response_status(response) != BUXTON_STATUS_OK,
+			fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
 			"Set label failed");
 		} else {
-			fail_if(response_status(response) != BUXTON_STATUS_FAILED,
+			fail_if(buxton_response_status(response) != BUXTON_STATUS_FAILED,
 			"Set label succeeded, but the client is not root");
 		}
 	}
 }
-START_TEST(buxton_client_set_label_check)
+START_TEST(buxton_set_label_check)
 {
 	BuxtonClient c;
-	BuxtonKey group = buxton_make_key("bxt_group", NULL, "test-gdbm", STRING);
+	BuxtonKey group = buxton_key_create("bxt_group", NULL, "test-gdbm", STRING);
 	fail_if(!group, "Failed to create key for group");
-	fail_if(buxton_client_open(&c) == -1,
+	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_client_create_group(c, group, NULL, NULL, true),
+	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
-	fail_if(!buxton_client_set_label(c, group, "*",
+	fail_if(!buxton_set_label(c, group, "*",
 					 client_set_label_test,
 					 group, true),
 		"Setting label for group in buxton failed.");
 
-	BuxtonKey name = buxton_make_key("bxt_group", "bxt_name", "test-gdbm", STRING);
+	BuxtonKey name = buxton_key_create("bxt_group", "bxt_name", "test-gdbm", STRING);
 	fail_if(!name, "Failed to create key for name");
-	fail_if(!buxton_client_set_value(c, name, "bxt_value", NULL, NULL, true),
+	fail_if(!buxton_set_value(c, name, "bxt_value", NULL, NULL, true),
 		"Setting label for name in buxton failed.");
-	fail_if(!buxton_client_set_label(c, name, "*",
+	fail_if(!buxton_set_label(c, name, "*",
 					 client_set_label_test,
 					 name, true),
 		"Setting label for name in buxton failed.");
 
-	buxton_free_key(group);
-	buxton_free_key(name);
+	buxton_key_free(group);
+	buxton_key_free(name);
 }
 END_TEST
 
@@ -377,20 +377,20 @@ static void client_get_value_test(BuxtonResponse response, void *data)
 	char *v;
 	char *value = (char *)data;
 
-	fail_if(response_status(response) != BUXTON_STATUS_OK,
+	fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
 		"Get value failed");
 
-	key = response_key(response);
+	key = buxton_response_key(response);
 	fail_if(!key, "Failed to get key");
-	group = buxton_get_group(key);
+	group = buxton_key_get_group(key);
 	fail_if(!group, "Failed to get group");
 	fail_if(!streq(group, "group"),
 		"Failed to get correct group");
-	name = buxton_get_name(key);
+	name = buxton_key_get_name(key);
 	fail_if(!name, "Failed to get name");
 	fail_if(!streq(name, "name"),
 		"Failed to get correct name");
-	v = response_value(response);
+	v = buxton_response_value(response);
 	printf("val=%s\n", v);
 	fail_if(!v, "Failed to get value");
 	fail_if(!streq(v, value),
@@ -399,48 +399,48 @@ static void client_get_value_test(BuxtonResponse response, void *data)
 	free(v);
 	free(group);
 	free(name);
-	buxton_free_key(key);
+	buxton_key_free(key);
 }
-START_TEST(buxton_client_get_value_for_layer_check)
+START_TEST(buxton_get_value_for_layer_check)
 {
 	BuxtonClient c = NULL;
-	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm-user", STRING);
+	BuxtonKey key = buxton_key_create("group", "name", "test-gdbm-user", STRING);
 
-	fail_if(buxton_client_open(&c) == -1,
+	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_client_get_value(c, key,
+	fail_if(!buxton_get_value(c, key,
 					 client_get_value_test,
 					 "bxt_test_value", true),
 		"Retrieving value from buxton gdbm backend failed.");
 }
 END_TEST
 
-START_TEST(buxton_client_get_value_check)
+START_TEST(buxton_get_value_check)
 {
 	BuxtonClient c = NULL;
 
-	BuxtonKey group = buxton_make_key("group", NULL, "test-gdbm", STRING);
+	BuxtonKey group = buxton_key_create("group", NULL, "test-gdbm", STRING);
 	fail_if(!group, "Failed to create key for group");
-	BuxtonKey key = buxton_make_key("group", "name", "test-gdbm", STRING);
+	BuxtonKey key = buxton_key_create("group", "name", "test-gdbm", STRING);
 
-	fail_if(buxton_client_open(&c) == -1,
+	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
 
-	fail_if(!buxton_client_create_group(c, group, NULL, NULL, true),
+	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
-	fail_if(!buxton_client_set_label(c, group, "*", NULL, NULL, true),
+	fail_if(!buxton_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
-	fail_if(!buxton_client_set_value(c, key, "bxt_test_value2",
+	fail_if(!buxton_set_value(c, key, "bxt_test_value2",
 					 client_set_value_test, "group", true),
 		"Failed to set second value.");
-	buxton_free_key(group);
-	buxton_free_key(key);
-	key = buxton_make_key("group", "name", NULL, STRING);
-	fail_if(!buxton_client_get_value(c, key,
+	buxton_key_free(group);
+	buxton_key_free(key);
+	key = buxton_key_create("group", "name", NULL, STRING);
+	fail_if(!buxton_get_value(c, key,
 					 client_get_value_test,
 					 "bxt_test_value2", true),
 		"Retrieving value from buxton gdbm backend failed.");
-	buxton_free_key(key);
+	buxton_key_free(key);
 }
 END_TEST
 
@@ -2128,7 +2128,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 			client = fork();
 			fail_if(client == -1, "couldn't fork");
 			if (client == 0) {
-				fd = buxton_client_open(&c);
+				fd = buxton_open(&c);
 				fail_if(fd == -1,
 					"Open failed with daemon%s", dump_fuzz(&fuzz));
 
@@ -2137,7 +2137,7 @@ START_TEST(bt_daemon_eat_garbage_check)
 				fail_if(bytes == -1, "write failed: %m%s", dump_fuzz(&fuzz));
 				fail_unless(bytes == fuzz.size, "write was %d instead of %d", bytes, fuzz.size);
 
-				buxton_client_close(c);
+				buxton_close(c);
 				usleep(1*1000);
 
 				check_did_not_crash(daemon_pid, &fuzz);
@@ -2165,13 +2165,13 @@ daemon_suite(void)
 	s = suite_create("daemon");
 	tc = tcase_create("daemon test functions");
 	tcase_add_checked_fixture(tc, setup, teardown);
-	tcase_add_test(tc, buxton_client_open_check);
-	tcase_add_test(tc, buxton_client_create_group_check);
-	tcase_add_test(tc, buxton_client_remove_group_check);
-	tcase_add_test(tc, buxton_client_set_value_check);
-	tcase_add_test(tc, buxton_client_set_label_check);
-	tcase_add_test(tc, buxton_client_get_value_for_layer_check);
-	tcase_add_test(tc, buxton_client_get_value_check);
+	tcase_add_test(tc, buxton_open_check);
+	tcase_add_test(tc, buxton_create_group_check);
+	tcase_add_test(tc, buxton_remove_group_check);
+	tcase_add_test(tc, buxton_set_value_check);
+	tcase_add_test(tc, buxton_set_label_check);
+	tcase_add_test(tc, buxton_get_value_for_layer_check);
+	tcase_add_test(tc, buxton_get_value_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("buxton_daemon_functions");

@@ -284,9 +284,9 @@ int main(int argc, char **argv)
 		}
 	} else {
 		if (conf_path)
-			if (!buxton_client_set_conf_file(conf_path))
+			if (!buxton_set_conf_file(conf_path))
 				printf("Failed to set configuration file path\n");
-		if (buxton_client_open(&client) < 0) {
+		if (buxton_open(&client) < 0) {
 			buxton_log("Failed to talk to Buxton\n");
 			ret = false;
 			goto end;

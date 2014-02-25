@@ -42,7 +42,7 @@
 #include "util.h"
 
 
-bool buxton_client_set_conf_file(char *path)
+bool buxton_set_conf_file(char *path)
 {
 	int r;
 	struct stat st;
@@ -59,7 +59,7 @@ bool buxton_client_set_conf_file(char *path)
 	return true;
 }
 
-int buxton_client_open(BuxtonClient *client)
+int buxton_open(BuxtonClient *client)
 {
 	_BuxtonClient **c = (_BuxtonClient **)client;
 	int bx_socket, r;
@@ -96,7 +96,7 @@ int buxton_client_open(BuxtonClient *client)
 	return bx_socket;
 }
 
-void buxton_client_close(BuxtonClient client)
+void buxton_close(BuxtonClient client)
 {
 	_BuxtonClient *c;
 	if (!client)
@@ -111,7 +111,7 @@ void buxton_client_close(BuxtonClient client)
 	free(c);
 }
 
-bool buxton_client_get_value(BuxtonClient client,
+bool buxton_get_value(BuxtonClient client,
 			     BuxtonKey key,
 			     BuxtonCallback callback,
 			     void *data,
@@ -134,7 +134,7 @@ bool buxton_client_get_value(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_register_notification(BuxtonClient client,
+bool buxton_register_notification(BuxtonClient client,
 					 BuxtonKey key,
 					 BuxtonCallback callback,
 					 void *data,
@@ -158,7 +158,7 @@ bool buxton_client_register_notification(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_unregister_notification(BuxtonClient client,
+bool buxton_unregister_notification(BuxtonClient client,
 					   BuxtonKey key,
 					   BuxtonCallback callback,
 					   void *data,
@@ -182,7 +182,7 @@ bool buxton_client_unregister_notification(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_set_value(BuxtonClient client,
+bool buxton_set_value(BuxtonClient client,
 			     BuxtonKey key,
 			     void *value,
 			     BuxtonCallback callback,
@@ -207,7 +207,7 @@ bool buxton_client_set_value(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_set_label(BuxtonClient client,
+bool buxton_set_label(BuxtonClient client,
 			     BuxtonKey key,
 			     char *value,
 			     BuxtonCallback callback,
@@ -235,7 +235,7 @@ bool buxton_client_set_label(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_create_group(BuxtonClient client,
+bool buxton_create_group(BuxtonClient client,
 				BuxtonKey key,
 				BuxtonCallback callback,
 				void *data,
@@ -259,7 +259,7 @@ bool buxton_client_create_group(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_remove_group(BuxtonClient client,
+bool buxton_remove_group(BuxtonClient client,
 				BuxtonKey key,
 				BuxtonCallback callback,
 				void *data,
@@ -307,7 +307,7 @@ bool buxton_client_list_keys(BuxtonClient client,
 	return r;
 }
 
-bool buxton_client_unset_value(BuxtonClient client,
+bool buxton_unset_value(BuxtonClient client,
 			       BuxtonKey key,
 			       BuxtonCallback callback,
 			       void *data,
@@ -330,7 +330,7 @@ bool buxton_client_unset_value(BuxtonClient client,
 	return r;
 }
 
-BuxtonKey buxton_make_key(char *group, char *name, char *layer,
+BuxtonKey buxton_key_create(char *group, char *name, char *layer,
 			  BuxtonDataType type)
 {
 	_BuxtonKey *key = NULL;
@@ -391,7 +391,7 @@ fail:
 	return NULL;
 }
 
-char *buxton_get_group(BuxtonKey key)
+char *buxton_key_get_group(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
@@ -401,7 +401,7 @@ char *buxton_get_group(BuxtonKey key)
 	return get_group(k);
 }
 
-char *buxton_get_name(BuxtonKey key)
+char *buxton_key_get_name(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
@@ -411,7 +411,7 @@ char *buxton_get_name(BuxtonKey key)
 	return get_name(k);
 }
 
-char *buxton_get_layer(BuxtonKey key)
+char *buxton_key_get_layer(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
@@ -421,7 +421,7 @@ char *buxton_get_layer(BuxtonKey key)
 	return get_layer(k);
 }
 
-BuxtonDataType buxton_get_type(BuxtonKey key)
+BuxtonDataType buxton_key_get_type(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
@@ -431,7 +431,7 @@ BuxtonDataType buxton_get_type(BuxtonKey key)
 	return k->type;
 }
 
-void buxton_free_key(BuxtonKey key)
+void buxton_key_free(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
@@ -449,7 +449,7 @@ ssize_t buxton_client_handle_response(BuxtonClient client)
 	return buxton_wire_handle_response((_BuxtonClient *)client);
 }
 
-BuxtonControlMessage response_type(BuxtonResponse response)
+BuxtonControlMessage buxton_response_type(BuxtonResponse response)
 {
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
 
@@ -459,7 +459,7 @@ BuxtonControlMessage response_type(BuxtonResponse response)
 	return r->type;
 }
 
-BuxtonStatus response_status(BuxtonResponse response)
+BuxtonStatus buxton_response_status(BuxtonResponse response)
 {
 	BuxtonData *d;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
@@ -467,7 +467,7 @@ BuxtonStatus response_status(BuxtonResponse response)
 	if (!response)
 		return -1;
 
-	if (response_type(response) == BUXTON_CONTROL_CHANGED)
+	if (buxton_response_type(response) == BUXTON_CONTROL_CHANGED)
 		return BUXTON_STATUS_OK;
 
 	d = buxton_array_get(r->data, 0);
@@ -478,7 +478,7 @@ BuxtonStatus response_status(BuxtonResponse response)
 	return -1;
 }
 
-BuxtonKey response_key(BuxtonResponse response)
+BuxtonKey buxton_response_key(BuxtonResponse response)
 {
 	_BuxtonKey *key = NULL;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
@@ -486,7 +486,7 @@ BuxtonKey response_key(BuxtonResponse response)
 	if (!response)
 		return NULL;
 
-	if (response_type(response) == BUXTON_CONTROL_LIST)
+	if (buxton_response_type(response) == BUXTON_CONTROL_LIST)
 		return NULL;
 
 	key = malloc0(sizeof(_BuxtonKey));
@@ -499,7 +499,7 @@ BuxtonKey response_key(BuxtonResponse response)
 	return (BuxtonKey)key;
 }
 
-void *response_value(BuxtonResponse response)
+void *buxton_response_value(BuxtonResponse response)
 {
 	void *p = NULL;
 	BuxtonData *d;
@@ -509,7 +509,7 @@ void *response_value(BuxtonResponse response)
 	if (!response)
 		return NULL;
 
-	type = response_type(response);
+	type = buxton_response_type(response);
 	if (type == BUXTON_CONTROL_GET)
 		d = buxton_array_get(r->data, 1);
 	else if (type == BUXTON_CONTROL_CHANGED)

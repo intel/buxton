@@ -22,15 +22,15 @@ void set_cb(BuxtonResponse response, void *data)
 	BuxtonKey key;
 	char *name;
 
-	if (response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
 		printf("Failed to set value\n");
 		return;
 	}
 
-	key = response_key(response);
-	name = buxton_get_name(key);
-	printf("Set value for key %s\n", buxton_get_name(key));
-	buxton_free_key(key);
+	key = buxton_response_key(response);
+	name = buxton_key_get_name(key);
+	printf("Set value for key %s\n", buxton_key_get_name(key));
+	buxton_key_free(key);
 	free(name);
 }
 
@@ -43,18 +43,18 @@ int main(void)
 	int fd;
 	int32_t set;
 
-	if ((fd = buxton_client_open(&client)) < 0) {
+	if ((fd = buxton_open(&client)) < 0) {
 		printf("couldn't connect\n");
 		return -1;
 	}
 
-	key = buxton_make_key("hello", "test", "base", INT32);
+	key = buxton_key_create("hello", "test", "base", INT32);
 	if (!key)
 		return -1;
 
 	set = 10;
 
-	if (!buxton_client_set_value(client, key, &set, set_cb,
+	if (!buxton_set_value(client, key, &set, set_cb,
 				     NULL, false)) {
 		printf("set call failed to run\n");
 		return -1;
@@ -75,8 +75,8 @@ int main(void)
 		return -1;
 	}
 
-	buxton_free_key(key);
-	buxton_client_close(client);
+	buxton_key_free(key);
+	buxton_close(client);
 	return 0;
 }
 

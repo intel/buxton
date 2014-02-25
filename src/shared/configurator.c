@@ -258,7 +258,7 @@ const char* buxton_socket(void)
 	return (const char*)conf.keys[CONFIG_BUXTON_SOCKET];
 }
 
-int buxton_get_layers(ConfigLayer **layers)
+int buxton_key_get_layers(ConfigLayer **layers)
 {
 	ConfigLayer *_layers;
 	int n;
@@ -267,7 +267,7 @@ int buxton_get_layers(ConfigLayer **layers)
 	assert(layers);
 	initialize();
 	if (conf.ini == NULL) {
-		buxton_log("config file not loaded when calling buxton_get_layers()");
+		buxton_log("config file not loaded when calling buxton_key_get_layers()");
 		abort();
 	}
 	n = iniparser_getnsec(conf.ini);

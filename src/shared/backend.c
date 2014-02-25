@@ -43,7 +43,7 @@ bool buxton_init_layers(BuxtonConfig *config)
 	int nlayers = 0;
 	ConfigLayer *config_layers = NULL;
 
-	nlayers = buxton_get_layers(&config_layers);
+	nlayers = buxton_key_get_layers(&config_layers);
 	layers = hashmap_new(string_hash_func, string_compare_func);
 	if (!layers)
 		goto end;

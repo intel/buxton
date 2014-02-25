@@ -216,8 +216,8 @@ START_TEST(configurator_get_layers)
 	int numlayers;
 
 	putenv("BUXTON_CONF_FILE=" ABS_TOP_SRCDIR "/test/test-configurator.conf");
-	numlayers = buxton_get_layers(&layers);
-	fail_if(layers == NULL, "buxton_get_layers returned NULL");
+	numlayers = buxton_key_get_layers(&layers);
+	fail_if(layers == NULL, "buxton_key_get_layers returned NULL");
 	fail_if(numlayers != 7, "num layers is %d instead of %d", numlayers, 7);
 
 	fail_strne(layers[0].name, "base", false);

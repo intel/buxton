@@ -152,7 +152,7 @@ static void buxton_test_dispose(GObject *object)
 		g_source_remove(self->tag);
 		self->tag = 0;
 	}
-	buxton_client_close(self->client);
+	buxton_close(self->client);
         /* Destruct */
         G_OBJECT_CLASS (buxton_test_parent_class)->dispose (object);
 }
@@ -179,7 +179,7 @@ static gboolean buxton_init(BuxtonTest *self)
 		self->tag = 0;
 	}
 
-	fd = buxton_client_open(&self->client);
+	fd = buxton_open(&self->client);
 	if (fd <= 0)
 		return FALSE;
 	self->fd = fd;
@@ -190,8 +190,8 @@ static gboolean buxton_init(BuxtonTest *self)
 		buxton_update, self->client);
 
 	/* Register primary key */
-	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
-	if (!buxton_client_register_notification(self->client, key,
+	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
+	if (!buxton_register_notification(self->client, key,
 		buxton_callback, self, false))
 		report_error(self, "Unable to register for notifications");
 
@@ -208,27 +208,27 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	if (strlen(value) == 0 || g_str_equal(value, ""))
 		return;
 
-	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
+	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
 
         self->setting = TRUE;
-	if (!buxton_client_set_value(self->client, key, (void*)value,
+	if (!buxton_set_value(self->client, key, (void*)value,
 		buxton_callback, self, false))
 		report_error(self, "Unable to set value!");
-	buxton_free_key(key);
+	buxton_key_free(key);
 }
 
 static void update_value(BuxtonTest *self)
 {
 	BuxtonKey key;
 
-	key = buxton_make_key(GROUP, PRIMARY_KEY, LAYER, STRING);
+	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
 
-	if (!buxton_client_get_value(self->client, key,
+	if (!buxton_get_value(self->client, key,
 		buxton_callback, self, false)) {
 		/* Buxton disconnects us when this happens. ##FIXME##
 		 * We force a reconnect */
 		report_error(self, "Cannot retrieve value");
-		buxton_client_close(self->client);
+		buxton_close(self->client);
 		self->fd = -1;
 		/* Just try reconnecting */
 		if (!buxton_init(self))
@@ -236,7 +236,7 @@ static void update_value(BuxtonTest *self)
 	}
 
 
-	buxton_free_key(key);
+	buxton_key_free(key);
 }
 
 static void report_error(BuxtonTest *self, gchar *error)
@@ -268,8 +268,8 @@ static void buxton_callback(BuxtonResponse response, gpointer userdata)
 	self = BUXTON_TEST(userdata);
 
         /* Handle all potential async cases we're utilizing */
-        if (response_status(response) != BUXTON_STATUS_OK) {
-                switch (response_type(response)) {
+        if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+                switch (buxton_response_type(response)) {
                         case BUXTON_CONTROL_GET:
                                 report_error(self, "Cannot retrieve value");
                                 return;
@@ -293,12 +293,12 @@ static void buxton_callback(BuxtonResponse response, gpointer userdata)
                 return;
         }
 
-	key = response_key(response);
-	key_name = buxton_get_name(key);
-	value = response_value(response);
+	key = buxton_response_key(response);
+	key_name = buxton_key_get_name(key);
+	value = buxton_response_value(response);
 
 	/* Handle PRIMARY_KEY (string) */
-	if (g_str_equal(key_name, PRIMARY_KEY) && buxton_get_type(key) == STRING) {
+	if (g_str_equal(key_name, PRIMARY_KEY) && buxton_key_get_type(key) == STRING) {
 		gchar *lab;
 		/* Key unset */
 		if (!value)
@@ -313,7 +313,7 @@ static void buxton_callback(BuxtonResponse response, gpointer userdata)
 
 	free(value);
 	free(key_name);
-	buxton_free_key(key);
+	buxton_key_free(key);
 }
 
 /** Main entry */

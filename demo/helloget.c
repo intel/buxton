@@ -21,12 +21,12 @@ void get_cb(BuxtonResponse response, void *data)
 {
 	int32_t* ret = (int32_t*)data;
 
-	if (response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
 		printf("Failed to get value\n");
 		return;
 	}
 
-	*ret = *(int32_t*)response_value(response);
+	*ret = *(int32_t*)buxton_response_value(response);
 }
 
 int main(void)
@@ -38,16 +38,16 @@ int main(void)
 	int32_t gvalue = -1;
 	int fd;
 
-	if ((fd = buxton_client_open(&client)) < 0) {
+	if ((fd = buxton_open(&client)) < 0) {
 		printf("couldn't connect\n");
 		return -1;
 	}
 
-	key = buxton_make_key("hello", "test", "base", INT32);
+	key = buxton_key_create("hello", "test", "base", INT32);
 	if (!key)
 		return -1;
 
-	if (!buxton_client_get_value(client, key, get_cb,
+	if (!buxton_get_value(client, key, get_cb,
 					       &gvalue, false)) {
 		printf("get call failed to run\n");
 		return -1;
@@ -71,8 +71,8 @@ int main(void)
 	if (gvalue >= 0)
 		printf("got value: %d\n", gvalue);
 
-	buxton_free_key(key);
-	buxton_client_close(client);
+	buxton_key_free(key);
+	buxton_close(client);
 	return 0;
 }
 

@@ -222,15 +222,15 @@ START_TEST(buxton_key_check)
 	char *l;
 	BuxtonDataType type = STRING;
 
-	key = buxton_make_key(group, name, layer, type);
+	key = buxton_key_create(group, name, layer, type);
 	fail_if(!key, "Failed to create buxton key");
-	g = buxton_get_group(key);
-	n = buxton_get_name(key);
-	l = buxton_get_layer(key);
+	g = buxton_key_get_group(key);
+	n = buxton_key_get_name(key);
+	l = buxton_key_get_layer(key);
 	fail_if(!g, "Failed to get group from key");
 	fail_if(!n, "Failed to get name from key");
 	fail_if(!l, "Failed to get layer from key");
-	fail_if(buxton_get_type(key) != type,
+	fail_if(buxton_key_get_type(key) != type,
 		"Failed to get correct type from key");
 	fail_if(!streq(g, group), "Got different group back from key");
 	fail_if(!streq(n, name), "Got different name back from key");
@@ -238,23 +238,23 @@ START_TEST(buxton_key_check)
 	free(g);
 	free(n);
 	free(l);
-	buxton_free_key(key);
+	buxton_key_free(key);
 
-	fail_if(buxton_make_key(NULL, name, layer, type), "Got key back with invalid group");
-	fail_if(buxton_make_key(group, name, layer, BUXTON_TYPE_MIN),
+	fail_if(buxton_key_create(NULL, name, layer, type), "Got key back with invalid group");
+	fail_if(buxton_key_create(group, name, layer, BUXTON_TYPE_MIN),
 		"Got key back with invalid type 1");
-	fail_if(buxton_make_key(group, name, layer, BUXTON_TYPE_MAX),
+	fail_if(buxton_key_create(group, name, layer, BUXTON_TYPE_MAX),
 		"Got key back with invalid type 2");
 
-	key = buxton_make_key(group, NULL, layer, type);
+	key = buxton_key_create(group, NULL, layer, type);
 	fail_if(!key, "Failed to create buxton key with empty name");
-	fail_if(buxton_get_name(key), "Got name back with no name key");
-	buxton_free_key(key);
+	fail_if(buxton_key_get_name(key), "Got name back with no name key");
+	buxton_key_free(key);
 
-	key = buxton_make_key(group, name, NULL, type);
+	key = buxton_key_create(group, name, NULL, type);
 	fail_if(!key, "Failed to create buxton key with empty layer");
-	fail_if(buxton_get_layer(key), "Got layer back with no layer key");
-	buxton_free_key(key);
+	fail_if(buxton_key_get_layer(key), "Got layer back with no layer key");
+	buxton_key_free(key);
 }
 END_TEST
 

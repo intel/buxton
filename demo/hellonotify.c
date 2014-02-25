@@ -23,19 +23,19 @@ void notify_cb(BuxtonResponse response, void *data)
 	int32_t value;
 	char *name;
 
-	if (response_value(response) == NULL) {
+	if (buxton_buxton_response_value(response) == NULL) {
 		*status = false;
 		return;
 	}
 
-	key = response_key(response);
-	name = buxton_get_name(key);
+	key = buxton_response_key(response);
+	name = buxton_key_get_name(key);
 
-	value = *(int32_t*)response_value(response);
-	printf("key %s updated with new value %d\n", buxton_get_name(key),
+	value = *(int32_t*)buxton_buxton_response_value(response);
+	printf("key %s updated with new value %d\n", buxton_key_get_name(key),
 		value);
 
-	buxton_free_key(key);
+	buxton_key_free(key);
 	free(name);
 }
 
@@ -48,16 +48,16 @@ int main(void)
 	int r;
 	int fd;
 
-	if ((fd = buxton_client_open(&client)) < 0) {
+	if ((fd = buxton_open(&client)) < 0) {
 		printf("couldn't connect\n");
 		return -1;
 	}
 
-	key = buxton_make_key("hello", "test", NULL, INT32);
+	key = buxton_key_create("hello", "test", NULL, INT32);
 	if (!key)
 		return -1;
 
-	if (!buxton_client_register_notification(client, key, notify_cb, &status, false)) {
+	if (!buxton_register_notification(client, key, notify_cb, &status, false)) {
 		printf("set call failed to run\n");
 		return -1;
 	}
@@ -86,8 +86,8 @@ repoll:
 
 	goto repoll;
 
-	buxton_free_key(key);
-	buxton_client_close(client);
+	buxton_key_free(key);
+	buxton_close(client);
 
 	return 0;
 }

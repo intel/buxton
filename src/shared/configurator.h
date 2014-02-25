@@ -114,7 +114,7 @@ const char *buxton_socket(void)
  *
  * @return an integer that indicates the number of layers.
  */
-int buxton_get_layers(ConfigLayer **layers)
+int buxton_key_get_layers(ConfigLayer **layers)
 	__attribute__((warn_unused_result));
 
 void include_configurator(void);

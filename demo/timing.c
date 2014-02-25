@@ -31,7 +31,7 @@ static void callback(BuxtonResponse response, void *userdata)
 
 	r = (bool *)userdata;
 
-	if (response_status(response) == BUXTON_STATUS_OK)
+	if (buxton_response_status(response) == BUXTON_STATUS_OK)
 		*r = true;
 }
 
@@ -112,55 +112,55 @@ static bool testcase_init(struct testcase *tc)
 	switch (tc->d) {
 		case TEST_INT32:
 			sprintf(name, "TimingTest-%d-int32", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", INT32);
+			__key = buxton_key_create("TimingTest", name, "base", INT32);
 			i = -672;
 			value = &i;
 			break;
 		case TEST_UINT32:
 			sprintf(name, "TimingTest-%d-uint32", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", UINT32);
+			__key = buxton_key_create("TimingTest", name, "base", UINT32);
 			ui = 672;
 			value = &ui;
 			break;
 		case TEST_INT64:
 			sprintf(name, "TimingTest-%d-int64", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", INT64);
+			__key = buxton_key_create("TimingTest", name, "base", INT64);
 			i6 = -672 * 672;
 			value = &i6;
 			break;
 		case TEST_UINT64:
 			sprintf(name, "TimingTest-%d-uint64", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", UINT64);
+			__key = buxton_key_create("TimingTest", name, "base", UINT64);
 			ui6 = 672 * 672;
 			value = &ui6;
 			break;
 		case TEST_BOOLEAN:
 			sprintf(name, "TimingTest-%d-boolean", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", BOOLEAN);
+			__key = buxton_key_create("TimingTest", name, "base", BOOLEAN);
 			b = true;
 			value = &b;
 			break;
 		case TEST_STRING:
 			sprintf(name, "TimingTest-%d-string", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", STRING);
+			__key = buxton_key_create("TimingTest", name, "base", STRING);
 			string = "672";
 			value = string;
 			break;
 		case TEST_STRING4K:
 			sprintf(name, "TimingTest-%d-string4k", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", STRING);
+			__key = buxton_key_create("TimingTest", name, "base", STRING);
 			string = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 			value = string;
 			break;
 		case TEST_FLOAT:
 			sprintf(name, "TimingTest-%d-float", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", FLOAT);
+			__key = buxton_key_create("TimingTest", name, "base", FLOAT);
 			f = (float)3.14;
 			value = &f;
 			break;
 		case TEST_DOUBLE:
 			sprintf(name, "TimingTest-%d-double", getpid());
-			__key = buxton_make_key("TimingTest", name, "base", DOUBLE);
+			__key = buxton_key_create("TimingTest", name, "base", DOUBLE);
 			d = 3.14;
 			value = &d;
 			break;
@@ -168,14 +168,14 @@ static bool testcase_init(struct testcase *tc)
 			return false;
 	}
 
-	return buxton_client_set_value(__client, __key, value, callback, NULL, true);
+	return buxton_set_value(__client, __key, value, callback, NULL, true);
 }
 
 static bool testcase_cleanup(struct testcase *tc)
 {
-	bool ret = (buxton_client_set_value(__client, __key, &__data, callback, NULL, true) &&
-		buxton_client_unset_value(__client,  __key, callback, NULL, true));
-	buxton_free_key(__key);
+	bool ret = (buxton_set_value(__client, __key, &__data, callback, NULL, true) &&
+		buxton_unset_value(__client,  __key, callback, NULL, true));
+	buxton_key_free(__key);
 	return ret;
 }
 
@@ -185,14 +185,14 @@ static bool testcase_run(struct testcase *tc)
 	bool r, s;
 	switch (tc->t) {
 		case TEST_GET:
-			r = buxton_client_get_value(__client, __key, callback, &d, true);
+			r = buxton_get_value(__client, __key, callback, &d, true);
 			return (r && d);
 		case TEST_SET:
-			r = buxton_client_set_value(__client, __key, &__data, callback, &d, true);
+			r = buxton_set_value(__client, __key, &__data, callback, &d, true);
 			return (r && d);
 		case TEST_SET_UNSET:
-			r = buxton_client_set_value(__client, __key, &__data, callback, &d, true);
-			s = buxton_client_unset_value(__client, __key, callback, &d, true);
+			r = buxton_set_value(__client, __key, &__data, callback, &d, true);
+			s = buxton_unset_value(__client, __key, callback, &d, true);
 			return (s && r && d);
 		default:
 			return false;
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (!buxton_client_open(&__client)) {
+	if (!buxton_open(&__client)) {
 		error("Unable to open BuxtonClient\n");
 		exit(EXIT_FAILURE);
 	}
@@ -271,7 +271,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < TEST_COUNT; i++)
 		test(&testcases[i]);
 
-	buxton_client_close(__client);
+	buxton_close(__client);
 	exit(ret);
 }
 
