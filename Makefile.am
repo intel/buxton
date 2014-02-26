@@ -62,7 +62,8 @@ dist_man_MANS = \
 	docs/buxton.7 \
 	docs/buxtonctl.1 \
 	docs/buxton-api.7 \
-	docs/buxton.conf.5
+	docs/buxton.conf.5 \
+	docs/buxtond.8
 
 TESTS = \
 	check_db_clean \

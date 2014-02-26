@@ -1,0 +1,83 @@
+'\" t
+.TH "BUXTOND" "8" "" "buxton 1" "buxtond"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxtond \- The buxton daemon
+
+.SH "SYNOPSIS"
+.HP \w'\fBbuxtond\fR\ 'u
+\fBbuxtond\fR [OPTIONS...]
+
+.SH "DESCRIPTION"
+.PP
+\fBbuxtond\fR is the system service used by buxton to handle client
+requests and enforce Mandatory Access Control\&.
+
+.SH "OPTIONS"
+.PP
+The following options are understood:
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Prints a help message\&.
+.RE
+.PP
+\fB\-c\fR FILE, \fB\-\-config\-file\fR FILE
+.RS 4
+Path to a buxton configuration file (see \fBbuxton\&.conf\fR(5))\&.
+.RE
+
+.SH "ENVIRONMENT VARIABLES"
+.PP
+\fI$BUXTON_CONF_FILE\fR
+.RS 4
+The path to a buxton configuration file (see
+\fBbuxton\&.conf\fR(5))\&.
+.RE
+.PP
+\fI$BUXTON_MODULE_DIR\fR
+.RS 4
+The directory in which buxton's backend modules reside\&.
+.RE
+.PP
+\fI$BUXTON_DB_PATH\fR
+.RS 4
+The directory that buxtond will use for configuration storage\&.
+.RE
+.PP
+\fI$BUXTON_SMACK_LOAD_FILE\fR
+.RS 4
+The path to the Smack "load2" file, typically residing on the Smack
+virtual filesystem (smackfs)\&.
+.RE
+.PP
+\fI$BUXTON_BUXTON_SOCKET\fR
+.RS 4
+The path to the Unix Domain Socket used by buxton clients to
+communicate with buxtond\&.
+.RE
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtonctl\fR(1),
+\fBbuxton\-api\fR(7),
+\fBbuxton\&.conf\fR(5)
