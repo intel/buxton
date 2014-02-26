@@ -127,6 +127,10 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 
 	buxton_debug("get_value for layer start\n");
 
+	memzero(&g, sizeof(BuxtonData));
+	memzero(&group, sizeof(_BuxtonKey));
+	memzero(&group_label, sizeof(BuxtonString));
+
 	if (!key->layer.value)
 		goto fail;
 
@@ -171,6 +175,11 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 	}
 
 fail:
+	free(g.store.d_string.value);
+	free(group.group.value);
+	free(group.name.value);
+	free(group.layer.value);
+	free(group_label.value);
 	buxton_debug("get_value for layer end\n");
 	return r;
 }
