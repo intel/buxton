@@ -137,14 +137,18 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	if (!stored)
 		return false;
 	d = buxton_array_get(stored, 0);
+	if (d->type != key->type)
+		return false;
+
 	buxton_data_copy(d, data);
 	//FIXME have buxton_data_copy return a bool
-	if (data->type <= BUXTON_TYPE_MIN)
-		return false;
+
 	l = buxton_array_get(stored, 1);
 	if (!buxton_string_copy(l, label)) {
-		if (data && data->store.d_string.value)
+		if (data && data->store.d_string.value) {
 			free(data->store.d_string.value);
+			data->store.d_string.value = NULL;
+		}
 		return false;
 	}
 
