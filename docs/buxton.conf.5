@@ -1,0 +1,108 @@
+'\" t
+.TH "BUXTON\&.CONF" "5" "" "buxton 1" "buxton\&.conf"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton\&.conf \- Configuration of Buxton settings and layer
+information
+
+.SH "SYNOPSIS"
+.PP
+/etc/buxton\&.conf
+
+.SH "DESCRIPTION"
+.PP
+The buxton configuration file can be used to override various paths
+used by \fBbuxtonctl\fR(1) and \fBbuxtond\fR(8), as well as the
+system\-wide definition of buxton layers\&.
+
+.SH "OPTIONS"
+.PP
+Options that are specified in the
+"[Configuration]"
+section:
+.PP
+\fIModuleDirectory=\fR
+.RS 4
+Sets the directory where backend modules are stored\&. The path is
+used by \fBbuxtond\fR(8) to dynamically load the modules as
+needed\&.
+.RE
+.PP
+\fIDatabasePath=\fR
+.RS 4
+Sets the directory where \fBbuxtond\fR(8) (or \fBbuxtonctl\fR(1)
+in direct mode) will store configuration data\&.
+.RE
+.PP
+\fISmackLoadFile=\fR
+.RS 4
+Sets the location of the Smack "load2" file from the Smack virtual
+filesystem\&.
+.RE
+.PP
+\fISocketPath=\fR
+.RS 4
+Sets the path for the Unix Domain Socket used by buxton clients to
+communicate with \fBbuxtond\fR(8)\&.
+.RE
+
+.PP
+Buxton layers are configured in individual sections of the config
+file, where each section name is equivalent to a layer name\&. For
+example, the "base" layer configuration is set in the "[base]"
+section\&.
+
+.PP
+Options that are specified in each layer section:
+.PP
+\fIType=\fR
+.RS 4
+The type of the layer\&. Accepted values are "System" or "User"\&.
+.RE
+.PP
+\fIBackend=\fR
+.RS 4
+The backend to use for the layer\&. Accepted values are "gdbm" or
+"memory"\&.  Note that the "memory" backend is volatile, so
+key\-value pairs will be lost when the \fBbuxtond\fR(8) service
+exits\&.
+.RE
+.PP
+\fIPriority=\fR
+.RS 4
+The priority of the layer\&. Accepted values are integers greater
+than or equal to 0 (zero), where 0 is the lowest\-priority value\&.
+.RE
+.PP
+\fIDescription=\fR
+.RS 4
+A human\-readable description for the given layer\&.
+.RE
+
+.PP
+More details about buxton layers can be found in \fBbuxton\fR(7)\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtonctl\fR(1),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
