@@ -49,6 +49,8 @@ AC_CHECK_FUNCS([strchr])
 AC_CHECK_FUNCS([strdup])
 AC_CHECK_FUNCS([strndup])
 AC_CHECK_FUNCS([strtol])
+AC_GNU_SOURCE
+AC_CHECK_FUNCS([__secure_getenv secure_getenv])
 
 AC_MSG_CHECKING([[whether preprocessor supports #pragma once]])
 AC_PREPROC_IFELSE(

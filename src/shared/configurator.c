@@ -29,6 +29,16 @@
  */
 #define CONFIG_SECTION "Configuration"
 
+#include <stdlib.h>
+
+#ifndef HAVE_SECURE_GETENV
+#  ifdef HAVE___SECURE_GETENV
+#    define secure_getenv __secure_getenv
+#  else
+#    error neither secure_getenv nor __secure_getenv is available
+#  endif
+#endif
+
 /**
  * @internal
  * internal state of configurator
