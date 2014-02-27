@@ -52,7 +52,7 @@
 /**
  * Maximum length of valid control message
  */
-#define BUXTON_MESSAGE_MAX_LENGTH 4096
+#define BUXTON_MESSAGE_MAX_LENGTH 32768
 
 /**
  * Maximum length of valid control message
