@@ -288,7 +288,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		buxton_debug("value length: %lu\n", p_length);
 
 		/* Need to allocate enough room to hold this data */
-		size += sizeof(BuxtonDataType) + sizeof(uint32_t) + p_length;
+		size += sizeof(uint16_t) + sizeof(uint32_t) + p_length;
 
 		if (curSize < size) {
 			if (!(data = greedy_realloc((void**)&data, &curSize, size)))
@@ -297,8 +297,8 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		}
 
 		/* Copy data type */
-		memcpy(data+offset, &(param->type), sizeof(BuxtonDataType));
-		offset += sizeof(BuxtonDataType);
+		memcpy(data+offset, &(param->type), sizeof(uint16_t));
+		offset += sizeof(uint16_t);
 
 		/* Write out the length of value */
 		memcpy(data+offset, &p_length, sizeof(uint32_t));
@@ -417,12 +417,12 @@ size_t buxton_deserialize_message(uint8_t *data,
 		buxton_debug("param: %d\n", c_param + 1);
 		buxton_debug("offset=%lu\n", offset);
 		/* Don't read past the end of the buffer */
-		if (offset + sizeof(BuxtonDataType) + sizeof(uint32_t) > size)
+		if (offset + sizeof(uint16_t) + sizeof(uint32_t) > size)
 			goto end;
 
 		/* Now unpack type */
-		memcpy(&c_type, data+offset, sizeof(BuxtonDataType));
-		offset += sizeof(BuxtonDataType);
+		memcpy(&c_type, data+offset, sizeof(uint16_t));
+		offset += sizeof(uint16_t);
 
 		if (c_type >= BUXTON_TYPE_MAX || c_type <= BUXTON_TYPE_MIN)
 			goto end;

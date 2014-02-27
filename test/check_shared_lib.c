@@ -759,7 +759,7 @@ START_TEST(buxton_message_serialize_check)
 	fail_if(buxton_deserialize_message(packed, &ctarget,
 					   (sizeof(uint32_t) * 3)
 					   + sizeof(uint64_t)
-					   + sizeof(BuxtonDataType)
+					   + sizeof(uint16_t)
 					   + (sizeof(uint32_t) * 2),
 					   &mtarget, &dtarget),
 		"Deserialized message size smaller than minimum data length");
