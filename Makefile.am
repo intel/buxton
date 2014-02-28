@@ -334,6 +334,10 @@ bin_PROGRAMS += \
 	bxt_timing \
 	bxt_hello_get \
 	bxt_hello_set \
+	bxt_hello_set_label \
+	bxt_hello_create_group \
+	bxt_hello_remove_group \
+	bxt_hello_unset \
 	bxt_hello_notify
 
 # Timing test
@@ -356,6 +360,34 @@ bxt_hello_set_SOURCES = \
 bxt_hello_set_CFLAGS = \
 	$(AM_CFLAGS)
 bxt_hello_set_LDADD = \
+	libbuxton.la
+
+bxt_hello_set_label_SOURCES = \
+	demo/hellosetlabel.c
+bxt_hello_set_label_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_set_label_LDADD = \
+	libbuxton.la
+
+bxt_hello_create_group_SOURCES = \
+	demo/hellocreategroup.c
+bxt_hello_create_group_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_create_group_LDADD = \
+	libbuxton.la
+
+bxt_hello_remove_group_SOURCES = \
+	demo/helloremovegroup.c
+bxt_hello_remove_group_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_remove_group_LDADD = \
+	libbuxton.la
+
+bxt_hello_unset_SOURCES = \
+	demo/hellounset.c
+bxt_hello_unset_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_unset_LDADD = \
 	libbuxton.la
 
 bxt_hello_notify_SOURCES = \

@@ -88,7 +88,7 @@ static void buxton_test_init(BuxtonTest *self)
 	/* Help label */
 	label = gtk_label_new("<big>"
 		"Using the controls below, you can set a key within the\n"
-		"<b>base</b> layer. Open another instance of this client to\n"
+		"<b>user</b> layer. Open another instance of this client to\n"
 		"check notification support.</big>");
 	gtk_label_set_use_markup(GTK_LABEL(label), TRUE);
 	gtk_box_pack_start(GTK_BOX(layout), label, FALSE, FALSE, 10);
@@ -121,7 +121,7 @@ static void buxton_test_init(BuxtonTest *self)
 	g_signal_connect(button, "clicked", G_CALLBACK(update_key), self);
 	gtk_box_pack_start(GTK_BOX(box2), button, FALSE, FALSE, 0);
 
-	/* Integrate with Mutter based desktops */
+	/* Integrate with Mutter userd desktops */
 	header = gtk_header_bar_new();
 	gtk_header_bar_set_title(GTK_HEADER_BAR(header), "BuxtonTest");
 	gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header), TRUE);

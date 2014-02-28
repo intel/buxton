@@ -26,7 +26,7 @@ typedef struct _BuxtonTestClass   BuxtonTestClass;
 
 #define PRIMARY_KEY "test"
 #define GROUP "test"
-#define LAYER "base"
+#define LAYER "user"
 
 GType buxton_test_get_type(void);
 

@@ -17,21 +17,13 @@
 
 #include "buxton.h"
 
-void set_cb(BuxtonResponse response, void *data)
+void remove_cb(BuxtonResponse response, void *data)
 {
-	BuxtonKey key;
-	char *name;
-
 	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
-		printf("Failed to set value\n");
-		return;
+		printf("Failed to remove group\n");
+	} else {
+		printf("Removed group\n");
 	}
-
-	key = buxton_response_key(response);
-	name = buxton_key_get_name(key);
-	printf("Set value for key %s\n", name);
-	buxton_key_free(key);
-	free(name);
 }
 
 int main(void)
@@ -41,22 +33,19 @@ int main(void)
 	struct pollfd pfd[1];
 	int r;
 	int fd;
-	int32_t set;
 
 	if ((fd = buxton_open(&client)) < 0) {
 		printf("couldn't connect\n");
 		return -1;
 	}
 
-	key = buxton_key_create("hello", "test", "user", INT32);
+	key = buxton_key_create("hello", NULL, "user", STRING);
 	if (!key)
 		return -1;
 
-	set = 10;
-
-	if (!buxton_set_value(client, key, &set, set_cb,
+	if (!buxton_remove_group(client, key, remove_cb,
 				     NULL, false)) {
-		printf("set call failed to run\n");
+		printf("remove group call failed to run\n");
 		return -1;
 	}
 

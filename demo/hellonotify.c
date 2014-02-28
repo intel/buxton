@@ -23,7 +23,7 @@ void notify_cb(BuxtonResponse response, void *data)
 	int32_t value;
 	char *name;
 
-	if (buxton_response_value(response) == NULL) {
+	if (buxton_response_status(response) == BUXTON_STATUS_FAILED) {
 		*status = false;
 		return;
 	}
@@ -32,8 +32,7 @@ void notify_cb(BuxtonResponse response, void *data)
 	name = buxton_key_get_name(key);
 
 	value = *(int32_t*)buxton_response_value(response);
-	printf("key %s updated with new value %d\n", buxton_key_get_name(key),
-		value);
+	printf("key %s updated with new value %d\n", name, value);
 
 	buxton_key_free(key);
 	free(name);

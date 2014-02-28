@@ -43,7 +43,7 @@ int main(void)
 		return -1;
 	}
 
-	key = buxton_key_create("hello", "test", "base", INT32);
+	key = buxton_key_create("hello", "test", "user", INT32);
 	if (!key)
 		return -1;
 
