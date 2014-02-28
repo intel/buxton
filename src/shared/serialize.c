@@ -361,7 +361,7 @@ size_t buxton_deserialize_message(uint8_t *data,
 	size_t min_length = BUXTON_MESSAGE_HEADER_LENGTH;
 	uint16_t control, message;
 	size_t n_params, c_param, c_length;
-	BuxtonDataType c_type;
+	BuxtonDataType c_type = 0;
 	BuxtonData *k_list = NULL;
 	BuxtonData c_data;
 	uint64_t msgid;
