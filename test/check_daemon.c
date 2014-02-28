@@ -110,9 +110,9 @@ static void exec_daemon(void)
 	char path[PATH_MAX];
 
 	//FIXME: path is wrong for makedistcheck
-	snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
+	snprintf(path, PATH_MAX, "%s/check_buxtond", get_current_dir_name());
 
-	if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
+	if (execl(path, "check_buxtond", (const char*)NULL) < 0) {
 		fail("couldn't exec: %m");
 	}
 	fail("should never reach here");
@@ -971,7 +971,7 @@ START_TEST(register_notification_check)
 	buxton_direct_close(&server.buxton);
 }
 END_TEST
-START_TEST(bt_daemon_handle_message_error_check)
+START_TEST(buxtond_handle_message_error_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
@@ -1006,7 +1006,7 @@ START_TEST(bt_daemon_handle_message_error_check)
 	cl.data[2] = 0;
 	cl.data[3] = 0;
 	size = 100;
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	fail_if(r, "Failed to detect invalid message data");
 	free(cl.data);
 
@@ -1019,11 +1019,11 @@ START_TEST(bt_daemon_handle_message_error_check)
 	fail_if(size == 0, "Failed to serialize message");
 	control = BUXTON_CONTROL_MIN;
 	memcpy(cl.data, &control, sizeof(uint16_t));
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	fail_if(r, "Failed to detect min control size");
 	control = BUXTON_CONTROL_MAX;
 	memcpy(cl.data, &control, sizeof(uint16_t));
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(r, "Failed to detect max control size");
 
@@ -1033,7 +1033,7 @@ START_TEST(bt_daemon_handle_message_error_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_create_group_check)
+START_TEST(buxtond_handle_message_create_group_check)
 {
 	BuxtonDaemon daemon;
 	BuxtonString slabel;
@@ -1084,7 +1084,7 @@ START_TEST(bt_daemon_handle_message_create_group_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_CREATE_GROUP, 0,
 					out_list1);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to handle create group message");
 
@@ -1113,7 +1113,7 @@ START_TEST(bt_daemon_handle_message_create_group_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_CREATE_GROUP, 1,
 					out_list2);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to handle create group message");
 
@@ -1139,7 +1139,7 @@ START_TEST(bt_daemon_handle_message_create_group_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_remove_group_check)
+START_TEST(buxtond_handle_message_remove_group_check)
 {
 	BuxtonDaemon daemon;
 	BuxtonString slabel;
@@ -1190,7 +1190,7 @@ START_TEST(bt_daemon_handle_message_remove_group_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_REMOVE_GROUP, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to handle remove group message");
 
@@ -1215,7 +1215,7 @@ START_TEST(bt_daemon_handle_message_remove_group_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_set_label_check)
+START_TEST(buxtond_handle_message_set_label_check)
 {
 	BuxtonDaemon daemon;
 	BuxtonString slabel;
@@ -1270,7 +1270,7 @@ START_TEST(bt_daemon_handle_message_set_label_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET_LABEL, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to handle set label message");
 
@@ -1295,7 +1295,7 @@ START_TEST(bt_daemon_handle_message_set_label_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_set_value_check)
+START_TEST(buxtond_handle_message_set_value_check)
 {
 	BuxtonDaemon daemon;
 	BuxtonString slabel;
@@ -1353,14 +1353,14 @@ START_TEST(bt_daemon_handle_message_set_value_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(r, "Failed to detect parse_list failure");
 
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_SET, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to handle set message");
 
@@ -1385,7 +1385,7 @@ START_TEST(bt_daemon_handle_message_set_value_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_get_check)
+START_TEST(buxtond_handle_message_get_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
@@ -1438,7 +1438,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to get message 1");
 
@@ -1470,7 +1470,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_GET, 0,
 					out_list2);
 	fail_if(size == 0, "Failed to serialize message 2");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to get message 2");
 
@@ -1497,7 +1497,7 @@ START_TEST(bt_daemon_handle_message_get_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_notify_check)
+START_TEST(buxtond_handle_message_notify_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
@@ -1547,7 +1547,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_NOTIFY, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to register for notification");
 
@@ -1568,7 +1568,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNNOTIFY, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to unregister from notification");
 
@@ -1596,7 +1596,7 @@ START_TEST(bt_daemon_handle_message_notify_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_handle_message_unset_check)
+START_TEST(buxtond_handle_message_unset_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
@@ -1650,7 +1650,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 	size = buxton_serialize_message(&cl.data, BUXTON_CONTROL_UNSET, 0,
 					out_list);
 	fail_if(size == 0, "Failed to serialize message");
-	r = bt_daemon_handle_message(&daemon, &cl, size);
+	r = buxtond_handle_message(&daemon, &cl, size);
 	free(cl.data);
 	fail_if(!r, "Failed to unset message");
 
@@ -1674,7 +1674,7 @@ START_TEST(bt_daemon_handle_message_unset_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_notify_clients_check)
+START_TEST(buxtond_notify_clients_check)
 {
 	int client, server;
 	BuxtonDaemon daemon;
@@ -1711,7 +1711,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	value1.type = STRING;
 	value1.store.d_string = buxton_string_pack("dummy value");
 	key.group = buxton_string_pack("dummy key");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value1);
+	buxtond_notify_clients(&daemon, &cl, &key, &value1);
 
 	value1.store.d_string = buxton_string_pack("real value");
 	key.group = buxton_string_pack("daemon-check");
@@ -1724,11 +1724,11 @@ START_TEST(bt_daemon_notify_clients_check)
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value1);
+	buxtond_notify_clients(&daemon, &cl, &key, &value1);
 
 	value2.type = STRING;
 	value2.store.d_string = buxton_string_pack("new value");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -1767,7 +1767,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -1797,7 +1797,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -1827,7 +1827,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -1857,7 +1857,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -1887,7 +1887,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -1917,7 +1917,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -1947,7 +1947,7 @@ START_TEST(bt_daemon_notify_clients_check)
 	register_notification(&daemon, &cl, &key, 0, &status);
 	fail_if(status != BUXTON_STATUS_OK,
 		"Failed to register notification for notify");
-	bt_daemon_notify_clients(&daemon, &cl, &key, &value2);
+	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
 	s = read(client, buf, 4096);
 	fail_if(s < 0, "Read from client failed");
@@ -2067,7 +2067,7 @@ START_TEST(handle_client_check)
 }
 END_TEST
 
-START_TEST(bt_daemon_eat_garbage_check)
+START_TEST(buxtond_eat_garbage_check)
 {
 	daemon_pid = 0;
 	sigset_t sigset;
@@ -2182,15 +2182,15 @@ daemon_suite(void)
 	tcase_add_test(tc, set_value_check);
 	tcase_add_test(tc, get_value_check);
 	tcase_add_test(tc, register_notification_check);
-	tcase_add_test(tc, bt_daemon_handle_message_error_check);
-	tcase_add_test(tc, bt_daemon_handle_message_create_group_check);
-	tcase_add_test(tc, bt_daemon_handle_message_remove_group_check);
-	tcase_add_test(tc, bt_daemon_handle_message_set_label_check);
-	tcase_add_test(tc, bt_daemon_handle_message_set_value_check);
-	tcase_add_test(tc, bt_daemon_handle_message_get_check);
-	tcase_add_test(tc, bt_daemon_handle_message_notify_check);
-	tcase_add_test(tc, bt_daemon_handle_message_unset_check);
-	tcase_add_test(tc, bt_daemon_notify_clients_check);
+	tcase_add_test(tc, buxtond_handle_message_error_check);
+	tcase_add_test(tc, buxtond_handle_message_create_group_check);
+	tcase_add_test(tc, buxtond_handle_message_remove_group_check);
+	tcase_add_test(tc, buxtond_handle_message_set_label_check);
+	tcase_add_test(tc, buxtond_handle_message_set_value_check);
+	tcase_add_test(tc, buxtond_handle_message_get_check);
+	tcase_add_test(tc, buxtond_handle_message_notify_check);
+	tcase_add_test(tc, buxtond_handle_message_unset_check);
+	tcase_add_test(tc, buxtond_notify_clients_check);
 	tcase_add_test(tc, identify_client_check);
 	tcase_add_test(tc, add_pollfd_check);
 	tcase_add_test(tc, del_pollfd_check);
@@ -2199,7 +2199,7 @@ daemon_suite(void)
 
 	tc = tcase_create("buxton daemon evil tests");
 	tcase_add_checked_fixture(tc, NULL, teardown);
-	tcase_add_test(tc, bt_daemon_eat_garbage_check);
+	tcase_add_test(tc, buxtond_eat_garbage_check);
 	tcase_set_timeout(tc, fuzz_time+2);
 	suite_add_tcase(s, tc);
 

@@ -65,7 +65,7 @@ static void print_usage(char *name)
 }
 
 /**
- * Entry point into bt-daemon
+ * Entry point into buxtond
  * @param argc Number of arguments passed
  * @param argv An array of string arguments
  * @returns EXIT_SUCCESS if the operation succeeded, otherwise EXIT_FAILURE

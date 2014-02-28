@@ -41,9 +41,9 @@ static void exec_daemon(void)
 	char path[PATH_MAX];
 
 	//FIXME: path is wrong for makedistcheck
-	snprintf(path, PATH_MAX, "%s/check_bt_daemon", get_current_dir_name());
+	snprintf(path, PATH_MAX, "%s/check_buxtond", get_current_dir_name());
 
-	if (execl(path, "check_bt_daemon", (const char*)NULL) < 0) {
+	if (execl(path, "check_buxtond", (const char*)NULL) < 0) {
 		fail("couldn't exec: %m");
 	}
 	fail("should never reach here");

@@ -147,7 +147,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	return true;
 }
 
-bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
+bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
 {
 	BuxtonControlMessage msg;
 	BuxtonStatus response;
@@ -185,7 +185,7 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	if (!parse_list(msg, p_count, list, &key, &value))
 		goto end;
 
-	/* use internal function from bt-daemon */
+	/* use internal function from buxtond */
 	switch (msg) {
 	case BUXTON_CONTROL_SET:
 		set_value(self, client, &key, value, &response);
@@ -336,9 +336,9 @@ bool bt_daemon_handle_message(BuxtonDaemon *self, client_list_item *client, size
 	ret = _write(client->fd, response_store, response_len);
 	if (ret) {
 		if (msg == BUXTON_CONTROL_SET && response == BUXTON_STATUS_OK)
-			bt_daemon_notify_clients(self, client, &key, value);
+			buxtond_notify_clients(self, client, &key, value);
 		else if (msg == BUXTON_CONTROL_UNSET && response == BUXTON_STATUS_OK)
-			bt_daemon_notify_clients(self, client, &key, NULL);
+			buxtond_notify_clients(self, client, &key, NULL);
 	}
 
 end:
@@ -354,7 +354,7 @@ end:
 	return ret;
 }
 
-void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
+void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 			      _BuxtonKey *key, BuxtonData *value)
 {
 	BuxtonList *list = NULL;
@@ -956,7 +956,7 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		}
 		if (cl->size != cl->offset)
 			continue;
-		if (!bt_daemon_handle_message(self, cl, cl->size)) {
+		if (!buxtond_handle_message(self, cl, cl->size)) {
 			buxton_log("Communication failed with client %d\n", cl->fd);
 			goto terminate;
 		}

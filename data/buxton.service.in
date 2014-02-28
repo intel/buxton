@@ -2,7 +2,7 @@
 Description=Buxton Configuration Service
 
 [Service]
-ExecStart=@prefix@/sbin/bt-daemon
+ExecStart=@prefix@/sbin/buxtond
 User=@BUXTON_USERNAME@
 
 [Install]

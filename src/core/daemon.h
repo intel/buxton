@@ -12,7 +12,7 @@
 /**
  * \file daemon.h Internal header
  * This file is used internally by buxton to provide functionality
- * used for the bt-daemon
+ * used for the buxtond
  */
 #pragma once
 
@@ -53,7 +53,7 @@ typedef struct BuxtonNotification {
 } BuxtonNotification;
 
 /**
- * Global store of bt-daemon state
+ * Global store of buxtond state
  */
 typedef struct BuxtonDaemon {
 	size_t nfds_alloc;
@@ -81,30 +81,30 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	__attribute__((warn_unused_result));
 
 /**
- * Handle a message within bt-daemon
+ * Handle a message within buxtond
  * @param self Reference to BuxtonDaemon
  * @param client Current client
  * @param size Size of the data being handled
  * @returns bool True if message was successfully handled
  */
-bool bt_daemon_handle_message(BuxtonDaemon *self,
+bool buxtond_handle_message(BuxtonDaemon *self,
 			      client_list_item *client,
 			      size_t size)
 	__attribute__((warn_unused_result));
 
 /**
- * Notify clients a value changes in bt-daemon
+ * Notify clients a value changes in buxtond
  * @param self Refernece to BuxtonDaemon
  * @param client Current client
  * @param key Modified key
  * @param value Modified value
  */
-void bt_daemon_notify_clients(BuxtonDaemon *self, client_list_item *client,
+void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 			      _BuxtonKey* key, BuxtonData *value);
 
 /**
  * Buxton daemon function for setting a value
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key for the value being set
  * @param value Value being set
@@ -115,7 +115,7 @@ void set_value(BuxtonDaemon *self, client_list_item *client,
 
 /**
  * Buxton daemon function for setting a label
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key or group for the label being set
  * @param value Label being set
@@ -126,7 +126,7 @@ void set_label(BuxtonDaemon *self, client_list_item *client,
 
 /**
  * Buxton daemon function for creating a group
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key with layer and group members initialized
  * @param status Will be set with the BuxtonStatus result of the operation
@@ -136,7 +136,7 @@ void create_group(BuxtonDaemon *self, client_list_item *client,
 
 /**
  * Buxton daemon function for removing a group
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key with layer and group members initialized
  * @param status Will be set with the BuxtonStatus result of the operation
@@ -146,7 +146,7 @@ void remove_group(BuxtonDaemon *self, client_list_item *client,
 
 /**
  * Buxton daemon function for getting a value
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key for the value being sought
  * @param status Will be set with the BuxtonStatus result of the operation
@@ -158,7 +158,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 
 /**
  * Buxton daemon function for unsetting a value
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key for the value being dunset
  * @param status Will be set with the BuxtonStatus result of the operation
@@ -168,7 +168,7 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 
 /**
  * Buxton daemon function for listing keys in a given layer
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param layer Layer to query
  * @param status Will be set with the BuxtonStatus result of the operation
@@ -179,7 +179,7 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 
 /**
  * Buxton daemon function for registering notifications on a given key
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key to notify for changes on
  * @param msgid Message ID from the client
@@ -191,7 +191,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 
 /**
  * Buxton daemon function for unregistering notifications from the given key
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key to no longer recieve notifications for
  * @param status Will be set with the BuxtonStatus result of the operation
@@ -211,7 +211,7 @@ bool identify_client(client_list_item *cl)
 
 /**
  * Add a fd to daemon's poll list
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param fd File descriptor to add to the poll list
  * @param events Priority mask for events
  * @param a Accepting status of the fd
@@ -221,7 +221,7 @@ void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a);
 
 /**
  * Add a fd to daemon's poll list
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param i File descriptor to remove from poll list
  * @return None
  */
@@ -229,7 +229,7 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i);
 
 /**
  * Handle a client connection
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param cl The currently activate client
  * @param i The currently active file descriptor
  * @return bool indicating more data to process
@@ -239,7 +239,7 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 
 /**
  * Terminate client connectoin
- * @param self bt-daemon instance being run
+ * @param self buxtond instance being run
  * @param cl The client to terminate
  * @param i File descriptor to remove from poll list
  */
