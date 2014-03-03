@@ -154,7 +154,7 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	BuxtonData *list = NULL;
 	_cleanup_buxton_data_ BuxtonData *data = NULL;
 	uint16_t i;
-	size_t p_count;
+	ssize_t p_count;
 	size_t response_len;
 	BuxtonData response_data, mdata;
 	BuxtonData *value = NULL;
@@ -172,7 +172,7 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	uid = self->buxton.client.uid;
 	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size,
 					     &msgid, &list);
-	if (p_count == 0) {
+	if (p_count < 0) {
 		/* Todo: terminate the client due to invalid message */
 		buxton_debug("Failed to deserialize message\n");
 		goto end;
@@ -182,7 +182,7 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	if (msg <= BUXTON_CONTROL_MIN || msg >= BUXTON_CONTROL_MAX)
 		goto end;
 
-	if (!parse_list(msg, p_count, list, &key, &value))
+	if (!parse_list(msg, (size_t)p_count, list, &key, &value))
 		goto end;
 
 	/* use internal function from buxtond */

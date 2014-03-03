@@ -199,7 +199,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 	buxton_debug("Serializing message...\n");
 
-	if (list->len == 0 || list->len > BUXTON_MESSAGE_MAX_PARAMS)
+	if (list->len < 0 || list->len > BUXTON_MESSAGE_MAX_PARAMS)
 		return ret;
 
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
@@ -342,13 +342,13 @@ end:
 	return ret;
 }
 
-size_t buxton_deserialize_message(uint8_t *data,
+ssize_t buxton_deserialize_message(uint8_t *data,
 				  BuxtonControlMessage *r_message,
 				  size_t size, uint64_t *r_msgid,
 				  BuxtonData **list)
 {
 	size_t offset = 0;
-	size_t ret = 0;
+	ssize_t ret = -1;
 	size_t min_length = BUXTON_MESSAGE_HEADER_LENGTH;
 	uint16_t control, message;
 	size_t n_params, c_param, c_length;
@@ -399,7 +399,7 @@ size_t buxton_deserialize_message(uint8_t *data,
 		goto end;
 
 	k_list = malloc0(sizeof(BuxtonData)*n_params);
-	if (!k_list)
+	if (n_params && !k_list)
 		goto end;
 
 	memzero(&c_data, sizeof(BuxtonData));
@@ -478,10 +478,16 @@ size_t buxton_deserialize_message(uint8_t *data,
 	}
 	*r_message = message;
 	*r_msgid = msgid;
-	*list = k_list;
-	ret = n_params;
+	if (n_params == 0) {
+		*list = NULL;
+		free(k_list);
+		k_list = NULL;
+	} else {
+		*list = k_list;
+	}
+	ret = (ssize_t)n_params;
 end:
-	if (ret == 0)
+	if (ret <= 0)
 		free(k_list);
 
 	buxton_debug("Deserializing returned:%i\n", ret);

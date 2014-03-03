@@ -708,23 +708,24 @@ START_TEST(buxton_message_serialize_check)
 
 	list2 = buxton_array_new();
 	fail_if(!list, "Failed to allocate list");
-	r = buxton_array_add(list2, &dsource1);
-	fail_if(!r, "Failed to add element to array");
 	list2->len = 0;
-
 	dsource1.type = STRING;
 	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list2);
-	fail_if(ret != 0, "Serialized with too few parameters");
+	fail_if(ret == 0, "Unable to serialize with 0 element list");
 
 	list2->len = BUXTON_MESSAGE_MAX_PARAMS + 1;
 	ret = buxton_serialize_message(&packed, csource, msource, list2);
 	fail_if(ret != 0, "Serialized with too many parameters");
 
+	list2->len = 0;
+	r = buxton_array_add(list2, &dsource1);
+	fail_if(!r, "Failed to add element to array");
 	list2->len = 2;
 	ret = buxton_serialize_message(&packed, csource, msource, list2);
 	fail_if(ret != 0, "Serialized with incorrect parameter count");
+	list2->len = 0;
 
 	dsource1.type = -1;
 	dsource1.store.d_string = buxton_string_pack("test-key");
@@ -744,7 +745,7 @@ START_TEST(buxton_message_serialize_check)
 	ret = buxton_serialize_message(&packed, csource, msource, list);
 	fail_if(buxton_deserialize_message(packed, &ctarget,
 					   BUXTON_MESSAGE_HEADER_LENGTH - 1,
-					   &mtarget, &dtarget),
+					   &mtarget, &dtarget) >= 0,
 		"Deserialized message with too small a length data");
 
 	/* don't read past end of buffer check */
@@ -753,13 +754,13 @@ START_TEST(buxton_message_serialize_check)
 					   + sizeof(uint64_t)
 					   + sizeof(uint16_t)
 					   + (sizeof(uint32_t) * 2),
-					   &mtarget, &dtarget),
+					   &mtarget, &dtarget) >= 0,
 		"Deserialized message size smaller than minimum data length");
 
 	control = 0x0000;
 	memcpy(packed, &control, sizeof(uint16_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
-					   &dtarget),
+					   &dtarget) >= 0,
 		"Deserialized message with invalid control");
 	free(packed);
 
@@ -767,7 +768,7 @@ START_TEST(buxton_message_serialize_check)
 	message = BUXTON_CONTROL_MIN;
 	memcpy(packed+sizeof(uint16_t), &message, sizeof(uint16_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
-					   &dtarget),
+					   &dtarget) >= 0,
 		"Deserialized message with invalid control");
 	free(packed);
 
@@ -775,7 +776,7 @@ START_TEST(buxton_message_serialize_check)
 	message = BUXTON_CONTROL_MAX;
 	memcpy(packed+sizeof(uint16_t), &message, sizeof(uint16_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
-					   &dtarget),
+					   &dtarget) >= 0,
 		"Deserialized message with invalid control");
 	free(packed);
 
@@ -783,16 +784,16 @@ START_TEST(buxton_message_serialize_check)
 	pcount = 0;
 	memcpy(packed+(2 * sizeof(uint32_t)+sizeof(uint64_t)), &pcount, sizeof(uint32_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
-					   &dtarget),
-		"Deserialized message with 0 BuxtonData");
+					   &dtarget) < 0,
+		"Unable to deserialize message with 0 BuxtonData");
 	free(packed);
 
 	ret = buxton_serialize_message(&packed, csource, msource, list);
 	pcount = BUXTON_MESSAGE_MAX_PARAMS + 1;
 	memcpy(packed+(2 * sizeof(uint32_t)+sizeof(uint64_t)), &pcount, sizeof(uint32_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
-					   &dtarget),
-		"Deserialized message with 0 BuxtonData");
+					   &dtarget) >= 0,
+		"Unable to deserialize message with 0 BuxtonData");
 	free(packed);
 
 	buxton_array_free(&list, NULL);

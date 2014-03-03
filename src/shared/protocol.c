@@ -236,7 +236,7 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 	_cleanup_free_ uint8_t *response = NULL;
 	BuxtonData *r_list = NULL;
 	BuxtonControlMessage r_msg = BUXTON_CONTROL_MIN;
-	size_t count = 0;
+	ssize_t count = 0;
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
 	uint64_t r_msgid;
@@ -268,7 +268,7 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 			continue;
 
 		count = buxton_deserialize_message(response, &r_msg, size, &r_msgid, &r_list);
-		if (count == 0)
+		if (count < 0)
 			goto next;
 
 		if (!(r_msg == BUXTON_CONTROL_STATUS && r_list[0].type == INT32)
@@ -282,7 +282,7 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 		if (s)
 			goto next;
 
-		handle_callback_response(r_msg, r_msgid, r_list, count);
+		handle_callback_response(r_msg, r_msgid, r_list, (size_t)count);
 
 		(void)pthread_mutex_unlock(&callback_guard);
 		handled++;
