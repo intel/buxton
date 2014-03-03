@@ -1,0 +1,63 @@
+'\" t
+.TH "BUXTON_CLIENT_HANDLE_RESPONSE" "3" "buxton 1" "buxton_client_handle_response"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_client_handle_response \- Notification response helper
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+ssize_t buxton_client_handle_response(BuxtonClient \fIclient\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+This function retrieves the response from \fBbuxtond\fR for the \fIclient\fR.
+
+Several manual pages include code examples that use this function.
+For an example, see \fBbuxton_create_group\fR(3).
+
+.SH "RETURN VALUE"
+.PP
+Returns the number of messages processed, or -1 if there was an error\&.
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE

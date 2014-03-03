@@ -1,0 +1,94 @@
+'\" t
+.TH "BUXTON_RESPONSE_STATUS" "3" "buxton 1" "buxton_response_status"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_response_status, buxton_response_type, buxton_response_key,
+buxton_response_value \- Query responses from the buxton daemon
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+int32_t buxton_reponse_status(BuxtonResponse \fIresponse\fB)
+.sp
+.br
+BuxtonControlMessage buxton_reponse_type(BuxtonResponse \fIresponse\fB)
+.sp
+.br
+BuxtonKey buxton_reponse_key(BuxtonResponse \fIresponse\fB)
+.sp
+.br
+void *buxton_reponse_value(BuxtonResponse \fIresponse\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+These functions are used within client-defined buxton callback
+functions to query the response returned to the client by the buxton
+daemon, \fBbuxtond\fR(8)\&. Callbacks are registered through several
+of the API functions, such as \fBbuxton_set_value\fR(3) or
+\fBbuxton_get_value\fR(3)\&.
+
+With a callback function, the client should check the response status
+by calling \fBbuxton_response_status\fR(3), with the \fIresponse\fR
+argument passed to the callback\&. This function returns 0 on
+success, or a non-zero value on failure\&.
+
+Next, the client will want to check the type of response received
+from the daemon by calling \fBbuxton_response_type\fR(3)\&. The type
+will correspond to the type of operation that the client originally
+requested\&. There are several possible return values, depending on
+the type of operation; for operations that manipulate or query
+configuration, the values include BUXTON_CONTROL_SET,
+BUXTON_CONTROL_SET_LABEL, BUXTON_CONTROL_CREATE_GROUP,
+BUXTON_CONTROL_REMOVE_GROUP, BUXTON_CONTROL_GET, and
+BUXTON_CONTROL_UNSET; for operations related to notifications, the
+values include BUXTON_CONTROL_NOTIFY and BUXTON_CONTROL_UNNOTIFY\&.
+
+Finally, the client can validate that the configuration action
+requested by the client matches the action taken by the daemon\&. To
+query the BuxtonKey operated on by the daemon, the client should call
+\fBbuxton_response_key\fR(3), which returns the BuxtonKey in
+question\&. To query the value acted on by the daemon for this
+BuxtonKey, a call to \fBbuxton_response_value\fR(3) returns an
+untyped pointer to this value\&.
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE

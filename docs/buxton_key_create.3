@@ -1,0 +1,109 @@
+'\" t
+.TH "BUXTON_KEY_CREATE" "3" "buxton 1" "buxton_key_create"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_key_create, buxton_key_free, buxton_key_get_layer,
+buxton_key_get_type, buxton_key_get_group, buxton_key_get_name \-
+Manage groups and key\-names for buxton clients
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+BuxtonKey buxton_key_create(char *\fIgroup\fB,
+.br
+                            char *\fIname\fB,
+.br
+                            char *\fIlayer\fB,
+.br
+                            BuxtonDataType \fItype\fB)
+.sp
+.br
+char *buxton_key_get_layer(BuxtonKey \fIkey\fB)
+.sp
+.br
+char *buxton_key_get_group(BuxtonKey \fIkey\fB)
+.sp
+.br
+char *buxton_key_get_name(BuxtonKey \fIkey\fB)
+.sp
+.br
+BuxtonDataType buxton_key_get_type(BuxtonKey \fIkey\fB)
+.sp
+.br
+void buxton_key_free(BuxtonKey \fIkey\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+These functions are used by buxton clients to manage groups and
+key\-names, both represented by a BuxtonKey\&. BuxtonKeys are
+required for all configuration management operations within buxton.
+
+A BuxtonKey is created with \fBbuxton_key_create\fR(3). Its arguments
+serve to initialize the BuxtonKey contents, which include the name of
+the \fIlayer\fR, name of the \fIgroup\fR, name of the key \fIname\fR,
+and the \fItype\fR of the key name\&. Groups must be initialized by
+passing a NULL value for \fIname\fR; similarly, key\-names must be
+initialized by passing non\-NULL arguments for both \fIgroup\fR and
+\fIname\fR\&. For groups, the \fItype\fR is ignored\&. The function
+returns an initialized BuxtonKey\&.
+
+Note that upon creation, a BuxtonKey is either a group or key\-name,
+but not both\&. In other words, if a client needs to a create a group
+and key\-name within that group, two BuxtonKeys need to be created\&.
+
+After creating a BuxtonKey, its layer, group, key name, or key name
+type fields can be requested by calling
+\fBbuxton_key_get_layer\fR(3), \fBbuxton_key_get_group\fR(3),
+\fBbuxton_key_get_name\fR(3), or \fBbuxton_key_get_type\fR(3),
+respectively\&. Each of these functions take a single argument, the
+BuxtonKey that is being queried, and return the value requested\&.
+Note that calling \fBbuxton_key_get_type\fR(3) for a group will
+return STRING, since buxton treats groups as strings internally\&.
+Calling \fBbuxton_key_get_name\fR(3) for a group will return NULL,
+since the name field is not used for groups\&.
+
+When the client no longer needs a BuxtonKey, its memory should freed
+by calling \fBbuxton_key_free\fR(3)\&. This function takes a single
+argument, the BuxtonKey to be freed\&.
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE

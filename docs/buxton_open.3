@@ -1,0 +1,95 @@
+'\" t
+.TH "BUXTON_OPEN" "3" "buxton 1" "buxton_open"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_open, buxton_close \- Manage buxton client connections
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+int buxton_open(BuxtonClient *\fIclient\fB)
+.sp
+.br
+void buxton_close(BuxtonClient \fIclient\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+These functions are used to manage connections from a buxton client to the
+buxton daemon, \fBbuxtond\fR(8)\&. Clients must call \fBbuxton_open\fR(3), to
+create a new connection to the daemon\&. Effectively, creating this connection
+registers the client with the daemon, allowing the client to make configuration
+changes, queries, etc\&. This function requires one argument, \fIclient\fR, a
+pointer to a BuxtonClient owned by the client\&. It returns 0 on success,
+and a non-zero status code on failure\&.
+
+To terminate this connection, the client must call \fBbuxton_close\fR(3)\&. The
+required argument is a reference to the same BuxtonClient passed to
+\fBbuxton_open\fR(3)\&.
+
+.SH "CODE EXAMPLE"
+.nf
+.sp
+#define _GNU_SOURCE
+#include <buxton.h>
+
+int main(void)
+{
+	BuxtonClient client;
+	int fd;
+
+	if ((fd = buxton_open(&client)) < 0) {
+		printf("couldn't connect\\n");
+		return -1;
+	}
+
+	/* Manipulate data, register for notifications, ... */
+
+	buxton_close(client);
+	return 0;
+}
+.fi
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2, with exception
+for code examples found in the \fBCODE EXAMPLE\fR section, which are
+licensed under the MIT license provided in the \fIdocs/LICENSE.MIT\fR
+file from this buxton distribution\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE

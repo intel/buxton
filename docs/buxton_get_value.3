@@ -1,0 +1,156 @@
+'\" t
+.TH "BUXTON_GET_VALUE" "3" "buxton 1" "buxton_get_value"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_get_value \- Get the value of a key\-name
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+bool buxton_get_value(BuxtonClient \fIclient\fB,
+.br
+                      BuxtonKey \fIkey\fB,
+.br
+                      BuxtonCallback \fIcallback\fB,
+.br
+                      void *\fIdata\fB,
+.br
+                      bool \fIsync\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+This function is used to get the value of a key\-name for
+\fIclient\fR. The key\-name is referenced by \fIkey\fR. If the layer
+for \fIkey\fR is NULL, buxton will traverse layers in priority order
+searching for the key-name value, selecting the value for the first
+key\-name found\&. If the argument is non-NULL, the operation will
+target only that layer\&. For more information on creating a
+BuxtonKey to pass for \fIkey\fR, see \fBbuxton_key_create\fR(3)\&.
+
+To retrieve the result of the operation, clients should define a
+callback function, referenced by the \fIcallback\fR argument; the
+callback function is called upon completion of the operation\&. The
+\fIdata\fR argument is a pointer to arbitrary userdata that is passed
+along to the callback function\&. Additonally, the \fIsync\fR
+argument controls whether the operation should be synchronous or not;
+if \fIsync\fR is false, the operation is asynchronous\&.
+
+.SH "CODE EXAMPLE"
+.nf
+.sp
+#define _GNU_SOURCE
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "buxton.h"
+
+void get_cb(BuxtonResponse response, void *data)
+{
+	int32_t* ret = (int32_t*)data;
+
+	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+		printf("Failed to get value\\n");
+		return;
+	}
+
+	*ret = *(int32_t*)buxton_response_value(response);
+}
+
+int main(void)
+{
+	BuxtonClient client;
+	BuxtonKey key;
+	struct pollfd pfd[1];
+	int r;
+	int32_t gvalue = -1;
+	int fd;
+
+	if ((fd = buxton_open(&client)) < 0) {
+		printf("couldn't connect\\n");
+		return -1;
+	}
+
+	key = buxton_key_create("hello", "test", "user", INT32);
+	if (!key)
+		return -1;
+
+	if (!buxton_get_value(client, key, get_cb,
+					       &gvalue, false)) {
+		printf("get call failed to run\\n");
+		return -1;
+	}
+
+	pfd[0].fd = fd;
+	pfd[0].events = POLLIN;
+	pfd[0].revents = 0;
+	r = poll(pfd, 1, 5000);
+
+	if (r <= 0) {
+		printf("poll error\\n");
+		return -1;
+	}
+
+	if (!buxton_client_handle_response(client)) {
+		printf("bad response from daemon\\n");
+		return -1;
+	}
+
+	if (gvalue >= 0)
+		printf("got value: %d\\n", gvalue);
+
+	buxton_key_free(key);
+	buxton_close(client);
+	return 0;
+}
+.fi
+
+.SH "RETURN VALUE"
+.PP
+Returns "true" on success, and "false" on failure\&.
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2, with exception
+for code examples found in the \fBCODE EXAMPLE\fR section, which are
+licensed under the MIT license provided in the \fIdocs/LICENSE.MIT\fR
+file from this buxton distribution\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE

@@ -1,0 +1,92 @@
+'\" t
+.TH "BUXTON_SET_CONF_FILE" "3" "buxton 1" "buxton_set_conf_file"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_set_conf_file \- Set the path to the Buxton configuration file
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+bool buxton_set_conf_file(char *\fIpath\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+Clients may use a custom Buxton configuration file, referenced by \fIpath\fR\&.
+The settings from the new configuration file take effect immediately\&.
+
+.SH "CODE EXAMPLE"
+.nf
+.sp
+#define _GNU_SOURCE
+#include <buxton.h>
+
+int main(void)
+{
+	BuxtonClient client;
+	int fd;
+
+	if ((fd = buxton_open(&client)) < 0) {
+		printf("couldn't connect\\n");
+		return -1;
+	}
+
+	if (!buxton_set_conf_file("/etc/buxton-custom.conf")) {
+		printf("failed to set conf file\\n");
+		return -1;
+	}
+
+	buxton_close(client);
+	return 0;
+}
+
+.fi
+
+.SH "RETURN VALUE"
+.PP
+Returns "true" on success, "false" on failure\&.
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2, with exception
+for code examples found in the \fBCODE EXAMPLE\fR section, which are
+licensed under the MIT license provided in the \fIdocs/LICENSE.MIT\fR
+file from this buxton distribution\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\&.conf\fR(5),
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE
