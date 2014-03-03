@@ -8,7 +8,6 @@ BUXTON_1 {
 		buxton_create_group;
 		buxton_remove_group;
 		buxton_get_value;
-		buxton_get_value_for_layer;
 		buxton_unset_value;
 		buxton_register_notification;
 		buxton_unregister_notification;
