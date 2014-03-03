@@ -1,0 +1,124 @@
+'\" t
+.TH "BUXTON\-PROTOCOL" "7" "" "buxton 1" "buxton\-protocol"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton\-protocol \- The wire protocol for buxton
+
+.SH "DESCRIPTION"
+.PP
+A buxton client communicates with the buxton daemon
+(\fBbuxtond\fR(8)) through a Unix Domain Socket by sending
+messages over this socket that adhere to a specific format\&.  Also,
+\fBbuxtond\fR(8) may send a response back to the client in a same
+format\&. The required rules, formats, and values permitted in this
+two-way communication channel is hereafter called the "wire
+protocol"\&.
+
+.SH "PROTOCOL SPECIFICATION"
+.PP
+The following sections detail the specifics of the wire protocol\&.
+
+.SH "MESSAGE FORMAT"
+.PP
+The messages sent to \fBbuxtond\fR(8) from a client, or vice
+versa, adhere to the following format:
+
+.SS "Header"
+.PP
+Magic (2 bytes)
+.RS 4
+The magic byte string has hex value 0x672\&.
+.RE
+.PP
+Control code (2 bytes)
+.RS 4
+All control codes belong to an enum with 13 elements\&. Each code is
+cast to a uint16_t value when serialized\&.
+
+For client messages, the accepted control codes are:
+BUXTON_CONTROL_SET, BUXTON_CONTROL_SET_LABEL,
+BUXTON_CONTROL_CREATE_GROUP, BUXTON_CONTROL_REMOVE_GROUP,
+BUXTON_CONTROL_GET, BUXTON_CONTROL_UNSET, BUXTON_CONTROL_NOTIFY, and
+BUXTON_CONTROL_UNNOTIFY\&.
+
+For daemon responses, accepted control codes are:
+BUXTON_CONTROL_STATUS and BUXTON_CONTROL_CHANGED\&.
+
+.RE
+.PP
+Message size (4 bytes)
+.RS 4
+The size on the entire message, with type uint32_t\&.
+.RE
+.PP
+Message ID (8 bytes)
+.RS 4
+The unique ID for this message, with type uint64_t\&.
+.RE
+.PP
+Parameter count (4 bytes)
+.RS 4
+The number of parameters in the message body, with contents as
+described in the next section\&. This number has type uint32_t\&.
+.RE
+
+.SS "Message body"
+.PP
+The message body contains one or more parameters, each with the
+following structure:
+.PP
+Data type (2 bytes)
+.RS 4
+All recognized data types belong to an enum with 8 elements\&. Each
+type is cast to a uint16_t value when serialized\&.
+
+Accepted types include STRING, INT32, UINT32, INT64, UINT64, FLOAT,
+DOUBLE, and BOOLEAN\&.
+\&.
+.RE
+.PP
+Data length (4 bytes)
+.RS 4
+The length the data value, as defined in the next entry\&.
+.RE
+.PP
+Data value (varies depending on data type)
+.RS 4
+For data with STRING type, the value may range from 0 (zero) bytes to
+an arbitrary maximum, as permitted by the maximum message length and
+factoring in the overall payload of the message\&. For all other data
+types, the value size depends on the data type, with maximum size of
+8 bytes\&.
+.RE
+
+.SH "NOTES"
+.PP
+The maximum message length is 32KB (32768 bytes)\&.
+.PP
+The message byte order is dependent on the endianness of the host
+machine\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtonctl\fR(1),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)

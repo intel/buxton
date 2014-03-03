@@ -1,0 +1,59 @@
+'\" t
+.TH "BUXTON" "7" "" "buxton 1" "buxton"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton \- A security\-enabled configuration system
+
+.SH "DESCRIPTION"
+.PP
+Buxton is a security\-enabled configuration management system\&. It
+features a layered approach to configuration storage, with each layer
+containing an arbitrary number of groups, each of which may contain
+key\-value pairs\&. Mandatory Access Control (MAC) is implemented at
+the group level and at the key\-value level\&.
+
+Currently, buxton uses \m[blue]\fBSmack\fR\m[]\&\s-2\u[1]\d\s+2 to
+enforce MAC\&.
+
+Buxton provides a C library, documented in \fBbuxton\-api\fR(7), for
+client applications to use\&. Internally, buxton uses
+\fBbuxtond\fR(8) for processing client requests and enforcing
+MAC\&. Also, \fBbuxtonctl\fR(1) is provided for interactive use and
+for use in shell scripts\&.
+
+Minimal examples of client API usage are found in
+\fBbuxton\-examples\fR(7), and an in\-depth overview of buxton is
+found in \fBbuxton\-overview\fR(7)\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxtonctl\fR(1),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7),
+\fBbuxton\-examples\fR(7),
+\fBbuxton\-overview\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Smack
+.RS 4
+\%https://www.kernel.org/doc/Documentation/security/Smack.txt
+.RE

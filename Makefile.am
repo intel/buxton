@@ -58,6 +58,15 @@ LIBBUXTON_CURRENT=0
 LIBBUXTON_REVISION=1
 LIBBUXTON_AGE=0
 
+man_MANS = \
+	docs/buxton.7 \
+	docs/buxtonctl.1 \
+	docs/buxton-api.7 \
+	docs/buxton.conf.5 \
+	docs/buxtond.8 \
+	docs/buxton-protocol.7 \
+	docs/buxton-security.7
+
 TESTS = \
 	check_db_clean \
 	check_buxton \
