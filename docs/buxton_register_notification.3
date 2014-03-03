@@ -1,0 +1,175 @@
+'\" t
+.TH "BUXTON_REGISTER_NOTIFICATION" "3" "buxton 1" "buxton_register_notification"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_register_notification, buxton_unregister_notification \-
+Manage key-name notifications
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+bool buxton_register_notification(BuxtonClient \fIclient\fB,
+.br
+                                  BuxtonKey \fIkey\fB,
+.br
+                                  BuxtonCallback \fIcallback\fB,
+.br
+                                  void *\fIdata\fB,
+.br
+                                  bool \fIsync\fB)
+.sp
+.br
+bool buxton_unregister_notification(BuxtonClient \fIclient\fB,
+.br
+                                    BuxtonKey \fIkey\fB,
+.br
+                                    BuxtonCallback \fIcallback\fB,
+.br
+                                    void *\fIdata\fB,
+.br
+                                    bool \fIsync\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+These functions are used to manage key\-name notifications on
+\fIkey\fR for \fIclient\fR.
+
+To register for notifications on a specific key\-name, the client
+should call \fBbuxton_register_notification\fR(3)\&. Similarly, to
+unregister for notifications, \fBbuxton_unregister_notification\fR(3)
+can be used\&.
+
+Both functions accept optional callback functions to register with
+the daemon, referenced by the \fIcallback\fR argument; the callback
+function is called upon completion of the operation\&. The \fIdata\fR
+argument is a pointer to arbitrary userdata that is passed along to
+the callback function\&.  Additonally, the \fIsync\fR argument
+controls whether the operation should be synchronous or not; if
+\fIsync\fR is false, the operation is asynchronous\&.
+
+.SH "CODE EXAMPLE"
+.PP
+Example for register_notification:
+
+.nf
+.sp
+#define _GNU_SOURCE
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "buxton.h"
+
+void notify_cb(BuxtonResponse response, void *data)
+{
+	bool *status = (bool *)data;
+	BuxtonKey key;
+	int32_t value;
+	char *name;
+
+	if (buxton_response_status(response) == BUXTON_STATUS_FAILED) {
+		*status = false;
+		return;
+	}
+
+	key = buxton_response_key(response);
+	name = buxton_key_get_name(key);
+
+	value = *(int32_t*)buxton_response_value(response);
+	printf("key %s updated with new value %d\\n", name, value);
+
+	buxton_key_free(key);
+	free(name);
+}
+
+int main(void)
+{
+	BuxtonClient client;
+	BuxtonKey key;
+	bool status = true;
+	struct pollfd pfd[1];
+	int r;
+	int fd;
+
+	if ((fd = buxton_open(&client)) < 0) {
+		printf("couldn't connect\\n");
+		return -1;
+	}
+
+	key = buxton_key_create("hello", "test", NULL, INT32);
+	if (!key)
+		return -1;
+
+	if (!buxton_register_notification(client, key, notify_cb, &status, false)) {
+		printf("set call failed to run\\n");
+		return -1;
+	}
+repoll:
+	pfd[0].fd = fd;
+	pfd[0].events = POLLIN;
+	pfd[0].revents = 0;
+	r = poll(pfd, 1, 5000);
+
+	if (r < 0) {
+		printf("poll error\\n");
+		return -1;
+	} else if (r == 0) {
+		goto repoll;
+	}
+
+	if (!buxton_client_handle_response(client)) {
+		printf("bad response from daemon\\n");
+		return -1;
+	}
+
+	if (!status) {
+		printf("Failed to register for notification\\n");
+		return -1;
+	}
+
+	goto repoll;
+
+	buxton_key_free(key);
+	buxton_close(client);
+
+	return 0;
+}
+
+.fi
+
+.PP
+Example for unregister_notification: TODO
+
+.SH "RETURN VALUE"
+.PP
+Returns "true" on success, and "false" on failure\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
