@@ -85,3 +85,9 @@ Difficulty: Simple
 Time to complete: 1
 Target: ??
 Status: All done aside from list_keys which needs to be updated for the new api
+
+Description: Add Wextra to compiler flags once iniparser is gone
+Difficulty: Simple
+Time to complete: 1
+Target: ??
+Status:
