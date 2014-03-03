@@ -13,7 +13,7 @@ Status: In progress. Refer to https://github.com/sofar/buxton/wiki/Smack-TODO
         for details.
 
 Description: Test multi-part messaging in the client-side of the library,
-	     mirroring changes made to bt-daemon's protocol handling
+	     mirroring changes made to buxtond's protocol handling
 Difficulty: Complex
 Time to complete: ??
 Target: ??

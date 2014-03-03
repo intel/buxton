@@ -44,7 +44,7 @@ void cleanup_callbacks(void);
  * @param callback User callback function executed
  * @param data User data passed to callback function
  * @param count number of elements in list
- * @param list Data from bt-daemon
+ * @param list Data from buxtond
  * @param type Message type of the callback
  * @param key Key used to make the request
  */
@@ -53,14 +53,14 @@ void run_callback(BuxtonCallback callback, void *data, size_t count,
 		  _BuxtonKey *key);
 
 /**
- * Write message to bt-daemon
+ * Write message to buxtond
  * @param client Client connection
- * @param send serialized data to send to bt-daemon
+ * @param send serialized data to send to buxtond
  * @param send_len size of send
- * @param callback Callback function used to handle bt-daemon's response
+ * @param callback Callback function used to handle buxtond's response
  * @param data User data passed to callback function
- * @param msgid Message id used to identify bt-daemon's response
- * @param type The type of request being sent to bt-daemon
+ * @param msgid Message id used to identify buxtond's response
+ * @param type The type of request being sent to buxtond
  * @return a boolean value, indicating success of the operation
  */
 bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
@@ -79,7 +79,7 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 			      BuxtonData *list, size_t count);
 
 /**
- * Parse responses from bt-daemon and run callbacks on received messages
+ * Parse responses from buxtond and run callbacks on received messages
  * @param client A BuxtonClient
  * @return number of received messages processed
  */
@@ -88,7 +88,7 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 	__attribute__((warn_unused_result));
 
 /**
- * Wait for a response from bt-daemon and then call handle response
+ * Wait for a response from buxtond and then call handle response
  * @param client Client connection
  * @return a boolean value, indicating success of the operation
  */

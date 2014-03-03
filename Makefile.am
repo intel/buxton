@@ -86,21 +86,21 @@ dist_sysconf_DATA = \
 	data/buxton.conf
 
 sbin_PROGRAMS = \
-	bt-daemon
+	buxtond
 
 bin_PROGRAMS = \
 	buxtonctl
 
-bt_daemon_SOURCES = \
+buxtond_SOURCES = \
 	src/core/daemon.c \
 	src/core/daemon.h \
 	src/core/main.c
 
-bt_daemon_LDADD = \
+buxtond_LDADD = \
 	$(SYSTEMD_LIBS) \
 	libbuxton-shared.la
 
-bt_daemon_CFLAGS = \
+buxtond_CFLAGS = \
 	$(AM_CFLAGS)
 
 buxtonctl_SOURCES = \
@@ -214,7 +214,7 @@ memory_la_LDFLAGS = \
 check_PROGRAMS = \
 	check_buxton \
 	check_shared_lib \
-	check_bt_daemon \
+	check_buxtond \
 	check_daemon \
 	check_smack \
 	check_configurator
@@ -251,20 +251,20 @@ check_shared_lib_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la
 
-check_bt_daemon_SOURCES = \
+check_buxtond_SOURCES = \
 	test/check_utils.c \
 	test/check_utils.h \
 	src/core/daemon.c \
 	src/core/daemon.h \
 	src/core/main.c
-check_bt_daemon_CFLAGS = \
+check_buxtond_CFLAGS = \
 	@CHECK_CFLAGS@ \
 	$(AM_CFLAGS) \
 	@INIPARSER_CFLAGS@ \
 	-DMAKE_CHECK \
 	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
 	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
-check_bt_daemon_LDADD = \
+check_buxtond_LDADD = \
 	@CHECK_LIBS@ \
 	$(SYSTEMD_LIBS) \
 	libbuxton.la \

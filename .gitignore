@@ -27,7 +27,7 @@ m4/*.m4
 *.trs
 /cscope.*
 /tags
-bt-daemon
+buxtond
 buxtonctl
 check_buxton
 data/buxton.service
@@ -37,7 +37,7 @@ log-check-stderr-file
 test/*.ini
 src/shared/constants.c
 check_daemon
-check_bt_daemon
+check_buxtond
 check_smack
 bxt_timing
 bxt_gtk_client

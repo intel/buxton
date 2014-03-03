@@ -49,7 +49,7 @@ typedef enum BuxtonKeyAccessType {
 } BuxtonKeyAccessType;
 
 /**
- * Check whether Smack is enabled in bt-daemon
+ * Check whether Smack is enabled in buxtond
  * @return a boolean value, indicating whether Smack is enabled
  */
 bool buxton_smack_enabled(void)
