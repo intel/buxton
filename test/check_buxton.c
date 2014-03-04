@@ -205,7 +205,7 @@ START_TEST(buxton_memory_backend_check)
 		"Retrieving value from buxton memory backend directly failed.");
 	// FIXME: BUXTON_GROUP_VALUE is the dummy group data value, but the memory
 	// backend doesn't understand groups, so this is the current workaround.
-	fail_if(!streq(result.store.d_string.value, "BUXTON_GROUP_VALUE"),
+	fail_if(!streq(result.store.d_string.value, "bxt_test_value"),
 		"Buxton memory returned a different value to that set.");
 	buxton_direct_close(&c);
 }

@@ -67,6 +67,7 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	BuxtonArray *array = NULL;
 	BuxtonData *data_copy = NULL;
 	BuxtonString *label_copy = NULL;
+	char *full_key = NULL;
 
 	assert(layer);
 	assert(key);
@@ -76,6 +77,15 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	db = _db_for_resource(layer);
 	if (!db)
 		goto fail;
+
+	if (key->name.value) {
+		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
+			goto fail;
+	} else {
+		full_key = strdup(key->group.value);
+		if (!full_key)
+			goto fail;
+	}
 
 	array = buxton_array_new();
 	if (!array)
@@ -96,8 +106,11 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		goto fail;
 	if (!buxton_array_add(array, label_copy))
 		goto fail;
+	if (!buxton_array_add(array, full_key))
+		goto fail;
 
-	hashmap_put(db, key->group.value, array);
+	//FIXME replace value if already in db
+	hashmap_put(db, full_key, array);
 
 	return true;
 
@@ -110,6 +123,7 @@ fail:
 	if (label_copy && label_copy->value)
 		free(label_copy->value);
 	free(label_copy);
+	free(full_key);
 
 	return false;
 }
@@ -121,6 +135,7 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	BuxtonArray *stored;
 	BuxtonData *d;
 	BuxtonString *l;
+	char *full_key;
 
 	assert(layer);
 	assert(key);
@@ -133,7 +148,17 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	if (!db)
 		return false;
 
-	stored = (BuxtonArray *)hashmap_get(db, key->group.value);
+	//FIXME leaking full_key
+	if (key->name.value) {
+		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
+			return false;
+	} else {
+		full_key = strdup(key->group.value);
+		if (!full_key)
+			return false;
+	}
+
+	stored = (BuxtonArray *)hashmap_get(db, full_key);
 	if (!stored)
 		return false;
 	d = buxton_array_get(stored, 0);
@@ -164,6 +189,7 @@ static bool unset_value(BuxtonLayer *layer,
 	BuxtonArray *stored;
 	BuxtonData *d;
 	BuxtonString *l;
+	char *full_key;
 
 	assert(layer);
 	assert(key);
@@ -172,8 +198,18 @@ static bool unset_value(BuxtonLayer *layer,
 	if (!db)
 		return false;
 
+	//FIXME fix full_key leak
+	if (key->name.value) {
+		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
+			return false;
+	} else {
+		full_key = strdup(key->group.value);
+		if (!full_key)
+			return false;
+	}
+
 	/* test if the value exists */
-	stored = (BuxtonArray *)hashmap_get(db, key->group.value);
+	stored = (BuxtonArray *)hashmap_get(db, full_key);
 	if (!stored)
 		return false;
 	/* free the data */
