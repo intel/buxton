@@ -182,7 +182,7 @@ static void client_create_group_test(BuxtonResponse response, void *data)
 		"Failed to get create group response type");
 
 	if (uid == 0) {
-		fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
+		fail_if(buxton_response_status(response) != 0,
 			"Create group failed");
 		key = buxton_response_key(response);
 		fail_if(!key, "Failed to get create group key");
@@ -193,7 +193,7 @@ static void client_create_group_test(BuxtonResponse response, void *data)
 		free(group);
 		buxton_key_free(key);
 	} else {
-		fail_if(buxton_response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
+		fail_if(buxton_response_status(response) == 0  && !skip_check,
 			"Create group succeeded, but the client is not root");
 	}
 }
@@ -224,7 +224,7 @@ static void client_remove_group_test(BuxtonResponse response, void *data)
 		"Failed to get remove group response type");
 
 	if (uid == 0) {
-		fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
+		fail_if(buxton_response_status(response) != 0,
 			"Remove group failed");
 		key = buxton_response_key(response);
 		fail_if(!key, "Failed to get create group key");
@@ -235,7 +235,7 @@ static void client_remove_group_test(BuxtonResponse response, void *data)
 		free(group);
 		buxton_key_free(key);
 	} else {
-		fail_if(buxton_response_status(response) != BUXTON_STATUS_FAILED  && !skip_check,
+		fail_if(buxton_response_status(response) == 0  && !skip_check,
 			"Create group succeeded, but the client is not root");
 	}
 }
@@ -261,7 +261,7 @@ static void client_set_value_test(BuxtonResponse response, void *data)
 
 	fail_if(buxton_response_type(response) != BUXTON_CONTROL_SET,
 		"Failed to get set response type");
-	fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
+	fail_if(buxton_response_status(response) != 0,
 		"Set value failed");
 	key = buxton_response_key(response);
 	fail_if(!key, "Failed to get set key");
@@ -308,7 +308,7 @@ static void client_set_label_test(BuxtonResponse response, void *data)
 		"Failed to get set label response type");
 
 	if (uid == 0) {
-		fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
+		fail_if(buxton_response_status(response) != 0,
 			"Set label failed");
 		key = buxton_response_key(response);
 		fail_if(!key, "Failed to get set label key");
@@ -333,10 +333,10 @@ static void client_set_label_test(BuxtonResponse response, void *data)
 		buxton_key_free(key);
 	} else {
 		if (skip_check) {
-			fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
+			fail_if(buxton_response_status(response) != 0,
 			"Set label failed");
 		} else {
-			fail_if(buxton_response_status(response) != BUXTON_STATUS_FAILED,
+			fail_if(buxton_response_status(response) == 0,
 			"Set label succeeded, but the client is not root");
 		}
 	}
@@ -377,7 +377,7 @@ static void client_get_value_test(BuxtonResponse response, void *data)
 	char *v;
 	char *value = (char *)data;
 
-	fail_if(buxton_response_status(response) != BUXTON_STATUS_OK,
+	fail_if(buxton_response_status(response) != 0,
 		"Get value failed");
 
 	key = buxton_response_key(response);
@@ -740,7 +740,7 @@ START_TEST(create_group_check)
 {
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -758,16 +758,16 @@ START_TEST(create_group_check)
 	key.group = buxton_string_pack("daemon-check");
 	key.type = STRING;
 	create_group(&server, &client, &key, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to create group");
+	fail_if(status != 0, "Failed to create group");
 
 	key.layer = buxton_string_pack("test-gdbm");
 	create_group(&server, &client, &key, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to create group");
+	fail_if(status != 0, "Failed to create group");
 
 	key.layer = buxton_string_pack("base");
 	key.group = buxton_string_pack("tgroup");
 	create_group(&server, &client, &key, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to create group");
+	fail_if(status != 0, "Failed to create group");
 
 	buxton_direct_close(&server.buxton);
 }
@@ -777,7 +777,7 @@ START_TEST(remove_group_check)
 {
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -796,7 +796,7 @@ START_TEST(remove_group_check)
 	key.type = STRING;
 
 	remove_group(&server, &client, &key, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to remove group");
+	fail_if(status != 0, "Failed to remove group");
 
 	buxton_direct_close(&server.buxton);
 }
@@ -807,7 +807,7 @@ START_TEST(set_label_check)
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData value;
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -828,7 +828,7 @@ START_TEST(set_label_check)
 
 	key.layer = buxton_string_pack("test-gdbm");
 	set_label(&server, &client, &key, &value, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to set label 2");
+	fail_if(status != 0, "Failed to set label 2");
 	buxton_direct_close(&server.buxton);
 }
 END_TEST
@@ -838,7 +838,7 @@ START_TEST(set_value_check)
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData value;
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -860,13 +860,13 @@ START_TEST(set_value_check)
 	value.store.d_string = buxton_string_pack("user-layer-value");
 
 	set_value(&server, &client, &key, &value, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
+	fail_if(status != 0, "Failed to set value");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
 
 	key.layer = buxton_string_pack("test-gdbm");
 	value.store.d_string = buxton_string_pack("system-layer-value");
 	set_value(&server, &client, &key, &value, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to set value");
+	fail_if(status != 0, "Failed to set value");
 
 	buxton_direct_close(&server.buxton);
 }
@@ -877,7 +877,7 @@ START_TEST(get_value_check)
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	BuxtonData *value;
 	client_list_item client;
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	BuxtonString clabel = buxton_string_pack("_");
 
@@ -899,7 +899,7 @@ START_TEST(get_value_check)
 
 	value = get_value(&server, &client, &key, &status);
 	fail_if(!value, "Failed to get value");
-	fail_if(status != BUXTON_STATUS_OK, "Failed to get value");
+	fail_if(status != 0, "Failed to get value");
 	fail_if(value->type != STRING, "Failed to get correct type");
 	fail_if(!streq(value->store.d_string.value, "user-layer-value"), "Failed to get correct value");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid");
@@ -910,7 +910,7 @@ START_TEST(get_value_check)
 	key.layer.length = 0;
 	value = get_value(&server, &client, &key, &status);
 	fail_if(!value, "Failed to get value 2");
-	fail_if(status != BUXTON_STATUS_OK, "Failed to get value 2");
+	fail_if(status != 0, "Failed to get value 2");
 	fail_if(value->type != STRING, "Failed to get correct type 2");
 	fail_if(!streq(value->store.d_string.value, "system-layer-value"), "Failed to get correct value 2");
 	fail_if(server.buxton.client.uid != client.cred.uid, "Failed to change buxton uid 2");
@@ -925,7 +925,7 @@ START_TEST(register_notification_check)
 	_BuxtonKey key = { {0}, {0}, {0}, 0};
 	client_list_item client, no_client;
 	BuxtonString clabel = buxton_string_pack("_");
-	BuxtonStatus status;
+	int32_t status;
 	BuxtonDaemon server;
 	uint64_t msgid;
 
@@ -945,27 +945,27 @@ START_TEST(register_notification_check)
 	key.name = buxton_string_pack("name");
 	key.type = STRING;
 	register_notification(&server, &client, &key, 1, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
+	fail_if(status != 0, "Failed to register notification");
 	register_notification(&server, &client, &key, 1, &status);
-	fail_if(status != BUXTON_STATUS_OK, "Failed to register notification");
+	fail_if(status != 0, "Failed to register notification");
 	//FIXME: Figure out what to do with duplicates
 	key.group = buxton_string_pack("no-key");
 	msgid = unregister_notification(&server, &client, &key, &status);
-	fail_if(status != BUXTON_STATUS_FAILED,
+	fail_if(status == 0,
 		"Unregistered from notifications with invalid key");
 	fail_if(msgid != 0, "Got unexpected notify message id");
 	key.group = buxton_string_pack("group");
 	msgid = unregister_notification(&server, &no_client, &key, &status);
-	fail_if(status != BUXTON_STATUS_FAILED,
+	fail_if(status == 0,
 		"Unregistered from notifications with invalid client");
 	fail_if(msgid != 0, "Got unexpected notify message id");
 	msgid = unregister_notification(&server, &client, &key, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Unable to unregister from notifications");
 	fail_if(msgid != 1, "Failed to get correct notify message id");
 	key.group = buxton_string_pack("key2");
 	register_notification(&server, &client, &key, 0, &status);
-	fail_if(status == BUXTON_STATUS_OK, "Registered notification with key not in db");
+	fail_if(status == 0, "Registered notification with key not in db");
 
 	hashmap_free(server.notify_mapping);
 	buxton_direct_close(&server.buxton);
@@ -1096,7 +1096,7 @@ START_TEST(buxtond_handle_message_create_group_check)
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to create group");
 	fail_if(msgid != 0, "Failed to get correct message id");
 	free(list);
@@ -1125,7 +1125,7 @@ START_TEST(buxtond_handle_message_create_group_check)
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to create group");
 	fail_if(msgid != 1, "Failed to get correct message id");
 
@@ -1202,7 +1202,7 @@ START_TEST(buxtond_handle_message_remove_group_check)
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to remove group");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
@@ -1282,7 +1282,7 @@ START_TEST(buxtond_handle_message_set_label_check)
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to set label");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
@@ -1372,7 +1372,7 @@ START_TEST(buxtond_handle_message_set_value_check)
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to set");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
@@ -1450,7 +1450,7 @@ START_TEST(buxtond_handle_message_get_check)
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct message id");
 	fail_if(list[0].type != INT32, "Failed to get correct response type");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to get value");
 	fail_if(list[1].type != STRING, "Failed to get correct value type");
 	fail_if(!streq(list[1].store.d_string.value, "user-layer-value"),
@@ -1482,7 +1482,7 @@ START_TEST(buxtond_handle_message_get_check)
 		"Failed to get correct control type 2");
 	fail_if(msgid != 0, "Failed to get correct message id 2");
 	fail_if(list[0].type != INT32, "Failed to get correct response type 2");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to get value 2");
 	fail_if(list[1].type != STRING, "Failed to get correct value type 2");
 	fail_if(streq(list[1].store.d_string.value, "bxt_test_value2"),
@@ -1559,7 +1559,7 @@ START_TEST(buxtond_handle_message_notify_check)
 		"Failed to get correct control type");
 	fail_if(msgid != 0, "Failed to get correct notify message id");
 	fail_if(list[0].type != INT32, "Failed to get correct response type");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to register notification");
 
 	free(list);
@@ -1580,7 +1580,7 @@ START_TEST(buxtond_handle_message_notify_check)
 		"Failed to get correct control type 2");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type 2");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to unregister for notification");
 	fail_if(list[1].type != UINT64,
 		"Failed to get correct unnotify message id type");
@@ -1662,7 +1662,7 @@ START_TEST(buxtond_handle_message_unset_check)
 		"Failed to get correct control type");
 	fail_if(list[0].type != INT32,
 		"Failed to get correct indicator type");
-	fail_if(list[0].store.d_int32 != BUXTON_STATUS_OK,
+	fail_if(list[0].store.d_int32 != 0,
 		"Failed to unset");
 	fail_if(msgid != 0, "Failed to get correct message id");
 
@@ -1682,7 +1682,7 @@ START_TEST(buxtond_notify_clients_check)
 	BuxtonString slabel;
 	BuxtonData value1, value2;
 	client_list_item cl;
-	BuxtonStatus status;
+	int32_t status;
 	bool r;
 	BuxtonData *list;
 	BuxtonControlMessage msg;
@@ -1722,7 +1722,7 @@ START_TEST(buxtond_notify_clients_check)
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Failed to register notification for notify");
 	buxtond_notify_clients(&daemon, &cl, &key, &value1);
 
@@ -1765,7 +1765,7 @@ START_TEST(buxtond_notify_clients_check)
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Failed to register notification for notify");
 	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
@@ -1795,7 +1795,7 @@ START_TEST(buxtond_notify_clients_check)
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Failed to register notification for notify");
 	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
@@ -1825,7 +1825,7 @@ START_TEST(buxtond_notify_clients_check)
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Failed to register notification for notify");
 	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
@@ -1855,7 +1855,7 @@ START_TEST(buxtond_notify_clients_check)
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Failed to register notification for notify");
 	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
@@ -1885,7 +1885,7 @@ START_TEST(buxtond_notify_clients_check)
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Failed to register notification for notify");
 	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
@@ -1915,7 +1915,7 @@ START_TEST(buxtond_notify_clients_check)
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Failed to register notification for notify");
 	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 
@@ -1945,7 +1945,7 @@ START_TEST(buxtond_notify_clients_check)
 				    &value1, NULL);
 	fail_if(!r, "Failed to set value for notify");
 	register_notification(&daemon, &cl, &key, 0, &status);
-	fail_if(status != BUXTON_STATUS_OK,
+	fail_if(status != 0,
 		"Failed to register notification for notify");
 	buxtond_notify_clients(&daemon, &cl, &key, &value2);
 

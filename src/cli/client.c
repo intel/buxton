@@ -297,7 +297,7 @@ void get_value_callback(BuxtonResponse response, void *data)
 	BuxtonData *r = (BuxtonData *)data;
 	void *p;
 
-	if (buxton_response_status(response) != BUXTON_STATUS_OK)
+	if (buxton_response_status(response) != 0)
 		return;
 
 	p = buxton_response_value(response);

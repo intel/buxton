@@ -19,7 +19,7 @@
 
 void create_cb(BuxtonResponse response, void *data)
 {
-	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != 0) {
 		printf("Failed to create group\n");
 	} else {
 		printf("Created group\n");

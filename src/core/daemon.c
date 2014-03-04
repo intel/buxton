@@ -150,7 +150,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t size)
 {
 	BuxtonControlMessage msg;
-	BuxtonStatus response;
+	int32_t response;
 	BuxtonData *list = NULL;
 	_cleanup_buxton_data_ BuxtonData *data = NULL;
 	uint16_t i;
@@ -333,9 +333,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	/* Now write the response */
 	ret = _write(client->fd, response_store, response_len);
 	if (ret) {
-		if (msg == BUXTON_CONTROL_SET && response == BUXTON_STATUS_OK)
+		if (msg == BUXTON_CONTROL_SET && response == 0)
 			buxtond_notify_clients(self, client, &key, value);
-		else if (msg == BUXTON_CONTROL_UNSET && response == BUXTON_STATUS_OK)
+		else if (msg == BUXTON_CONTROL_UNSET && response == 0)
 			buxtond_notify_clients(self, client, &key, NULL);
 	}
 
@@ -464,7 +464,7 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 }
 
 void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
-	       BuxtonData *value, BuxtonStatus *status)
+	       BuxtonData *value, int32_t *status)
 {
 
 	assert(self);
@@ -473,7 +473,7 @@ void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	assert(value);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 
 	buxton_debug("Daemon setting [%s][%s]\n",
 		     key->layer.value,
@@ -486,12 +486,12 @@ void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	if (!buxton_direct_set_value(&self->buxton, key, value, client->smack_label))
 		return;
 
-	*status = BUXTON_STATUS_OK;
+	*status = 0;
 	buxton_debug("Daemon set value completed\n");
 }
 
 void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
-	       BuxtonData *value, BuxtonStatus *status)
+	       BuxtonData *value, int32_t *status)
 {
 
 	assert(self);
@@ -500,7 +500,7 @@ void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	assert(value);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 
 	buxton_debug("Daemon setting [%s][%s]\n",
 		     key->layer.value,
@@ -512,19 +512,19 @@ void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	if (!buxton_direct_set_label(&self->buxton, key, &value->store.d_string))
 		return;
 
-	*status = BUXTON_STATUS_OK;
+	*status = 0;
 	buxton_debug("Daemon set label completed\n");
 }
 
 void create_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
-		  BuxtonStatus *status)
+		  int32_t *status)
 {
 	assert(self);
 	assert(client);
 	assert(key);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 
 	buxton_debug("Daemon setting [%s][%s]\n",
 		     key->layer.value,
@@ -536,19 +536,19 @@ void create_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	if (!buxton_direct_create_group(&self->buxton, key, client->smack_label))
 		return;
 
-	*status = BUXTON_STATUS_OK;
+	*status = 0;
 	buxton_debug("Daemon create group completed\n");
 }
 
 void remove_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
-		  BuxtonStatus *status)
+		  int32_t *status)
 {
 	assert(self);
 	assert(client);
 	assert(key);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 
 	buxton_debug("Daemon removing [%s][%s]\n",
 		     key->layer.value,
@@ -560,19 +560,19 @@ void remove_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	if (!buxton_direct_remove_group(&self->buxton, key, client->smack_label))
 		return;
 
-	*status = BUXTON_STATUS_OK;
+	*status = 0;
 	buxton_debug("Daemon remove group completed\n");
 }
 
 void unset_value(BuxtonDaemon *self, client_list_item *client,
-		 _BuxtonKey *key, BuxtonStatus *status)
+		 _BuxtonKey *key, int32_t *status)
 {
 	assert(self);
 	assert(client);
 	assert(key);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 
 	buxton_debug("Daemon unsetting [%s][%s]\n",
 		     key->layer.value,
@@ -585,12 +585,12 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 
 	buxton_debug("unset value returned successfully from db\n");
 
-	*status = BUXTON_STATUS_OK;
+	*status = 0;
 	buxton_debug("Daemon unset value completed\n");
 }
 
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
-		      _BuxtonKey *key, BuxtonStatus *status)
+		      _BuxtonKey *key, int32_t *status)
 {
 	BuxtonData *data = NULL;
 	BuxtonString label;
@@ -600,7 +600,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 	assert(key);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 
 	data = malloc0(sizeof(BuxtonData));
 	if (!data)
@@ -620,7 +620,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 	free(label.value);
 	buxton_debug("get value returned successfully from db\n");
 
-	*status = BUXTON_STATUS_OK;
+	*status = 0;
 	goto end;
 fail:
 	buxton_debug("get value failed\n");
@@ -632,7 +632,7 @@ end:
 }
 
 BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
-		       BuxtonString *layer, BuxtonStatus *status)
+		       BuxtonString *layer, int32_t *status)
 {
 	BuxtonArray *ret_list = NULL;
 	assert(self);
@@ -640,20 +640,20 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 	assert(layer);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 	if (buxton_direct_list_keys(&self->buxton, layer, &ret_list))
-		*status = BUXTON_STATUS_OK;
+		*status = 0;
 	return ret_list;
 }
 
 void register_notification(BuxtonDaemon *self, client_list_item *client,
 			   _BuxtonKey *key, uint64_t msgid,
-			   BuxtonStatus *status)
+			   int32_t *status)
 {
 	BuxtonList *n_list = NULL;
 	BuxtonNotification *nitem;
 	BuxtonData *old_data = NULL;
-	BuxtonStatus key_status;
+	int32_t key_status;
 	char *key_name;
 
 	assert(self);
@@ -661,7 +661,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	assert(key);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 
 	nitem = malloc0(sizeof(BuxtonNotification));
 	if (!nitem)
@@ -670,7 +670,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 
 	/* Store data now, cheap */
 	old_data = get_value(self, client, key, &key_status);
-	if (key_status != BUXTON_STATUS_OK) {
+	if (key_status != 0) {
 		free(nitem);
 		return;
 	}
@@ -694,11 +694,11 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 		if (!buxton_list_append(&n_list, nitem))
 			abort();
 	}
-	*status = BUXTON_STATUS_OK;
+	*status = 0;
 }
 
 uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
-				 _BuxtonKey *key, BuxtonStatus *status)
+				 _BuxtonKey *key, int32_t *status)
 {
 	BuxtonList *n_list = NULL;
 	BuxtonList *elem = NULL;
@@ -710,7 +710,7 @@ uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	assert(key);
 	assert(status);
 
-	*status = BUXTON_STATUS_FAILED;
+	*status = -1;
 	n_list = hashmap_get(self->notify_mapping, key->group.value);
 	/* This key isn't actually registered for notifications */
 	if (!n_list)
@@ -739,7 +739,7 @@ uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	if (!n_list)
 		hashmap_remove(self->notify_mapping, key->group.value);
 
-	*status = BUXTON_STATUS_OK;
+	*status = 0;
 
 	return msgid;
 }

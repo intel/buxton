@@ -268,7 +268,7 @@ static void buxton_callback(BuxtonResponse response, gpointer userdata)
 	self = BUXTON_TEST(userdata);
 
         /* Handle all potential async cases we're utilizing */
-        if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+        if (buxton_response_status(response) != 0) {
                 switch (buxton_response_type(response)) {
                         case BUXTON_CONTROL_GET:
                                 report_error(self, "Cannot retrieve value");

@@ -23,7 +23,7 @@ void notify_cb(BuxtonResponse response, void *data)
 	int32_t value;
 	char *name;
 
-	if (buxton_response_status(response) == BUXTON_STATUS_FAILED) {
+	if (buxton_response_status(response) != 0) {
 		*status = false;
 		return;
 	}

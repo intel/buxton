@@ -22,7 +22,7 @@ void set_cb(BuxtonResponse response, void *data)
 	BuxtonKey key;
 	char *name;
 
-	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != 0) {
 		printf("Failed to set value\n");
 		return;
 	}

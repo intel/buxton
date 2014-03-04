@@ -459,7 +459,7 @@ BuxtonControlMessage buxton_response_type(BuxtonResponse response)
 	return r->type;
 }
 
-BuxtonStatus buxton_response_status(BuxtonResponse response)
+int32_t buxton_response_status(BuxtonResponse response)
 {
 	BuxtonData *d;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
@@ -468,7 +468,7 @@ BuxtonStatus buxton_response_status(BuxtonResponse response)
 		return -1;
 
 	if (buxton_response_type(response) == BUXTON_CONTROL_CHANGED)
-		return BUXTON_STATUS_OK;
+		return 0;
 
 	d = buxton_array_get(r->data, 0);
 

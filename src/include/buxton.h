@@ -76,14 +76,6 @@ typedef enum BuxtonControlMessage {
 } BuxtonControlMessage;
 
 /**
- * Buxton Status Codes
- */
-typedef enum BuxtonStatus {
-	BUXTON_STATUS_OK = 0, /**<Operation succeeded */
-	BUXTON_STATUS_FAILED /**<Operation failed */
-} BuxtonStatus;
-
-/**
  * Used to communicate with Buxton
  */
 typedef struct BuxtonClient *BuxtonClient;
@@ -353,9 +345,9 @@ _bx_export_ BuxtonControlMessage buxton_response_type(BuxtonResponse response)
 /**
  * Get the status of a buxton response
  * @param response a BuxtonResponse
- * @return BuxtonStatus enum indicating the status of the response
+ * @return int32_t enum indicating the status of the response
  */
-_bx_export_ BuxtonStatus buxton_response_status(BuxtonResponse response)
+_bx_export_ int32_t buxton_response_status(BuxtonResponse response)
 	__attribute__((warn_unused_result));
 
 /**

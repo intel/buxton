@@ -31,7 +31,7 @@ static void callback(BuxtonResponse response, void *userdata)
 
 	r = (bool *)userdata;
 
-	if (buxton_response_status(response) == BUXTON_STATUS_OK)
+	if (buxton_response_status(response) == 0)
 		*r = true;
 }
 

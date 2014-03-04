@@ -108,10 +108,10 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
  * @param client Used to validate smack access
  * @param key Key for the value being set
  * @param value Value being set
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  */
 void set_value(BuxtonDaemon *self, client_list_item *client,
-	       _BuxtonKey *key, BuxtonData *value, BuxtonStatus *status);
+	       _BuxtonKey *key, BuxtonData *value, int32_t *status);
 
 /**
  * Buxton daemon function for setting a label
@@ -119,41 +119,41 @@ void set_value(BuxtonDaemon *self, client_list_item *client,
  * @param client Used to validate smack access
  * @param key Key or group for the label being set
  * @param value Label being set
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  */
 void set_label(BuxtonDaemon *self, client_list_item *client,
-	       _BuxtonKey *key, BuxtonData *value, BuxtonStatus *status);
+	       _BuxtonKey *key, BuxtonData *value, int32_t *status);
 
 /**
  * Buxton daemon function for creating a group
  * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key with layer and group members initialized
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  */
 void create_group(BuxtonDaemon *self, client_list_item *client,
-		  _BuxtonKey *key, BuxtonStatus *status);
+		  _BuxtonKey *key, int32_t *status);
 
 /**
  * Buxton daemon function for removing a group
  * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key with layer and group members initialized
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  */
 void remove_group(BuxtonDaemon *self, client_list_item *client,
-		  _BuxtonKey *key, BuxtonStatus *status);
+		  _BuxtonKey *key, int32_t *status);
 
 /**
  * Buxton daemon function for getting a value
  * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key for the value being sought
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  * @returns BuxtonData Value stored for key if successful otherwise NULL
  */
 BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
-		      _BuxtonKey *key, BuxtonStatus *status)
+		      _BuxtonKey *key, int32_t *status)
 	__attribute__((warn_unused_result));
 
 /**
@@ -161,20 +161,20 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
  * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key for the value being dunset
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  */
 void unset_value(BuxtonDaemon *self, client_list_item *client,
-		 _BuxtonKey *key, BuxtonStatus *status);
+		 _BuxtonKey *key, int32_t *status);
 
 /**
  * Buxton daemon function for listing keys in a given layer
  * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param layer Layer to query
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  */
 BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
-		       BuxtonString *layer, BuxtonStatus *status)
+		       BuxtonString *layer, int32_t *status)
 	__attribute__((warn_unused_result));
 
 /**
@@ -183,22 +183,22 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
  * @param client Used to validate smack access
  * @param key Key to notify for changes on
  * @param msgid Message ID from the client
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  */
 void register_notification(BuxtonDaemon *self, client_list_item *client,
 			   _BuxtonKey *key, uint64_t msgid,
-			   BuxtonStatus *status);
+			   int32_t *status);
 
 /**
  * Buxton daemon function for unregistering notifications from the given key
  * @param self buxtond instance being run
  * @param client Used to validate smack access
  * @param key Key to no longer recieve notifications for
- * @param status Will be set with the BuxtonStatus result of the operation
+ * @param status Will be set with the int32_t result of the operation
  * @return Message ID used to send key's notifications to the client
  */
 uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
-				 _BuxtonKey *key, BuxtonStatus *status)
+				 _BuxtonKey *key, int32_t *status)
 	__attribute__((warn_unused_result));
 
 /**
