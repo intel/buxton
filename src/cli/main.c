@@ -254,6 +254,18 @@ int main(int argc, char **argv)
 	}
 
 	control.client.uid = geteuid();
+	if (!control.client.direct) {
+		if (conf_path)
+			if (!buxton_set_conf_file(conf_path))
+				printf("Failed to set configuration file path\n");
+		if (buxton_open(&client) < 0) {
+			buxton_log("Failed to talk to Buxton, falling back to direct\n");
+			control.client.direct = true;
+		} else {
+			control.client = *(_BuxtonClient *)client;
+		}
+	}
+
 	if (control.client.direct) {
 		if (conf_path) {
 			int r;
@@ -276,16 +288,6 @@ int main(int argc, char **argv)
 			ret = false;
 			goto end;
 		}
-	} else {
-		if (conf_path)
-			if (!buxton_set_conf_file(conf_path))
-				printf("Failed to set configuration file path\n");
-		if (buxton_open(&client) < 0) {
-			buxton_log("Failed to talk to Buxton\n");
-			ret = false;
-			goto end;
-		}
-		control.client = *(_BuxtonClient *)client;
 	}
 
 	/* Connected to buxton_client, execute method */
