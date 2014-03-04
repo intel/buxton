@@ -358,6 +358,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	BuxtonKey key;
 	BuxtonData get;
 	_cleanup_free_ char *prefix = NULL;
+	BuxtonString dlabel;
 	bool ret = false;
 
 	memzero((void*)&get, sizeof(BuxtonData));
@@ -375,7 +376,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	if (three != NULL) {
 		if (control->client.direct)
 			ret = buxton_direct_get_value_for_layer(control, key,
-								&get, NULL,
+								&get, &dlabel,
 								NULL);
 		else
 			ret = buxton_get_value(&control->client,
@@ -389,7 +390,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		}
 	} else {
 		if (control->client.direct)
-			ret = buxton_direct_get_value(control, key, &get, NULL, NULL);
+			ret = buxton_direct_get_value(control, key, &get, &dlabel, NULL);
 		else
 			ret = buxton_get_value(&control->client, key,
 						      get_value_callback, &get,
