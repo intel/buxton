@@ -267,10 +267,8 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 		}
 		break;
 	case BUXTON_CONTROL_GET:
-		if (data && !buxton_array_add(out_list, data)) {
-			buxton_log("Failed to prepare GET array data\n");
-			goto end;
-		}
+		if (data && !buxton_array_add(out_list, data))
+			abort();
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
