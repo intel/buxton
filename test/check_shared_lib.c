@@ -395,8 +395,7 @@ START_TEST(buxton_db_serialize_check)
 	dsource.store.d_string = buxton_string_pack("test-string");
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize string data");
-	fail_if(buxton_deserialize(packed, &dtarget, &ltarget) == false,
-		"Failed to deserialize string data");
+	buxton_deserialize(packed, &dtarget, &ltarget);
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for string");
 	fail_if(strcmp(lsource.value, ltarget.value) != 0,
@@ -412,8 +411,7 @@ START_TEST(buxton_db_serialize_check)
 	dsource.store.d_int32 = INT_MAX;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize int32 data");
-	fail_if(buxton_deserialize(packed, &dtarget, &ltarget) == false,
-		"Failed to deserialize int32 data");
+	buxton_deserialize(packed, &dtarget, &ltarget);
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for int32");
 	fail_if(strcmp(lsource.value, ltarget.value) != 0,
@@ -427,8 +425,7 @@ START_TEST(buxton_db_serialize_check)
 	dsource.store.d_uint32 = UINT_MAX;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize uint32 data");
-	fail_if(buxton_deserialize(packed, &dtarget, &ltarget) == false,
-		"Failed to deserialize uint32 data");
+	buxton_deserialize(packed, &dtarget, &ltarget);
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for uint32");
 	fail_if(strcmp(lsource.value, ltarget.value) != 0,
@@ -442,8 +439,7 @@ START_TEST(buxton_db_serialize_check)
 	dsource.store.d_int64 = LONG_MAX;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize int64 data");
-	fail_if(buxton_deserialize(packed, &dtarget, &ltarget) == false,
-		"Failed to deserialize int64 data");
+	buxton_deserialize(packed, &dtarget, &ltarget);
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for int64");
 	fail_if(strcmp(lsource.value, ltarget.value) != 0,
@@ -457,8 +453,7 @@ START_TEST(buxton_db_serialize_check)
 	dsource.store.d_uint64 = ULLONG_MAX;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize uint64 data");
-	fail_if(buxton_deserialize(packed, &dtarget, &ltarget) == false,
-		"Failed to deserialize uint64 data");
+	buxton_deserialize(packed, &dtarget, &ltarget);
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for uint64");
 	fail_if(strcmp(lsource.value, ltarget.value) != 0,
@@ -472,8 +467,7 @@ START_TEST(buxton_db_serialize_check)
 	dsource.store.d_float = 3.14F;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize float data");
-	fail_if(buxton_deserialize(packed, &dtarget, &ltarget) == false,
-		"Failed to deserialize float data");
+	buxton_deserialize(packed, &dtarget, &ltarget);
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for float");
 	fail_if(strcmp(lsource.value, ltarget.value) != 0,
@@ -487,8 +481,7 @@ START_TEST(buxton_db_serialize_check)
 	dsource.store.d_double = 3.1415;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize double data");
-	fail_if(buxton_deserialize(packed, &dtarget, &ltarget) == false,
-		"Failed to deserialize double data");
+	buxton_deserialize(packed, &dtarget, &ltarget);
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for double");
 	fail_if(strcmp(lsource.value, ltarget.value) != 0,
@@ -502,8 +495,7 @@ START_TEST(buxton_db_serialize_check)
 	dsource.store.d_boolean = true;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize boolean data");
-	fail_if(buxton_deserialize(packed, &dtarget, &ltarget) == false,
-		"Failed to deserialize boolean data");
+	buxton_deserialize(packed, &dtarget, &ltarget);
 	fail_if(dsource.type != dtarget.type,
 		"Source and destination type differ for boolean");
 	fail_if(strcmp(lsource.value, ltarget.value) != 0,

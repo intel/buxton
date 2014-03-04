@@ -75,11 +75,9 @@ size_t buxton_serialize(BuxtonData *source, BuxtonString *label,
  * @param source Serialized data pointer
  * @param target A pointer where the deserialize data will be stored
  * @param label A pointer where the deserialize label will be stored
- * @return a boolean value, indicating success of the operation
  */
-bool buxton_deserialize(uint8_t *source, BuxtonData *target,
-			BuxtonString *label)
-	__attribute__((warn_unused_result));
+void buxton_deserialize(uint8_t *source, BuxtonData *target,
+			BuxtonString *label);
 
 /**
  * Serialize an internal buxton message for wire communication
