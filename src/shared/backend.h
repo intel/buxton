@@ -137,10 +137,8 @@ BuxtonBackend *backend_for_layer(BuxtonConfig *config,
 /**
  * Initialize layers using the configuration file
  * @param config A BuxtonControl's configuration
- * @return a boolean value, indicating success of the operation
  */
-bool buxton_init_layers(BuxtonConfig *config)
-	__attribute__((warn_unused_result));
+void buxton_init_layers(BuxtonConfig *config);
 
 /**
  * Remove association with backend (free and dlclose)

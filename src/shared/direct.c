@@ -29,8 +29,7 @@ bool buxton_direct_open(BuxtonControl *control)
 	assert(control);
 
 	memzero(&(control->config), sizeof(BuxtonConfig));
-	if(!buxton_init_layers(&(control->config)))
-		return false;
+	buxton_init_layers(&(control->config));
 
 	control->client.direct = true;
 	control->client.pid = getpid();
@@ -148,7 +147,7 @@ bool buxton_direct_get_value_for_layer(BuxtonControl *control,
 	/* Groups must be created first, so bail if this key's group doesn't exist */
 	if (key->name.value) {
 		if (!buxton_copy_key_group(key, &group))
-			goto fail;
+			abort();
 		if (!buxton_direct_get_value_for_layer(control, &group, &g, &group_label, NULL)) {
 			buxton_debug("Group %s for name %s missing for get value\n", key->group.value, key->name.value);
 			goto fail;
@@ -209,24 +208,24 @@ bool buxton_direct_set_value(BuxtonControl *control,
 
 	group = malloc0(sizeof(_BuxtonKey));
 	if (!group)
-		goto fail;
+		abort();
 	g = malloc0(sizeof(BuxtonData));
 	if (!g)
-		goto fail;
+		abort();
 	group_label = malloc0(sizeof(BuxtonString));
 	if (!group_label)
-		goto fail;
+		abort();
 
 	d = malloc0(sizeof(BuxtonData));
 	if (!d)
-		goto fail;
+		abort();
 	data_label = malloc0(sizeof(BuxtonString));
 	if (!data_label)
-		goto fail;
+		abort();
 
 	/* Groups must be created first, so bail if this key's group doesn't exist */
 	if (!buxton_copy_key_group(key, group))
-		goto fail;
+		abort();
 
 	if (!buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
 		buxton_debug("Group %s for name %s missing for set value\n", key->group.value, key->name.value);
@@ -288,10 +287,10 @@ bool buxton_direct_set_label(BuxtonControl *control,
 
 	data = malloc0(sizeof(BuxtonData));
 	if (!data)
-		goto fail;
+		abort();
 	data_label = malloc0(sizeof(BuxtonString));
 	if (!data_label)
-		goto fail;
+		abort();
 
 	config = &control->config;
 
@@ -328,8 +327,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	free(data_label->value);
 
 	if (!buxton_string_copy(label, data_label)) {
-		buxton_debug("Failed to copy data label\n");
-		goto fail;
+		abort();
 	}
 
 	layer->uid = control->client.uid;
@@ -360,16 +358,16 @@ bool buxton_direct_create_group(BuxtonControl *control,
 
 	data = malloc0(sizeof(BuxtonData));
 	if (!data)
-		goto fail;
+		abort();
 	group = malloc0(sizeof(BuxtonData));
 	if (!group)
-		goto fail;
+		abort();
 	dlabel = malloc0(sizeof(BuxtonString));
 	if (!dlabel)
-		goto fail;
+		abort();
 	glabel = malloc0(sizeof(BuxtonString));
 	if (!glabel)
-		goto fail;
+		abort();
 
 	config = &control->config;
 
@@ -403,21 +401,18 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	data->type = STRING;
 	s = buxton_string_pack("BUXTON_GROUP_VALUE");
 	if (!buxton_string_copy(&s, &data->store.d_string)) {
-		buxton_debug("Failed to set group data value\n");
-		goto fail;
+		abort();
 	}
 
 	if (label) {
 		if (!buxton_string_copy(label, dlabel)) {
-			buxton_debug("Failed to copy group label\n");
-			goto fail;
+			abort();
 		}
 	} else {
 		/* _ (floor) is our current default label */
 		l = buxton_string_pack("_");
 		if (!buxton_string_copy(&l, dlabel)) {
-			buxton_debug("Failed to copy default group label\n");
-			goto fail;
+			abort();
 		}
 	}
 
@@ -446,10 +441,10 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 
 	group = malloc0(sizeof(BuxtonData));
 	if (!group)
-		goto fail;
+		abort();
 	glabel = malloc0(sizeof(BuxtonString));
 	if (!glabel)
-		goto fail;
+		abort();
 
 	config = &control->config;
 
@@ -538,23 +533,23 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 
 	group = malloc0(sizeof(_BuxtonKey));
 	if (!group)
-		goto fail;
+		abort();
 	g = malloc0(sizeof(BuxtonData));
 	if (!g)
-		goto fail;
+		abort();
 	group_label = malloc0(sizeof(BuxtonString));
 	if (!group_label)
-		goto fail;
+		abort();
 
 	d = malloc0(sizeof(BuxtonData));
 	if (!d)
-		goto fail;
+		abort();
 	data_label = malloc0(sizeof(BuxtonString));
 	if (!data_label)
-		goto fail;
+		abort();
 
 	if (!buxton_copy_key_group(key, group))
-		goto fail;
+		abort();
 
 	if (!buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
 		buxton_debug("Group %s for name %s missing for unset value\n", key->group.value, key->name.value);

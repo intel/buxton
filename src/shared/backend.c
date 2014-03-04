@@ -36,33 +36,33 @@
 static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer);
 
 /* Load layer configurations from disk */
-bool buxton_init_layers(BuxtonConfig *config)
+void buxton_init_layers(BuxtonConfig *config)
 {
 	Hashmap *layers = NULL;
-	bool ret = false;
 	int nlayers = 0;
 	ConfigLayer *config_layers = NULL;
+	int r;
 
 	nlayers = buxton_key_get_layers(&config_layers);
 	layers = hashmap_new(string_hash_func, string_compare_func);
 	if (!layers)
-		goto end;
+		abort();
 
 	for (int n = 0; n < nlayers; n++) {
 		BuxtonLayer *layer;
 
 		layer = buxton_layer_new(&(config_layers[n]));
 		if (!layer)
-			continue;
+			abort();
 
-		hashmap_put(layers, layer->name.value, layer);
+		r = hashmap_put(layers, layer->name.value, layer);
+		if (r != 1) {
+			abort();
+		}
 	}
-	ret = true;
-	config->layers = layers;
 
-end:
+	config->layers = layers;
 	free(config_layers);
-	return ret;
 }
 
 static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
@@ -78,7 +78,7 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 		goto fail;
 	out->name.value = strdup(conf_layer->name);
 	if (!out->name.value)
-		goto fail;
+		abort();
 	out->name.length = (uint32_t)strlen(conf_layer->name);
 
 	if (strcmp(conf_layer->type, "System") == 0) {
@@ -99,8 +99,11 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 		goto fail;
 	}
 
-	if (conf_layer->description != NULL)
+	if (conf_layer->description != NULL) {
 		out->description = strdup(conf_layer->description);
+		if (!out->description)
+			abort();
+	}
 
 	out->priority = conf_layer->priority;
 	return out;
@@ -144,13 +147,12 @@ static bool init_backend(BuxtonConfig *config,
 
 	backend_tmp = malloc0(sizeof(BuxtonBackend));
 	if (!backend_tmp) {
-		return false;
+		abort();
 	}
 
 	r = asprintf(&path, "%s/%s.so", buxton_module_dir(), name);
 	if (r == -1) {
-		free(backend_tmp);
-		return false;
+		abort();
 	}
 
 	/* Load the module */
@@ -158,16 +160,14 @@ static bool init_backend(BuxtonConfig *config,
 
 	if (!handle) {
 		buxton_log("dlopen(): %s\n", dlerror());
-		free(backend_tmp);
-		return false;
+		abort();
 	}
 
 	dlerror();
 	cast = dlsym(handle, "buxton_module_init");
 	if ((error = dlerror()) != NULL || !cast) {
 		buxton_log("dlsym(): %s\n", error);
-		dlclose(handle);
-		return false;
+		abort();
 	}
 	memcpy(&i_func, &cast, sizeof(i_func));
 	dlerror();
@@ -175,30 +175,26 @@ static bool init_backend(BuxtonConfig *config,
 	cast = dlsym(handle, "buxton_module_destroy");
 	if ((error = dlerror()) != NULL || !cast) {
 		buxton_log("dlsym(): %s\n", error);
-		dlclose(handle);
-		return false;
+		abort();
 	}
 	memcpy(&d_func, &cast, sizeof(d_func));
 
 	rb = i_func(backend_tmp);
 	if (!rb) {
 		buxton_log("buxton_module_init failed\n");
-		dlclose(handle);
-		return false;
+		abort();
 	}
 
 	if (!config->backends) {
 		config->backends = hashmap_new(trivial_hash_func, trivial_compare_func);
 		if (!config->backends) {
-			dlclose(handle);
-			return false;
+			abort();
 		}
 	}
 
 	r = hashmap_put(config->backends, name, backend_tmp);
 	if (r != 1) {
-		dlclose(handle);
-		return false;
+		abort();
 	}
 
 	backend_tmp->module = handle;
@@ -213,11 +209,16 @@ BuxtonBackend *backend_for_layer(BuxtonConfig *config,
 				 BuxtonLayer *layer)
 {
 	BuxtonBackend *backend;
+	int ret;
 
 	assert(layer);
 
-	if (!config->databases)
+	if (!config->databases) {
 		config->databases = hashmap_new(string_hash_func, string_compare_func);
+		if (!config->databases) {
+			abort();
+		}
+	}
 	if ((backend = (BuxtonBackend*)hashmap_get(config->databases, layer->name.value)) == NULL) {
 		/* attempt load of backend */
 		if (!init_backend(config, layer, &backend)) {
@@ -225,7 +226,10 @@ BuxtonBackend *backend_for_layer(BuxtonConfig *config,
 			free(backend);
 			return NULL;
 		}
-		hashmap_put(config->databases, layer->name.value, backend);
+		ret = hashmap_put(config->databases, layer->name.value, backend);
+		if (ret != 1) {
+			abort();
+		}
 	}
 	return (BuxtonBackend*)hashmap_get(config->databases, layer->name.value);
 }
