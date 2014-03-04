@@ -54,10 +54,8 @@ bool buxton_cache_smack_rules(void)
 
 	_smackrules = hashmap_new(string_hash_func, string_compare_func);
 
-	if (!_smackrules) {
-		buxton_log("Failed to allocate Smack access table: %m\n");
-		return false;
-	}
+	if (!_smackrules)
+		abort();
 
 	/* FIXME: should check for a proper mount point instead */
 	if ((stat(SMACK_MOUNT_DIR, &buf) == -1) || !S_ISDIR(buf.st_mode)) {
@@ -113,19 +111,12 @@ bool buxton_cache_smack_rules(void)
 		have_rules = true;
 
 		r = asprintf(&rule_pair, "%s %s", subject, object);
-		if (r == -1) {
-			buxton_log("asprintf(): %m\n");
-			ret = false;
-			goto end;
-		}
+		if (r == -1)
+			abort();
 
 		accesstype = malloc0(sizeof(BuxtonKeyAccessType));
-		if (!accesstype) {
-			buxton_log("malloc0(): %m\n");
-			free(rule_pair);
-			ret = false;
-			goto end;
-		}
+		if (!accesstype)
+			abort();
 
 		*accesstype = ACCESS_NONE;
 
@@ -184,10 +175,8 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 
 	/* finally, check the loaded rules */
 	r = asprintf(&key, "%s %s", subject->value, object->value);
-	if (r == -1) {
-		buxton_log("asprintf(): %m\n");
-		exit(EXIT_FAILURE);
-	}
+	if (r == -1)
+		abort();
 
 	buxton_debug("Key: %s\n", key);
 
