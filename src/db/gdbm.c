@@ -60,22 +60,21 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 	else
 		r = asprintf(&name, "%s", layer->name.value);
 	if (r == -1)
-		return 0;
+		abort();
 
 	db = hashmap_get(_resources, name);
 	if (!db) {
 		path = get_layer_path(layer);
-		if (!path) {
-			free(name);
-			return 0;
-		}
+		if (!path)
+			abort();
 		db = gdbm_open(path, 0, GDBM_WRCREAT, 0600, NULL);
 		if (!db) {
 			free(name);
+			free(path);
 			buxton_log("Couldn't create db for path: %s\n", path);
 			return 0;
 		}
-		hashmap_put(_resources, name, db);
+		assert(hashmap_put(_resources, name, db) == 1);
 	} else {
 		db = (GDBM_FILE) hashmap_get(_resources, name);
 		free(name);
@@ -104,7 +103,7 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		sz = key->group.length + key->name.length;
 		key_data.dptr = malloc(sz);
 		if (!key_data.dptr)
-			return false;
+			abort();
 
 		/* size is string\0string\0 so just write, bonus for
 		   nil seperator being added without extra work */
@@ -115,7 +114,7 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	} else {
 		key_data.dptr = malloc(key->group.length);
 		if (!key_data.dptr)
-			return false;
+			abort();
 
 		memcpy(key_data.dptr, key->group.value, key->group.length);
 		key_data.dsize = (int)key->group.length;
@@ -157,7 +156,7 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		sz = key->group.length + key->name.length;
 		key_data.dptr = malloc(sz);
 		if (!key_data.dptr)
-			return false;
+			abort();
 
 		/* size is string\0string\0 so just write, bonus for
 		   nil seperator being added without extra work */
@@ -168,7 +167,7 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	} else {
 		key_data.dptr = malloc(key->group.length);
 		if (!key_data.dptr)
-			return false;
+			abort();
 
 		memcpy(key_data.dptr, key->group.value, key->group.length);
 		key_data.dsize = (int)key->group.length;
@@ -224,7 +223,7 @@ static bool unset_value(BuxtonLayer *layer,
 		sz = key->group.length + key->name.length;
 		key_data.dptr = malloc(sz);
 		if (!key_data.dptr)
-			return false;
+			abort();
 
 		/* size is string\0string\0 so just write, bonus for
 		   nil seperator being added without extra work */
@@ -235,7 +234,7 @@ static bool unset_value(BuxtonLayer *layer,
 	} else {
 		key_data.dptr = malloc(key->group.length);
 		if (!key_data.dptr)
-			return false;
+			abort();
 
 		memcpy(key_data.dptr, key->group.value, key->group.length);
 		key_data.dsize = (int)key->group.length;
@@ -285,16 +284,14 @@ static bool list_keys(BuxtonLayer *layer,
 
 		current = malloc0(sizeof(BuxtonData));
 		if (!current)
-			goto end;
+			abort();
 		current->type = STRING;
 		current->store.d_string.value = strdup(name);
 		if (!current->store.d_string.value)
-			goto end;
+			abort();
 		current->store.d_string.length = (uint32_t)strlen(name) + 1;
-		if (!buxton_array_add(k_list, current)) {
-			buxton_log("Unable to add key to to gdbm list\n");
-			goto end;
-		}
+		if (!buxton_array_add(k_list, current))
+			abort();
 
 		/* Visit the next key */
 		nextkey = gdbm_nextkey(db, key);
@@ -349,7 +346,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
 	if (!_resources)
-		return false;
+		abort();
 
 	return true;
 }

@@ -80,34 +80,34 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 
 	if (key->name.value) {
 		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
-			goto fail;
+			abort();
 	} else {
 		full_key = strdup(key->group.value);
 		if (!full_key)
-			goto fail;
+			abort();
 	}
 
 	array = buxton_array_new();
 	if (!array)
-		goto fail;
+		abort();
 	data_copy = malloc0(sizeof(BuxtonData));
 	if (!data_copy)
-		goto fail;
+		abort();
 	label_copy = malloc0(sizeof(BuxtonString));
 	if (!label_copy)
-		goto fail;
+		abort();
 
 	buxton_data_copy(data, data_copy);
 	if (!data_copy)
-		goto fail;
+		abort();
 	if (!buxton_string_copy(label, label_copy))
-		goto fail;
+		abort();
 	if (!buxton_array_add(array, data_copy))
-		goto fail;
+		abort();
 	if (!buxton_array_add(array, label_copy))
-		goto fail;
+		abort();
 	if (!buxton_array_add(array, full_key))
-		goto fail;
+		abort();
 
 	//FIXME replace value if already in db
 	hashmap_put(db, full_key, array);
@@ -140,9 +140,7 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(layer);
 	assert(key);
 	assert(label);
-
-	if (!data)
-		return false;
+	assert(data);
 
 	db = _db_for_resource(layer);
 	if (!db)
@@ -151,11 +149,11 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	//FIXME leaking full_key
 	if (key->name.value) {
 		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
-			return false;
+			abort();
 	} else {
 		full_key = strdup(key->group.value);
 		if (!full_key)
-			return false;
+			abort();
 	}
 
 	stored = (BuxtonArray *)hashmap_get(db, full_key);
@@ -170,11 +168,7 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 
 	l = buxton_array_get(stored, 1);
 	if (!buxton_string_copy(l, label)) {
-		if (data && data->store.d_string.value) {
-			free(data->store.d_string.value);
-			data->store.d_string.value = NULL;
-		}
-		return false;
+		abort();
 	}
 
 	return true;
@@ -201,11 +195,11 @@ static bool unset_value(BuxtonLayer *layer,
 	//FIXME fix full_key leak
 	if (key->name.value) {
 		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
-			return false;
+			abort();
 	} else {
 		full_key = strdup(key->group.value);
 		if (!full_key)
-			return false;
+			abort();
 	}
 
 	/* test if the value exists */
@@ -264,7 +258,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
 	if (!_resources)
-		return false;
+		abort();
 	return true;
 }
 
