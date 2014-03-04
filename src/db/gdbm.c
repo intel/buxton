@@ -74,7 +74,10 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 			buxton_log("Couldn't create db for path: %s\n", path);
 			return 0;
 		}
-		assert(hashmap_put(_resources, name, db) == 1);
+		r = hashmap_put(_resources, name, db);
+		if (r != 1) {
+			abort();
+		}
 	} else {
 		db = (GDBM_FILE) hashmap_get(_resources, name);
 		free(name);
