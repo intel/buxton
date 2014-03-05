@@ -724,7 +724,7 @@ START_TEST(buxton_wire_set_value_check)
 {
 	_BuxtonClient client;
 	int server;
-	size_t size;
+	ssize_t size;
 	BuxtonData *list = NULL;
 	uint8_t buf[4096];
 	ssize_t r;
@@ -784,7 +784,7 @@ START_TEST(buxton_wire_set_label_check)
 {
 	_BuxtonClient client;
 	int server;
-	size_t size;
+	ssize_t size;
 	BuxtonData *list = NULL;
 	uint8_t buf[4096];
 	ssize_t r;
@@ -877,7 +877,7 @@ START_TEST(buxton_wire_get_value_check)
 {
 	_BuxtonClient client;
 	int server;
-	size_t size;
+	ssize_t size;
 	BuxtonData *list = NULL;
 	uint8_t buf[4096];
 	ssize_t r;
@@ -961,7 +961,7 @@ START_TEST(buxton_wire_unset_value_check)
 {
 	_BuxtonClient client;
 	int server;
-	size_t size;
+	ssize_t size;
 	BuxtonData *list = NULL;
 	uint8_t buf[4096];
 	ssize_t r;
@@ -1020,7 +1020,7 @@ START_TEST(buxton_wire_create_group_check)
 {
 	_BuxtonClient client;
 	int server;
-	size_t size;
+	ssize_t size;
 	BuxtonData *list = NULL;
 	uint8_t buf[4096];
 	ssize_t r;
@@ -1071,7 +1071,7 @@ START_TEST(buxton_wire_remove_group_check)
 {
 	_BuxtonClient client;
 	int server;
-	size_t size;
+	ssize_t size;
 	BuxtonData *list = NULL;
 	uint8_t buf[4096];
 	ssize_t r;

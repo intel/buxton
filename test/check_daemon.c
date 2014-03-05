@@ -1044,7 +1044,7 @@ START_TEST(buxtond_handle_message_create_group_check)
 	BuxtonData *list;
 	BuxtonArray *out_list1, *out_list2;
 	BuxtonControlMessage msg;
-	size_t csize;
+	ssize_t csize;
 	int client, server;
 	ssize_t s;
 	uint8_t buf[4096];
@@ -1150,7 +1150,7 @@ START_TEST(buxtond_handle_message_remove_group_check)
 	BuxtonData *list;
 	BuxtonArray *out_list;
 	BuxtonControlMessage msg;
-	size_t csize;
+	ssize_t csize;
 	int client, server;
 	ssize_t s;
 	uint8_t buf[4096];
@@ -1226,7 +1226,7 @@ START_TEST(buxtond_handle_message_set_label_check)
 	BuxtonData *list;
 	BuxtonArray *out_list;
 	BuxtonControlMessage msg;
-	size_t csize;
+	ssize_t csize;
 	int client, server;
 	ssize_t s;
 	uint8_t buf[4096];
@@ -1306,7 +1306,7 @@ START_TEST(buxtond_handle_message_set_value_check)
 	BuxtonData *list;
 	BuxtonArray *out_list;
 	BuxtonControlMessage msg;
-	size_t csize;
+	ssize_t csize;
 	int client, server;
 	ssize_t s;
 	uint8_t buf[4096];
@@ -1398,7 +1398,7 @@ START_TEST(buxtond_handle_message_get_check)
 	BuxtonArray *out_list;
 	BuxtonArray *out_list2;
 	BuxtonControlMessage msg;
-	size_t csize;
+	ssize_t csize;
 	ssize_t s;
 	uint8_t buf[4096];
 	uint64_t msgid;
@@ -1509,7 +1509,7 @@ START_TEST(buxtond_handle_message_notify_check)
 	BuxtonData *list;
 	BuxtonArray *out_list;
 	BuxtonControlMessage msg;
-	size_t csize;
+	ssize_t csize;
 	ssize_t s;
 	uint8_t buf[4096];
 	uint64_t msgid;
@@ -1608,7 +1608,7 @@ START_TEST(buxtond_handle_message_unset_check)
 	BuxtonData *list;
 	BuxtonArray *out_list;
 	BuxtonControlMessage msg;
-	size_t csize;
+	ssize_t csize;
 	ssize_t s;
 	uint8_t buf[4096];
 	uint64_t msgid;
@@ -1686,7 +1686,7 @@ START_TEST(buxtond_notify_clients_check)
 	bool r;
 	BuxtonData *list;
 	BuxtonControlMessage msg;
-	size_t csize;
+	ssize_t csize;
 	ssize_t s;
 	uint8_t buf[4096];
 	uint64_t msgid;
