@@ -44,9 +44,9 @@ void buxton_direct_close(BuxtonControl *control);
  * @param control An initialized control structure
  * @param key The key struct
  * @param label A BuxtonString containing the label to set
- * @return A boolean value, indicating success of the operation
+ * @return A int32_t value, indicating success of the operation
  */
-bool buxton_direct_set_label(BuxtonControl *control,
+int32_t buxton_direct_set_label(BuxtonControl *control,
 			     _BuxtonKey *key,
 			     BuxtonString *label)
 	__attribute__((warn_unused_result));
@@ -56,9 +56,9 @@ bool buxton_direct_set_label(BuxtonControl *control,
  * @param control An initialized control structure
  * @param key The key struct with group and layer members initialized
  * @param label The Smack label of the client
- * @return A boolean value, indicating success of the operation
+ * @return A int32_t value, indicating success of the operation
  */
-bool buxton_direct_create_group(BuxtonControl *control,
+int32_t buxton_direct_create_group(BuxtonControl *control,
 				_BuxtonKey *key,
 				BuxtonString *label)
 	__attribute__((warn_unused_result));
@@ -81,9 +81,9 @@ bool buxton_direct_remove_group(BuxtonControl *control,
  * @param key The key struct
  * @param data A struct containing the data to set
  * @param label The Smack label for the client
- * @return A boolean value, indicating success of the operation
+ * @return A int32_t value, indicating success of the operation
  */
-bool buxton_direct_set_value(BuxtonControl *control,
+int32_t buxton_direct_set_value(BuxtonControl *control,
 			     _BuxtonKey *key,
 			     BuxtonData *data,
 			     BuxtonString *label)

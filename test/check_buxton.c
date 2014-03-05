@@ -53,7 +53,7 @@ START_TEST(buxton_direct_create_group_check)
 	group.group = buxton_string_pack("tgroup");
 	group.name = (BuxtonString){ NULL, 0 };
 	group.type = STRING;
-	fail_if(!buxton_direct_create_group(&c, &group, NULL),
+	fail_if(buxton_direct_create_group(&c, &group, NULL) != 0,
 		"Create group failed");
 }
 END_TEST
@@ -96,13 +96,13 @@ START_TEST(buxton_direct_set_value_check)
 	key.type = STRING;
 
 	c.client.uid = getuid();
-	fail_if(buxton_direct_create_group(&c, &group, NULL) == false,
+	fail_if(buxton_direct_create_group(&c, &group, NULL) != 0,
 		"Creating group failed.");
-	fail_if(buxton_direct_set_label(&c, &group, &glabel) == false,
+	fail_if(buxton_direct_set_label(&c, &group, &glabel) != 0,
 		"Setting group label failed.");
 	data.type = STRING;
 	data.store.d_string = buxton_string_pack("bxt_test_value");
-	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
+	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) != 0,
 		"Setting value in buxton directly failed.");
 	buxton_direct_close(&c);
 }
@@ -155,7 +155,7 @@ START_TEST(buxton_direct_get_value_check)
 	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(data.store.d_string.value == NULL,
 		"Failed to allocate test string.");
-	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
+	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) != 0,
 		"Failed to set second value.");
 	fail_if(buxton_direct_get_value(&c, &key, &result, &dlabel, NULL) == false,
 		"Retrieving value from buxton gdbm backend failed.");
@@ -193,13 +193,13 @@ START_TEST(buxton_memory_backend_check)
 		"Direct open failed without daemon.");
 
 	c.client.uid = getuid();
-	fail_if(buxton_direct_create_group(&c, &group, NULL) == false,
+	fail_if(buxton_direct_create_group(&c, &group, NULL) != 0,
 		"Creating group failed.");
-	fail_if(buxton_direct_set_label(&c, &group, &glabel) == false,
+	fail_if(buxton_direct_set_label(&c, &group, &glabel) != 0,
 		"Setting group label failed.");
 	data.type = STRING;
 	data.store.d_string = buxton_string_pack("bxt_test_value");
-	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
+	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) != 0,
 		"Setting value in buxton memory backend directly failed.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Retrieving value from buxton memory backend directly failed.");
@@ -273,18 +273,18 @@ START_TEST(buxton_set_label_check)
 	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
-	fail_if(buxton_direct_create_group(&c, &key, NULL) == false,
+	fail_if(buxton_direct_create_group(&c, &key, NULL) != 0,
 		"Creating group failed.");
-	fail_if(buxton_direct_set_label(&c, &key, &label) == false,
+	fail_if(buxton_direct_set_label(&c, &key, &label) != 0,
 		"Failed to set label as root user.");
 
 	c.client.uid = 1000;
 
 	if (skip_check)
-		fail_if(!buxton_direct_set_label(&c, &key, &label),
+		fail_if(buxton_direct_set_label(&c, &key, &label) != 0,
 			"Unable to set label with root check disabled");
 	else
-		fail_if(buxton_direct_set_label(&c, &key, &label),
+		fail_if(buxton_direct_set_label(&c, &key, &label) == 0,
 			"Able to set label as non-root user.");
 
 	buxton_direct_close(&c);
@@ -307,9 +307,9 @@ START_TEST(buxton_group_label_check)
 	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
-	fail_if(buxton_direct_create_group(&c, &key, NULL) == false,
+	fail_if(buxton_direct_create_group(&c, &key, NULL) != 0,
 		"Creating group failed.");
-	fail_if(buxton_direct_set_label(&c, &key, &label) == false,
+	fail_if(buxton_direct_set_label(&c, &key, &label) != 0,
 		"Failed to set group label.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Retrieving group label failed.");
@@ -338,9 +338,9 @@ START_TEST(buxton_name_label_check)
 	c.client.uid = 0;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
-	fail_if(buxton_direct_create_group(&c, &key, NULL) == false,
+	fail_if(buxton_direct_create_group(&c, &key, NULL) != 0,
 		"Creating group failed.");
-	fail_if(buxton_direct_set_label(&c, &key, &label) == false,
+	fail_if(buxton_direct_set_label(&c, &key, &label) != 0,
 		"Failed to set group label.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Retrieving group label failed.");
@@ -353,7 +353,7 @@ START_TEST(buxton_name_label_check)
 	key.name = buxton_string_pack("name-foo");
 	data.type = STRING;
 	data.store.d_string = buxton_string_pack("value1-foo");
-	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
+	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) != 0,
 		"Failed to set key name-foo.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Failed to get value for name-foo 1");
@@ -362,7 +362,7 @@ START_TEST(buxton_name_label_check)
 	fail_if(!streq(dlabel.value, "_"), "Failed to set default label");
 	free(dlabel.value);
 	free(result.store.d_string.value);
-	fail_if(buxton_direct_set_label(&c, &key, &label) == false,
+	fail_if(buxton_direct_set_label(&c, &key, &label) != 0,
 		"Failed to set name label.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Failed to get value for name-foo 2");
@@ -375,7 +375,7 @@ START_TEST(buxton_name_label_check)
 
 	/* modify the same key, with a new value, and validate the label */
 	data.store.d_string = buxton_string_pack("value2-foo");
-	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
+	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) != 0,
 		"Failed to modify key name-foo.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL) == false,
 		"Failed to get new value for name-foo.");
@@ -385,7 +385,7 @@ START_TEST(buxton_name_label_check)
 		"Key label has been modified.");
 
 	/* modify the key label directly once it has been created */
-	fail_if(buxton_direct_set_label(&c, &key, &label) == false,
+	fail_if(buxton_direct_set_label(&c, &key, &label) != 0,
 		"Failed to modify label on key.");
 
 	free(dlabel.value);

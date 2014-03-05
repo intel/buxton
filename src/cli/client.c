@@ -33,7 +33,7 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 {
 	BuxtonString label;
 	BuxtonKey key;
-	bool ret = false;
+	int32_t ret;
 
 	if (four != NULL)
 		key = buxton_key_create(two, three, one, type);
@@ -41,7 +41,7 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 		key = buxton_key_create(two, NULL, one, type);
 
 	if (!key)
-		return ret;
+		return false;
 
 	if (four != NULL)
 		label = buxton_string_pack(four);
@@ -54,39 +54,43 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 		ret = buxton_set_label(&control->client, key, label.value,
 					      NULL, NULL, true);
 
-	if (!ret) {
+	if (ret) {
 		char *name = get_name(key);
 		printf("Failed to update key \'%s:%s\' label in layer '%s'\n",
 		       two, name, one);
 		free(name);
 	}
 	buxton_key_free(key);
-	return ret;
+	if (ret)
+		return false;
+	return true;
 }
 
 bool cli_create_group(BuxtonControl *control, BuxtonDataType type,
 		      char *one, char *two, char *three, char *four)
 {
 	BuxtonKey key;
-	bool ret = false;
+	int32_t ret = -1;
 
 	key = buxton_key_create(two, NULL, one, type);
 	if (!key)
-		return ret;
+		return false;
 
 	if (control->client.direct)
 		ret = buxton_direct_create_group(control, (_BuxtonKey *)key, NULL);
 	else
 		ret = buxton_create_group(&control->client, key, NULL, NULL, true);
 
-	if (!ret) {
+	if (ret) {
 		char *group = get_group(key);
 		printf("Failed to create group \'%s\' in layer '%s'\n",
 		       group, one);
 		free(group);
 	}
 	buxton_key_free(key);
-	return ret;
+	if (ret)
+		return false;
+	return true;
 }
 
 bool cli_remove_group(BuxtonControl *control, BuxtonDataType type,
@@ -128,12 +132,12 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 	BuxtonString value;
 	BuxtonKey key;
 	BuxtonData set;
-	bool ret = false;
+	int32_t ret = -1;
 
 	memzero((void*)&set, sizeof(BuxtonData));
 	key = buxton_key_create(two, three, one, type);
 	if (!key)
-		return ret;
+		return false;
 
 	value.value = four;
 	value.length = (uint32_t)strlen(four) + 1;
@@ -150,12 +154,13 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		else
 			ret = buxton_set_value(&control->client, key,
 						      four, NULL, NULL, true);
+
 		break;
 	case INT32:
 		set.store.d_int32 = (int32_t)strtol(four, NULL, 10);
 		if (errno) {
 			printf("Invalid int32_t value\n");
-			return ret;
+			return false;
 		}
 		if (control->client.direct)
 			ret = buxton_direct_set_value(control,
@@ -170,7 +175,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		set.store.d_uint32 = (uint32_t)strtol(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid uint32_t value\n");
-			return ret;
+			return false;
 		}
 		if (control->client.direct)
 			ret = buxton_direct_set_value(control,
@@ -185,7 +190,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		set.store.d_int64 = strtoll(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid int64_t value\n");
-			return ret;
+			return false;
 		}
 		if (control->client.direct)
 			ret = buxton_direct_set_value(control,
@@ -200,7 +205,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		set.store.d_uint64 = strtoull(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid uint64_t value\n");
-			return ret;
+			return false;
 		}
 		if (control->client.direct)
 			ret = buxton_direct_set_value(control,
@@ -215,7 +220,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		set.store.d_float = strtof(value.value, NULL);
 		if (errno) {
 			printf("Invalid float value\n");
-			return ret;
+			return false;
 		}
 		if (control->client.direct)
 			ret = buxton_direct_set_value(control,
@@ -230,7 +235,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		set.store.d_double = strtod(value.value, NULL);
 		if (errno) {
 			printf("Invalid double value\n");
-			return ret;
+			return false;
 		}
 		if (control->client.direct)
 			ret = buxton_direct_set_value(control,
@@ -260,7 +265,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 			set.store.d_boolean = false;
 		else {
 			printf("Invalid bool value\n");
-			return ret;
+			return false;
 		}
 		if (control->client.direct)
 			ret = buxton_direct_set_value(control,
@@ -275,7 +280,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		break;
 	}
 
-	if (!ret) {
+	if (ret) {
 		char *group = get_group(key);
 		char *name = get_name(key);
 		char *layer = get_layer(key);
@@ -288,7 +293,9 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 	}
 
 	free(key);
-	return ret;
+	if (ret)
+		return false;
+	return true;
 }
 
 void get_value_callback(BuxtonResponse response, void *data)

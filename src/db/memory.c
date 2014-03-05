@@ -60,7 +60,7 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 	return db;
 }
 
-static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+static int32_t set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
 	Hashmap *db;
@@ -112,7 +112,7 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	//FIXME replace value if already in db
 	hashmap_put(db, full_key, array);
 
-	return true;
+	return 0;
 
 fail:
 	buxton_array_free(&array, NULL);
@@ -125,7 +125,7 @@ fail:
 	free(label_copy);
 	free(full_key);
 
-	return false;
+	return -1;
 }
 
 static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,

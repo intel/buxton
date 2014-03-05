@@ -15,6 +15,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "direct.h"
 #include "log.h"
@@ -183,7 +184,7 @@ fail:
 	return r;
 }
 
-bool buxton_direct_set_value(BuxtonControl *control,
+int32_t buxton_direct_set_value(BuxtonControl *control,
 			     _BuxtonKey *key,
 			     BuxtonData *data,
 			     BuxtonString *label)
@@ -198,7 +199,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	_cleanup_buxton_key_ _BuxtonKey *group = NULL;
 	_cleanup_buxton_string_ BuxtonString *data_label = NULL;
 	_cleanup_buxton_string_ BuxtonString *group_label = NULL;
-	bool r = false;
+	int32_t ret = -1;
 
 	assert(control);
 	assert(key);
@@ -229,15 +230,19 @@ bool buxton_direct_set_value(BuxtonControl *control,
 
 	if (!buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
 		buxton_debug("Group %s for name %s missing for set value\n", key->group.value, key->name.value);
+		ret = ENOENT;
 		goto fail;
 	}
 
 	/* Access checks are not needed for direct clients, where label is NULL */
 	if (label) {
-		if (!buxton_check_smack_access(label, group_label, ACCESS_WRITE))
+		if (!buxton_check_smack_access(label, group_label, ACCESS_WRITE)) {
+			ret = EPERM;
 			goto fail;
+		}
 		if (buxton_direct_get_value_for_layer(control, key, d, data_label, NULL)) {
 			if (!buxton_check_smack_access(label, data_label, ACCESS_WRITE)) {
+				ret = EPERM;
 				goto fail;
 			}
 			l = data_label;
@@ -263,14 +268,14 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	}
 
 	layer->uid = control->client.uid;
-	r = backend->set_value(layer, key, data, l);
+	ret = backend->set_value(layer, key, data, l);
 
 fail:
 	buxton_debug("set_value end\n");
-	return r;
+	return ret;
 }
 
-bool buxton_direct_set_label(BuxtonControl *control,
+int32_t buxton_direct_set_label(BuxtonControl *control,
 			     _BuxtonKey *key,
 			     BuxtonString *label)
 {
@@ -280,6 +285,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	_cleanup_buxton_data_ BuxtonData *data = NULL;
 	_cleanup_buxton_string_ BuxtonString *data_label = NULL;
 	bool r = false;
+	int32_t ret = -1;
 
 	assert(control);
 	assert(key);
@@ -305,6 +311,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 		/* FIXME: should check client's capability set instead of UID */
 		if (control->client.uid != 0 && !skip_check) {
 			buxton_debug("Not permitted to create group '%s'\n", key->group.value);
+			ret = EPERM;
 			goto fail;
 		}
 	} else {
@@ -321,6 +328,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	r = buxton_direct_get_value_for_layer(control, key, data, data_label, NULL);
 	if (!r) {
 		buxton_debug("Group or key does not exist\n");
+		ret = EEXIST;
 		goto fail;
 	}
 
@@ -331,15 +339,20 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	}
 
 	layer->uid = control->client.uid;
-	r = backend->set_value(layer, key, data, data_label);
-	if (!r)
+	ret = backend->set_value(layer, key, data, data_label);
+	if (ret)
 		buxton_debug("set label failed\n");
 
 fail:
-	return r;
+	if (!r && ret == 0) {
+		buxton_debug("Get call failed\n");
+		ret = -1;
+	}
+
+	return ret;
 }
 
-bool buxton_direct_create_group(BuxtonControl *control,
+int32_t buxton_direct_create_group(BuxtonControl *control,
 				_BuxtonKey *key,
 				BuxtonString *label)
 {
@@ -351,7 +364,7 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	_cleanup_buxton_data_ BuxtonData *group = NULL;
 	_cleanup_buxton_string_ BuxtonString *dlabel = NULL;
 	_cleanup_buxton_string_ BuxtonString *glabel = NULL;
-	bool r = false;
+	int32_t ret = -1;
 
 	assert(control);
 	assert(key);
@@ -382,12 +395,14 @@ bool buxton_direct_create_group(BuxtonControl *control,
 		/* FIXME: should check client's capability set instead of UID */
 		if (control->client.uid != 0 && !skip_check) {
 			buxton_debug("Not permitted to create group '%s'\n", key->group.value);
+			ret = EPERM;
 			goto fail;
 		}
 	}
 
 	if (buxton_direct_get_value_for_layer(control, key, group, glabel, NULL)) {
 		buxton_debug("Group '%s' already exists\n", key->group.value);
+		ret = EEXIST;
 		goto fail;
 	}
 
@@ -417,12 +432,12 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	}
 
 	layer->uid = control->client.uid;
-	r = backend->set_value(layer, key, data, dlabel);
-	if (!r)
+	ret = backend->set_value(layer, key, data, dlabel);
+	if (ret)
 		buxton_debug("create group failed\n");
 
 fail:
-	return r;
+	return ret;
 }
 
 bool buxton_direct_remove_group(BuxtonControl *control,
