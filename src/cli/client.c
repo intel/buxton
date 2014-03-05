@@ -27,6 +27,12 @@
 #include "protocol.h"
 #include "util.h"
 
+static char *nv(char *s)
+{
+	if (s)
+		return s;
+	return "(null)";
+}
 
 bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, char *four)
@@ -57,7 +63,7 @@ bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 	if (!ret) {
 		char *name = get_name(key);
 		printf("Failed to update key \'%s:%s\' label in layer '%s'\n",
-		       two, name, one);
+		       two, nv(name), one);
 		free(name);
 	}
 	buxton_key_free(key);
@@ -82,7 +88,7 @@ bool cli_create_group(BuxtonControl *control, BuxtonDataType type,
 	if (!ret) {
 		char *group = get_group(key);
 		printf("Failed to create group \'%s\' in layer '%s'\n",
-		       group, one);
+		       nv(group), one);
 		free(group);
 	}
 	buxton_key_free(key);
@@ -107,7 +113,7 @@ bool cli_remove_group(BuxtonControl *control, BuxtonDataType type,
 	if (!ret) {
 		char *group = get_group(key);
 		printf("Failed to remove group \'%s\' in layer '%s'\n",
-		       group, one);
+		       nv(group), one);
 		free(group);
 	}
 	buxton_key_free(key);
@@ -280,8 +286,8 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		char *name = get_name(key);
 		char *layer = get_layer(key);
 
-		printf("Failed to update key \'%s:%s\' in layer '%s'\n", get_group(key),
-		       get_name(key), layer ? layer : "");
+		printf("Failed to update key \'%s:%s\' in layer '%s'\n",
+		       nv(group), nv(name), nv(layer));
 		free(group);
 		free(name);
 		free(layer);
@@ -358,6 +364,8 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	BuxtonKey key;
 	BuxtonData get;
 	_cleanup_free_ char *prefix = NULL;
+	_cleanup_free_ char *group = NULL;
+	_cleanup_free_ char *name = NULL;
 	BuxtonString dlabel;
 	bool ret = false;
 
@@ -384,8 +392,10 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 						      get_value_callback,
 						      &get, true);
 		if (!ret) {
+			group = get_group(key);
+			name = get_name(key);
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
-			       one, get_group(key), get_name(key));
+			       one, nv(group), nv(name));
 			return false;
 		}
 	} else {
@@ -396,52 +406,56 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 						      get_value_callback, &get,
 						      true);
 		if (!ret) {
-			printf("Requested key was not found: %s:%s\n", get_group(key),
-			       get_name(key));
+			group = get_group(key);
+			name = get_name(key);
+			printf("Requested key was not found: %s:%s\n", nv(group),
+			       nv(name));
 			return false;
 		}
 	}
 
+	group = get_group(key);
+	name = get_name(key);
 	switch (get.type) {
 	case STRING:
-		printf("%s%s:%s = %s\n", prefix, get_group(key), get_name(key),
+		printf("%s%s:%s = %s\n", prefix, nv(group), nv(name),
 		       get.store.d_string.value ? get.store.d_string.value : "");
 		break;
 	case INT32:
-		printf("%s%s:%s = %" PRId32 "\n", prefix, get_group(key),
-		       get_name(key), get.store.d_int32);
+		printf("%s%s:%s = %" PRId32 "\n", prefix, nv(group),
+		       nv(name), get.store.d_int32);
 		break;
 	case UINT32:
-		printf("%s%s:%s = %" PRIu32 "\n", prefix, get_group(key),
-		       get_name(key), get.store.d_uint32);
+		printf("%s%s:%s = %" PRIu32 "\n", prefix, nv(group),
+		       nv(name), get.store.d_uint32);
 		break;
 	case INT64:
-		printf("%s%s:%s = %" PRId64 "\n", prefix, get_group(key),
-		       get_name(key), get.store.d_int64);
+		printf("%s%s:%s = %" PRId64 "\n", prefix, nv(group),
+		       nv(name), get.store.d_int64);
 		break;
 	case UINT64:
-		printf("%s%s:%s = %" PRIu64 "\n", prefix, get_group(key),
-		       get_name(key), get.store.d_uint64);
+		printf("%s%s:%s = %" PRIu64 "\n", prefix, nv(group),
+		       nv(name), get.store.d_uint64);
 		break;
 	case FLOAT:
-		printf("%s%s:%s = %f\n", prefix, get_group(key),
-		       get_name(key), get.store.d_float);
+		printf("%s%s:%s = %f\n", prefix, nv(group),
+		       nv(name), get.store.d_float);
 		break;
 	case DOUBLE:
-		printf("%s%s:%s = %f\n", prefix, get_group(key),
-		       get_name(key), get.store.d_double);
+		printf("%s%s:%s = %f\n", prefix, nv(group),
+		       nv(name), get.store.d_double);
 		break;
 	case BOOLEAN:
 		if (get.store.d_boolean == true)
-			printf("%s%s:%s = true\n", prefix, get_group(key),
-			       get_name(key));
+			printf("%s%s:%s = true\n", prefix, nv(group),
+			       nv(name));
 		else
-			printf("%s%s:%s = false\n", prefix, get_group(key),
-			       get_name(key));
+			printf("%s%s:%s = false\n", prefix, nv(group),
+			       nv(name));
 		break;
 	case BUXTON_TYPE_MIN:
-		printf("Requested key was not found: %s:%s\n", get_group(key),
-			       get_name(key));
+		printf("Requested key was not found: %s:%s\n", nv(group),
+			       nv(name));
 		return false;
 		break;
 	default:
@@ -467,12 +481,17 @@ bool cli_list_keys(BuxtonControl *control,
 void unset_value_callback(BuxtonResponse response, void *data)
 {
 	BuxtonKey key = buxton_response_key(response);
+	char *group, *name;
 
 	if (!key)
 		return;
 
-	printf("unset key %s:%s\n", buxton_key_get_group(key), buxton_key_get_name(key));
+	group = buxton_key_get_group(key);
+	name = buxton_key_get_name(key);
+	printf("unset key %s:%s\n", nv(group), nv(name));
 
+	free(group);
+	free(name);
 	buxton_key_free(key);
 }
 
