@@ -493,8 +493,10 @@ BuxtonKey buxton_response_key(BuxtonResponse response)
 	if (!key)
 		return NULL;
 
-	if (!buxton_key_copy(r->key, key))
+	if (!buxton_key_copy(r->key, key)) {
+		free(key);
 		return NULL;
+	}
 
 	return (BuxtonKey)key;
 }
