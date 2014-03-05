@@ -110,19 +110,6 @@ static bool init_group(void)
 	return (r && d);
 }
 
-static void cleanup_group(void)
-{
-	BuxtonKey group;
-	__attribute__((unused)) bool r;
-
-	group = buxton_key_create("TimingTest", NULL, "user", STRING);
-	r = buxton_remove_group(__client, group, NULL, NULL, true);
-
-	free(group);
-
-	return;
-}
-
 static bool testcase_init(struct testcase *tc)
 {
 	char name[64] = "";
@@ -299,8 +286,6 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < TEST_COUNT; i++)
 		test(&testcases[i]);
-
-	cleanup_group();
 
 	buxton_close(__client);
 	exit(ret);
