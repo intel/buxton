@@ -73,6 +73,21 @@ typedef bool (*module_value_func) (BuxtonLayer *layer, _BuxtonKey *key,
 				   BuxtonData *data, BuxtonString *label);
 
 /**
+ * !!! Temporary Only!  This allows us to move set_value() and callers to
+ * a errno-based error handling, while leaving get_*() alone.
+ * Will be removed with next error handling patch.
+ *
+ * Backend manipulation function
+ * @param layer The layer to manipulate or query
+ * @param key The key to manipulate or query
+ * @param data Set or get data, dependant on operation
+ * @param label The key's label
+ * @return a boolean value, indicating success of the operation
+ */
+typedef int32_t (*module_value_set_func) (BuxtonLayer *layer, _BuxtonKey *key,
+                   BuxtonData *data, BuxtonString *label);
+
+/**
  * Backend key list function
  * @param layer The layer to query
  * @param data Pointer to store BuxtonArray in
@@ -93,7 +108,7 @@ typedef void (*module_destroy_func) (void);
 typedef struct BuxtonBackend {
 	void *module; /**<Private handle to the module */
 	module_destroy_func destroy; /**<Destroy method */
-	module_value_func set_value; /**<Set value function */
+	module_value_set_func set_value; /**<Set value function */
 	module_value_func get_value; /**<Get value function */
 	module_list_func list_keys; /**<List keys function */
 	module_value_func unset_value; /**<Unset value function */

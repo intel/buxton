@@ -86,11 +86,11 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 	return db;
 }
 
-static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+static int32_t set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
 	GDBM_FILE db;
-	int ret = -1;
+	int32_t ret = -1;
 	datum key_data;
 	datum value;
 	_cleanup_free_ uint8_t *data_store = NULL;
@@ -124,8 +124,10 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	db = _db_for_resource(layer);
-	if (!db)
+	if (!db) {
+		buxton_debug("DB for layer [%s] not found\n", layer->name.value);
 		goto end;
+	}
 
 	size = buxton_serialize(data, label, &data_store);
 	if (size < BXT_MINIMUM_SIZE)
@@ -139,8 +141,8 @@ end:
 	free(key_data.dptr);
 
 	if (ret == -1)
-		return false;
-	return true;
+		return ret;
+	return 0;
 }
 
 static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,

@@ -473,8 +473,6 @@ void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	assert(value);
 	assert(status);
 
-	*status = -1;
-
 	buxton_debug("Daemon setting [%s][%s]\n",
 		     key->layer.value,
 		     key->group.value);
@@ -483,10 +481,7 @@ void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 
 	//FIXME move direct functions to daemon only file
 	/* Use internal library to set value */
-	if (!buxton_direct_set_value(&self->buxton, key, value, client->smack_label))
-		return;
-
-	*status = 0;
+	*status = buxton_direct_set_value(&self->buxton, key, value, client->smack_label);
 	buxton_debug("Daemon set value completed\n");
 }
 
@@ -500,8 +495,6 @@ void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	assert(value);
 	assert(status);
 
-	*status = -1;
-
 	buxton_debug("Daemon setting [%s][%s]\n",
 		     key->layer.value,
 		     key->group.value);
@@ -509,10 +502,7 @@ void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	self->buxton.client.uid = client->cred.uid;
 
 	/* Use internal library to set label */
-	if (!buxton_direct_set_label(&self->buxton, key, &value->store.d_string))
-		return;
-
-	*status = 0;
+	*status = buxton_direct_set_label(&self->buxton, key, &value->store.d_string);
 	buxton_debug("Daemon set label completed\n");
 }
 
@@ -524,8 +514,6 @@ void create_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	assert(key);
 	assert(status);
 
-	*status = -1;
-
 	buxton_debug("Daemon setting [%s][%s]\n",
 		     key->layer.value,
 		     key->group.value);
@@ -533,10 +521,7 @@ void create_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	self->buxton.client.uid = client->cred.uid;
 
 	/* Use internal library to create group */
-	if (!buxton_direct_create_group(&self->buxton, key, client->smack_label))
-		return;
-
-	*status = 0;
+	*status = buxton_direct_create_group(&self->buxton, key, client->smack_label);
 	buxton_debug("Daemon create group completed\n");
 }
 
