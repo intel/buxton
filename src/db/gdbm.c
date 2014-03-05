@@ -70,8 +70,8 @@ static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
 		db = gdbm_open(path, 0, GDBM_WRCREAT, 0600, NULL);
 		if (!db) {
 			free(name);
-			free(path);
 			buxton_log("Couldn't create db for path: %s\n", path);
+			free(path);
 			return 0;
 		}
 		r = hashmap_put(_resources, name, db);
