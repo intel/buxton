@@ -199,7 +199,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 	buxton_debug("Serializing message...\n");
 
-	if (list->len < 0 || list->len > BUXTON_MESSAGE_MAX_PARAMS)
+	if (list->len > BUXTON_MESSAGE_MAX_PARAMS)
 		return ret;
 
 	if (message >= BUXTON_CONTROL_MAX || message < BUXTON_CONTROL_SET)
