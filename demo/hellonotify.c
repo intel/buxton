@@ -20,7 +20,7 @@ void notify_cb(BuxtonResponse response, void *data)
 {
 	bool *status = (bool *)data;
 	BuxtonKey key;
-	int32_t value;
+	int32_t *value;
 	char *name;
 
 	if (buxton_response_status(response) != 0) {
@@ -31,10 +31,14 @@ void notify_cb(BuxtonResponse response, void *data)
 	key = buxton_response_key(response);
 	name = buxton_key_get_name(key);
 
-	value = *(int32_t*)buxton_response_value(response);
-	printf("key %s updated with new value %d\n", name, value);
+	value = (int32_t*)buxton_response_value(response);
+	if (value)
+		printf("key %s updated with new value %d\n", name, *value);
+	else
+		printf("key %s was removed\n", name);
 
 	buxton_key_free(key);
+	free(value);
 	free(name);
 }
 
