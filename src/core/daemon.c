@@ -328,8 +328,6 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 		goto end;
 	}
 
-	buxton_array_free(&out_list, NULL);
-
 	/* Now write the response */
 	ret = _write(client->fd, response_store, response_len);
 	if (ret) {
@@ -342,6 +340,8 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 end:
 	/* Restore our own UID */
 	self->buxton.client.uid = uid;
+	if (out_list)
+		buxton_array_free(&out_list, NULL);
 	if (list) {
 		for (i=0; i < p_count; i++) {
 			if (list[i].type == STRING)
