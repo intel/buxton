@@ -271,7 +271,7 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 		if (count < 0)
 			goto next;
 
-		if (!(r_msg == BUXTON_CONTROL_STATUS && r_list[0].type == INT32)
+		if (!(r_msg == BUXTON_CONTROL_STATUS && r_list && r_list[0].type == INT32)
 		    && !(r_msg == BUXTON_CONTROL_CHANGED)) {
 			handled++;
 			buxton_log("Critical error: Invalid response\n");
