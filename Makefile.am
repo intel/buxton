@@ -3,7 +3,7 @@ AM_CFLAGS = -std=gnu99 -fstack-protector -Wall -pedantic \
         -Wstrict-prototypes -Wundef -fno-common \
         -Werror-implicit-function-declaration \
         -Wformat -Wformat-security -Werror=format-security \
-	-Wconversion -rdynamic
+	-Wconversion -rdynamic -Wunreachable-code
 if DEBUG
 AM_CFLAGS += -ggdb3 -O0
 endif
