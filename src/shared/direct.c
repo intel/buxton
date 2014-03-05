@@ -597,6 +597,42 @@ fail:
 	return false;
 }
 
+bool buxton_direct_init_db(BuxtonControl *control, BuxtonString *layer_name)
+{
+	BuxtonBackend *backend;
+	BuxtonConfig *config;
+	BuxtonLayer *layer;
+	bool ret = false;
+	void *db;
+
+	assert(control);
+	assert(layer_name);
+
+	config = &control->config;
+	layer = hashmap_get(config->layers, layer_name->value);
+	if (!layer) {
+		goto end;
+	}
+
+	if (layer->type == LAYER_USER) {
+		ret = true;
+		goto end;
+	}
+
+	backend = backend_for_layer(config, layer);
+	if (!backend) {
+		goto end;
+	}
+
+	db = backend->create_db(layer);
+	if (db) {
+		ret = true;
+	}
+
+end:
+	return ret;
+}
+
 void buxton_direct_close(BuxtonControl *control)
 {
 	Iterator iterator;

@@ -34,6 +34,16 @@ bool buxton_direct_open(BuxtonControl *control)
 	__attribute__((warn_unused_result));
 
 /**
+ * Create a DB for a given layer in Buxton
+ *
+ * @param control Valid BuxtonControl instance
+ * @param layer_name BuxtonString of the layer name to create
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_direct_init_db(BuxtonControl *control, BuxtonString *layer_name)
+	__attribute__((warn_unused_result));
+
+/**
  * Close direct Buxton management connection
  * @param control Valid BuxtonControl instance
  */

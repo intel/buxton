@@ -255,6 +255,8 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
 	backend->unset_value = &unset_value;
+	backend->list_keys = NULL;
+	backend->create_db = NULL;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
 	if (!_resources)

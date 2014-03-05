@@ -20,6 +20,8 @@
 	#include "config.h"
 #endif
 
+#include <gdbm.h>
+
 #include "buxtonarray.h"
 #include "buxtondata.h"
 #include "buxtonstring.h"
@@ -81,6 +83,13 @@ typedef bool (*module_value_func) (BuxtonLayer *layer, _BuxtonKey *key,
 typedef bool (*module_list_func) (BuxtonLayer *layer, BuxtonArray **data);
 
 /**
+ * Backend database creation function
+ * @param layer The layer matching the db to create
+ * @return A Database (not intended to be used from direct functions)
+ */
+typedef void *(*module_db_init_func) (BuxtonLayer *layer);
+
+/**
  * Destroy (or shutdown) a backend module
  */
 typedef void (*module_destroy_func) (void);
@@ -97,6 +106,7 @@ typedef struct BuxtonBackend {
 	module_value_func get_value; /**<Get value function */
 	module_list_func list_keys; /**<List keys function */
 	module_value_func unset_value; /**<Unset value function */
+	module_db_init_func create_db; /**<DB file creation function */
 } BuxtonBackend;
 
 /**

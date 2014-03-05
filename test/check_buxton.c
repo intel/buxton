@@ -14,14 +14,18 @@
 #endif
 
 #include <check.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "backend.h"
 #include "buxton.h"
 #include "buxtonresponse.h"
 #include "check_utils.h"
+#include "configurator.h"
 #include "direct.h"
 #include "protocol.h"
 #include "serialize.h"
@@ -38,6 +42,36 @@ START_TEST(buxton_direct_open_check)
 	BuxtonControl c;
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
+	buxton_direct_close(&c);
+}
+END_TEST
+
+START_TEST(buxton_direct_init_db_check)
+{
+	BuxtonControl c;
+	BuxtonString slayer_name = buxton_string_pack("base");
+	BuxtonString ulayer_name = buxton_string_pack("user");
+	char db[PATH_MAX];
+	int r;
+	struct stat st;
+
+	fail_if(buxton_direct_open(&c) == false,
+		"Direct open failed without daemon.");
+
+	fail_if(!buxton_direct_init_db(&c, &ulayer_name),
+		"Failed to run init_db for user");
+
+	sprintf(db, "%s/user-%d.db", buxton_db_path(), getuid());
+	r = stat(db, &st);
+	fail_if(r != -1 && errno != ENOENT, "user db file created");
+
+	fail_if(!buxton_direct_init_db(&c, &slayer_name),
+		"Failed to run init_db");
+
+	sprintf(db, "%s/base.db", buxton_db_path());
+	r = stat(db, &st);
+	fail_if(r != 0, "Failed to create db file");
+
 	buxton_direct_close(&c);
 }
 END_TEST
@@ -1127,6 +1161,7 @@ buxton_suite(void)
 	s = suite_create("buxton");
 
 	tc = tcase_create("buxton_client_lib_functions");
+	tcase_add_test(tc, buxton_direct_init_db_check);
 	tcase_add_test(tc, buxton_direct_open_check);
 	tcase_add_test(tc, buxton_direct_create_group_check);
 	tcase_add_test(tc, buxton_direct_remove_group_check);

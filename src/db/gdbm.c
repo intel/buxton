@@ -45,7 +45,7 @@ static char *key_get_name(BuxtonString *key)
 }
 
 /* Open or create databases on the fly */
-static GDBM_FILE _db_for_resource(BuxtonLayer *layer)
+static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 {
 	GDBM_FILE db;
 	_cleanup_free_ char *path = NULL;
@@ -123,7 +123,7 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		key_data.dsize = (int)key->group.length;
 	}
 
-	db = _db_for_resource(layer);
+	db = db_for_resource(layer);
 	if (!db)
 		goto end;
 
@@ -177,7 +177,7 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	memzero(&value, sizeof(datum));
-	db = _db_for_resource(layer);
+	db = db_for_resource(layer);
 	if (!db)
 		goto end;
 
@@ -242,7 +242,7 @@ static bool unset_value(BuxtonLayer *layer,
 		key_data.dsize = (int)key->group.length;
 	}
 
-	db = _db_for_resource(layer);
+	db = db_for_resource(layer);
 	if (!db)
 		goto end;
 
@@ -269,7 +269,7 @@ static bool list_keys(BuxtonLayer *layer,
 
 	assert(layer);
 
-	db = _db_for_resource(layer);
+	db = db_for_resource(layer);
 	if (!db)
 		goto end;
 
@@ -345,6 +345,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	backend->get_value = &get_value;
 	backend->list_keys = &list_keys;
 	backend->unset_value = &unset_value;
+	backend->create_db = (module_db_init_func) &db_for_resource;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
 	if (!_resources)
