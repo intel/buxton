@@ -502,7 +502,7 @@ BuxtonKey buxton_response_key(BuxtonResponse response)
 void *buxton_response_value(BuxtonResponse response)
 {
 	void *p = NULL;
-	BuxtonData *d;
+	BuxtonData *d = NULL;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
 	BuxtonControlMessage type;
 
@@ -510,12 +510,15 @@ void *buxton_response_value(BuxtonResponse response)
 		return NULL;
 
 	type = buxton_response_type(response);
-	if (type == BUXTON_CONTROL_GET)
+	if (type == BUXTON_CONTROL_GET) {
 		d = buxton_array_get(r->data, 1);
-	else if (type == BUXTON_CONTROL_CHANGED)
-		d = buxton_array_get(r->data, 0);
-	else
+	} else if (type == BUXTON_CONTROL_CHANGED) {
+		if (r->data->len) {
+			d = buxton_array_get(r->data, 0);
+		}
+	} else {
 		goto out;
+	}
 
 	if (!d)
 		goto out;
