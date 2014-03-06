@@ -83,6 +83,7 @@ int main(int argc, char **argv)
 	Command c_set_label;
 	Command c_create_group, c_remove_group;
 	Command c_unset_value;
+	Command c_create_db;
 	Command *command;
 	int i = 0;
 	int c;
@@ -193,6 +194,11 @@ int main(int argc, char **argv)
 	c_unset_value = (Command) { "unset-value", "Unset a value by key",
 				    3, 3, "layer group name", &cli_unset_value, STRING };
 	hashmap_put(commands, c_unset_value.name, &c_unset_value);
+
+	/* Create db for layer */
+	c_create_db = (Command) { "create-db", "Create the database file for a layer",
+				    1, 1, "layer", &cli_create_db, STRING };
+	hashmap_put(commands, c_create_db.name, &c_create_db);
 
 	static struct option opts[] = {
 		{ "config-file", 1, NULL, 'c' },

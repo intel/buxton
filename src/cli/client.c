@@ -34,6 +34,27 @@ static char *nv(char *s)
 	return "(null)";
 }
 
+bool cli_create_db(BuxtonControl *control,
+		   __attribute__((unused)) BuxtonDataType type,
+		   char *one,
+		   __attribute__((unused)) char *two,
+		   __attribute__((unused)) char *three,
+		   __attribute__((unused)) char *four)
+{
+	BuxtonString layer_name;
+	bool ret;
+
+	if (!control->client.direct) {
+		printf("Unable to create db in non direct mode\n");
+	}
+
+	layer_name = buxton_string_pack(one);
+
+	ret = buxton_direct_init_db(control, &layer_name);
+
+	return ret;
+}
+
 bool cli_set_label(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, char *four)
 {

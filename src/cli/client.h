@@ -50,6 +50,24 @@ typedef struct Command {
 } Command;
 
 /**
+ * Create an initialized, empty db
+ * @param control An initialized control structure
+ * @param type Unused
+ * @param one Layer of label being set
+ * @param two Unused
+ * @param three Unused
+ * @param four Unused
+ * @returns bool indicating success or failure
+ */
+bool cli_create_db(BuxtonControl *control,
+		   BuxtonDataType type,
+		   char *one,
+		   char *two,
+		   char *three,
+		   char *four)
+	__attribute__((warn_unused_result));
+
+/**
  * Set a label in Buxton
  * @param control An initialized control structure
  * @param type Type of label being set (unused)
