@@ -157,7 +157,7 @@ START_TEST(buxton_direct_get_value_check)
 		"Failed to allocate test string.");
 	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
 		"Failed to set second value.");
-	fail_if(buxton_direct_get_value(&c, &key, &result, &dlabel, NULL) == false,
+	fail_if(buxton_direct_get_value(&c, &key, &result, &dlabel, NULL) == -1,
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");

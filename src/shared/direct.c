@@ -37,7 +37,7 @@ bool buxton_direct_open(BuxtonControl *control)
 	return true;
 }
 
-bool buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
+int32_t buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 			     BuxtonData *data, BuxtonString *data_label,
 			     BuxtonString *client_label)
 {
@@ -48,16 +48,22 @@ bool buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 	Iterator i;
 	BuxtonData d;
 	int priority = 0;
-	int r;
+	bool r;
 	BuxtonLayerType layer_origin = -1;
 
 	assert(control);
 	assert(key);
 
-	if (key->layer.value)
-		return buxton_direct_get_value_for_layer(control, key, data,
-							 data_label,
-							 client_label);
+	if (key->layer.value) {
+		r = buxton_direct_get_value_for_layer(control, key, data,
+						      data_label,
+						      client_label);
+		if (r) {
+			return 0;
+		} else {
+			return -1;
+		}
+	}
 
 	config = &control->config;
 
@@ -100,9 +106,14 @@ bool buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 						      client_label);
 		key->layer.value = NULL;
 		key->layer.length = 0;
-		return r;
+
+		if (r) {
+			return 0;
+		} else {
+			return -1;
+		}
 	}
-	return false;
+	return -1;
 }
 
 bool buxton_direct_get_value_for_layer(BuxtonControl *control,

@@ -368,6 +368,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	_cleanup_free_ char *name = NULL;
 	BuxtonString dlabel;
 	bool ret = false;
+	int32_t ret_val;
 
 	memzero((void*)&get, sizeof(BuxtonData));
 	if (three != NULL) {
@@ -399,12 +400,16 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 			return false;
 		}
 	} else {
-		if (control->client.direct)
-			ret = buxton_direct_get_value(control, key, &get, &dlabel, NULL);
-		else
+		if (control->client.direct) {
+			ret_val = buxton_direct_get_value(control, key, &get, &dlabel, NULL);
+			if (ret_val == 0) {
+				ret = true;
+			}
+		} else {
 			ret = buxton_get_value(&control->client, key,
 						      get_value_callback, &get,
 						      true);
+		}
 		if (!ret) {
 			group = get_group(key);
 			name = get_name(key);

@@ -96,9 +96,9 @@ bool buxton_direct_set_value(BuxtonControl *control,
  * @param data An empty BuxtonData, where data is stored
  * @param data_label The Smack label of the data
  * @param client_label The Smack label of the client
- * @return A boolean value, indicating success of the operation
+ * @return A int32_t value, indicating success of the operation
  */
-bool buxton_direct_get_value(BuxtonControl *control,
+int32_t buxton_direct_get_value(BuxtonControl *control,
 			     _BuxtonKey *key,
 			     BuxtonData *data,
 			     BuxtonString *data_label,

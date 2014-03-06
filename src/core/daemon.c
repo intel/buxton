@@ -594,6 +594,7 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 {
 	BuxtonData *data = NULL;
 	BuxtonString label;
+	int32_t ret;
 
 	assert(self);
 	assert(client);
@@ -613,9 +614,11 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 		buxton_debug("Daemon getting [%s]\n", key->group.value);
 	}
 	self->buxton.client.uid = client->cred.uid;
-	if (!buxton_direct_get_value(&self->buxton, key, data, &label,
-				     client->smack_label))
+	ret = buxton_direct_get_value(&self->buxton, key, data, &label,
+				      client->smack_label);
+	if (ret) {
 		goto fail;
+	}
 
 	free(label.value);
 	buxton_debug("get value returned successfully from db\n");
