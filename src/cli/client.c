@@ -462,11 +462,9 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		printf("Requested key was not found: %s:%s\n", nv(group),
 			       nv(name));
 		return false;
-		break;
 	default:
 		printf("unknown type\n");
 		return false;
-		break;
 	}
 
 	if (get.type == STRING)
@@ -518,8 +516,6 @@ bool cli_unset_value(BuxtonControl *control,
 		return buxton_unset_value(&control->client,
 						 key, unset_value_callback,
 						 NULL, true);
-
-	buxton_key_free(key);
 }
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

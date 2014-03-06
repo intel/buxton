@@ -300,8 +300,6 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 		size = BUXTON_MESSAGE_HEADER_LENGTH;
 		offset = 0;
 	} while (true);
-
-	return handled;
 }
 
 bool buxton_wire_get_response(_BuxtonClient *client)
