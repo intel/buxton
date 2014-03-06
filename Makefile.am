@@ -3,7 +3,7 @@ AM_CFLAGS = -std=gnu99 -fstack-protector -Wall -pedantic \
         -Wstrict-prototypes -Wundef -fno-common \
         -Werror-implicit-function-declaration \
         -Wformat -Wformat-security -Werror=format-security \
-	-Wconversion -rdynamic -Wunreachable-code
+	-Wconversion -Wunreachable-code
 if DEBUG
 AM_CFLAGS += -ggdb3 -O0
 endif
@@ -21,6 +21,9 @@ AM_CPPFLAGS = \
 	-D_DB_PATH=\"$(DB_PATH)\" \
 	-D_BUXTON_SOCKET=\"$(BUXTON_SOCKET)\" \
 	-D_SMACK_LOAD_FILE=\"$(SMACK_LOAD_FILE)\"
+
+AM_LDFLAGS = \
+	-rdynamic
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AUTOMAKE_OPTIONS = color-tests parallel-tests
