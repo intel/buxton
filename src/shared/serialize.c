@@ -102,15 +102,13 @@ size_t buxton_serialize(BuxtonData *source, BuxtonString *label,
 		memcpy(data+offset, &(source->store.d_boolean), sizeof(bool));
 		break;
 	default:
-		goto end;
+		abort();
 	}
 
 	ret = size;
-end:
-	if (ret < BXT_MINIMUM_SIZE)
-		free(data);
-	else
-		*target = data;
+	*target = data;
+
+	assert(ret >= BXT_MINIMUM_SIZE);
 
 	return ret;
 }

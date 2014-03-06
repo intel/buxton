@@ -502,11 +502,6 @@ START_TEST(buxton_db_serialize_check)
 		"Source and destination boolean labels differ");
 	free(ltarget.value);
 	free(packed);
-
-	dsource.type = -1;
-	dsource.store.d_boolean = true;
-	fail_if(buxton_serialize(&dsource, &lsource, &packed) == true,
-		"Able to serialize invalid type data");
 }
 END_TEST
 
