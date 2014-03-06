@@ -92,7 +92,6 @@ bool buxton_list_remove(BuxtonList **list, void *data, bool do_free)
 	BuxtonList *current = head;
 	BuxtonList *prev = head;
 
-	prev = current = head;
 	/* Determine the node inside the list */
 	while ((current != NULL) && (current->data != data)) {
 		prev = current;
