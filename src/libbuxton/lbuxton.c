@@ -62,6 +62,7 @@ bool buxton_set_conf_file(char *path)
 int buxton_open(BuxtonClient *client)
 {
 	_BuxtonClient **c = (_BuxtonClient **)client;
+	_BuxtonClient *cl = NULL;
 	int bx_socket, r;
 	struct sockaddr_un remote;
 
@@ -86,13 +87,15 @@ int buxton_open(BuxtonClient *client)
 		return -1;
 	}
 
-	*c = malloc0(sizeof(_BuxtonClient *));
-	if (!(*c)) {
+	cl = malloc0(sizeof(_BuxtonClient));
+	if (!cl) {
 		close(bx_socket);
 		return -1;
 	}
 
-	(*c)->fd = bx_socket;
+	cl->fd = bx_socket;
+	*c = cl;
+
 	return bx_socket;
 }
 
