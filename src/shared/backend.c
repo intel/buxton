@@ -114,7 +114,7 @@ fail:
 	return NULL;
 }
 
-static bool init_backend(BuxtonConfig *config,
+static void init_backend(BuxtonConfig *config,
 			 BuxtonLayer *layer,
 			 BuxtonBackend **backend)
 {
@@ -131,18 +131,20 @@ static bool init_backend(BuxtonConfig *config,
 	assert(layer);
 	assert(backend);
 
-	if (layer->backend == BACKEND_GDBM)
+	if (layer->backend == BACKEND_GDBM) {
 		name = "gdbm";
-	else if (layer->backend == BACKEND_MEMORY)
+	} else if (layer->backend == BACKEND_MEMORY) {
 		name = "memory";
-	else
-		return false;
+	} else {
+		buxton_log("Invalid backend type for layer: %s\n", layer->name);
+		abort();
+	}
 
 	backend_tmp = hashmap_get(config->backends, name);
 
 	if (backend_tmp) {
 		*backend = backend_tmp;
-		return true;
+		return;
 	}
 
 	backend_tmp = malloc0(sizeof(BuxtonBackend));
@@ -201,8 +203,6 @@ static bool init_backend(BuxtonConfig *config,
 	backend_tmp->destroy = d_func;
 
 	*backend = backend_tmp;
-
-	return true;
 }
 
 BuxtonBackend *backend_for_layer(BuxtonConfig *config,
@@ -221,11 +221,8 @@ BuxtonBackend *backend_for_layer(BuxtonConfig *config,
 	}
 	if ((backend = (BuxtonBackend*)hashmap_get(config->databases, layer->name.value)) == NULL) {
 		/* attempt load of backend */
-		if (!init_backend(config, layer, &backend)) {
-			buxton_log("backend_for_layer(): failed to initialise backend for layer: %s\n", layer->name);
-			free(backend);
-			return NULL;
-		}
+		init_backend(config, layer, &backend);
+
 		ret = hashmap_put(config->databases, layer->name.value, backend);
 		if (ret != 1) {
 			abort();
