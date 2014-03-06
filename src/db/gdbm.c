@@ -14,6 +14,7 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
 #include <gdbm.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,7 +87,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 	return db;
 }
 
-static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
 	GDBM_FILE db;
@@ -124,33 +125,32 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	db = db_for_resource(layer);
-	if (!db)
+	if (!db) {
+		ret = ENOENT;
 		goto end;
+	}
 
 	size = buxton_serialize(data, label, &data_store);
-	if (size < BXT_MINIMUM_SIZE)
-		goto end;
 
 	value.dptr = (char *)data_store;
 	value.dsize = (int)size;
 	ret = gdbm_store(db, key_data, value, GDBM_REPLACE);
+	assert(ret == 0);
 
 end:
 	free(key_data.dptr);
 
-	if (ret == -1)
-		return false;
-	return true;
+	return ret;
 }
 
-static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
 	GDBM_FILE db;
 	datum key_data;
 	datum value;
 	uint8_t *data_store = NULL;
-	bool ret = false;
+	int ret;
 	uint32_t sz;
 
 	assert(layer);
@@ -178,12 +178,21 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 
 	memzero(&value, sizeof(datum));
 	db = db_for_resource(layer);
-	if (!db)
+	if (!db) {
+		/*
+		 * Set negative here to indicate layer not found
+		 * rather than key not found, optimization for
+		 * set value
+		 */
+		ret = -ENOENT;
 		goto end;
+	}
 
 	value = gdbm_fetch(db, key_data);
-	if (value.dsize < 0 || value.dptr == NULL)
+	if (value.dsize < 0 || value.dptr == NULL) {
+		ret = ENOENT;
 		goto end;
+	}
 
 	data_store = (uint8_t*)value.dptr;
 	buxton_deserialize(data_store, data, label);
@@ -195,9 +204,10 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 			free(data->store.d_string.value);
 			data->store.d_string.value = NULL;
 		}
+		ret = EINVAL;
 		goto end;
 	}
-	ret = true;
+	ret = 0;
 
 end:
 	free(key_data.dptr);
@@ -207,15 +217,14 @@ end:
 	return ret;
 }
 
-static bool unset_value(BuxtonLayer *layer,
+static int unset_value(BuxtonLayer *layer,
 			_BuxtonKey *key,
 			__attribute__((unused)) BuxtonData *data,
 			__attribute__((unused)) BuxtonString *label)
 {
 	GDBM_FILE db;
 	datum key_data;
-	bool ret = false;
-	int rc;
+	int ret;
 	uint32_t sz;
 
 	assert(layer);
@@ -243,12 +252,16 @@ static bool unset_value(BuxtonLayer *layer,
 	}
 
 	db = db_for_resource(layer);
-	if (!db)
+	if (!db) {
+		ret = ENOENT;
 		goto end;
+	}
 
 	/* Negative value means the key wasn't found */
-	rc = gdbm_delete(db, key_data);
-	ret = rc == 0 ? true : false;
+	ret = gdbm_delete(db, key_data);
+	if (ret == -1) {
+		ret = ENOENT;
+	}
 
 end:
 	free(key_data.dptr);

@@ -14,6 +14,7 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
 
 #include "hashmap.h"
 #include "log.h"
@@ -60,7 +61,7 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 	return db;
 }
 
-static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
 	Hashmap *db;
@@ -68,6 +69,7 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	BuxtonData *data_copy = NULL;
 	BuxtonString *label_copy = NULL;
 	char *full_key = NULL;
+	int ret;
 
 	assert(layer);
 	assert(key);
@@ -75,8 +77,10 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(label);
 
 	db = _db_for_resource(layer);
-	if (!db)
-		goto fail;
+	if (!db) {
+		ret = ENOENT;
+		goto clean;
+	}
 
 	if (key->name.value) {
 		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
@@ -112,9 +116,10 @@ static bool set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	//FIXME replace value if already in db
 	hashmap_put(db, full_key, array);
 
-	return true;
+	ret = 0;
+	goto end;
 
-fail:
+clean:
 	buxton_array_free(&array, NULL);
 	if (data_copy && data_copy->type == STRING &&
 	    data_copy->store.d_string.value)
@@ -125,10 +130,11 @@ fail:
 	free(label_copy);
 	free(full_key);
 
-	return false;
+end:
+	return ret;
 }
 
-static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
 	Hashmap *db;
@@ -136,6 +142,7 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	BuxtonData *d;
 	BuxtonString *l;
 	char *full_key;
+	int ret;
 
 	assert(layer);
 	assert(key);
@@ -143,8 +150,15 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(data);
 
 	db = _db_for_resource(layer);
-	if (!db)
-		return false;
+	if (!db) {
+		/*
+		 * Set negative here to indicate layer not found
+		 * rather than key not found, optimization for
+		 * set value
+		 */
+		ret = -ENOENT;
+		goto end;
+	}
 
 	//FIXME leaking full_key
 	if (key->name.value) {
@@ -157,11 +171,15 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	stored = (BuxtonArray *)hashmap_get(db, full_key);
-	if (!stored)
-		return false;
+	if (!stored) {
+		ret = ENOENT;
+		goto end;
+	}
 	d = buxton_array_get(stored, 0);
-	if (d->type != key->type)
-		return false;
+	if (d->type != key->type) {
+		ret = EINVAL;
+		goto end;
+	}
 
 	buxton_data_copy(d, data);
 	//FIXME have buxton_data_copy return a bool
@@ -171,10 +189,13 @@ static bool get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		abort();
 	}
 
-	return true;
+	ret = 0;
+
+end:
+	return ret;
 }
 
-static bool unset_value(BuxtonLayer *layer,
+static int unset_value(BuxtonLayer *layer,
 			_BuxtonKey *key,
 			__attribute__((unused)) BuxtonData *data,
 			__attribute__((unused)) BuxtonString *label)
@@ -184,13 +205,16 @@ static bool unset_value(BuxtonLayer *layer,
 	BuxtonData *d;
 	BuxtonString *l;
 	char *full_key;
+	int ret;
 
 	assert(layer);
 	assert(key);
 
 	db = _db_for_resource(layer);
-	if (!db)
-		return false;
+	if (!db) {
+		ret = ENOENT;
+		goto end;
+	}
 
 	//FIXME fix full_key leak
 	if (key->name.value) {
@@ -204,8 +228,11 @@ static bool unset_value(BuxtonLayer *layer,
 
 	/* test if the value exists */
 	stored = (BuxtonArray *)hashmap_get(db, full_key);
-	if (!stored)
-		return false;
+	if (!stored) {
+		ret = ENOENT;
+		goto end;
+	}
+
 	/* free the data */
 	d = buxton_array_get(stored, 0);
 	data_free(d);
@@ -215,7 +242,10 @@ static bool unset_value(BuxtonLayer *layer,
 	hashmap_remove(db, key->group.value);
 	buxton_array_free(&stored, NULL);
 
-	return true;
+	ret = 0;
+
+end:
+	return ret;
 }
 
 _bx_export_ void buxton_module_destroy(void)
