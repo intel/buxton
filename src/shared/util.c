@@ -88,7 +88,7 @@ char* get_layer_path(BuxtonLayer *layer)
 	return path;
 }
 
-void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
+bool buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 {
 	BuxtonDataStore store;
 
@@ -131,10 +131,11 @@ void buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 	copy->type = original->type;
 	copy->store = store;
 
-	return;
+	return true;
 
 fail:
 	memset(copy, 0, sizeof(BuxtonData));
+	return false;
 }
 
 bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)

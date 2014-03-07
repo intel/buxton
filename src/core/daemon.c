@@ -439,8 +439,11 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 		nitem->old_data = malloc0(sizeof(BuxtonData));
 		if (!nitem->old_data)
 			abort();
-		if (value)
-			buxton_data_copy(value, nitem->old_data);
+		if (value) {
+			if (!buxton_data_copy(value, nitem->old_data)) {
+				abort();
+			}
+		}
 
 		out_list = buxton_array_new();
 		if (!out_list)

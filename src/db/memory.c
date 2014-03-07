@@ -105,9 +105,9 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	if (!label_copy)
 		abort();
 
-	buxton_data_copy(data, data_copy);
-	if (!data_copy)
+	if (!buxton_data_copy(data, data_copy)) {
 		abort();
+	}
 	if (!buxton_string_copy(label, label_copy))
 		abort();
 	if (!buxton_array_add(array, data_copy))
@@ -204,8 +204,9 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		goto end;
 	}
 
-	buxton_data_copy(d, data);
-	//FIXME have buxton_data_copy return a bool
+	if (!buxton_data_copy(d, data)) {
+		abort();
+	}
 
 	l = buxton_array_get(stored, 1);
 	if (!buxton_string_copy(l, label)) {

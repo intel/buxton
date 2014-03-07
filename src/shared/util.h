@@ -138,8 +138,9 @@ char* get_layer_path(BuxtonLayer *layer)
  * Perform a deep copy of one BuxtonData to another
  * @param original The data being copied
  * @param copy Pointer where original should be copied to
+ * @return A boolean indicating success or failure
  */
-void buxton_data_copy(BuxtonData *original, BuxtonData *copy);
+bool buxton_data_copy(BuxtonData *original, BuxtonData *copy);
 
 /**
  * Perform a deep copy of one BuxtonString to another
