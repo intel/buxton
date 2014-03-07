@@ -145,10 +145,8 @@ int buxton_direct_get_value_for_layer(BuxtonControl *control,
 		goto fail;
 	}
 	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		/* Already logged */
-		goto fail;
-	}
+	assert(backend);
+
 	layer->uid = control->client.uid;
 
 	/* Groups must be created first, so bail if this key's group doesn't exist */
@@ -280,10 +278,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
 		goto fail;
 
 	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		/* Already logged */
-		goto fail;
-	}
+	assert(backend);
 
 	layer->uid = control->client.uid;
 	ret = backend->set_value(layer, key, data, l);
@@ -342,10 +337,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	}
 
 	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		/* Already logged */
-		goto fail;
-	}
+	assert(backend);
 
 	ret = buxton_direct_get_value_for_layer(control, key, data, data_label, NULL);
 	if (ret) {
@@ -425,10 +417,7 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	}
 
 	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		/* Already logged */
-		goto fail;
-	}
+	assert(backend);
 
 	/* Since groups don't have a value, we create a dummy value */
 	data->type = STRING;
@@ -512,10 +501,7 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 	}
 
 	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		/* Already logged */
-		goto fail;
-	}
+	assert(backend);
 
 	layer->uid = control->client.uid;
 
@@ -547,10 +533,8 @@ bool buxton_direct_list_keys(BuxtonControl *control,
 		return false;
 	}
 	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		/* Already logged */
-		return false;
-	}
+	assert(backend);
+
 	layer->uid = control->client.uid;
 	return backend->list_keys(layer, list);
 }
@@ -617,10 +601,8 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 		return false;
 
 	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		/* Already logged */
-		return false;
-	}
+	assert(backend);
+
 	layer->uid = control->client.uid;
 	ret = backend->unset_value(layer, key, NULL, NULL);
 	if (ret) {
@@ -656,9 +638,7 @@ bool buxton_direct_init_db(BuxtonControl *control, BuxtonString *layer_name)
 	}
 
 	backend = backend_for_layer(config, layer);
-	if (!backend) {
-		goto end;
-	}
+	assert(backend);
 
 	db = backend->create_db(layer);
 	if (db) {
