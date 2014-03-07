@@ -544,16 +544,17 @@ START_TEST(handle_callback_response_check)
 	size_t size;
 	bool test_data;
 	BuxtonData data;
+	uint32_t msgid;
 	BuxtonData good[] = {
 		{INT32, {.d_int32 = 0}}
 	};
 	BuxtonData good_unnotify[] = {
 		{INT32,	 {.d_int32 = 0	 }},
 		{STRING, {.d_string = {0}}},
-		{INT64,	 {.d_int64 = 4	 }}
+		{UINT32, {.d_uint32 = 4	 }}
 	};
 	BuxtonData bad1[] = {
-		{INT64, {.d_int64 = 1}}
+		{INT64, {.d_int64 = 0}}
 	};
 	BuxtonData bad2[] = {
 		{INT32, {.d_int32 = 1}}
@@ -571,84 +572,88 @@ START_TEST(handle_callback_response_check)
 	out_list = buxton_array_new();
 	data.type = INT32;
 	data.store.d_int32 = 0;
+	msgid = 1;
 	fail_if(!buxton_array_add(out_list, &data),
 		"Failed to add data to array");
 	size = buxton_serialize_message(&dest, BUXTON_CONTROL_STATUS,
-					0, out_list);
+					msgid, out_list);
 	buxton_array_free(&out_list, NULL);
 	fail_if(size == 0, "Failed to serialize message");
 
 	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 1, BUXTON_CONTROL_SET, NULL),
-		"Failed to send message 1");
-	handle_callback_response(BUXTON_CONTROL_STATUS, 1, bad1, 1);
+			      &test_data, msgid, BUXTON_CONTROL_SET, NULL),
+		"Failed to send message %d", msgid);
+	handle_callback_response(BUXTON_CONTROL_STATUS, msgid, bad1, 1);
 	fail_if(test_data, "Failed to set cb data non notify type");
 
 	test_data = true;
+	msgid = 2;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 2, BUXTON_CONTROL_NOTIFY, NULL),
-		"Failed to send message 2");
-	handle_callback_response(BUXTON_CONTROL_STATUS, 2, bad1, 1);
+			      &test_data, msgid, BUXTON_CONTROL_NOTIFY, NULL),
+		"Failed to send message %d", msgid);
+	handle_callback_response(BUXTON_CONTROL_STATUS, msgid, bad1, 1);
 	fail_if(test_data, "Failed to set notify bad1 data");
 
 	test_data = true;
+	msgid = 3;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 3, BUXTON_CONTROL_NOTIFY, NULL),
-		"Failed to send message 3");
-	handle_callback_response(BUXTON_CONTROL_STATUS, 3, bad2, 1);
+			      &test_data, msgid, BUXTON_CONTROL_NOTIFY, NULL),
+		"Failed to send message %d", msgid);
+	handle_callback_response(BUXTON_CONTROL_STATUS, msgid, bad2, 1);
 	fail_if(test_data, "Failed to set notify bad2 data");
 
 	test_data = true;
+	msgid = 4;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 4, BUXTON_CONTROL_NOTIFY, NULL),
-		"Failed to send message 4");
-	handle_callback_response(BUXTON_CONTROL_STATUS, 4, good, 1);
+			      &test_data, msgid, BUXTON_CONTROL_NOTIFY, NULL),
+		"Failed to send message %d", msgid);
+	handle_callback_response(BUXTON_CONTROL_STATUS, msgid, good, 1);
 	fail_if(!test_data, "Set notify good data");
 
 	/* ensure we run callback on duplicate msgid */
-	test_data = true;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 4, BUXTON_CONTROL_NOTIFY, NULL),
-		"Failed to send message 4-2");
-	handle_callback_response(BUXTON_CONTROL_STATUS, 4, good, 1);
+			      &test_data, msgid, BUXTON_CONTROL_NOTIFY, NULL),
+		"Failed to send message %d-2", msgid);
+	handle_callback_response(BUXTON_CONTROL_STATUS, msgid, good, 1);
 	fail_if(test_data, "Failed to set notify duplicate msgid");
 
 	test_data = true;
-	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 5, BUXTON_CONTROL_NOTIFY, NULL),
-		"Failed to send message 5");
-	handle_callback_response(BUXTON_CONTROL_CHANGED, 4, good, 1);
+	handle_callback_response(BUXTON_CONTROL_CHANGED, msgid, good, 1);
 	fail_if(test_data, "Failed to set changed data");
 
 	/* ensure we don't remove callback on changed */
 	test_data = true;
-	handle_callback_response(BUXTON_CONTROL_CHANGED, 4, good, 1);
+	handle_callback_response(BUXTON_CONTROL_CHANGED, msgid, good, 1);
 	fail_if(test_data, "Failed to set changed data");
 
 	test_data = true;
+	msgid = 6;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 6, BUXTON_CONTROL_UNNOTIFY, NULL),
-		"Failed to send message 6");
-	handle_callback_response(BUXTON_CONTROL_STATUS, 6, bad1, 1);
+			      &test_data, msgid, BUXTON_CONTROL_UNNOTIFY, NULL),
+		"Failed to send message %d", msgid);
+	handle_callback_response(BUXTON_CONTROL_STATUS, msgid, bad1, 1);
 	fail_if(test_data, "Failed to set unnotify bad1 data");
 
 	test_data = true;
+	msgid = 7;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 7, BUXTON_CONTROL_UNNOTIFY, NULL),
-		"Failed to send message 7");
-	handle_callback_response(BUXTON_CONTROL_STATUS, 7, bad2, 1);
+			      &test_data, msgid, BUXTON_CONTROL_UNNOTIFY, NULL),
+		"Failed to send message %d", msgid);
+	handle_callback_response(BUXTON_CONTROL_STATUS, msgid, bad2, 1);
 	fail_if(test_data, "Failed to set unnotify bad2 data");
 
 	test_data = true;
+	msgid = 8;
 	fail_if(!send_message(&client, dest, size, handle_response_cb_test,
-			      &test_data, 8, BUXTON_CONTROL_UNNOTIFY, NULL),
-		"Failed to send message 8");
-	handle_callback_response(BUXTON_CONTROL_STATUS, 8, good_unnotify, 1);
+			      &test_data, msgid, BUXTON_CONTROL_UNNOTIFY, NULL),
+		"Failed to send message %d", msgid);
+	handle_callback_response(BUXTON_CONTROL_STATUS, msgid, good_unnotify, 1);
 	fail_if(!test_data, "Set unnotify good data");
 
 	test_data = true;
-	handle_callback_response(BUXTON_CONTROL_CHANGED, 4, good, 1);
+	msgid = 4;
+	handle_callback_response(BUXTON_CONTROL_CHANGED, msgid, good, 1);
 	fail_if(!test_data, "Didn't remove changed callback");
 
 	cleanup_callbacks();
