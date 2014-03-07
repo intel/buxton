@@ -66,9 +66,13 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 {
 	Hashmap *db;
 	BuxtonArray *array = NULL;
+	BuxtonArray *stored;
 	BuxtonData *data_copy = NULL;
+	BuxtonData *d;
 	BuxtonString *label_copy = NULL;
+	BuxtonString *l;
 	char *full_key = NULL;
+	char *k;
 	int ret;
 
 	assert(layer);
@@ -113,8 +117,28 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	if (!buxton_array_add(array, full_key))
 		abort();
 
-	//FIXME replace value if already in db
-	hashmap_put(db, full_key, array);
+	ret = hashmap_put(db, full_key, array);
+	if (ret != 1) {
+		if (ret == -ENOMEM) {
+			abort();
+		}
+		/* remove the old value */
+		stored = (BuxtonArray *)hashmap_remove(db, full_key);
+		assert(stored);
+
+		/* free the data */
+		d = buxton_array_get(stored, 0);
+		data_free(d);
+		l = buxton_array_get(stored, 1);
+		string_free(l);
+		k = buxton_array_get(stored, 2);
+		free(k);
+		buxton_array_free(&stored, NULL);
+		ret = hashmap_put(db, full_key, array);
+		if (ret != 1) {
+			abort();
+		}
+	}
 
 	ret = 0;
 	goto end;
