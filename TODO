@@ -91,9 +91,3 @@ Difficulty: Simple
 Time to complete: 1
 Target: ??
 Status:
-
-Description: Add fallback mode to buxtonctl --direct to use client
-Difficulty: Medium
-Time to complete: 5
-Target: v1
-Status:
