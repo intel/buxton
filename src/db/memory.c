@@ -184,7 +184,6 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		goto end;
 	}
 
-	//FIXME leaking full_key
 	if (key->name.value) {
 		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
 			abort();
@@ -216,6 +215,7 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	ret = 0;
 
 end:
+	free(full_key);
 	return ret;
 }
 
