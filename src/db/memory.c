@@ -229,6 +229,7 @@ static int unset_value(BuxtonLayer *layer,
 	BuxtonData *d;
 	BuxtonString *l;
 	char *full_key;
+	char *k;
 	int ret;
 
 	assert(layer);
@@ -240,7 +241,6 @@ static int unset_value(BuxtonLayer *layer,
 		goto end;
 	}
 
-	//FIXME fix full_key leak
 	if (key->name.value) {
 		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
 			abort();
@@ -262,11 +262,14 @@ static int unset_value(BuxtonLayer *layer,
 	data_free(d);
 	l = buxton_array_get(stored, 1);
 	string_free(l);
+	k = buxton_array_get(stored, 2);
+	free(k);
 	buxton_array_free(&stored, NULL);
 
 	ret = 0;
 
 end:
+	free(full_key);
 	return ret;
 }
 
