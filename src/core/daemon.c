@@ -476,9 +476,10 @@ void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 
 	*status = -1;
 
-	buxton_debug("Daemon setting [%s][%s]\n",
+	buxton_debug("Daemon setting [%s][%s][%s]\n",
 		     key->layer.value,
-		     key->group.value);
+		     key->group.value,
+		     key->name.value);
 
 	self->buxton.client.uid = client->cred.uid;
 
@@ -503,9 +504,10 @@ void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 
 	*status = -1;
 
-	buxton_debug("Daemon setting [%s][%s]\n",
+	buxton_debug("Daemon setting label on [%s][%s][%s]\n",
 		     key->layer.value,
-		     key->group.value);
+		     key->group.value,
+		     key->name.value);
 
 	self->buxton.client.uid = client->cred.uid;
 
@@ -527,7 +529,7 @@ void create_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 
 	*status = -1;
 
-	buxton_debug("Daemon setting [%s][%s]\n",
+	buxton_debug("Daemon creating group [%s][%s]\n",
 		     key->layer.value,
 		     key->group.value);
 
@@ -551,7 +553,7 @@ void remove_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 
 	*status = -1;
 
-	buxton_debug("Daemon removing [%s][%s]\n",
+	buxton_debug("Daemon removing group [%s][%s]\n",
 		     key->layer.value,
 		     key->group.value);
 
@@ -575,9 +577,10 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 
 	*status = -1;
 
-	buxton_debug("Daemon unsetting [%s][%s]\n",
+	buxton_debug("Daemon unsetting [%s][%s][%s]\n",
 		     key->layer.value,
-		     key->group.value);
+		     key->group.value,
+		     key->name.value);
 
 	/* Use internal library to unset value */
 	self->buxton.client.uid = client->cred.uid;
@@ -609,10 +612,11 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 		abort();
 
 	if (key->layer.value) {
-		buxton_debug("Daemon getting [%s][%s]\n", key->layer.value,
-			     key->group.value);
+		buxton_debug("Daemon getting [%s][%s][%s]\n", key->layer.value,
+			     key->group.value, key->name.value);
 	} else {
-		buxton_debug("Daemon getting [%s]\n", key->group.value);
+		buxton_debug("Daemon getting [%s][%s]\n", key->group.value,
+			     key->name.value);
 	}
 	self->buxton.client.uid = client->cred.uid;
 	ret = buxton_direct_get_value(&self->buxton, key, data, &label,
