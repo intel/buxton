@@ -33,11 +33,13 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 4)
 			return false;
 		if (list[0].type != STRING || list[1].type != STRING ||
-		    list[2].type != STRING)
+		    list[2].type != STRING || list[3].type == BUXTON_TYPE_MIN ||
+		    list[3].type == BUXTON_TYPE_MAX)
 			return false;
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		key->name = list[2].store.d_string;
+		key->type = list[3].type;
 		*value = &(list[3]);
 		break;
 	case BUXTON_CONTROL_SET_LABEL:
