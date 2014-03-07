@@ -227,7 +227,7 @@ static int unset_value(BuxtonLayer *layer,
 	}
 
 	/* test if the value exists */
-	stored = (BuxtonArray *)hashmap_get(db, full_key);
+	stored = (BuxtonArray *)hashmap_remove(db, full_key);
 	if (!stored) {
 		ret = ENOENT;
 		goto end;
@@ -238,8 +238,6 @@ static int unset_value(BuxtonLayer *layer,
 	data_free(d);
 	l = buxton_array_get(stored, 1);
 	string_free(l);
-	/* Now remove value from the database */
-	hashmap_remove(db, key->group.value);
 	buxton_array_free(&stored, NULL);
 
 	ret = 0;
