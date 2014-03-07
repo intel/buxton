@@ -49,7 +49,7 @@ typedef struct client_list_item {
 typedef struct BuxtonNotification {
 	client_list_item *client; /**<Client */
 	BuxtonData *old_data; /**<Old value of a particular key*/
-	uint64_t msgid; /**<Message id from the client */
+	uint32_t msgid; /**<Message id from the client */
 } BuxtonNotification;
 
 /**
@@ -186,7 +186,7 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
  * @param status Will be set with the int32_t result of the operation
  */
 void register_notification(BuxtonDaemon *self, client_list_item *client,
-			   _BuxtonKey *key, uint64_t msgid,
+			   _BuxtonKey *key, uint32_t msgid,
 			   int32_t *status);
 
 /**
@@ -197,7 +197,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
  * @param status Will be set with the int32_t result of the operation
  * @return Message ID used to send key's notifications to the client
  */
-uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
+uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 				 _BuxtonKey *key, int32_t *status)
 	__attribute__((warn_unused_result));
 

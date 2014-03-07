@@ -764,7 +764,7 @@ START_TEST(buxton_wire_set_value_check)
 	ssize_t r;
 	_BuxtonKey key;
 	BuxtonControlMessage msg;
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&(client.fd), &server);
 	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
@@ -825,7 +825,7 @@ START_TEST(buxton_wire_set_label_check)
 	_BuxtonKey key;
 	BuxtonString value;
 	BuxtonControlMessage msg;
-	uint64_t msgid;
+	uint32_t msgid;
 
 	client.uid = 0;
 	setup_socket_pair(&(client.fd), &server);
@@ -917,7 +917,7 @@ START_TEST(buxton_wire_get_value_check)
 	ssize_t r;
 	_BuxtonKey key;
 	BuxtonControlMessage msg;
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&(client.fd), &server);
 	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
@@ -1001,7 +1001,7 @@ START_TEST(buxton_wire_unset_value_check)
 	ssize_t r;
 	_BuxtonKey key;
 	BuxtonControlMessage msg;
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&(client.fd), &server);
 	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
@@ -1060,7 +1060,7 @@ START_TEST(buxton_wire_create_group_check)
 	ssize_t r;
 	_BuxtonKey key;
 	BuxtonControlMessage msg;
-	uint64_t msgid;
+	uint32_t msgid;
 
 	client.uid = 0;
 	setup_socket_pair(&(client.fd), &server);
@@ -1111,7 +1111,7 @@ START_TEST(buxton_wire_remove_group_check)
 	ssize_t r;
 	_BuxtonKey key;
 	BuxtonControlMessage msg;
-	uint64_t msgid;
+	uint32_t msgid;
 
 	client.uid = 0;
 	setup_socket_pair(&(client.fd), &server);

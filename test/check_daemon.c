@@ -927,7 +927,7 @@ START_TEST(register_notification_check)
 	BuxtonString clabel = buxton_string_pack("_");
 	int32_t status;
 	BuxtonDaemon server;
-	uint64_t msgid;
+	uint32_t msgid;
 
 	fail_if(!buxton_cache_smack_rules(),
 		"Failed to cache smack rules");
@@ -1048,7 +1048,7 @@ START_TEST(buxtond_handle_message_create_group_check)
 	int client, server;
 	ssize_t s;
 	uint8_t buf[4096];
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&client, &server);
 	fail_if(fcntl(client, F_SETFL, O_NONBLOCK),
@@ -1154,7 +1154,7 @@ START_TEST(buxtond_handle_message_remove_group_check)
 	int client, server;
 	ssize_t s;
 	uint8_t buf[4096];
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&client, &server);
 	fail_if(fcntl(client, F_SETFL, O_NONBLOCK),
@@ -1230,7 +1230,7 @@ START_TEST(buxtond_handle_message_set_label_check)
 	int client, server;
 	ssize_t s;
 	uint8_t buf[4096];
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&client, &server);
 	fail_if(fcntl(client, F_SETFL, O_NONBLOCK),
@@ -1310,7 +1310,7 @@ START_TEST(buxtond_handle_message_set_value_check)
 	int client, server;
 	ssize_t s;
 	uint8_t buf[4096];
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&client, &server);
 	fail_if(fcntl(client, F_SETFL, O_NONBLOCK),
@@ -1401,7 +1401,7 @@ START_TEST(buxtond_handle_message_get_check)
 	ssize_t csize;
 	ssize_t s;
 	uint8_t buf[4096];
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&client, &server);
 	out_list = buxton_array_new();
@@ -1512,7 +1512,7 @@ START_TEST(buxtond_handle_message_notify_check)
 	ssize_t csize;
 	ssize_t s;
 	uint8_t buf[4096];
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&client, &server);
 	out_list = buxton_array_new();
@@ -1582,9 +1582,9 @@ START_TEST(buxtond_handle_message_notify_check)
 		"Failed to get correct indicator type 2");
 	fail_if(list[0].store.d_int32 != 0,
 		"Failed to unregister for notification");
-	fail_if(list[1].type != UINT64,
+	fail_if(list[1].type != UINT32,
 		"Failed to get correct unnotify message id type");
-	fail_if(list[1].store.d_uint64 != 0,
+	fail_if(list[1].store.d_uint32 != 0,
 		"Failed to get correct unnotify message id");
 	fail_if(msgid != 0, "Failed to get correct message id 2");
 
@@ -1611,7 +1611,7 @@ START_TEST(buxtond_handle_message_unset_check)
 	ssize_t csize;
 	ssize_t s;
 	uint8_t buf[4096];
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&client, &server);
 	out_list = buxton_array_new();
@@ -1689,7 +1689,7 @@ START_TEST(buxtond_notify_clients_check)
 	ssize_t csize;
 	ssize_t s;
 	uint8_t buf[4096];
-	uint64_t msgid;
+	uint32_t msgid;
 
 	setup_socket_pair(&client, &server);
 

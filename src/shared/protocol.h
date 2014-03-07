@@ -64,7 +64,7 @@ void run_callback(BuxtonCallback callback, void *data, size_t count,
  * @return a boolean value, indicating success of the operation
  */
 bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
-		  BuxtonCallback callback, void *data, uint64_t msgid,
+		  BuxtonCallback callback, void *data, uint32_t msgid,
 		  BuxtonControlMessage type, _BuxtonKey *key)
 	__attribute__((warn_unused_result));
 
@@ -75,7 +75,7 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
  * @param list array of BuxtonData
  * @param count number of elements in list
  */
-void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
+void handle_callback_response(BuxtonControlMessage msg, uint32_t msgid,
 			      BuxtonData *list, size_t count);
 
 /**

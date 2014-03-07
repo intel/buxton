@@ -183,7 +183,7 @@ void buxton_deserialize(uint8_t *source, BuxtonData *target,
 }
 
 size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
-				uint64_t msgid, BuxtonArray *list)
+				uint32_t msgid, BuxtonArray *list)
 {
 	uint16_t i = 0;
 	uint8_t *data = NULL;
@@ -207,10 +207,10 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	 * initial size =
 	 * control code + control message (uint16_t * 2) +
 	 * message size (uint32_t) +
-	 * message id (uint64_t) +
+	 * message id (uint32_t) +
 	 * param count (uint32_t)
 	 */
-	data = malloc0(sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint64_t) +
+	data = malloc0(sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) +
 		       sizeof(uint32_t));
 	if (!data)
 		goto end;
@@ -226,8 +226,8 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	/* Save room for final size */
 	offset += sizeof(uint32_t);
 
-	memcpy(data+offset, &msgid, sizeof(uint64_t));
-	offset += sizeof(uint64_t);
+	memcpy(data+offset, &msgid, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
 
 	/* Now write the parameter count */
 	memcpy(data+offset, &(list->len), sizeof(uint32_t));
@@ -342,7 +342,7 @@ end:
 
 ssize_t buxton_deserialize_message(uint8_t *data,
 				  BuxtonControlMessage *r_message,
-				  size_t size, uint64_t *r_msgid,
+				  size_t size, uint32_t *r_msgid,
 				  BuxtonData **list)
 {
 	size_t offset = 0;
@@ -353,7 +353,7 @@ ssize_t buxton_deserialize_message(uint8_t *data,
 	BuxtonDataType c_type = 0;
 	BuxtonData *k_list = NULL;
 	BuxtonData c_data;
-	uint64_t msgid;
+	uint32_t msgid;
 
 	assert(data);
 	assert(r_message);
@@ -385,8 +385,8 @@ ssize_t buxton_deserialize_message(uint8_t *data,
 	offset += sizeof(uint32_t);
 
 	/* Obtain the message id */
-	msgid = *(uint64_t*)(data+offset);
-	offset += sizeof(uint64_t);
+	msgid = *(uint32_t*)(data+offset);
+	offset += sizeof(uint32_t);
 
 	/* Obtain number of parameters */
 	n_params = *(uint32_t*)(data+offset);

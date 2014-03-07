@@ -33,7 +33,7 @@
 static pthread_mutex_t callback_guard = PTHREAD_MUTEX_INITIALIZER;
 static Hashmap *callbacks = NULL;
 static Hashmap *notify_callbacks = NULL;
-static volatile uint64_t _msgid = 0;
+static volatile uint32_t _msgid = 0;
 
 struct notify_value {
 	void *data;
@@ -43,7 +43,7 @@ struct notify_value {
 	_BuxtonKey *key;
 };
 
-static uint64_t get_msgid(void)
+static uint32_t get_msgid(void)
 {
 	return __sync_fetch_and_add(&_msgid, 1);
 }
@@ -122,7 +122,7 @@ out:
 }
 
 bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
-		  BuxtonCallback callback, void *data, uint64_t msgid,
+		  BuxtonCallback callback, void *data, uint32_t msgid,
 		  BuxtonControlMessage type, _BuxtonKey *key)
 {
 	struct notify_value *nv, *nvi;
@@ -130,7 +130,7 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 	int s;
 	bool r = false;
 	Iterator it;
-	uint64_t hkey;
+	uint32_t hkey;
 
 	nv = malloc0(sizeof(struct notify_value));
 	if (!nv)
@@ -157,12 +157,21 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 	/* remove timed out callbacks */
 	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
 		if (nv->tv.tv_sec - nvi->tv.tv_sec > TIMEOUT) {
+#if UINTPTR_MAX == 0xffffffffffffffff
+			(void)hashmap_remove(callbacks, (void *)((uint64_t)hkey));
+#else
 			(void)hashmap_remove(callbacks, (void *)hkey);
+#endif
+
 			free(nvi);
 		}
 	}
 
+#if UINTPTR_MAX == 0xffffffffffffffff
+	s = hashmap_put(callbacks, (void *)((uint64_t)msgid), nv);
+#else
 	s = hashmap_put(callbacks, (void *)msgid, nv);
+#endif
 	(void)pthread_mutex_unlock(&callback_guard);
 
 	if (s < 1) {
@@ -186,14 +195,18 @@ fail:
 	return false;
 }
 
-void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
+void handle_callback_response(BuxtonControlMessage msg, uint32_t msgid,
 			      BuxtonData *list, size_t count)
 {
 	struct notify_value *nv;
 
 	/* use notification callbacks for notification messages */
 	if (msg == BUXTON_CONTROL_CHANGED) {
+#if UINTPTR_MAX == 0xffffffffffffffff
+		nv = hashmap_get(notify_callbacks, (void *)((uint64_t)msgid));
+#else
 		nv = hashmap_get(notify_callbacks, (void *)msgid);
+#endif
 		if (!nv)
 			return;
 
@@ -202,21 +215,36 @@ void handle_callback_response(BuxtonControlMessage msg, uint64_t msgid,
 		return;
 	}
 
-	nv = hashmap_remove(callbacks, (void *)msgid);
+#if UINTPTR_MAX == 0xffffffffffffffff
+		nv = hashmap_remove(callbacks, (void *)((uint64_t)msgid));
+#else
+		nv = hashmap_remove(callbacks, (void *)msgid);
+#endif
 	if (!nv)
 		return;
 
 	if (nv->type == BUXTON_CONTROL_NOTIFY) {
 		if (list[0].type == INT32 &&
-		    list[0].store.d_int32 == 0)
+		    list[0].store.d_int32 == 0) {
+#if UINTPTR_MAX == 0xffffffffffffffff
+			if (hashmap_put(notify_callbacks, (void *)((uint64_t)msgid), nv)
+#else
 			if (hashmap_put(notify_callbacks, (void *)msgid, nv)
-			    >= 0)
+#endif
+			    >= 0) {
 				return;
+			}
+		}
 	} else if (nv->type == BUXTON_CONTROL_UNNOTIFY) {
 		if (list[0].type == INT32 &&
 		    list[0].store.d_int32 == 0) {
 			(void)hashmap_remove(notify_callbacks,
-					     (void *)list[2].store.d_uint64);
+#if UINTPTR_MAX == 0xffffffffffffffff
+					     (void *)((uint64_t)list[2].store.d_uint32));
+#else
+					     (void *)list[2].store.d_uint32);
+#endif
+
 			return;
 		}
 	}
@@ -239,7 +267,7 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 	ssize_t count = 0;
 	size_t offset = 0;
 	size_t size = BUXTON_MESSAGE_HEADER_LENGTH;
-	uint64_t r_msgid;
+	uint32_t r_msgid;
 	int s;
 	ssize_t handled = 0;
 
@@ -333,7 +361,7 @@ bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
 	BuxtonData d_group;
 	BuxtonData d_name;
 	BuxtonData d_value;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(&key->layer, &d_layer);
 	buxton_string_to_data(&key->group, &d_group);
@@ -420,7 +448,7 @@ bool buxton_wire_set_label(_BuxtonClient *client,
 	BuxtonData d_group;
 	BuxtonData d_name;
 	BuxtonData d_value;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(&key->layer, &d_layer);
 	buxton_string_to_data(&key->group, &d_group);
@@ -475,7 +503,7 @@ bool buxton_wire_create_group(_BuxtonClient *client, _BuxtonKey *key,
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_group;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(&key->layer, &d_layer);
 	buxton_string_to_data(&key->group, &d_group);
@@ -518,7 +546,7 @@ bool buxton_wire_remove_group(_BuxtonClient *client, _BuxtonKey *key,
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	BuxtonData d_group;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(&key->layer, &d_layer);
 	buxton_string_to_data(&key->group, &d_group);
@@ -560,7 +588,7 @@ bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 	BuxtonData d_group;
 	BuxtonData d_name;
 	BuxtonData d_type;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(&key->group, &d_group);
 	buxton_string_to_data(&key->name, &d_name);
@@ -620,7 +648,7 @@ bool buxton_wire_unset_value(_BuxtonClient *client,
 	BuxtonData d_layer;
 	BuxtonData d_type;
 	bool ret = false;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(&key->group, &d_group);
 	buxton_string_to_data(&key->name, &d_name);
@@ -676,7 +704,7 @@ bool buxton_wire_list_keys(_BuxtonClient *client,
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
 	bool ret = false;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(layer, &d_layer);
 
@@ -719,7 +747,7 @@ bool buxton_wire_register_notification(_BuxtonClient *client,
 	BuxtonData d_name;
 	BuxtonData d_type;
 	bool ret = false;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(&key->group, &d_group);
 	buxton_string_to_data(&key->name, &d_name);
@@ -772,7 +800,7 @@ bool buxton_wire_unregister_notification(_BuxtonClient *client,
 	BuxtonData d_name;
 	BuxtonData d_type;
 	bool ret = false;
-	uint64_t msgid = get_msgid();
+	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(&key->group, &d_group);
 	buxton_string_to_data(&key->name, &d_name);

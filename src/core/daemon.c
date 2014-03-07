@@ -164,8 +164,8 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	_cleanup_free_ uint8_t *response_store = NULL;
 	uid_t uid;
 	bool ret = false;
-	uint64_t msgid = 0;
-	uint64_t n_msgid = 0;
+	uint32_t msgid = 0;
+	uint32_t n_msgid = 0;
 
 	assert(self);
 	assert(client);
@@ -313,8 +313,8 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 		}
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
-		mdata.type = UINT64;
-		mdata.store.d_uint64 = n_msgid;
+		mdata.type = UINT32;
+		mdata.store.d_uint32 = n_msgid;
 		if (!buxton_array_add(out_list, &mdata))
 			abort();
 		response_len = buxton_serialize_message(&response_store,
@@ -656,7 +656,7 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 }
 
 void register_notification(BuxtonDaemon *self, client_list_item *client,
-			   _BuxtonKey *key, uint64_t msgid,
+			   _BuxtonKey *key, uint32_t msgid,
 			   int32_t *status)
 {
 	BuxtonList *n_list = NULL;
@@ -706,13 +706,13 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	*status = 0;
 }
 
-uint64_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
+uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 				 _BuxtonKey *key, int32_t *status)
 {
 	BuxtonList *n_list = NULL;
 	BuxtonList *elem = NULL;
 	BuxtonNotification *nitem, *citem = NULL;
-	uint64_t msgid = 0;
+	uint32_t msgid = 0;
 
 	assert(self);
 	assert(client);

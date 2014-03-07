@@ -518,8 +518,8 @@ START_TEST(buxton_message_serialize_check)
 	size_t ret;
 	size_t pcount;
 	bool r;
-	uint64_t msource;
-	uint64_t mtarget;
+	uint32_t msource;
+	uint32_t mtarget;
 
 	list = buxton_array_new();
 	fail_if(!list, "Failed to allocate list");
@@ -746,7 +746,7 @@ START_TEST(buxton_message_serialize_check)
 	/* don't read past end of buffer check */
 	fail_if(buxton_deserialize_message(packed, &ctarget,
 					   (sizeof(uint32_t) * 3)
-					   + sizeof(uint64_t)
+					   + sizeof(uint32_t)
 					   + sizeof(uint16_t)
 					   + (sizeof(uint32_t) * 2),
 					   &mtarget, &dtarget) >= 0,
@@ -777,7 +777,7 @@ START_TEST(buxton_message_serialize_check)
 
 	ret = buxton_serialize_message(&packed, csource, msource, list);
 	pcount = 0;
-	memcpy(packed+(2 * sizeof(uint32_t)+sizeof(uint64_t)), &pcount, sizeof(uint32_t));
+	memcpy(packed+(2 * sizeof(uint32_t)+sizeof(uint32_t)), &pcount, sizeof(uint32_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
 					   &dtarget) < 0,
 		"Unable to deserialize message with 0 BuxtonData");
@@ -785,7 +785,7 @@ START_TEST(buxton_message_serialize_check)
 
 	ret = buxton_serialize_message(&packed, csource, msource, list);
 	pcount = BUXTON_MESSAGE_MAX_PARAMS + 1;
-	memcpy(packed+(2 * sizeof(uint32_t)+sizeof(uint64_t)), &pcount, sizeof(uint32_t));
+	memcpy(packed+(2 * sizeof(uint32_t)+sizeof(uint32_t)), &pcount, sizeof(uint32_t));
 	fail_if(buxton_deserialize_message(packed, &ctarget, ret, &mtarget,
 					   &dtarget) >= 0,
 		"Unable to deserialize message with 0 BuxtonData");

@@ -89,7 +89,7 @@ void buxton_deserialize(uint8_t *source, BuxtonData *target,
  */
 size_t buxton_serialize_message(uint8_t **dest,
 				BuxtonControlMessage message,
-				uint64_t msgid,
+				uint32_t msgid,
 				BuxtonArray *list)
 	__attribute__((warn_unused_result));
 
@@ -104,7 +104,7 @@ size_t buxton_serialize_message(uint8_t **dest,
  */
 ssize_t buxton_deserialize_message(uint8_t *data,
 				  BuxtonControlMessage *r_message,
-				  size_t size, uint64_t *r_msgid,
+				  size_t size, uint32_t *r_msgid,
 				  BuxtonData **list)
 	__attribute__((warn_unused_result));
 
