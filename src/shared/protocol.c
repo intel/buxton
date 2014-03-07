@@ -130,7 +130,11 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 	int s;
 	bool r = false;
 	Iterator it;
+#if UINTPTR_MAX == 0xffffffffffffffff
+	uint64_t hkey;
+#else
 	uint32_t hkey;
+#endif
 
 	nv = malloc0(sizeof(struct notify_value));
 	if (!nv)
@@ -157,12 +161,7 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 	/* remove timed out callbacks */
 	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
 		if (nv->tv.tv_sec - nvi->tv.tv_sec > TIMEOUT) {
-#if UINTPTR_MAX == 0xffffffffffffffff
-			(void)hashmap_remove(callbacks, (void *)((uint64_t)hkey));
-#else
 			(void)hashmap_remove(callbacks, (void *)hkey);
-#endif
-
 			free(nvi);
 		}
 	}
