@@ -483,8 +483,6 @@ void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 
 	self->buxton.client.uid = client->cred.uid;
 
-	//FIXME move direct functions to daemon only file
-	/* Use internal library to set value */
 	if (!buxton_direct_set_value(&self->buxton, key, value, client->smack_label))
 		return;
 
