@@ -14,6 +14,7 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -174,6 +175,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	p_count = buxton_deserialize_message((uint8_t*)client->data, &msg, size,
 					     &msgid, &list);
 	if (p_count < 0) {
+		if (errno == ENOMEM) {
+			abort();
+		}
 		/* Todo: terminate the client due to invalid message */
 		buxton_debug("Failed to deserialize message\n");
 		goto end;
@@ -236,6 +240,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize set response message\n");
 			goto end;
 		}
@@ -245,6 +252,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize set_label response message\n");
 			goto end;
 		}
@@ -254,6 +264,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize create_group response message\n");
 			goto end;
 		}
@@ -263,6 +276,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize remove_group response message\n");
 			goto end;
 		}
@@ -274,6 +290,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize get response message\n");
 			goto end;
 		}
@@ -283,6 +302,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize unset response message\n");
 			goto end;
 		}
@@ -299,6 +321,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize list response message\n");
 			goto end;
 		}
@@ -308,6 +333,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize notify response message\n");
 			goto end;
 		}
@@ -321,6 +349,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize unnotify response message\n");
 			goto end;
 		}
@@ -457,6 +488,9 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 							nitem->msgid, out_list);
 		buxton_array_free(&out_list, NULL);
 		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
 			buxton_log("Failed to serialize notification\n");
 			return;
 		}
