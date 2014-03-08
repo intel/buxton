@@ -32,6 +32,7 @@ buxtonctl
 check_buxton
 data/buxton.service
 data/buxton.socket
+data/*.pc
 check_shared_lib
 log-check-stderr-file
 test/*.ini

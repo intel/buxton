@@ -61,6 +61,10 @@ LIBBUXTON_CURRENT=0
 LIBBUXTON_REVISION=1
 LIBBUXTON_AGE=0
 
+pkgconfiglibdir=$(libdir)/pkgconfig
+pkgconfiglib_DATA = \
+	data/libbuxton.pc
+
 dist_man_MANS = \
 	docs/buxton.7 \
 	docs/buxtonctl.1 \
@@ -89,6 +93,7 @@ endif
 
 EXTRA_DIST = \
 	check_db_clean \
+	data/libbuxton.pc.in \
 	src/libbuxton/lbuxton.sym \
 	test/test.load2 \
 	test/test.conf \
