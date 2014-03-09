@@ -42,21 +42,23 @@
 #include "util.h"
 
 
-bool buxton_set_conf_file(char *path)
+int buxton_set_conf_file(char *path)
 {
 	int r;
 	struct stat st;
 
 	r = stat(path, &st);
-	if (r == -1)
-		return false;
-	else
-		if (st.st_mode & S_IFDIR)
-			return false;
+	if (r == -1) {
+		return errno;
+	} else {
+		if (st.st_mode & S_IFDIR) {
+			return EINVAL;
+		}
+	}
 
 	buxton_add_cmd_line(CONFIG_CONF_FILE, path);
 
-	return true;
+	return 0;
 }
 
 int buxton_open(BuxtonClient *client)

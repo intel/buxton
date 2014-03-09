@@ -102,9 +102,9 @@ typedef void (*BuxtonCallback)(BuxtonResponse, void *);
 /**
  * Sets path to buxton configuration file
  * @param path Path to the buxton configuration file to use
- * @return A boolean value, indicating success of the operation
+ * @return An int with 0 indicating success or an errno value
  */
-_bx_export_ bool buxton_set_conf_file(char *path);
+_bx_export_ int buxton_set_conf_file(char *path);
 
 /**
  * Open a connection to Buxton
