@@ -90,9 +90,9 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 /**
  * Wait for a response from buxtond and then call handle response
  * @param client Client connection
- * @return a boolean value, indicating success of the operation
+ * @return an int value, indicating success of the operation
  */
-bool buxton_wire_get_response(_BuxtonClient *client);
+int buxton_wire_get_response(_BuxtonClient *client);
 
 /**
  * Send a SET message over the wire protocol, return the response

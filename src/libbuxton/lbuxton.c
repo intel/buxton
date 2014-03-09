@@ -123,6 +123,7 @@ bool buxton_get_value(BuxtonClient client,
 			     bool sync)
 {
 	bool r;
+	int ret;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !(k->group.value) || !(k->name.value) ||
@@ -133,8 +134,14 @@ bool buxton_get_value(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response(client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }
@@ -146,6 +153,7 @@ bool buxton_register_notification(BuxtonClient client,
 					 bool sync)
 {
 	bool r;
+	int ret;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
@@ -157,8 +165,14 @@ bool buxton_register_notification(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response((_BuxtonClient *)client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }
@@ -170,6 +184,7 @@ bool buxton_unregister_notification(BuxtonClient client,
 					   bool sync)
 {
 	bool r;
+	int ret;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
@@ -181,8 +196,14 @@ bool buxton_unregister_notification(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response((_BuxtonClient *)client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }
@@ -195,6 +216,7 @@ bool buxton_set_value(BuxtonClient client,
 			     bool sync)
 {
 	bool r;
+	int ret;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
@@ -206,8 +228,14 @@ bool buxton_set_value(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response((_BuxtonClient *)client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }
@@ -220,6 +248,7 @@ bool buxton_set_label(BuxtonClient client,
 			     bool sync)
 {
 	bool r;
+	int ret;
 	BuxtonString v;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
@@ -234,8 +263,14 @@ bool buxton_set_label(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response(client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }
@@ -247,6 +282,7 @@ bool buxton_create_group(BuxtonClient client,
 				bool sync)
 {
 	bool r;
+	int ret;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	/* We require the key name to be NULL, since it is not used for groups */
@@ -258,8 +294,14 @@ bool buxton_create_group(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response(client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }
@@ -271,6 +313,7 @@ bool buxton_remove_group(BuxtonClient client,
 				bool sync)
 {
 	bool r;
+	int ret;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	/* We require the key name to be NULL, since it is not used for groups */
@@ -282,8 +325,14 @@ bool buxton_remove_group(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response(client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }
@@ -295,6 +344,7 @@ bool buxton_client_list_keys(BuxtonClient client,
 			     bool sync)
 {
 	bool r;
+	int ret;
 	BuxtonString l;
 
 	if (!layer_name)
@@ -306,8 +356,14 @@ bool buxton_client_list_keys(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response((_BuxtonClient *)client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }
@@ -319,6 +375,7 @@ bool buxton_unset_value(BuxtonClient client,
 			       bool sync)
 {
 	bool r;
+	int ret;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
@@ -329,8 +386,14 @@ bool buxton_unset_value(BuxtonClient client,
 	if (!r)
 		return false;
 
-	if (sync)
-		r = buxton_wire_get_response((_BuxtonClient *)client);
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			r = false;
+		} else {
+			r = true;
+		}
+	}
 
 	return r;
 }

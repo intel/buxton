@@ -14,6 +14,7 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -329,7 +330,7 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 	} while (true);
 }
 
-bool buxton_wire_get_response(_BuxtonClient *client)
+int buxton_wire_get_response(_BuxtonClient *client)
 {
 	struct pollfd pfd[1];
 	int r;
@@ -340,13 +341,15 @@ bool buxton_wire_get_response(_BuxtonClient *client)
 	pfd[0].revents = 0;
 	r = poll(pfd, 1, 5000);
 
-	if (r <= 0)
-		return false;
+	if (r == 0) {
+		return -ETIME;
+	} else if (r < 0) {
+		return -errno;
+	}
 
 	processed = buxton_wire_handle_response(client);
-	if (processed > 0)
-		return true;
-	return false;
+
+	return (int)processed;
 }
 
 bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
