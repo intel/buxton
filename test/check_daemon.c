@@ -1710,7 +1710,8 @@ START_TEST(buxtond_notify_clients_check)
 
 	value1.type = STRING;
 	value1.store.d_string = buxton_string_pack("dummy value");
-	key.group = buxton_string_pack("dummy key");
+	key.group = buxton_string_pack("dummy");
+	key.name = buxton_string_pack("name");
 	buxtond_notify_clients(&daemon, &cl, &key, &value1);
 
 	value1.store.d_string = buxton_string_pack("real value");

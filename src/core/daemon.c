@@ -393,12 +393,18 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 	_cleanup_free_ uint8_t* response = NULL;
 	size_t response_len;
 	BuxtonArray *out_list = NULL;
+	_cleanup_free_ char *key_name;
+	int r;
 
 	assert(self);
 	assert(client);
 	assert(key);
 
-	list = hashmap_get(self->notify_mapping, key->group.value);
+	r = asprintf(&key_name, "%s%s", key->group.value, key->name.value);
+	if (r == -1) {
+		abort();
+	}
+	list = hashmap_get(self->notify_mapping, key_name);
 	if (!list)
 		return;
 
@@ -495,7 +501,7 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 			return;
 		}
 		buxton_debug("Notification to %d of key change (%s)\n", nitem->client->fd,
-			     key->group.value);
+			     key_name);
 
 		unused = _write(nitem->client->fd, response, response_len);
 	}
@@ -698,6 +704,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	BuxtonData *old_data = NULL;
 	int32_t key_status;
 	char *key_name;
+	int r;
 
 	assert(self);
 	assert(client);
@@ -721,19 +728,20 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	nitem->msgid = msgid;
 
 	/* May be null, but will append regardless */
-	n_list = hashmap_get(self->notify_mapping, key->group.value);
+	r = asprintf(&key_name, "%s%s", key->group.value, key->name.value);
+	if (r == -1) {
+		abort();
+	}
+	n_list = hashmap_get(self->notify_mapping, key_name);
 
 	if (!n_list) {
-		key_name = strdup(key->group.value);
-		if (!key_name)
-			abort();
-
 		if (!buxton_list_append(&n_list, nitem))
 			abort();
 
 		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0)
 			abort();
 	} else {
+		free(key_name);
 		if (!buxton_list_append(&n_list, nitem))
 			abort();
 	}
@@ -747,6 +755,9 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	BuxtonList *elem = NULL;
 	BuxtonNotification *nitem, *citem = NULL;
 	uint32_t msgid = 0;
+	_cleanup_free_ char *key_name = NULL;
+	void *old_key_name;
+	int r;
 
 	assert(self);
 	assert(client);
@@ -754,7 +765,11 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	assert(status);
 
 	*status = -1;
-	n_list = hashmap_get(self->notify_mapping, key->group.value);
+	r = asprintf(&key_name, "%s%s", key->group.value, key->name.value);
+	if (r == -1) {
+		abort();
+	}
+	n_list = hashmap_get2(self->notify_mapping, key_name, &old_key_name);
 	/* This key isn't actually registered for notifications */
 	if (!n_list)
 		return 0;
@@ -779,8 +794,10 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	buxton_list_remove(&n_list, citem, true);
 
 	/* If we removed the last item, remove the mapping too */
-	if (!n_list)
-		hashmap_remove(self->notify_mapping, key->group.value);
+	if (!n_list) {
+		free(old_key_name);
+		(void)hashmap_remove(self->notify_mapping, key_name);
+	}
 
 	*status = 0;
 
