@@ -30,12 +30,14 @@ bool buxton_array_add(BuxtonArray *array,
 	uint new_len;
 	size_t curr, new_size;
 
-	if (!array || !data)
+	if (!array || !data) {
 		return false;
+	}
 	if (!array->data) {
 		array->data = calloc(1, sizeof(void*));
-		if (!array->data)
+		if (!array->data) {
 			return false;
+		}
 	}
 
 	new_len = array->len += 1;
@@ -44,8 +46,9 @@ bool buxton_array_add(BuxtonArray *array,
 	if (new_len >= array->len) {
 		/* Resize the array to hold one more pointer */
 		array->data = greedy_realloc((void**)&array->data, &curr, new_size);
-		if (!array->data)
+		if (!array->data) {
 			return false;
+		}
 	}
 	/* Store the pointer at the end of the array */
 	array->len = new_len;
@@ -55,10 +58,12 @@ bool buxton_array_add(BuxtonArray *array,
 
 void *buxton_array_get(BuxtonArray *array, uint16_t index)
 {
-	if (!array)
+	if (!array) {
 		return NULL;
-	if (index > array->len)
+	}
+	if (index > array->len) {
 		return NULL;
+	}
 	return array->data[index];
 }
 
@@ -67,8 +72,9 @@ void buxton_array_free(BuxtonArray **array,
 		       buxton_free_func free_method)
 {
 	int i;
-	if (!array || !*array)
+	if (!array || !*array) {
 		return;
+	}
 
 	if (free_method) {
 		/* Call the free_method on all members */

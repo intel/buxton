@@ -55,15 +55,18 @@ bool setup_callbacks(void)
 	int s;
 
 	s = pthread_mutex_lock(&callback_guard);
-	if (s)
+	if (s) {
 		return false;
+	}
 
-	if (callbacks && notify_callbacks)
+	if (callbacks && notify_callbacks) {
 		goto unlock;
+	}
 
 	callbacks = hashmap_new(trivial_hash_func, trivial_compare_func);
-	if (!callbacks)
+	if (!callbacks) {
 		goto unlock;
+	}
 
 	notify_callbacks = hashmap_new(trivial_hash_func, trivial_compare_func);
 	if (!notify_callbacks) {
@@ -75,8 +78,9 @@ bool setup_callbacks(void)
 
 unlock:
 	s = pthread_mutex_unlock(&callback_guard);
-	if (s)
+	if (s) {
 		return false;
+	}
 
 	return r;
 }
@@ -85,12 +89,14 @@ void cleanup_callbacks(void)
 {
 	(void)pthread_mutex_lock(&callback_guard);
 
-	if (callbacks)
+	if (callbacks) {
 		hashmap_free(callbacks);
+	}
 	callbacks = NULL;
 
-	if (notify_callbacks)
+	if (notify_callbacks) {
 		hashmap_free(notify_callbacks);
+	}
 	notify_callbacks = NULL;
 
 	(void)pthread_mutex_unlock(&callback_guard);
@@ -102,16 +108,19 @@ void run_callback(BuxtonCallback callback, void *data, size_t count,
 	BuxtonArray *array = NULL;
 	_BuxtonResponse response;
 
-	if (!callback)
+	if (!callback) {
 		goto out;
+	}
 
 	array = buxton_array_new();
-	if (!array)
+	if (!array) {
 		goto out;
+	}
 
 	for (int i = 0; i < count; i++)
-		if (!buxton_array_add(array, &list[i]))
+		if (!buxton_array_add(array, &list[i])) {
 			goto out;
+		}
 
 	response.type = type;
 	response.data = array;
@@ -138,15 +147,18 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 #endif
 
 	nv = malloc0(sizeof(struct notify_value));
-	if (!nv)
+	if (!nv) {
 		goto fail;
+	}
 
 	if (key) {
 		k = malloc0(sizeof(_BuxtonKey));
-		if (!k)
+		if (!k) {
 			goto fail;
-		if (!buxton_key_copy(key, k))
+		}
+		if (!buxton_key_copy(key, k)) {
 			goto fail;
+		}
 	}
 
 	(void)gettimeofday(&nv->tv, NULL);
@@ -156,8 +168,9 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 	nv->key = k;
 
 	s = pthread_mutex_lock(&callback_guard);
-	if (s)
+	if (s) {
 		goto fail;
+	}
 
 	/* remove timed out callbacks */
 	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
@@ -207,8 +220,9 @@ void handle_callback_response(BuxtonControlMessage msg, uint32_t msgid,
 #else
 		nv = hashmap_get(notify_callbacks, (void *)msgid);
 #endif
-		if (!nv)
+		if (!nv) {
 			return;
+		}
 
 		run_callback((BuxtonCallback)(nv->cb), nv->data, count, list,
 			     BUXTON_CONTROL_CHANGED, nv->key);
@@ -220,8 +234,9 @@ void handle_callback_response(BuxtonControlMessage msg, uint32_t msgid,
 #else
 		nv = hashmap_remove(callbacks, (void *)msgid);
 #endif
-	if (!nv)
+	if (!nv) {
 		return;
+	}
 
 	if (nv->type == BUXTON_CONTROL_NOTIFY) {
 		if (list[0].type == INT32 &&
@@ -272,32 +287,39 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 	ssize_t handled = 0;
 
 	response = malloc0(BUXTON_MESSAGE_HEADER_LENGTH);
-	if (!response)
+	if (!response) {
 		return 0;
+	}
 
 	do {
 		l = read(client->fd, response + offset, size - offset);
-		if (l <= 0)
+		if (l <= 0) {
 			return handled;
+		}
 		offset += (size_t)l;
-		if (offset < BUXTON_MESSAGE_HEADER_LENGTH)
+		if (offset < BUXTON_MESSAGE_HEADER_LENGTH) {
 			continue;
+		}
 		if (size == BUXTON_MESSAGE_HEADER_LENGTH) {
 			size = buxton_get_message_size(response, offset);
-			if (size == 0 || size > BUXTON_MESSAGE_MAX_LENGTH)
+			if (size == 0 || size > BUXTON_MESSAGE_MAX_LENGTH) {
 				return -1;
+			}
 		}
 		if (size != BUXTON_MESSAGE_HEADER_LENGTH) {
 			response = realloc(response, size);
-			if (!response)
+			if (!response) {
 				return -1;
+			}
 		}
-		if (size != offset)
+		if (size != offset) {
 			continue;
+		}
 
 		count = buxton_deserialize_message(response, &r_msg, size, &r_msgid, &r_list);
-		if (count < 0)
+		if (count < 0) {
 			goto next;
+		}
 
 		if (!(r_msg == BUXTON_CONTROL_STATUS && r_list && r_list[0].type == INT32)
 		    && !(r_msg == BUXTON_CONTROL_CHANGED)) {
@@ -307,8 +329,9 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 		}
 
 		s = pthread_mutex_lock(&callback_guard);
-		if (s)
+		if (s) {
 			goto next;
+		}
 
 		handle_callback_response(r_msg, r_msgid, r_list, (size_t)count);
 
@@ -318,8 +341,9 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 	next:
 		if (r_list) {
 			for (int i = 0; i < count; i++) {
-				if (r_list[i].type == STRING)
+				if (r_list[i].type == STRING) {
 					free(r_list[i].store.d_string.value);
+				}
 			}
 			free(r_list);
 		}
@@ -419,13 +443,15 @@ bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
 
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET, msgid, list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_SET, key))
+			  BUXTON_CONTROL_SET, key)) {
 		goto end;
+	}
 
 	ret = true;
 
@@ -479,12 +505,14 @@ bool buxton_wire_set_label(_BuxtonClient *client,
 
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_SET_LABEL, msgid, list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_SET_LABEL, key))
+			  BUXTON_CONTROL_SET_LABEL, key)) {
 		goto end;
+	}
 
 	ret = true;
 
@@ -522,12 +550,14 @@ bool buxton_wire_create_group(_BuxtonClient *client, _BuxtonKey *key,
 
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_CREATE_GROUP, msgid, list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_CREATE_GROUP, key))
+			  BUXTON_CONTROL_CREATE_GROUP, key)) {
 		goto end;
+	}
 
 	ret = true;
 
@@ -565,12 +595,14 @@ bool buxton_wire_remove_group(_BuxtonClient *client, _BuxtonKey *key,
 
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_REMOVE_GROUP, msgid, list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_REMOVE_GROUP, key))
+			  BUXTON_CONTROL_REMOVE_GROUP, key)) {
 		goto end;
+	}
 
 	ret = true;
 
@@ -620,12 +652,14 @@ bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET, msgid, list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 	if(!send_message(client, send, send_len, callback, data, msgid,
-			 BUXTON_CONTROL_GET, key))
+			 BUXTON_CONTROL_GET, key)) {
 		goto end;
+	}
 
 	ret = true;
 
@@ -679,12 +713,14 @@ bool buxton_wire_unset_value(_BuxtonClient *client,
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNSET,
 					    msgid, list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_UNSET, key))
+			  BUXTON_CONTROL_UNSET, key)) {
 		goto end;
+	}
 
 	ret = true;
 
@@ -719,12 +755,14 @@ bool buxton_wire_list_keys(_BuxtonClient *client,
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_LIST, msgid,
 					    list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_LIST, NULL))
+			  BUXTON_CONTROL_LIST, NULL)) {
 		goto end;
+	}
 
 	ret = true;
 
@@ -773,12 +811,14 @@ bool buxton_wire_register_notification(_BuxtonClient *client,
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_NOTIFY, msgid,
 					    list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_NOTIFY, key))
+			  BUXTON_CONTROL_NOTIFY, key)) {
 		goto end;
+	}
 
 	ret = true;
 
@@ -826,12 +866,14 @@ bool buxton_wire_unregister_notification(_BuxtonClient *client,
 	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_UNNOTIFY,
 					    msgid, list);
 
-	if (send_len == 0)
+	if (send_len == 0) {
 		goto end;
+	}
 
 	if (!send_message(client, send, send_len, callback, data, msgid,
-			  BUXTON_CONTROL_UNNOTIFY, key))
+			  BUXTON_CONTROL_UNNOTIFY, key)) {
 		goto end;
+	}
 
 	ret = true;
 

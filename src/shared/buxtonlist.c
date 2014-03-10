@@ -30,8 +30,9 @@ bool buxton_list_append(BuxtonList **list, void *data)
 	if (!head) {
 		/* New head generation */
 		head = calloc(1, sizeof(BuxtonList));
-		if (!head)
+		if (!head) {
 			return false;
+		}
 		next = parent = head;
 		head->size = 0;
 		next->tail = NULL;
@@ -39,12 +40,14 @@ bool buxton_list_append(BuxtonList **list, void *data)
 
 	if (!next) {
 		next = calloc(1, sizeof(BuxtonList));
-		if (!next)
+		if (!next) {
 			return false;
-		if (head->tail)
+		}
+		if (head->tail) {
 			parent = head->tail;
-		else
+		} else {
 			parent = head;
+		}
 		parent->next = next;
 		head->tail = next;
 	}
@@ -62,8 +65,9 @@ bool buxton_list_prepend(BuxtonList **list, void *data)
 	if (!head) {
 		/* New head generation */
 		head = calloc(1, sizeof(BuxtonList));
-		if (!head)
+		if (!head) {
 			return false;
+		}
 		prev = head;
 		head->size = 0;
 		prev->tail = head;
@@ -71,8 +75,9 @@ bool buxton_list_prepend(BuxtonList **list, void *data)
 	} else {
 		/* New item */
 		prev = calloc(1, sizeof(BuxtonList));
-		if (!prev)
+		if (!prev) {
 			return false;
+		}
 		prev->size = head->size+1;
 		head->size = 0;
 		prev->next = head;
@@ -122,8 +127,9 @@ bool buxton_list_remove(BuxtonList **list, void *data, bool do_free)
 	}
 
 	/* Should free? */
-	if (do_free)
+	if (do_free) {
 		free(current->data);
+	}
 	free(current);
 
 	*list = head;

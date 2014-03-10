@@ -40,8 +40,9 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", NULL, "user", STRING);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
 	if (!buxton_remove_group(client, key, remove_cb,
 				 NULL, false)) {

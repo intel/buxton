@@ -31,12 +31,14 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 {
 	switch (msg) {
 	case BUXTON_CONTROL_SET:
-		if (count != 4)
+		if (count != 4) {
 			return false;
+		}
 		if (list[0].type != STRING || list[1].type != STRING ||
 		    list[2].type != STRING || list[3].type == BUXTON_TYPE_MIN ||
-		    list[3].type == BUXTON_TYPE_MAX)
+		    list[3].type == BUXTON_TYPE_MAX) {
 			return false;
+		}
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		key->name = list[2].store.d_string;
@@ -46,16 +48,18 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	case BUXTON_CONTROL_SET_LABEL:
 		if (count == 3) {
 			if (list[0].type != STRING || list[1].type != STRING ||
-			    list[2].type != STRING)
+			    list[2].type != STRING) {
 				return false;
+			}
 			key->type = STRING;
 			key->layer = list[0].store.d_string;
 			key->group = list[1].store.d_string;
 			*value = &list[2];
 		} else if (count == 4) {
 			if (list[0].type != STRING || list[1].type != STRING ||
-			    list[2].type != STRING || list[3].type != STRING)
+			    list[2].type != STRING || list[3].type != STRING) {
 				return false;
+			}
 			key->type = STRING;
 			key->layer = list[0].store.d_string;
 			key->group = list[1].store.d_string;
@@ -66,19 +70,23 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		}
 		break;
 	case BUXTON_CONTROL_CREATE_GROUP:
-		if (count != 2)
+		if (count != 2) {
 			return false;
-		if (list[0].type != STRING || list[1].type != STRING)
+		}
+		if (list[0].type != STRING || list[1].type != STRING) {
 			return false;
+		}
 		key->type = STRING;
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		break;
 	case BUXTON_CONTROL_REMOVE_GROUP:
-		if (count != 2)
+		if (count != 2) {
 			return false;
-		if (list[0].type != STRING || list[1].type != STRING)
+		}
+		if (list[0].type != STRING || list[1].type != STRING) {
 			return false;
+		}
 		key->type = STRING;
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
@@ -86,16 +94,18 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 	case BUXTON_CONTROL_GET:
 		if (count == 4) {
 			if(list[0].type != STRING || list[1].type != STRING ||
-			   list[2].type != STRING || list[3].type != UINT32)
+			   list[2].type != STRING || list[3].type != UINT32) {
 				return false;
+			}
 			key->layer = list[0].store.d_string;
 			key->group = list[1].store.d_string;
 			key->name = list[2].store.d_string;
 			key->type = list[3].store.d_uint32;
 		} else if (count == 3) {
 			if(list[0].type != STRING || list[1].type != STRING ||
-			   list[2].type != UINT32)
+			   list[2].type != UINT32) {
 				return false;
+			}
 			key->group = list[0].store.d_string;
 			key->name = list[1].store.d_string;
 			key->type = list[2].store.d_uint32;
@@ -105,39 +115,47 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		break;
 	case BUXTON_CONTROL_LIST:
 		return false;
-		if (count != 1)
+		if (count != 1) {
 			return false;
-		if (list[0].type != STRING)
+		}
+		if (list[0].type != STRING) {
 			return false;
+		}
 		*value = &list[0];
 		break;
 	case BUXTON_CONTROL_UNSET:
-		if (count != 4)
+		if (count != 4) {
 			return false;
+		}
 		if(list[0].type != STRING || list[1].type != STRING ||
-		   list[2].type != STRING || list[3].type != UINT32)
+		   list[2].type != STRING || list[3].type != UINT32) {
 			return false;
+		}
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		key->name = list[2].store.d_string;
 		key->type = list[3].store.d_uint32;
 		break;
 	case BUXTON_CONTROL_NOTIFY:
-		if (count != 3)
+		if (count != 3) {
 			return false;
+		}
 		if(list[0].type != STRING || list[1].type != STRING ||
-		   list[2].type != UINT32)
+		   list[2].type != UINT32) {
 			return false;
+		}
 		key->group = list[0].store.d_string;
 		key->name = list[1].store.d_string;
 		key->type = list[2].store.d_uint32;
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
-		if (count != 3)
+		if (count != 3) {
 			return false;
+		}
 		if(list[0].type != STRING || list[1].type != STRING ||
-		   list[2].type != UINT32)
+		   list[2].type != UINT32) {
 			return false;
+		}
 		key->group = list[0].store.d_string;
 		key->name = list[1].store.d_string;
 		key->type = list[2].store.d_uint32;
@@ -184,11 +202,13 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	}
 
 	/* Check valid range */
-	if (msg <= BUXTON_CONTROL_MIN || msg >= BUXTON_CONTROL_MAX)
+	if (msg <= BUXTON_CONTROL_MIN || msg >= BUXTON_CONTROL_MAX) {
 		goto end;
+	}
 
-	if (!parse_list(msg, (size_t)p_count, list, &key, &value))
+	if (!parse_list(msg, (size_t)p_count, list, &key, &value)) {
 		goto end;
+	}
 
 	/* use internal function from buxtond */
 	switch (msg) {
@@ -227,10 +247,12 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	response_data.type = INT32;
 	response_data.store.d_int32 = response;
 	out_list = buxton_array_new();
-	if (!out_list)
+	if (!out_list) {
 		abort();
-	if (!buxton_array_add(out_list, &response_data))
+	}
+	if (!buxton_array_add(out_list, &response_data)) {
 		abort();
+	}
 
 
 	switch (msg) {
@@ -284,8 +306,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 		}
 		break;
 	case BUXTON_CONTROL_GET:
-		if (data && !buxton_array_add(out_list, data))
+		if (data && !buxton_array_add(out_list, data)) {
 			abort();
+		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -312,8 +335,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	case BUXTON_CONTROL_LIST:
 		if (key_list) {
 			for (i = 0; i < key_list->len; i++) {
-				if (!buxton_array_add(out_list, buxton_array_get(key_list, i)))
+				if (!buxton_array_add(out_list, buxton_array_get(key_list, i))) {
 					abort();
+				}
 			}
 			buxton_array_free(&key_list, NULL);
 		}
@@ -343,8 +367,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	case BUXTON_CONTROL_UNNOTIFY:
 		mdata.type = UINT32;
 		mdata.store.d_uint32 = n_msgid;
-		if (!buxton_array_add(out_list, &mdata))
+		if (!buxton_array_add(out_list, &mdata)) {
 			abort();
+		}
 		response_len = buxton_serialize_message(&response_store,
 							BUXTON_CONTROL_STATUS,
 							msgid, out_list);
@@ -363,21 +388,24 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	/* Now write the response */
 	ret = _write(client->fd, response_store, response_len);
 	if (ret) {
-		if (msg == BUXTON_CONTROL_SET && response == 0)
+		if (msg == BUXTON_CONTROL_SET && response == 0) {
 			buxtond_notify_clients(self, client, &key, value);
-		else if (msg == BUXTON_CONTROL_UNSET && response == 0)
+		} else if (msg == BUXTON_CONTROL_UNSET && response == 0) {
 			buxtond_notify_clients(self, client, &key, NULL);
+		}
 	}
 
 end:
 	/* Restore our own UID */
 	self->buxton.client.uid = uid;
-	if (out_list)
+	if (out_list) {
 		buxton_array_free(&out_list, NULL);
+	}
 	if (list) {
 		for (i=0; i < p_count; i++) {
-			if (list[i].type == STRING)
+			if (list[i].type == STRING) {
 				free(list[i].store.d_string.value);
+			}
 		}
 		free(list);
 	}
@@ -405,12 +433,14 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 		abort();
 	}
 	list = hashmap_get(self->notify_mapping, key_name);
-	if (!list)
+	if (!list) {
 		return;
+	}
 
 	BUXTON_LIST_FOREACH(list, elem) {
-		if (!elem)
+		if (!elem) {
 			break;
+		}
 		nitem = elem->data;
 		int c = 1;
 		__attribute__((unused)) bool unused;
@@ -469,13 +499,15 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 		if (!c) {
 			continue;
 		}
-		if (nitem->old_data && (nitem->old_data->type == STRING))
+		if (nitem->old_data && (nitem->old_data->type == STRING)) {
 			free(nitem->old_data->store.d_string.value);
+		}
 		free(nitem->old_data);
 
 		nitem->old_data = malloc0(sizeof(BuxtonData));
-		if (!nitem->old_data)
+		if (!nitem->old_data) {
 			abort();
+		}
 		if (value) {
 			if (!buxton_data_copy(value, nitem->old_data)) {
 				abort();
@@ -483,11 +515,14 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 		}
 
 		out_list = buxton_array_new();
-		if (!out_list)
+		if (!out_list) {
 			abort();
-		if (value)
-			if (!buxton_array_add(out_list, value))
+		}
+		if (value) {
+			if (!buxton_array_add(out_list, value)) {
 				abort();
+			}
+		}
 
 		response_len = buxton_serialize_message(&response,
 							BUXTON_CONTROL_CHANGED,
@@ -526,8 +561,9 @@ void set_value(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 
 	self->buxton.client.uid = client->cred.uid;
 
-	if (!buxton_direct_set_value(&self->buxton, key, value, client->smack_label))
+	if (!buxton_direct_set_value(&self->buxton, key, value, client->smack_label)) {
 		return;
+	}
 
 	*status = 0;
 	buxton_debug("Daemon set value completed\n");
@@ -553,8 +589,9 @@ void set_label(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	self->buxton.client.uid = client->cred.uid;
 
 	/* Use internal library to set label */
-	if (!buxton_direct_set_label(&self->buxton, key, &value->store.d_string))
+	if (!buxton_direct_set_label(&self->buxton, key, &value->store.d_string)) {
 		return;
+	}
 
 	*status = 0;
 	buxton_debug("Daemon set label completed\n");
@@ -577,8 +614,9 @@ void create_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	self->buxton.client.uid = client->cred.uid;
 
 	/* Use internal library to create group */
-	if (!buxton_direct_create_group(&self->buxton, key, client->smack_label))
+	if (!buxton_direct_create_group(&self->buxton, key, client->smack_label)) {
 		return;
+	}
 
 	*status = 0;
 	buxton_debug("Daemon create group completed\n");
@@ -601,8 +639,9 @@ void remove_group(BuxtonDaemon *self, client_list_item *client, _BuxtonKey *key,
 	self->buxton.client.uid = client->cred.uid;
 
 	/* Use internal library to create group */
-	if (!buxton_direct_remove_group(&self->buxton, key, client->smack_label))
+	if (!buxton_direct_remove_group(&self->buxton, key, client->smack_label)) {
 		return;
+	}
 
 	*status = 0;
 	buxton_debug("Daemon remove group completed\n");
@@ -625,8 +664,9 @@ void unset_value(BuxtonDaemon *self, client_list_item *client,
 
 	/* Use internal library to unset value */
 	self->buxton.client.uid = client->cred.uid;
-	if (!buxton_direct_unset_value(&self->buxton, key, client->smack_label))
+	if (!buxton_direct_unset_value(&self->buxton, key, client->smack_label)) {
 		return;
+	}
 
 	buxton_debug("unset value returned successfully from db\n");
 
@@ -649,8 +689,9 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 	*status = -1;
 
 	data = malloc0(sizeof(BuxtonData));
-	if (!data)
+	if (!data) {
 		abort();
+	}
 
 	if (key->layer.value) {
 		buxton_debug("Daemon getting [%s][%s][%s]\n", key->layer.value,
@@ -690,8 +731,9 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 	assert(status);
 
 	*status = -1;
-	if (buxton_direct_list_keys(&self->buxton, layer, &ret_list))
+	if (buxton_direct_list_keys(&self->buxton, layer, &ret_list)) {
 		*status = 0;
+	}
 	return ret_list;
 }
 
@@ -714,8 +756,9 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	*status = -1;
 
 	nitem = malloc0(sizeof(BuxtonNotification));
-	if (!nitem)
+	if (!nitem) {
 		abort();
+	}
 	nitem->client = client;
 
 	/* Store data now, cheap */
@@ -735,15 +778,18 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	n_list = hashmap_get(self->notify_mapping, key_name);
 
 	if (!n_list) {
-		if (!buxton_list_append(&n_list, nitem))
+		if (!buxton_list_append(&n_list, nitem)) {
 			abort();
+		}
 
-		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0)
+		if (hashmap_put(self->notify_mapping, key_name, n_list) < 0) {
 			abort();
+		}
 	} else {
 		free(key_name);
-		if (!buxton_list_append(&n_list, nitem))
+		if (!buxton_list_append(&n_list, nitem)) {
 			abort();
+		}
 	}
 	*status = 0;
 }
@@ -771,22 +817,26 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	}
 	n_list = hashmap_get2(self->notify_mapping, key_name, &old_key_name);
 	/* This key isn't actually registered for notifications */
-	if (!n_list)
+	if (!n_list) {
 		return 0;
+	}
 
 	BUXTON_LIST_FOREACH(n_list, elem) {
-		if (!elem)
+		if (!elem) {
 			break;
+		}
 		nitem = elem->data;
 		/* Find the list item for this client */
-		if (nitem->client == client)
+		if (nitem->client == client) {
 			citem = nitem;
+		}
 		break;
 	};
 
 	/* Client hasn't registered for notifications on this key */
-	if (!citem)
+	if (!citem) {
 		return 0;
+	}
 
 	msgid = citem->msgid;
 	/* Remove client from notifications */
@@ -841,21 +891,25 @@ bool identify_client(client_list_item *cl)
 	msgh.msg_namelen = 0;
 
 	nr = recvmsg(cl->fd, &msgh, MSG_PEEK | MSG_DONTWAIT);
-	if (nr == -1)
+	if (nr == -1) {
 		return false;
+	}
 
 	cmhp = CMSG_FIRSTHDR(&msgh);
 
-	if (cmhp == NULL || cmhp->cmsg_len != CMSG_LEN(sizeof(struct ucred)))
+	if (cmhp == NULL || cmhp->cmsg_len != CMSG_LEN(sizeof(struct ucred))) {
 		return false;
+	}
 
-	if (cmhp->cmsg_level != SOL_SOCKET || cmhp->cmsg_type != SCM_CREDENTIALS)
+	if (cmhp->cmsg_level != SOL_SOCKET || cmhp->cmsg_type != SCM_CREDENTIALS) {
 		return false;
+	}
 
 	ucredp = (struct ucred *) CMSG_DATA(cmhp);
 
-	if (getsockopt(cl->fd, SOL_SOCKET, SO_PEERCRED, &cl->cred, &len) == -1)
+	if (getsockopt(cl->fd, SOL_SOCKET, SO_PEERCRED, &cl->cred, &len) == -1) {
 		return false;
+	}
 
 	return true;
 }
@@ -866,11 +920,13 @@ void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a)
 	assert(fd >= 0);
 
 	if (!greedy_realloc((void **) &(self->pollfds), &(self->nfds_alloc),
-			    (size_t)((self->nfds + 1) * (sizeof(struct pollfd)))))
+			    (size_t)((self->nfds + 1) * (sizeof(struct pollfd))))) {
 		abort();
+	}
 	if (!greedy_realloc((void **) &(self->accepting), &(self->accepting_alloc),
-			    (size_t)((self->nfds + 1) * (sizeof(self->accepting)))))
+			    (size_t)((self->nfds + 1) * (sizeof(self->accepting))))) {
 		abort();
+	}
 	self->pollfds[self->nfds].fd = fd;
 	self->pollfds[self->nfds].events = events;
 	self->pollfds[self->nfds].revents = 0;
@@ -927,13 +983,15 @@ static void handle_smack_label(client_list_item *cl)
 	}
 
 	slabel = malloc0(sizeof(BuxtonString));
-	if (!slabel)
+	if (!slabel) {
 		abort();
+	}
 
 	/* already checked slabel_len positive above */
 	buf = malloc0((size_t)slabel_len + 1);
-	if (!buf)
+	if (!buf) {
 		abort();
+	}
 
 	ret = getsockopt(cl->fd, SOL_SOCKET, SO_PEERSEC, buf, &slabel_len);
 	if (ret < 0) {
@@ -964,16 +1022,19 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		cl->offset = 0;
 		cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
 	}
-	if (!cl->data)
+	if (!cl->data) {
 		abort();
+	}
 	/* client closed the connection, or some error occurred? */
-	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0)
+	if (recv(cl->fd, cl->data, cl->size, MSG_PEEK | MSG_DONTWAIT) <= 0) {
 		goto terminate;
+	}
 
 	/* need to authenticate the client? */
 	if ((cl->cred.uid == 0) || (cl->cred.pid == 0)) {
-		if (!identify_client(cl))
+		if (!identify_client(cl)) {
 			goto terminate;
+		}
 
 		handle_smack_label(cl);
 	}
@@ -990,10 +1051,11 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		 * cleanup and let the client resend their request.
 		 */
 		if (l < 0) {
-			if (errno != EAGAIN)
+			if (errno != EAGAIN) {
 				goto terminate;
-			else
+			} else {
 				goto cleanup;
+			}
 		} else if (l == 0) {
 			goto cleanup;
 		}
@@ -1004,26 +1066,31 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 		}
 		if (cl->size == BUXTON_MESSAGE_HEADER_LENGTH) {
 			cl->size = buxton_get_message_size(cl->data, cl->offset);
-			if (cl->size == 0 || cl->size > BUXTON_MESSAGE_MAX_LENGTH)
+			if (cl->size == 0 || cl->size > BUXTON_MESSAGE_MAX_LENGTH) {
 				goto terminate;
+			}
 		}
 		if (cl->size != BUXTON_MESSAGE_HEADER_LENGTH) {
 			cl->data = realloc(cl->data, cl->size);
-			if (!cl->data)
+			if (!cl->data) {
 				abort();
+			}
 		}
-		if (cl->size != cl->offset)
+		if (cl->size != cl->offset) {
 			continue;
+		}
 		if (!buxtond_handle_message(self, cl, cl->size)) {
 			buxton_log("Communication failed with client %d\n", cl->fd);
 			goto terminate;
 		}
 
 		message_limit--;
-		if (message_limit)
+		if (message_limit) {
 			continue;
-		if (recv(cl->fd, &peek, sizeof(uint16_t), MSG_PEEK | MSG_DONTWAIT) > 0)
+		}
+		if (recv(cl->fd, &peek, sizeof(uint16_t), MSG_PEEK | MSG_DONTWAIT) > 0) {
 			more_data = true;
+		}
 		goto cleanup;
 	} while (l > 0);
 
@@ -1043,8 +1110,9 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 {
 	del_pollfd(self, i);
 	close(cl->fd);
-	if (cl->smack_label)
+	if (cl->smack_label) {
 		free(cl->smack_label->value);
+	}
 	free(cl->smack_label);
 	free(cl->data);
 	buxton_debug("Closed connection from fd %d\n", cl->fd);

@@ -26,13 +26,15 @@ static void callback(BuxtonResponse response, void *userdata)
 {
 	bool *r;
 
-	if (!userdata)
+	if (!userdata) {
 		return;
+	}
 
 	r = (bool *)userdata;
 
-	if (buxton_response_status(response) == 0)
+	if (buxton_response_status(response) == 0) {
 		*r = true;
+	}
 }
 
 enum test_type {
@@ -243,8 +245,9 @@ static void test(struct testcase *tc)
 	testcase_init(tc);
 
 	for (i = 0; i < iterations; i++) {
-		if (!timed_func(&elapsed, tc))
+		if (!timed_func(&elapsed, tc)) {
 			errors++;
+		}
 
 		mean += (double)elapsed;
 		meansqr += (double)elapsed * (double)elapsed;
@@ -267,8 +270,9 @@ int main(int argc, char **argv)
 
 	if (argc == 2) {
 		iterations = atoi(argv[1]);
-		if (iterations <= 0)
+		if (iterations <= 0) {
 			exit(EXIT_FAILURE);
+		}
 	} else if (argc != 1) {
 		error("Usage: %s [iterations]\n", argv[0]);
 		exit(EXIT_FAILURE);

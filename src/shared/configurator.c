@@ -102,8 +102,9 @@ static inline char *_strdup(const char* string)
 	char* s;
 
 	s = strdup(string);
-	if (s == NULL)
+	if (s == NULL) {
 		abort();
+	}
 	return s;
 }
 
@@ -129,8 +130,9 @@ static char *get_ini_string(char *section, char *name)
 	assert(conf.ini);
 	snprintf(buf, sizeof(buf), "%s:%s", section, name);
 	s = iniparser_getstring(conf.ini, buf, NULL);
-	if (s == NULL)
+	if (s == NULL) {
 		abort();
+	}
 	return s;
 }
 
@@ -160,8 +162,9 @@ static inline int get_ini_int(char *section, char *name)
  */
 static void initialize(void)
 {
-	if (conf.initialized)
+	if (conf.initialized) {
 		return;
+	}
 
 	for (int i= CONFIG_MIN+1; i < CONFIG_MAX; i++) {
 		char *envkey;
@@ -183,8 +186,9 @@ static void initialize(void)
 
 			snprintf(key, sizeof(key), "%s:%s", CONFIG_SECTION, config_keys[i]);
 			value = iniparser_getstring(conf.ini, key, NULL);
-			if (value != NULL)
+			if (value != NULL) {
 				conf.keys[i] = _strdup(value);
+			}
 		}
 
 		if (conf.keys[i] == NULL) {
@@ -214,8 +218,9 @@ static void initialize(void)
  */
 __attribute__ ((destructor)) static void free_conf(void)
 {
-	if (!conf.initialized)
+	if (!conf.initialized) {
 		return;
+	}
 	for (int i= CONFIG_MIN+1; i < CONFIG_MAX; i++) {
 		free(conf.keys[i]);
 	}
@@ -280,16 +285,19 @@ int buxton_key_get_layers(ConfigLayer **layers)
 	}
 	n = iniparser_getnsec(conf.ini);
 	_layers = (ConfigLayer*)calloc((size_t)n, sizeof(ConfigLayer));
-	if (_layers == NULL)
+	if (_layers == NULL) {
 		abort();
+	}
 	for (int i= 0; i < n; i++) {
 		char *section_name;
 
 		section_name = iniparser_getsecname(conf.ini, i);
-		if (!section_name)
+		if (!section_name) {
 			abort();
-		if (!strcasecmp(section_name, CONFIG_SECTION))
+		}
+		if (!strcasecmp(section_name, CONFIG_SECTION)) {
 			continue;
+		}
 		_layers[j].name = section_name;
 		_layers[j].description = get_ini_string(section_name, "Description");
 		_layers[j].backend = get_ini_string(section_name, "Backend");

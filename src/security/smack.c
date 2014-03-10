@@ -31,7 +31,7 @@ static Hashmap *_smackrules = NULL;
 /* set to true unless Smack support is not detected by the daemon */
 static bool have_smack = true;
 
-#define smack_check() do { if (!have_smack) return true; } while (0);
+#define smack_check() do { if (!have_smack) { return true; } } while (0);
 
 
 bool buxton_smack_enabled(void)
@@ -49,13 +49,15 @@ bool buxton_cache_smack_rules(void)
 	bool have_rules = false;
 	struct stat buf;
 
-	if (_smackrules)
+	if (_smackrules) {
 		hashmap_free(_smackrules);
+	}
 
 	_smackrules = hashmap_new(string_hash_func, string_compare_func);
 
-	if (!_smackrules)
+	if (!_smackrules) {
 		abort();
+	}
 
 	/* FIXME: should check for a proper mount point instead */
 	if ((stat(SMACK_MOUNT_DIR, &buf) == -1) || !S_ISDIR(buf.st_mode)) {
@@ -111,28 +113,33 @@ bool buxton_cache_smack_rules(void)
 		have_rules = true;
 
 		r = asprintf(&rule_pair, "%s %s", subject, object);
-		if (r == -1)
+		if (r == -1) {
 			abort();
+		}
 
 		accesstype = malloc0(sizeof(BuxtonKeyAccessType));
-		if (!accesstype)
+		if (!accesstype) {
 			abort();
+		}
 
 		*accesstype = ACCESS_NONE;
 
-		if (strchr(access, 'r'))
+		if (strchr(access, 'r')) {
 			*accesstype |= ACCESS_READ;
+		}
 
-		if (strchr(access, 'w'))
+		if (strchr(access, 'w')) {
 			*accesstype |= ACCESS_WRITE;
+		}
 
 		hashmap_put(_smackrules, rule_pair, accesstype);
 
 	} while (!feof(load_file));
 
 end:
-	if (load_file)
+	if (load_file) {
 		fclose(load_file);
+	}
 
 	return ret;
 }
@@ -154,29 +161,36 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 	buxton_debug("Object: %s\n", object->value);
 
 	/* check the builtin Smack rules first */
-	if (streq(subject->value, "*"))
+	if (streq(subject->value, "*")) {
 		return false;
+	}
 
-	if (streq(object->value, "@") || streq(subject->value, "@"))
+	if (streq(object->value, "@") || streq(subject->value, "@")) {
 		return true;
+	}
 
-	if (streq(object->value, "*"))
+	if (streq(object->value, "*")) {
 		return true;
+	}
 
-	if (streq(subject->value, object->value))
+	if (streq(subject->value, object->value)) {
 		return true;
+	}
 
 	if (request == ACCESS_READ) {
-		if (streq(object->value, "_"))
+		if (streq(object->value, "_")) {
 			return true;
-		if (streq(subject->value, "^"))
+		}
+		if (streq(subject->value, "^")) {
 			return true;
+		}
 	}
 
 	/* finally, check the loaded rules */
 	r = asprintf(&key, "%s %s", subject->value, object->value);
-	if (r == -1)
+	if (r == -1) {
 		abort();
+	}
 
 	buxton_debug("Key: %s\n", key);
 
@@ -193,8 +207,9 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 
 	/* After debugging, change this code to: */
 	/* return ((*access) & request); */
-	if (access)
+	if (access) {
 		buxton_debug("Value: %x\n", *access);
+	}
 
 	if ((*access) & request) {
 		buxton_debug("Access granted!\n");

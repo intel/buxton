@@ -74,8 +74,9 @@ bool buxton_list_remove(BuxtonList **list, void *data, bool do_free);
 static inline void buxton_list_free(void *p)
 {
 	BuxtonList *list = *(BuxtonList**)p;
-	if (!list)
+	if (!list) {
 		return;
+	}
 	BuxtonList *elem, *node = NULL;
 	elem = list;
 	while (elem != NULL) {
@@ -91,8 +92,9 @@ static inline void buxton_list_free(void *p)
 static inline void buxton_list_free_all(void *p)
 {
 	BuxtonList *list = *(BuxtonList**)p;
-	if (!list)
+	if (!list) {
 		return;
+	}
 	BuxtonList *elem, *node = NULL;
 	elem = list;
 	while (elem != NULL) {

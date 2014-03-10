@@ -44,8 +44,9 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", "test", "user", INT32);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
 	if (!buxton_get_value(client, key, get_cb,
 			      &gvalue, false)) {
@@ -68,8 +69,9 @@ int main(void)
 		return -1;
 	}
 
-	if (gvalue >= 0)
+	if (gvalue >= 0) {
 		printf("got value: %d\n", gvalue);
+	}
 
 	buxton_key_free(key);
 	buxton_close(client);

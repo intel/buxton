@@ -69,15 +69,17 @@ static inline void freep(void *p)
 static inline void free_buxton_data(void *p)
 {
 	BuxtonData *s = (*(void**) p);
-	if (s && s->type == STRING)
+	if (s && s->type == STRING) {
 		free(s->store.d_string.value);
+	}
 	free(s);
 }
 static inline void free_buxton_string(void *p)
 {
 	BuxtonString *s = (*(void**) p);
-	if (s)
+	if (s) {
 		free(s->value);
+	}
 	free(s);
 }
 
@@ -85,12 +87,15 @@ static inline void free_buxton_key(void *p)
 {
 	_BuxtonKey *k = (*(void**) p);
 	if (k) {
-		if (k->group.value)
+		if (k->group.value) {
 			free(k->group.value);
-		if (k->name.value)
+		}
+		if (k->name.value) {
 			free(k->name.value);
-		if (k->layer.value)
+		}
+		if (k->layer.value) {
 			free(k->layer.value);
+		}
 	}
 	free(k);
 }
@@ -111,8 +116,9 @@ static inline void free_buxton_key(void *p)
 #define malloc0(n) (calloc((n), 1))
 
 _malloc_  _alloc_(1, 2) static inline void *malloc_multiply(size_t a, size_t b) {
-	if (_unlikely_(b == 0 || a > ((size_t) -1) / b))
+	if (_unlikely_(b == 0 || a > ((size_t) -1) / b)) {
 		return NULL;
+	}
 
 	return malloc(a * b);
 }

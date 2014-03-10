@@ -76,17 +76,19 @@ int32_t buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 			free(data_label->value);
 			data_label->value = NULL;
 			data_label->length = 0;
-			if (d.type == STRING)
+			if (d.type == STRING) {
 				free(d.store.d_string.value);
+			}
 
 			if ((l->type == LAYER_SYSTEM && (layer_origin != LAYER_SYSTEM ||
 							 priority <= l->priority)) ||
 			    (l->type == LAYER_USER && layer_origin != LAYER_SYSTEM &&
 			     priority <= l->priority)) {
-				if (l->type == LAYER_SYSTEM)
+				if (l->type == LAYER_SYSTEM) {
 					layer_origin = LAYER_SYSTEM;
-				else
+				} else {
 					layer_origin = LAYER_USER;
+				}
 				priority = l->priority;
 				layer.value = l->name.value;
 				layer.length = l->name.length;
@@ -217,25 +219,31 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	buxton_debug("set_value start\n");
 
 	group = malloc0(sizeof(_BuxtonKey));
-	if (!group)
+	if (!group) {
 		abort();
+	}
 	g = malloc0(sizeof(BuxtonData));
-	if (!g)
+	if (!g) {
 		abort();
+	}
 	group_label = malloc0(sizeof(BuxtonString));
-	if (!group_label)
+	if (!group_label) {
 		abort();
+	}
 
 	d = malloc0(sizeof(BuxtonData));
-	if (!d)
+	if (!d) {
 		abort();
+	}
 	data_label = malloc0(sizeof(BuxtonString));
-	if (!data_label)
+	if (!data_label) {
 		abort();
+	}
 
 	/* Groups must be created first, so bail if this key's group doesn't exist */
-	if (!buxton_copy_key_group(key, group))
+	if (!buxton_copy_key_group(key, group)) {
 		abort();
+	}
 
 	ret = buxton_direct_get_value_for_layer(control, group, g, group_label, NULL);
 	if (ret) {
@@ -274,8 +282,9 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	}
 
 	config = &control->config;
-	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL)
+	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
 		goto fail;
+	}
 
 	backend = backend_for_layer(config, layer);
 	assert(backend);
@@ -310,11 +319,13 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	assert(label);
 
 	data = malloc0(sizeof(BuxtonData));
-	if (!data)
+	if (!data) {
 		abort();
+	}
 	data_label = malloc0(sizeof(BuxtonString));
-	if (!data_label)
+	if (!data_label) {
 		abort();
+	}
 
 	config = &control->config;
 
@@ -382,17 +393,21 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	assert(key);
 
 	data = malloc0(sizeof(BuxtonData));
-	if (!data)
+	if (!data) {
 		abort();
+	}
 	group = malloc0(sizeof(BuxtonData));
-	if (!group)
+	if (!group) {
 		abort();
+	}
 	dlabel = malloc0(sizeof(BuxtonString));
-	if (!dlabel)
+	if (!dlabel) {
 		abort();
+	}
 	glabel = malloc0(sizeof(BuxtonString));
-	if (!glabel)
+	if (!glabel) {
 		abort();
+	}
 
 	config = &control->config;
 
@@ -466,11 +481,13 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 	assert(key);
 
 	group = malloc0(sizeof(BuxtonData));
-	if (!group)
+	if (!group) {
 		abort();
+	}
 	glabel = malloc0(sizeof(BuxtonString));
-	if (!glabel)
+	if (!glabel) {
 		abort();
+	}
 
 	config = &control->config;
 
@@ -558,24 +575,30 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	assert(key);
 
 	group = malloc0(sizeof(_BuxtonKey));
-	if (!group)
+	if (!group) {
 		abort();
+	}
 	g = malloc0(sizeof(BuxtonData));
-	if (!g)
+	if (!g) {
 		abort();
+	}
 	group_label = malloc0(sizeof(BuxtonString));
-	if (!group_label)
+	if (!group_label) {
 		abort();
+	}
 
 	d = malloc0(sizeof(BuxtonData));
-	if (!d)
+	if (!d) {
 		abort();
+	}
 	data_label = malloc0(sizeof(BuxtonString));
-	if (!data_label)
+	if (!data_label) {
 		abort();
+	}
 
-	if (!buxton_copy_key_group(key, group))
+	if (!buxton_copy_key_group(key, group)) {
 		abort();
+	}
 
 	if (buxton_direct_get_value_for_layer(control, group, g, group_label, NULL)) {
 		buxton_debug("Group %s for name %s missing for unset value\n", key->group.value, key->name.value);
@@ -584,8 +607,9 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 
 	/* Access checks are not needed for direct clients, where label is NULL */
 	if (label) {
-		if (!buxton_check_smack_access(label, group_label, ACCESS_WRITE))
+		if (!buxton_check_smack_access(label, group_label, ACCESS_WRITE)) {
 			goto fail;
+		}
 		if (!buxton_direct_get_value_for_layer(control, key, d, data_label, NULL)) {
 			if (!buxton_check_smack_access(label, data_label, ACCESS_WRITE)) {
 				goto fail;
@@ -597,8 +621,9 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	}
 
 	config = &control->config;
-	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL)
+	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
 		return false;
+	}
 
 	backend = backend_for_layer(config, layer);
 	assert(backend);

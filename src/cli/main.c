@@ -57,10 +57,11 @@ static bool print_help(void)
 
 static void print_usage(Command *command)
 {
-	if (command->min_arguments == command->max_arguments)
+	if (command->min_arguments == command->max_arguments) {
 		printf("%s takes %d arguments - %s\n", command->name, command->min_arguments, command->usage);
-	else
+	} else {
 		printf("%s takes at least %d arguments - %s\n", command->name, command->min_arguments, command->usage);
+	}
 }
 
 /**
@@ -210,14 +211,16 @@ int main(int argc, char **argv)
 	while (true) {
 		c = getopt_long(argc, argv, "c:dh", opts, &i);
 
-		if (c == -1)
+		if (c == -1) {
 			break;
+		}
 
 		switch (c) {
 		case 'c':
 			conf_path = strdup(optarg);
-			if (!conf_path)
+			if (!conf_path) {
 				goto end;
+			}
 			break;
 		case 'd':
 			control.client.direct = true;
@@ -261,9 +264,11 @@ int main(int argc, char **argv)
 
 	control.client.uid = geteuid();
 	if (!control.client.direct) {
-		if (conf_path)
-			if (buxton_set_conf_file(conf_path))
+		if (conf_path) {
+			if (buxton_set_conf_file(conf_path)) {
 				printf("Failed to set configuration file path\n");
+			}
+		}
 		if (buxton_open(&client) < 0) {
 			buxton_log("Failed to talk to Buxton, falling back to direct\n");
 			control.client.direct = true;
@@ -289,7 +294,7 @@ int main(int argc, char **argv)
 			}
 			buxton_add_cmd_line(CONFIG_CONF_FILE, conf_path);
 		}
-		if (!buxton_direct_open(&(control))){
+		if (!buxton_direct_open(&(control))) {
 			buxton_log("Failed to directly talk to Buxton\n");
 			ret = false;
 			goto end;
@@ -307,8 +312,9 @@ end:
 	free(conf_path);
 	hashmap_free(commands);
 	buxton_direct_close(&control);
-	if (ret)
+	if (ret) {
 		return EXIT_SUCCESS;
+	}
 	return EXIT_FAILURE;
 }
 

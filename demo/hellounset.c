@@ -40,8 +40,9 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", "test", "user", INT32);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
 	if (!buxton_unset_value(client, key, unset_cb,
 				NULL, false)) {

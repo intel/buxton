@@ -43,12 +43,14 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 	assert(layer);
 	assert(_resources);
 
-	if (layer->type == LAYER_USER)
+	if (layer->type == LAYER_USER) {
 		r = asprintf(&name, "%s-%d", layer->name.value, layer->uid);
-	else
+	} else {
 		r = asprintf(&name, "%s", layer->name.value);
-	if (r == -1)
+	}
+	if (r == -1) {
 		return NULL;
+	}
 
 	db = hashmap_get(_resources, name);
 	if (!db) {
@@ -87,35 +89,44 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	if (key->name.value) {
-		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
+		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1) {
 			abort();
+		}
 	} else {
 		full_key = strdup(key->group.value);
-		if (!full_key)
+		if (!full_key) {
 			abort();
+		}
 	}
 
 	array = buxton_array_new();
-	if (!array)
+	if (!array) {
 		abort();
+	}
 	data_copy = malloc0(sizeof(BuxtonData));
-	if (!data_copy)
+	if (!data_copy) {
 		abort();
+	}
 	label_copy = malloc0(sizeof(BuxtonString));
-	if (!label_copy)
+	if (!label_copy) {
 		abort();
+	}
 
 	if (!buxton_data_copy(data, data_copy)) {
 		abort();
 	}
-	if (!buxton_string_copy(label, label_copy))
+	if (!buxton_string_copy(label, label_copy)) {
 		abort();
-	if (!buxton_array_add(array, data_copy))
+	}
+	if (!buxton_array_add(array, data_copy)) {
 		abort();
-	if (!buxton_array_add(array, label_copy))
+	}
+	if (!buxton_array_add(array, label_copy)) {
 		abort();
-	if (!buxton_array_add(array, full_key))
+	}
+	if (!buxton_array_add(array, full_key)) {
 		abort();
+	}
 
 	ret = hashmap_put(db, full_key, array);
 	if (ret != 1) {
@@ -146,11 +157,13 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 clean:
 	buxton_array_free(&array, NULL);
 	if (data_copy && data_copy->type == STRING &&
-	    data_copy->store.d_string.value)
+	    data_copy->store.d_string.value) {
 		free(data_copy->store.d_string.value);
+	}
 	free(data_copy);
-	if (label_copy && label_copy->value)
+	if (label_copy && label_copy->value) {
 		free(label_copy->value);
+	}
 	free(label_copy);
 	free(full_key);
 
@@ -185,12 +198,14 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	if (key->name.value) {
-		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
+		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1) {
 			abort();
+		}
 	} else {
 		full_key = strdup(key->group.value);
-		if (!full_key)
+		if (!full_key) {
 			abort();
+		}
 	}
 
 	stored = (BuxtonArray *)hashmap_get(db, full_key);
@@ -243,12 +258,14 @@ static int unset_value(BuxtonLayer *layer,
 	}
 
 	if (key->name.value) {
-		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1)
+		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1) {
 			abort();
+		}
 	} else {
 		full_key = strdup(key->group.value);
-		if (!full_key)
+		if (!full_key) {
 			abort();
+		}
 	}
 
 	/* test if the value exists */
@@ -315,8 +332,9 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	backend->create_db = NULL;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
-	if (!_resources)
+	if (!_resources) {
 		abort();
+	}
 	return true;
 }
 

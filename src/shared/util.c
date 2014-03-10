@@ -29,8 +29,9 @@ size_t page_size(void)
 	static __thread size_t pgsz = 0;
 	long r;
 
-	if (_likely_(pgsz > 0))
+	if (_likely_(pgsz > 0)) {
 		return pgsz;
+	}
 
 	r = sysconf(_SC_PAGESIZE);
 	assert(r > 0);
@@ -47,13 +48,15 @@ void* greedy_realloc(void **p, size_t *allocated, size_t need)
 	assert(p);
 	assert(allocated);
 
-	if (*allocated >= need)
+	if (*allocated >= need) {
 		return *p;
+	}
 
 	a = MAX(64u, need * 2);
 	q = realloc(*p, a);
-	if (!q)
+	if (!q) {
 		return NULL;
+	}
 
 	*p = q;
 	*allocated = a;
@@ -71,15 +74,17 @@ char* get_layer_path(BuxtonLayer *layer)
 	switch (layer->type) {
 	case LAYER_SYSTEM:
 		r = asprintf(&path, "%s/%s.db", buxton_db_path(), layer->name.value);
-		if (r == -1)
+		if (r == -1) {
 			return NULL;
+		}
 		break;
 	case LAYER_USER:
 		/* uid must already be set in layer before calling */
 		sprintf(uid, "%d", (int)layer->uid);
 		r = asprintf(&path, "%s/%s-%s.db", buxton_db_path(), layer->name.value, uid);
-		if (r == -1)
+		if (r == -1) {
 			return NULL;
+		}
 		break;
 	default:
 		break;
@@ -98,8 +103,9 @@ bool buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 	switch (original->type) {
 	case STRING:
 		store.d_string.value = malloc(original->store.d_string.length);
-		if (!store.d_string.value)
+		if (!store.d_string.value) {
 			goto fail;
+		}
 		memcpy(store.d_string.value, original->store.d_string.value, original->store.d_string.length);
 		store.d_string.length = original->store.d_string.length;
 		break;
@@ -140,12 +146,14 @@ fail:
 
 bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
 {
-	if (!original || !copy)
+	if (!original || !copy) {
 		return false;
+	}
 
 	copy->value = malloc0(original->length);
-	if (!copy->value)
+	if (!copy->value) {
 		return false;
+	}
 
 	memcpy(copy->value, original->value, original->length);
 	copy->length = original->length;
@@ -155,29 +163,39 @@ bool buxton_string_copy(BuxtonString *original, BuxtonString *copy)
 
 bool buxton_key_copy(_BuxtonKey *original, _BuxtonKey *copy)
 {
-	if (!original || !copy)
+	if (!original || !copy) {
 		return false;
+	}
 
-	if (original->group.value)
-		if(!buxton_string_copy(&original->group, &copy->group))
+	if (original->group.value) {
+		if(!buxton_string_copy(&original->group, &copy->group)) {
 			goto fail;
-	if (original->name.value)
-		if(!buxton_string_copy(&original->name, &copy->name))
+		}
+	}
+	if (original->name.value) {
+		if(!buxton_string_copy(&original->name, &copy->name)) {
 			goto fail;
-	if (original->layer.value)
-		if(!buxton_string_copy(&original->layer, &copy->layer))
+		}
+	}
+	if (original->layer.value) {
+		if(!buxton_string_copy(&original->layer, &copy->layer)) {
 			goto fail;
+		}
+	}
 	copy->type = original->type;
 
 	return true;
 
 fail:
-	if (original->group.value)
+	if (original->group.value) {
 		free(copy->group.value);
-	if (original->name.value)
+	}
+	if (original->name.value) {
 		free(copy->name.value);
-	if (original->layer.value)
+	}
+	if (original->layer.value) {
 		free(copy->layer.value);
+	}
 	copy->type = BUXTON_TYPE_MIN;
 
 	return false;
@@ -185,25 +203,32 @@ fail:
 
 bool buxton_copy_key_group(_BuxtonKey *original, _BuxtonKey *group)
 {
-	if (!original || !group)
+	if (!original || !group) {
 		return false;
+	}
 
-	if (original->group.value)
-		if(!buxton_string_copy(&original->group, &group->group))
+	if (original->group.value) {
+		if(!buxton_string_copy(&original->group, &group->group)) {
 			goto fail;
+		}
+	}
 	group->name = (BuxtonString){ NULL, 0 };
-	if (original->layer.value)
-		if(!buxton_string_copy(&original->layer, &group->layer))
+	if (original->layer.value) {
+		if(!buxton_string_copy(&original->layer, &group->layer)) {
 			goto fail;
+		}
+	}
 	group->type = STRING;
 
 	return true;
 
 fail:
-	if (original->group.value)
+	if (original->group.value) {
 		free(group->group.value);
-	if (original->layer.value)
+	}
+	if (original->layer.value) {
 		free(group->layer.value);
+	}
 	group->type = BUXTON_TYPE_MIN;
 
 	return false;
@@ -211,28 +236,33 @@ fail:
 
 void data_free(BuxtonData *data)
 {
-	if (!data)
+	if (!data) {
 		return;
+	}
 
-	if (data->type == STRING && data->store.d_string.value)
+	if (data->type == STRING && data->store.d_string.value) {
 		free(data->store.d_string.value);
+	}
 	free(data);
 }
 
 void string_free(BuxtonString *string)
 {
-	if (!string)
+	if (!string) {
 		return;
+	}
 
-	if (string->value)
+	if (string->value) {
 		free(string->value);
+	}
 	free(string);
 }
 
 void key_free(_BuxtonKey *key)
 {
-	if (!key)
+	if (!key) {
 		return;
+	}
 
 	free(key->group.value);
 	free(key->name.value);
@@ -266,24 +296,27 @@ const char* buxton_type_as_string(BuxtonDataType type)
 
 char *get_group(_BuxtonKey *key)
 {
-	if (key && key->group.value)
+	if (key && key->group.value) {
 		return strdup(key->group.value);
+	}
 
 	return NULL;
 }
 
 char *get_name(_BuxtonKey *key)
 {
-	if (key && key->name.value)
+	if (key && key->name.value) {
 		return strdup(key->name.value);
+	}
 
 	return NULL;
 }
 
 char *get_layer(_BuxtonKey *key)
 {
-	if (key && key->layer.value)
+	if (key && key->layer.value) {
 		return strdup(key->layer.value);
+	}
 
 	return NULL;
 }

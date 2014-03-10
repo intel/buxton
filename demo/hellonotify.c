@@ -32,10 +32,11 @@ void notify_cb(BuxtonResponse response, void *data)
 	name = buxton_key_get_name(key);
 
 	value = (int32_t*)buxton_response_value(response);
-	if (value)
+	if (value) {
 		printf("key %s updated with new value %d\n", name, *value);
-	else
+	} else {
 		printf("key %s was removed\n", name);
+	}
 
 	buxton_key_free(key);
 	free(value);
@@ -57,8 +58,9 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", "test", NULL, INT32);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
 	if (!buxton_register_notification(client, key, notify_cb, &status, false)) {
 		printf("set call failed to run\n");

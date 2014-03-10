@@ -68,8 +68,9 @@ int buxton_open(BuxtonClient *client)
 	int bx_socket, r;
 	struct sockaddr_un remote;
 
-	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		return -1;
+	}
 
 	remote.sun_family = AF_UNIX;
 	strncpy(remote.sun_path, buxton_socket(), sizeof(remote.sun_path));
@@ -104,8 +105,9 @@ int buxton_open(BuxtonClient *client)
 void buxton_close(BuxtonClient client)
 {
 	_BuxtonClient *c;
-	if (!client)
+	if (!client) {
 		return;
+	}
 
 	c = (_BuxtonClient *)client;
 
@@ -127,12 +129,14 @@ bool buxton_get_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !(k->group.value) || !(k->name.value) ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return false;
+	}
 
 	r = buxton_wire_get_value((_BuxtonClient *)client, k, callback, data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -157,13 +161,15 @@ bool buxton_register_notification(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return false;
+	}
 
 	r = buxton_wire_register_notification((_BuxtonClient *)client, k,
 					      callback, data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -188,13 +194,15 @@ bool buxton_unregister_notification(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return false;
+	}
 
 	r = buxton_wire_unregister_notification((_BuxtonClient *)client, k,
 						callback, data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -220,13 +228,15 @@ bool buxton_set_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX || !value)
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX || !value) {
 		return false;
+	}
 
 	r = buxton_wire_set_value((_BuxtonClient *)client, k, value, callback,
 				  data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -252,16 +262,18 @@ bool buxton_set_label(BuxtonClient client,
 	BuxtonString v;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	if (!k || !k->group.value || !k->layer.value || !value)
+	if (!k || !k->group.value || !k->layer.value || !value) {
 		return false;
+	}
 
 	k->type = STRING;
 	v = buxton_string_pack(value);
 
 	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
 				  data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -286,13 +298,15 @@ bool buxton_create_group(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	/* We require the key name to be NULL, since it is not used for groups */
-	if (!k || !k->group.value || k->name.value || !k->layer.value)
+	if (!k || !k->group.value || k->name.value || !k->layer.value) {
 		return false;
+	}
 
 	k->type = STRING;
 	r = buxton_wire_create_group((_BuxtonClient *)client, k, callback, data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -317,13 +331,15 @@ bool buxton_remove_group(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	/* We require the key name to be NULL, since it is not used for groups */
-	if (!k || !k->group.value || k->name.value || !k->layer.value)
+	if (!k || !k->group.value || k->name.value || !k->layer.value) {
 		return false;
+	}
 
 	k->type = STRING;
 	r = buxton_wire_remove_group((_BuxtonClient *)client, k, callback, data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -347,14 +363,16 @@ bool buxton_client_list_keys(BuxtonClient client,
 	int ret;
 	BuxtonString l;
 
-	if (!layer_name)
+	if (!layer_name) {
 		return false;
+	}
 
 	l = buxton_string_pack(layer_name);
 
 	r = buxton_wire_list_keys((_BuxtonClient *)client, &l, callback, data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -379,12 +397,14 @@ bool buxton_unset_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX)
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return false;
+	}
 
 	r = buxton_wire_unset_value((_BuxtonClient *)client, k, callback, data);
-	if (!r)
+	if (!r) {
 		return false;
+	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
@@ -406,31 +426,37 @@ BuxtonKey buxton_key_create(char *group, char *name, char *layer,
 	char *n = NULL;
 	char *l = NULL;
 
-	if (!group)
+	if (!group) {
 		goto fail;
+	}
 
-	if (type <= BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX)
+	if (type <= BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX) {
 		goto fail;
+	}
 
 	g = strdup(group);
-	if (!g)
+	if (!g) {
 		goto fail;
+	}
 
 	if (name) {
 		n = strdup(name);
-		if (!n)
+		if (!n) {
 			goto fail;
+		}
 	}
 
 	if (layer) {
 		l = strdup(layer);
-		if (!l)
+		if (!l) {
 			goto fail;
+		}
 	}
 
 	key = malloc0(sizeof(_BuxtonKey));
-	if (!key)
+	if (!key) {
 		goto fail;
+	}
 
 	key->group.value = g;
 	key->group.length = (uint32_t)strlen(g) + 1;
@@ -463,8 +489,9 @@ char *buxton_key_get_group(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	if (!key)
+	if (!key) {
 		return NULL;
+	}
 
 	return get_group(k);
 }
@@ -473,8 +500,9 @@ char *buxton_key_get_name(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	if (!key)
+	if (!key) {
 		return NULL;
+	}
 
 	return get_name(k);
 }
@@ -483,8 +511,9 @@ char *buxton_key_get_layer(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	if (!key)
+	if (!key) {
 		return NULL;
+	}
 
 	return get_layer(k);
 }
@@ -493,8 +522,9 @@ BuxtonDataType buxton_key_get_type(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
 	return k->type;
 }
@@ -503,8 +533,9 @@ void buxton_key_free(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
-	if (!k)
+	if (!k) {
 		return;
+	}
 
 	free(k->group.value);
 	free(k->name.value);
@@ -521,8 +552,9 @@ BuxtonControlMessage buxton_response_type(BuxtonResponse response)
 {
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
 
-	if (!response)
+	if (!response) {
 		return -1;
+	}
 
 	return r->type;
 }
@@ -532,16 +564,19 @@ int32_t buxton_response_status(BuxtonResponse response)
 	BuxtonData *d;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
 
-	if (!response)
+	if (!response) {
 		return -1;
+	}
 
-	if (buxton_response_type(response) == BUXTON_CONTROL_CHANGED)
+	if (buxton_response_type(response) == BUXTON_CONTROL_CHANGED) {
 		return 0;
+	}
 
 	d = buxton_array_get(r->data, 0);
 
-	if (d)
+	if (d) {
 		return d->store.d_int32;
+	}
 
 	return -1;
 }
@@ -551,15 +586,18 @@ BuxtonKey buxton_response_key(BuxtonResponse response)
 	_BuxtonKey *key = NULL;
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
 
-	if (!response)
+	if (!response) {
 		return NULL;
+	}
 
-	if (buxton_response_type(response) == BUXTON_CONTROL_LIST)
+	if (buxton_response_type(response) == BUXTON_CONTROL_LIST) {
 		return NULL;
+	}
 
 	key = malloc0(sizeof(_BuxtonKey));
-	if (!key)
+	if (!key) {
 		return NULL;
+	}
 
 	if (!buxton_key_copy(r->key, key)) {
 		free(key);
@@ -576,8 +614,9 @@ void *buxton_response_value(BuxtonResponse response)
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
 	BuxtonControlMessage type;
 
-	if (!response)
+	if (!response) {
 		return NULL;
+	}
 
 	type = buxton_response_type(response);
 	if (type == BUXTON_CONTROL_GET) {
@@ -590,52 +629,60 @@ void *buxton_response_value(BuxtonResponse response)
 		goto out;
 	}
 
-	if (!d)
+	if (!d) {
 		goto out;
+	}
 
 	switch (d->type) {
 	case STRING:
 		return strdup(d->store.d_string.value);
 	case INT32:
 		p = malloc0(sizeof(int32_t));
-		if (!p)
+		if (!p) {
 			goto out;
+		}
 		*(int32_t *)p = (int32_t)d->store.d_int32;
 		break;
 	case UINT32:
 		p = malloc0(sizeof(uint32_t));
-		if (!p)
+		if (!p) {
 			goto out;
+		}
 		*(uint32_t *)p = (uint32_t)d->store.d_uint32;
 		break;
 	case INT64:
 		p = malloc0(sizeof(int64_t));
-		if (!p)
+		if (!p) {
 			goto out;
+		}
 		*(int64_t *)p = (int64_t)d->store.d_int64;
 		break;
 	case UINT64:
 		p = malloc0(sizeof(uint64_t));
-		if (!p)
+		if (!p) {
 			goto out;
+		}
 		*(uint64_t *)p = (uint64_t)d->store.d_uint64;
 		break;
 	case FLOAT:
 		p = malloc0(sizeof(float));
-		if (!p)
+		if (!p) {
 			goto out;
+		}
 		*(float *)p = (float)d->store.d_float;
 		break;
 	case DOUBLE:
 		p = malloc0(sizeof(double));
-		if (!p)
+		if (!p) {
 			goto out;
+		}
 		*(double *)p = (double)d->store.d_double;
 		break;
 	case BOOLEAN:
 		p = malloc0(sizeof(bool));
-		if (!p)
+		if (!p) {
 			goto out;
+		}
 		*(bool *)p = (bool)d->store.d_boolean;
 		break;
 	default:

@@ -98,8 +98,9 @@ int main(int argc, char *argv[])
 		int i;
 		c = getopt_long(argc, argv, "c:h", opts, &i);
 
-		if (c == -1)
+		if (c == -1) {
 			break;
+		}
 
 		switch (c) {
 		case 'c':
@@ -127,34 +128,40 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if (!buxton_cache_smack_rules())
+	if (!buxton_cache_smack_rules()) {
 		exit(EXIT_FAILURE);
+	}
 	smackfd = buxton_watch_smack_rules();
-	if (smackfd < 0 && errno)
+	if (smackfd < 0 && errno) {
 		exit(EXIT_FAILURE);
+	}
 
 	self.nfds_alloc = 0;
 	self.accepting_alloc = 0;
 	self.nfds = 0;
 	self.buxton.client.direct = true;
 	self.buxton.client.uid = geteuid();
-	if (!buxton_direct_open(&self.buxton))
+	if (!buxton_direct_open(&self.buxton)) {
 		exit(EXIT_FAILURE);
+	}
 
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
 	sa.sa_handler = my_handler;
 	ret = sigaction(SIGINT, &sa, NULL);
-	if (ret == -1)
+	if (ret == -1) {
 		exit(EXIT_FAILURE);
+	}
 	ret = sigaction(SIGTERM, &sa, NULL);
-	if (ret == -1)
+	if (ret == -1) {
 		exit(EXIT_FAILURE);
+	}
 	sigemptyset(&sa.sa_mask);
 	sa.sa_handler = SIG_IGN;
 	ret = sigaction(SIGPIPE, &sa, NULL);
-	if (ret == -1)
+	if (ret == -1) {
 		exit(EXIT_FAILURE);
+	}
 
 	/* For client notifications */
 	self.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
@@ -231,16 +238,19 @@ int main(int argc, char *argv[])
 		if (ret < 0) {
 			buxton_log("poll(): %m\n");
 			if (errno == EINTR) {
-				if (do_shutdown)
+				if (do_shutdown) {
 					break;
-				else
+				} else {
 					continue;
+				}
 			}
 			break;
 		}
-		if (ret == 0)
-			if (!leftover_messages)
+		if (ret == 0) {
+			if (!leftover_messages) {
 				continue;
+			}
+		}
 
 		leftover_messages = false;
 
@@ -248,8 +258,9 @@ int main(int argc, char *argv[])
 			client_list_item *cl = NULL;
 			char discard[256];
 
-			if (self.pollfds[i].revents == 0)
+			if (self.pollfds[i].revents == 0) {
 				continue;
+			}
 
 			if (self.pollfds[i].fd == -1) {
 				/* TODO: Remove client from list  */
@@ -260,8 +271,9 @@ int main(int argc, char *argv[])
 
 			if (smackfd >= 0) {
 				if (self.pollfds[i].fd == smackfd) {
-					if (!buxton_cache_smack_rules())
+					if (!buxton_cache_smack_rules()) {
 						exit(EXIT_FAILURE);
+					}
 					buxton_log("Reloaded Smack access rules\n");
 					/* discard inotify data itself */
 					while (read(smackfd, &discard, 256) == 256);
@@ -290,8 +302,9 @@ int main(int argc, char *argv[])
 				}
 
 				cl = malloc0(sizeof(client_list_item));
-				if (!cl)
+				if (!cl) {
 					exit(EXIT_FAILURE);
+				}
 
 				LIST_INIT(client_list_item, item, cl);
 
@@ -303,40 +316,46 @@ int main(int argc, char *argv[])
 				add_pollfd(&self, cl->fd, POLLIN | POLLPRI, false);
 
 				/* Mark our packets as high prio */
-				if (setsockopt(cl->fd, SOL_SOCKET, SO_PRIORITY, &on, sizeof(on)) == -1)
+				if (setsockopt(cl->fd, SOL_SOCKET, SO_PRIORITY, &on, sizeof(on)) == -1) {
 					buxton_log("setsockopt(SO_PRIORITY): %m\n");
+				}
 
 				/* Set socket recv timeout */
 				tv.tv_sec = SOCKET_TIMEOUT;
 				tv.tv_usec = 0;
 				if (setsockopt(cl->fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
-					       sizeof(struct timeval)) == -1)
+					       sizeof(struct timeval)) == -1) {
 					buxton_log("setsockopt(SO_RCVTIMEO): %m\n");
+				}
 
 				/* check if this is optimal or not */
 				break;
 			}
 
 			assert(self.accepting[i] == 0);
-			if (smackfd >= 0)
+			if (smackfd >= 0) {
 				assert(self.pollfds[i].fd != smackfd);
+			}
 
 			/* handle data on any connection */
 			/* TODO: Replace with hash table lookup */
 			LIST_FOREACH(item, cl, self.client_list)
-				if (self.pollfds[i].fd == cl->fd)
+				if (self.pollfds[i].fd == cl->fd) {
 					break;
+				}
 
 			assert(cl);
-			if(handle_client(&self, cl, i))
+			if(handle_client(&self, cl, i)) {
 				leftover_messages = true;
+			}
 		}
 	}
 
 	buxton_log("%s: Closing all connections\n", argv[0]);
 
-	if (manual_start)
+	if (manual_start) {
 		unlink(buxton_socket());
+	}
 	for (int i = 0; i < self.nfds; i++) {
 		close(self.pollfds[i].fd);
 	}
@@ -351,8 +370,9 @@ int main(int argc, char *argv[])
 		BuxtonList *elem;
 		BUXTON_LIST_FOREACH(map_list, elem) {
 			BuxtonNotification *notif = (BuxtonNotification*)elem->data;
-			if (notif->old_data)
+			if (notif->old_data) {
 				free_buxton_data(&(notif->old_data));
+			}
 		}
 		free(notify_key);
 		buxton_list_free_all(&map_list);

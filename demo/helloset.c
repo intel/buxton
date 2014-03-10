@@ -49,8 +49,9 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", "test", "user", INT32);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
 	set = 10;
 

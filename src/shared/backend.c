@@ -45,15 +45,17 @@ void buxton_init_layers(BuxtonConfig *config)
 
 	nlayers = buxton_key_get_layers(&config_layers);
 	layers = hashmap_new(string_hash_func, string_compare_func);
-	if (!layers)
+	if (!layers) {
 		abort();
+	}
 
 	for (int n = 0; n < nlayers; n++) {
 		BuxtonLayer *layer;
 
 		layer = buxton_layer_new(&(config_layers[n]));
-		if (!layer)
+		if (!layer) {
 			abort();
+		}
 
 		r = hashmap_put(layers, layer->name.value, layer);
 		if (r != 1) {
@@ -71,14 +73,17 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 
 	assert(conf_layer);
 	out= malloc0(sizeof(BuxtonLayer));
-	if (!out)
+	if (!out) {
 		abort();
+	}
 
-	if (conf_layer->priority < 0)
+	if (conf_layer->priority < 0) {
 		goto fail;
+	}
 	out->name.value = strdup(conf_layer->name);
-	if (!out->name.value)
+	if (!out->name.value) {
 		abort();
+	}
 	out->name.length = (uint32_t)strlen(conf_layer->name);
 
 	if (strcmp(conf_layer->type, "System") == 0) {
@@ -101,8 +106,9 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 
 	if (conf_layer->description != NULL) {
 		out->description = strdup(conf_layer->description);
-		if (!out->description)
+		if (!out->description) {
 			abort();
+		}
 	}
 
 	out->priority = conf_layer->priority;

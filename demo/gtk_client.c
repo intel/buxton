@@ -171,8 +171,9 @@ static gboolean buxton_init(BuxtonTest *self)
 	BuxtonKey key;
 
 	/* Bail if initialized */
-	if (self->fd > 0)
+	if (self->fd > 0) {
 		return TRUE;
+	}
 	/* Stop probing Buxton */
 	if (self->tag > 0) {
 		g_source_remove(self->tag);
@@ -180,8 +181,9 @@ static gboolean buxton_init(BuxtonTest *self)
 	}
 
 	fd = buxton_open(&self->client);
-	if (fd <= 0)
+	if (fd <= 0) {
 		return FALSE;
+	}
 	self->fd = fd;
 
 	/* Poll Buxton events on idle loop, Buxton will then dispatch them
@@ -192,8 +194,9 @@ static gboolean buxton_init(BuxtonTest *self)
 	/* Register primary key */
 	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
 	if (!buxton_register_notification(self->client, key,
-					  buxton_callback, self, false))
+					  buxton_callback, self, false)) {
 		report_error(self, "Unable to register for notifications");
+	}
 
 	return TRUE;
 }
@@ -205,15 +208,17 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	const gchar *value;
 
 	value = gtk_entry_get_text(GTK_ENTRY(self->entry));
-	if (strlen(value) == 0 || g_str_equal(value, ""))
+	if (strlen(value) == 0 || g_str_equal(value, "")) {
 		return;
+	}
 
 	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
 
         self->setting = TRUE;
 	if (!buxton_set_value(self->client, key, (void*)value,
-			      buxton_callback, self, false))
+			      buxton_callback, self, false)) {
 		report_error(self, "Unable to set value!");
+	}
 	buxton_key_free(key);
 }
 
@@ -231,8 +236,9 @@ static void update_value(BuxtonTest *self)
 		buxton_close(self->client);
 		self->fd = -1;
 		/* Just try reconnecting */
-		if (!buxton_init(self))
+		if (!buxton_init(self)) {
 			report_error(self, "Unable to connect");
+		}
 	}
 
 
@@ -301,11 +307,12 @@ static void buxton_callback(BuxtonResponse response, gpointer userdata)
 	if (g_str_equal(key_name, PRIMARY_KEY) && buxton_key_get_type(key) == STRING) {
 		gchar *lab;
 		/* Key unset */
-		if (!value)
+		if (!value) {
 			lab = g_strdup_printf("<big>\'%s\' unset</big>", key_name);
-		else
+		} else {
 			lab = g_strdup_printf("<big>\'%s\' value: %s</big>",
 				key_name, (gchar*)value);
+		}
 		/* Update UI */
 		gtk_label_set_markup(GTK_LABEL(self->value_label), lab);
 		g_free(lab);

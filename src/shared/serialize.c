@@ -57,8 +57,9 @@ size_t buxton_serialize(BuxtonData *source, BuxtonString *label,
 
 	/* Allocate memory big enough to hold all information */
 	data = malloc0(size);
-	if (!data)
+	if (!data) {
 		abort();
+	}
 
 	/* Write the entire BuxtonDataType to the first block */
 	memcpy(data, &(source->type), sizeof(BuxtonDataType));
@@ -139,8 +140,9 @@ void buxton_deserialize(uint8_t *source, BuxtonData *target,
 
 	/* Retrieve the label */
 	label->value = malloc(label->length);
-	if (label->length > 0 && !label->value)
+	if (label->length > 0 && !label->value) {
 		abort();
+	}
 	memcpy(label->value, source+offset, label->length);
 	offset += label->length;
 
@@ -148,8 +150,9 @@ void buxton_deserialize(uint8_t *source, BuxtonData *target,
 	case STRING:
 		/* User must free the string */
 		target->store.d_string.value = malloc(length);
-		if (!target->store.d_string.value)
+		if (!target->store.d_string.value) {
 			abort();
+		}
 		memcpy(target->store.d_string.value, source+offset, length);
 		target->store.d_string.length = (uint32_t)length;
 		break;
@@ -346,8 +349,9 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 
 fail:
 	/* Clean up */
-	if (ret == 0)
+	if (ret == 0) {
 		free(data);
+	}
 end:
 	buxton_debug("Serializing returned:%lu\n", ret);
 	return ret;
@@ -520,8 +524,9 @@ ssize_t buxton_deserialize_message(uint8_t *data,
 	}
 	ret = (ssize_t)n_params;
 end:
-	if (ret <= 0)
+	if (ret <= 0) {
 		free(k_list);
+	}
 
 	buxton_debug("Deserializing returned:%i\n", ret);
 	return ret;
@@ -533,13 +538,15 @@ size_t buxton_get_message_size(uint8_t *data, size_t size)
 
 	assert(data);
 
-	if (size < BUXTON_MESSAGE_HEADER_LENGTH)
+	if (size < BUXTON_MESSAGE_HEADER_LENGTH) {
 		return 0;
+	}
 
 	r_size = *(uint32_t*)(data + BUXTON_LENGTH_OFFSET);
 
-	if (r_size < BUXTON_MESSAGE_HEADER_LENGTH)
+	if (r_size < BUXTON_MESSAGE_HEADER_LENGTH) {
 		return 0;
+	}
 
 	return r_size;
 }
