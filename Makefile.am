@@ -92,6 +92,8 @@ endif
 # set flags
 
 EXTRA_DIST = \
+	Doxyfile \
+	LICENSE.LGPL2.1 \
 	check_db_clean \
 	data/libbuxton.pc.in \
 	src/libbuxton/lbuxton.sym \
