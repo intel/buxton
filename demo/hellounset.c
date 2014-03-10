@@ -44,7 +44,7 @@ int main(void)
 		return -1;
 
 	if (!buxton_unset_value(client, key, unset_cb,
-					       NULL, false)) {
+				NULL, false)) {
 		printf("unset call failed to run\n");
 		return -1;
 	}

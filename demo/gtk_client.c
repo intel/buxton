@@ -192,7 +192,7 @@ static gboolean buxton_init(BuxtonTest *self)
 	/* Register primary key */
 	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
 	if (!buxton_register_notification(self->client, key,
-		buxton_callback, self, false))
+					  buxton_callback, self, false))
 		report_error(self, "Unable to register for notifications");
 
 	return TRUE;
@@ -212,7 +212,7 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 
         self->setting = TRUE;
 	if (!buxton_set_value(self->client, key, (void*)value,
-		buxton_callback, self, false))
+			      buxton_callback, self, false))
 		report_error(self, "Unable to set value!");
 	buxton_key_free(key);
 }
@@ -224,7 +224,7 @@ static void update_value(BuxtonTest *self)
 	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
 
 	if (!buxton_get_value(self->client, key,
-		buxton_callback, self, false)) {
+			      buxton_callback, self, false)) {
 		/* Buxton disconnects us when this happens. ##FIXME##
 		 * We force a reconnect */
 		report_error(self, "Cannot retrieve value");

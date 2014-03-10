@@ -48,7 +48,7 @@ int main(void)
 		return -1;
 
 	if (!buxton_get_value(client, key, get_cb,
-					       &gvalue, false)) {
+			      &gvalue, false)) {
 		printf("get call failed to run\n");
 		return -1;
 	}

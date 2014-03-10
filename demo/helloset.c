@@ -55,7 +55,7 @@ int main(void)
 	set = 10;
 
 	if (!buxton_set_value(client, key, &set, set_cb,
-				     NULL, false)) {
+			      NULL, false)) {
 		printf("set call failed to run\n");
 		return -1;
 	}

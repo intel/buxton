@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 				addr_len = sizeof(remote);
 
 				if ((fd = accept(self.pollfds[i].fd,
-				    (struct sockaddr *)&remote, &addr_len)) == -1) {
+						 (struct sockaddr *)&remote, &addr_len)) == -1) {
 					buxton_log("accept(): %m\n");
 					break;
 				}
