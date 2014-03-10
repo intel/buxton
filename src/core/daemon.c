@@ -93,8 +93,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		break;
 	case BUXTON_CONTROL_GET:
 		if (count == 4) {
-			if(list[0].type != STRING || list[1].type != STRING ||
-			   list[2].type != STRING || list[3].type != UINT32) {
+			if (list[0].type != STRING || list[1].type != STRING ||
+			    list[2].type != STRING || list[3].type != UINT32) {
 				return false;
 			}
 			key->layer = list[0].store.d_string;
@@ -102,8 +102,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			key->name = list[2].store.d_string;
 			key->type = list[3].store.d_uint32;
 		} else if (count == 3) {
-			if(list[0].type != STRING || list[1].type != STRING ||
-			   list[2].type != UINT32) {
+			if (list[0].type != STRING || list[1].type != STRING ||
+			    list[2].type != UINT32) {
 				return false;
 			}
 			key->group = list[0].store.d_string;
@@ -127,8 +127,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 4) {
 			return false;
 		}
-		if(list[0].type != STRING || list[1].type != STRING ||
-		   list[2].type != STRING || list[3].type != UINT32) {
+		if (list[0].type != STRING || list[1].type != STRING ||
+		    list[2].type != STRING || list[3].type != UINT32) {
 			return false;
 		}
 		key->layer = list[0].store.d_string;
@@ -140,8 +140,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 3) {
 			return false;
 		}
-		if(list[0].type != STRING || list[1].type != STRING ||
-		   list[2].type != UINT32) {
+		if (list[0].type != STRING || list[1].type != STRING ||
+		    list[2].type != UINT32) {
 			return false;
 		}
 		key->group = list[0].store.d_string;
@@ -152,8 +152,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 3) {
 			return false;
 		}
-		if(list[0].type != STRING || list[1].type != STRING ||
-		   list[2].type != UINT32) {
+		if (list[0].type != STRING || list[1].type != STRING ||
+		    list[2].type != UINT32) {
 			return false;
 		}
 		key->group = list[0].store.d_string;

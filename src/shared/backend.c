@@ -97,7 +97,7 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 
 	if (strcmp(conf_layer->backend, "gdbm") == 0) {
 		out->backend = BACKEND_GDBM;
-	} else if(strcmp(conf_layer->backend, "memory") == 0) {
+	} else if (strcmp(conf_layer->backend, "memory") == 0) {
 		out->backend = BACKEND_MEMORY;
 	} else {
 		buxton_log("Layer %s has unknown database: %s\n", conf_layer->name, conf_layer->backend);

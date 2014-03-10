@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 				buxton_log("Invalid configuration file path\n");
 				exit(EXIT_FAILURE);
 			} else {
-				if(st.st_mode & S_IFDIR) {
+				if (st.st_mode & S_IFDIR) {
 					buxton_log("Configuration file given is a directory\n");
 					exit(EXIT_FAILURE);
 				}
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
 				}
 
 			assert(cl);
-			if(handle_client(&self, cl, i)) {
+			if (handle_client(&self, cl, i)) {
 				leftover_messages = true;
 			}
 		}

@@ -168,17 +168,17 @@ bool buxton_key_copy(_BuxtonKey *original, _BuxtonKey *copy)
 	}
 
 	if (original->group.value) {
-		if(!buxton_string_copy(&original->group, &copy->group)) {
+		if (!buxton_string_copy(&original->group, &copy->group)) {
 			goto fail;
 		}
 	}
 	if (original->name.value) {
-		if(!buxton_string_copy(&original->name, &copy->name)) {
+		if (!buxton_string_copy(&original->name, &copy->name)) {
 			goto fail;
 		}
 	}
 	if (original->layer.value) {
-		if(!buxton_string_copy(&original->layer, &copy->layer)) {
+		if (!buxton_string_copy(&original->layer, &copy->layer)) {
 			goto fail;
 		}
 	}
@@ -208,13 +208,13 @@ bool buxton_copy_key_group(_BuxtonKey *original, _BuxtonKey *group)
 	}
 
 	if (original->group.value) {
-		if(!buxton_string_copy(&original->group, &group->group)) {
+		if (!buxton_string_copy(&original->group, &group->group)) {
 			goto fail;
 		}
 	}
 	group->name = (BuxtonString){ NULL, 0 };
 	if (original->layer.value) {
-		if(!buxton_string_copy(&original->layer, &group->layer)) {
+		if (!buxton_string_copy(&original->layer, &group->layer)) {
 			goto fail;
 		}
 	}

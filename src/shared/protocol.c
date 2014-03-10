@@ -656,8 +656,8 @@ bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 		goto end;
 	}
 
-	if(!send_message(client, send, send_len, callback, data, msgid,
-			 BUXTON_CONTROL_GET, key)) {
+	if (!send_message(client, send, send_len, callback, data, msgid,
+			  BUXTON_CONTROL_GET, key)) {
 		goto end;
 	}
 
