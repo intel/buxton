@@ -190,7 +190,7 @@ static bool testcase_init(struct testcase *tc)
 static bool testcase_cleanup(struct testcase *tc)
 {
 	bool ret = (!buxton_set_value(__client, __key, &__data, callback, NULL, true) &&
-		buxton_unset_value(__client,  __key, callback, NULL, true));
+		!buxton_unset_value(__client,  __key, callback, NULL, true));
 	buxton_key_free(__key);
 	return ret;
 }
@@ -209,7 +209,7 @@ static bool testcase_run(struct testcase *tc)
 		case TEST_SET_UNSET:
 			r = buxton_set_value(__client, __key, &__data, callback, &d, true);
 			s = buxton_unset_value(__client, __key, callback, &d, true);
-			return (s && !r && d);
+			return (!s && !r && d);
 		default:
 			return false;
 	}

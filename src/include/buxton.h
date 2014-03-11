@@ -267,13 +267,13 @@ _bx_export_ int buxton_unregister_notification(BuxtonClient client,
  * @param callback A callback function to handle daemon reply
  * @param data User data to be used with callback function
  * @param sync Indicator for running a synchronous request
- * @return a boolean value, indicating success of the operation
+ * @return An int value, indicating success of the operation
  */
-_bx_export_ bool buxton_unset_value(BuxtonClient client,
-					   BuxtonKey key,
-					   BuxtonCallback callback,
-					   void *data,
-					   bool sync)
+_bx_export_ int buxton_unset_value(BuxtonClient client,
+				   BuxtonKey key,
+				   BuxtonCallback callback,
+				   void *data,
+				   bool sync)
 	__attribute__((warn_unused_result));
 
 /**

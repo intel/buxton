@@ -561,9 +561,9 @@ bool cli_unset_value(BuxtonControl *control,
 	if (control->client.direct) {
 		return buxton_direct_unset_value(control, key, NULL);
 	} else {
-		return buxton_unset_value(&control->client,
-						 key, unset_value_callback,
-						 NULL, true);
+		return !buxton_unset_value(&control->client,
+					   key, unset_value_callback,
+					   NULL, true);
 	}
 }
 /*
