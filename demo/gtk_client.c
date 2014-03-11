@@ -193,8 +193,8 @@ static gboolean buxton_init(BuxtonTest *self)
 
 	/* Register primary key */
 	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
-	if (!buxton_register_notification(self->client, key,
-					  buxton_callback, self, false)) {
+	if (buxton_register_notification(self->client, key,
+					 buxton_callback, self, false)) {
 		report_error(self, "Unable to register for notifications");
 	}
 

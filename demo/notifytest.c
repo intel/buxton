@@ -89,17 +89,17 @@ int main(void)
 		return -1;
 	}
 
-	if (!buxton_register_notification(client, key1, notify_cb, &status, false)) {
+	if (buxton_register_notification(client, key1, notify_cb, &status, false)) {
 		printf("set call failed to run\n");
 		return -1;
 	}
 
-	if (!buxton_register_notification(client, key2, notify_cb, &status, false)) {
+	if (buxton_register_notification(client, key2, notify_cb, &status, false)) {
 		printf("set call failed to run\n");
 		return -1;
 	}
 
-	if (!buxton_register_notification(client, key3, notify_cb, &status, false)) {
+	if (buxton_register_notification(client, key3, notify_cb, &status, false)) {
 		printf("set call failed to run\n");
 		return -1;
 	}
