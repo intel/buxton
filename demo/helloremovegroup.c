@@ -44,8 +44,8 @@ int main(void)
 		return -1;
 	}
 
-	if (!buxton_remove_group(client, key, remove_cb,
-				 NULL, false)) {
+	if (buxton_remove_group(client, key, remove_cb,
+				NULL, false)) {
 		printf("remove group call failed to run\n");
 		return -1;
 	}

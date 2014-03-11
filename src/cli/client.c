@@ -137,7 +137,7 @@ bool cli_remove_group(BuxtonControl *control, BuxtonDataType type,
 	if (control->client.direct) {
 		ret = buxton_direct_remove_group(control, (_BuxtonKey *)key, NULL);
 	} else {
-		ret = buxton_remove_group(&control->client, key, NULL, NULL, true);
+		ret = !buxton_remove_group(&control->client, key, NULL, NULL, true);
 	}
 
 	if (!ret) {

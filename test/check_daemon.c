@@ -246,8 +246,8 @@ START_TEST(buxton_remove_group_check)
 	fail_if(!key, "Failed to create key");
 	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_remove_group(c, key, client_remove_group_test,
-					    "tgroup", true),
+	fail_if(buxton_remove_group(c, key, client_remove_group_test,
+				    "tgroup", true),
 		"Removing group in buxton failed.");
 	buxton_key_free(key);
 }

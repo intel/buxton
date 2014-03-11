@@ -320,37 +320,37 @@ int buxton_create_group(BuxtonClient client,
 	return ret;
 }
 
-bool buxton_remove_group(BuxtonClient client,
-				BuxtonKey key,
-				BuxtonCallback callback,
-				void *data,
-				bool sync)
+int buxton_remove_group(BuxtonClient client,
+			BuxtonKey key,
+			BuxtonCallback callback,
+			void *data,
+			bool sync)
 {
 	bool r;
-	int ret;
+	int ret = 0;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	/* We require the key name to be NULL, since it is not used for groups */
 	if (!k || !k->group.value || k->name.value || !k->layer.value) {
-		return false;
+		return EINVAL;
 	}
 
 	k->type = STRING;
 	r = buxton_wire_remove_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
-		return false;
+		return -1;
 	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
 		if (ret <= 0) {
-			r = false;
+			ret = -1;
 		} else {
-			r = true;
+			ret = 0;
 		}
 	}
 
-	return r;
+	return ret;
 }
 
 bool buxton_client_list_keys(BuxtonClient client,
