@@ -110,7 +110,7 @@ bool cli_create_group(BuxtonControl *control, BuxtonDataType type,
 	if (control->client.direct) {
 		ret = buxton_direct_create_group(control, (_BuxtonKey *)key, NULL);
 	} else {
-		ret = buxton_create_group(&control->client, key, NULL, NULL, true);
+		ret = !buxton_create_group(&control->client, key, NULL, NULL, true);
 	}
 
 	if (!ret) {

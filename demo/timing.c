@@ -109,7 +109,7 @@ static bool init_group(void)
 
 	free(group);
 
-	return (r && d);
+	return (!r && d);
 }
 
 static bool testcase_init(struct testcase *tc)

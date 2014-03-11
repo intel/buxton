@@ -204,8 +204,8 @@ START_TEST(buxton_create_group_check)
 	fail_if(!key, "Failed to create key");
 	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_create_group(c, key, client_create_group_test,
-					    "tgroup", true),
+	fail_if(buxton_create_group(c, key, client_create_group_test,
+				    "tgroup", true),
 		"Creating group in buxton failed.");
 	buxton_key_free(key);
 }
@@ -281,7 +281,7 @@ START_TEST(buxton_set_value_check)
 	fail_if(!key, "Failed to create key");
 	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
+	fail_if(buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
 	fail_if(buxton_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
@@ -348,7 +348,7 @@ START_TEST(buxton_set_label_check)
 	fail_if(!group, "Failed to create key for group");
 	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
+	fail_if(buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
 	fail_if(buxton_set_label(c, group, "*",
 				 client_set_label_test,
@@ -426,7 +426,7 @@ START_TEST(buxton_get_value_check)
 	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
 
-	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
+	fail_if(buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
 	fail_if(buxton_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");

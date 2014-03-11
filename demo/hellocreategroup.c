@@ -44,8 +44,8 @@ int main(void)
 		return -1;
 	}
 
-	if (!buxton_create_group(client, key, create_cb,
-				 NULL, false)) {
+	if (buxton_create_group(client, key, create_cb,
+				NULL, false)) {
 		printf("create group call failed to run\n");
 		return -1;
 	}
