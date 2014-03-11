@@ -96,6 +96,7 @@ EXTRA_DIST = \
 	LICENSE.LGPL2.1 \
 	check_db_clean \
 	data/libbuxton.pc.in \
+	docs/LICENSE.MIT \
 	src/libbuxton/lbuxton.sym \
 	test/test.load2 \
 	test/test.conf \
