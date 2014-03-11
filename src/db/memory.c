@@ -178,7 +178,7 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	BuxtonArray *stored;
 	BuxtonData *d;
 	BuxtonString *l;
-	char *full_key;
+	char *full_key = NULL;
 	int ret;
 
 	assert(layer);
@@ -244,7 +244,7 @@ static int unset_value(BuxtonLayer *layer,
 	BuxtonArray *stored;
 	BuxtonData *d;
 	BuxtonString *l;
-	char *full_key;
+	char *full_key = NULL;
 	char *k;
 	int ret;
 
