@@ -353,37 +353,37 @@ int buxton_remove_group(BuxtonClient client,
 	return ret;
 }
 
-bool buxton_client_list_keys(BuxtonClient client,
-			     char *layer_name,
-			     BuxtonCallback callback,
-			     void *data,
-			     bool sync)
+int buxton_client_list_keys(BuxtonClient client,
+			    char *layer_name,
+			    BuxtonCallback callback,
+			    void *data,
+			    bool sync)
 {
 	bool r;
-	int ret;
+	int ret = 0;
 	BuxtonString l;
 
 	if (!layer_name) {
-		return false;
+		return EINVAL;
 	}
 
 	l = buxton_string_pack(layer_name);
 
 	r = buxton_wire_list_keys((_BuxtonClient *)client, &l, callback, data);
 	if (!r) {
-		return false;
+		return -1;
 	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
 		if (ret <= 0) {
-			r = false;
+			ret = -1;
 		} else {
-			r = true;
+			ret = 0;
 		}
 	}
 
-	return r;
+	return ret;
 }
 
 bool buxton_unset_value(BuxtonClient client,
