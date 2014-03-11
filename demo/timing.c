@@ -202,7 +202,7 @@ static bool testcase_run(struct testcase *tc)
 	switch (tc->t) {
 		case TEST_GET:
 			r = buxton_get_value(__client, __key, callback, &d, true);
-			return (r && d);
+			return (!r && d);
 		case TEST_SET:
 			r = buxton_set_value(__client, __key, &__data, callback, &d, true);
 			return (r && d);

@@ -436,7 +436,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 						      get_value_callback,
 						      &get, true);
 		}
-		if (!ret) {
+		if (ret) {
 			group = get_group(key);
 			name = get_name(key);
 			printf("Requested key was not found in layer \'%s\': %s:%s\n",
@@ -454,7 +454,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 						      get_value_callback, &get,
 						      true);
 		}
-		if (!ret) {
+		if (ret) {
 			group = get_group(key);
 			name = get_name(key);
 			printf("Requested key was not found: %s:%s\n", nv(group),

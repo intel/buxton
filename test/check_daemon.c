@@ -408,9 +408,9 @@ START_TEST(buxton_get_value_for_layer_check)
 
 	fail_if(buxton_open(&c) == -1,
 		"Open failed with daemon.");
-	fail_if(!buxton_get_value(c, key,
-					 client_get_value_test,
-					 "bxt_test_value", true),
+	fail_if(buxton_get_value(c, key,
+				 client_get_value_test,
+				 "bxt_test_value", true),
 		"Retrieving value from buxton gdbm backend failed.");
 }
 END_TEST
@@ -436,9 +436,9 @@ START_TEST(buxton_get_value_check)
 	buxton_key_free(group);
 	buxton_key_free(key);
 	key = buxton_key_create("group", "name", NULL, STRING);
-	fail_if(!buxton_get_value(c, key,
-					 client_get_value_test,
-					 "bxt_test_value2", true),
+	fail_if(buxton_get_value(c, key,
+				 client_get_value_test,
+				 "bxt_test_value2", true),
 		"Retrieving value from buxton gdbm backend failed.");
 	buxton_key_free(key);
 }

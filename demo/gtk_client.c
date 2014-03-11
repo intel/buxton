@@ -228,8 +228,8 @@ static void update_value(BuxtonTest *self)
 
 	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
 
-	if (!buxton_get_value(self->client, key,
-			      buxton_callback, self, false)) {
+	if (buxton_get_value(self->client, key,
+			     buxton_callback, self, false)) {
 		/* Buxton disconnects us when this happens. ##FIXME##
 		 * We force a reconnect */
 		report_error(self, "Cannot retrieve value");
