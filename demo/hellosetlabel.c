@@ -53,8 +53,8 @@ int main(void)
 		return -1;
 	}
 
-	if (!buxton_set_label(client, key, label, set_label_cb,
-			      NULL, false)) {
+	if (buxton_set_label(client, key, label, set_label_cb,
+			     NULL, false)) {
 		printf("set label call failed to run\n");
 		return -1;
 	}

@@ -283,7 +283,7 @@ START_TEST(buxton_set_value_check)
 		"Open failed with daemon.");
 	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
-	fail_if(!buxton_set_label(c, group, "*", NULL, NULL, true),
+	fail_if(buxton_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
 	fail_if(buxton_set_value(c, key, "bxt_test_value",
 				 client_set_value_test,
@@ -350,18 +350,18 @@ START_TEST(buxton_set_label_check)
 		"Open failed with daemon.");
 	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
-	fail_if(!buxton_set_label(c, group, "*",
-					 client_set_label_test,
-					 group, true),
+	fail_if(buxton_set_label(c, group, "*",
+				 client_set_label_test,
+				 group, true),
 		"Setting label for group in buxton failed.");
 
 	BuxtonKey name = buxton_key_create("bxt_group", "bxt_name", "test-gdbm", STRING);
 	fail_if(!name, "Failed to create key for name");
 	fail_if(buxton_set_value(c, name, "bxt_value", NULL, NULL, true),
 		"Setting label for name in buxton failed.");
-	fail_if(!buxton_set_label(c, name, "*",
-					 client_set_label_test,
-					 name, true),
+	fail_if(buxton_set_label(c, name, "*",
+				 client_set_label_test,
+				 name, true),
 		"Setting label for name in buxton failed.");
 
 	buxton_key_free(group);
@@ -428,7 +428,7 @@ START_TEST(buxton_get_value_check)
 
 	fail_if(!buxton_create_group(c, group, NULL, NULL, true),
 		"Creating group in buxton failed.");
-	fail_if(!buxton_set_label(c, group, "*", NULL, NULL, true),
+	fail_if(buxton_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
 	fail_if(buxton_set_value(c, key, "bxt_test_value2",
 				 client_set_value_test, "group", true),

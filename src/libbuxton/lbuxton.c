@@ -250,20 +250,20 @@ int buxton_set_value(BuxtonClient client,
 	return ret;
 }
 
-bool buxton_set_label(BuxtonClient client,
-			     BuxtonKey key,
-			     char *value,
-			     BuxtonCallback callback,
-			     void *data,
-			     bool sync)
+int buxton_set_label(BuxtonClient client,
+		     BuxtonKey key,
+		     char *value,
+		     BuxtonCallback callback,
+		     void *data,
+		     bool sync)
 {
 	bool r;
-	int ret;
+	int ret = 0;
 	BuxtonString v;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->layer.value || !value) {
-		return false;
+		return EINVAL;
 	}
 
 	k->type = STRING;
@@ -272,19 +272,19 @@ bool buxton_set_label(BuxtonClient client,
 	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
 				  data);
 	if (!r) {
-		return false;
+		return -1;
 	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
 		if (ret <= 0) {
-			r = false;
+			ret = -1;
 		} else {
-			r = true;
+			ret = 0;
 		}
 	}
 
-	return r;
+	return ret;
 }
 
 bool buxton_create_group(BuxtonClient client,
