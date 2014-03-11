@@ -215,8 +215,8 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
 
         self->setting = TRUE;
-	if (!buxton_set_value(self->client, key, (void*)value,
-			      buxton_callback, self, false)) {
+	if (buxton_set_value(self->client, key, (void*)value,
+			     buxton_callback, self, false)) {
 		report_error(self, "Unable to set value!");
 	}
 	buxton_key_free(key);

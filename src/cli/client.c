@@ -185,8 +185,8 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 						      (_BuxtonKey *)key,
 						      &set, NULL);
 		} else {
-			ret = buxton_set_value(&control->client, key,
-						      four, NULL, NULL, true);
+			ret = !buxton_set_value(&control->client, key,
+						four, NULL, NULL, true);
 		}
 		break;
 	case INT32:
@@ -200,9 +200,9 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 						      (_BuxtonKey *)key,
 						      &set, NULL);
 		} else {
-			ret = buxton_set_value(&control->client, key,
-						      &set.store.d_int32, NULL,
-						      NULL, true);
+			ret = !buxton_set_value(&control->client, key,
+						&set.store.d_int32, NULL,
+						NULL, true);
 		}
 		break;
 	case UINT32:
@@ -216,9 +216,9 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 						      (_BuxtonKey *)key,
 						      &set, NULL);
 		} else {
-			ret = buxton_set_value(&control->client, key,
-						      &set.store.d_uint32, NULL,
-						      NULL, true);
+			ret = !buxton_set_value(&control->client, key,
+						&set.store.d_uint32, NULL,
+						NULL, true);
 		}
 		break;
 	case INT64:
@@ -232,9 +232,9 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 						      (_BuxtonKey *)key,
 						      &set, NULL);
 		} else {
-			ret = buxton_set_value(&control->client, key,
-						      &set.store.d_int64, NULL,
-						      NULL, true);
+			ret = !buxton_set_value(&control->client, key,
+						&set.store.d_int64, NULL,
+						NULL, true);
 		}
 		break;
 	case UINT64:
@@ -248,9 +248,9 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 						      (_BuxtonKey *)key,
 						      &set, NULL);
 		} else {
-			ret = buxton_set_value(&control->client, key,
-						      &set.store.d_uint64, NULL,
-						      NULL, true);
+			ret = !buxton_set_value(&control->client, key,
+						&set.store.d_uint64, NULL,
+						NULL, true);
 		}
 		break;
 	case FLOAT:
@@ -264,9 +264,9 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 						      (_BuxtonKey *)key,
 						      &set, NULL);
 		} else {
-			ret = buxton_set_value(&control->client, key,
-						      &set.store.d_float, NULL,
-						      NULL, true);
+			ret = !buxton_set_value(&control->client, key,
+						&set.store.d_float, NULL,
+						NULL, true);
 		}
 		break;
 	case DOUBLE:
@@ -280,9 +280,9 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 						      (_BuxtonKey *)key,
 						      &set, NULL);
 		} else {
-			ret = buxton_set_value(&control->client, key,
-						      &set.store.d_double, NULL,
-						      NULL, true);
+			ret = !buxton_set_value(&control->client, key,
+						&set.store.d_double, NULL,
+						NULL, true);
 		}
 		break;
 	case BOOLEAN:
@@ -311,9 +311,9 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 						      (_BuxtonKey *)key,
 						      &set, NULL);
 		} else {
-			ret = buxton_set_value(&control->client, key,
-						      &set.store.d_boolean,
-						      NULL, NULL, true);
+			ret = !buxton_set_value(&control->client, key,
+						&set.store.d_boolean,
+						NULL, NULL, true);
 		}
 		break;
 	default:

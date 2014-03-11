@@ -216,38 +216,38 @@ int buxton_unregister_notification(BuxtonClient client,
 	return ret;
 }
 
-bool buxton_set_value(BuxtonClient client,
-			     BuxtonKey key,
-			     void *value,
-			     BuxtonCallback callback,
-			     void *data,
-			     bool sync)
+int buxton_set_value(BuxtonClient client,
+		     BuxtonKey key,
+		     void *value,
+		     BuxtonCallback callback,
+		     void *data,
+		     bool sync)
 {
 	bool r;
-	int ret;
+	int ret = 0;
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
 	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX || !value) {
-		return false;
+		return EINVAL;
 	}
 
 	r = buxton_wire_set_value((_BuxtonClient *)client, k, value, callback,
 				  data);
 	if (!r) {
-		return false;
+		return -1;
 	}
 
 	if (sync) {
 		ret = buxton_wire_get_response(client);
 		if (ret <= 0) {
-			r = false;
+			ret = -1;
 		} else {
-			r = true;
+			ret = 0;
 		}
 	}
 
-	return r;
+	return ret;
 }
 
 bool buxton_set_label(BuxtonClient client,

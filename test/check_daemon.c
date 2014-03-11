@@ -285,9 +285,9 @@ START_TEST(buxton_set_value_check)
 		"Creating group in buxton failed.");
 	fail_if(!buxton_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
-	fail_if(!buxton_set_value(c, key, "bxt_test_value",
-					 client_set_value_test,
-					 "group", true),
+	fail_if(buxton_set_value(c, key, "bxt_test_value",
+				 client_set_value_test,
+				 "group", true),
 		"Setting value in buxton failed.");
 	buxton_key_free(group);
 	buxton_key_free(key);
@@ -357,7 +357,7 @@ START_TEST(buxton_set_label_check)
 
 	BuxtonKey name = buxton_key_create("bxt_group", "bxt_name", "test-gdbm", STRING);
 	fail_if(!name, "Failed to create key for name");
-	fail_if(!buxton_set_value(c, name, "bxt_value", NULL, NULL, true),
+	fail_if(buxton_set_value(c, name, "bxt_value", NULL, NULL, true),
 		"Setting label for name in buxton failed.");
 	fail_if(!buxton_set_label(c, name, "*",
 					 client_set_label_test,
@@ -430,8 +430,8 @@ START_TEST(buxton_get_value_check)
 		"Creating group in buxton failed.");
 	fail_if(!buxton_set_label(c, group, "*", NULL, NULL, true),
 		"Setting group in buxton failed.");
-	fail_if(!buxton_set_value(c, key, "bxt_test_value2",
-					 client_set_value_test, "group", true),
+	fail_if(buxton_set_value(c, key, "bxt_test_value2",
+				 client_set_value_test, "group", true),
 		"Failed to set second value.");
 	buxton_key_free(group);
 	buxton_key_free(key);

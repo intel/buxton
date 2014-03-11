@@ -116,7 +116,7 @@ repoll:
 	} else if (r == 0) {
 		if (do_update >> 1 == 0) {
 			val++;
-			if (!buxton_set_value(client, key4, &val, set_cb, &status, false)) {
+			if (buxton_set_value(client, key4, &val, set_cb, &status, false)) {
 				printf("set value failed\n");
 				return -1;
 			}
