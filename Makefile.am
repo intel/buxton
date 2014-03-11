@@ -72,7 +72,29 @@ dist_man_MANS = \
 	docs/buxton.conf.5 \
 	docs/buxtond.8 \
 	docs/buxton-protocol.7 \
-	docs/buxton-security.7
+	docs/buxton-security.7 \
+	docs/buxton_client_handle_response.3 \
+	docs/buxton_close.3 \
+	docs/buxton_create_group.3 \
+	docs/buxton_get_value.3 \
+	docs/buxton_key_create.3 \
+	docs/buxton_key_free.3 \
+	docs/buxton_key_get_group.3 \
+	docs/buxton_key_get_layer.3 \
+	docs/buxton_key_get_name.3 \
+	docs/buxton_key_get_type.3 \
+	docs/buxton_open.3 \
+	docs/buxton_register_notification.3 \
+	docs/buxton_remove_group.3 \
+	docs/buxton_response_key.3 \
+	docs/buxton_response_status.3 \
+	docs/buxton_response_type.3 \
+	docs/buxton_response_value.3 \
+	docs/buxton_set_conf_file.3 \
+	docs/buxton_set_label.3 \
+	docs/buxton_set_value.3 \
+	docs/buxton_unregister_notification.3 \
+	docs/buxton_unset_value.3
 
 TESTS = \
 	check_db_clean \
