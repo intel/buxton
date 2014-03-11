@@ -51,6 +51,7 @@ int main(void)
 	struct pollfd pfd[1];
 	int r;
 	int fd;
+	int repoll_count = 10;
 
 	if ((fd = buxton_open(&client)) < 0) {
 		printf("couldn't connect\n");
@@ -76,6 +77,9 @@ repoll:
 		printf("poll error\n");
 		return -1;
 	} else if (r == 0) {
+		if (repoll_count-- > 0) {
+			goto out;
+		}
 		goto repoll;
 	}
 
@@ -90,6 +94,12 @@ repoll:
 	}
 
 	goto repoll;
+
+out:
+	if (buxton_unregister_notification(client, key, NULL, NULL, true)) {
+		printf("Unregistration of notification failed\n");
+		return -1;
+	}
 
 	buxton_key_free(key);
 	buxton_close(client);
