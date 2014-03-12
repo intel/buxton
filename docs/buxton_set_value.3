@@ -93,7 +93,7 @@ void set_cb(BuxtonResponse response, void *data)
 	BuxtonKey key;
 	char *name;
 
-	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != 0) {
 		printf("Failed to set value\\n");
 		return;
 	}
@@ -120,13 +120,14 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", "test", "user", INT32);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
 	set = 10;
 
-	if (!buxton_set_value(client, key, &set, set_cb,
-				     NULL, false)) {
+	if (buxton_set_value(client, key, &set, set_cb,
+			     NULL, false)) {
 		printf("set call failed to run\\n");
 		return -1;
 	}
@@ -167,7 +168,7 @@ An example for unset_value:
 
 void unset_cb(BuxtonResponse response, void *data)
 {
-	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != 0) {
 		printf("Failed to unset value\\n");
 	} else {
 		printf("Unset value\\n");
@@ -188,11 +189,12 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", "test", "user", INT32);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
-	if (!buxton_unset_value(client, key, unset_cb,
-					       NULL, false)) {
+	if (buxton_unset_value(client, key, unset_cb,
+			       NULL, false)) {
 		printf("unset call failed to run\\n");
 		return -1;
 	}

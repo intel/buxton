@@ -75,7 +75,7 @@ void set_label_cb(BuxtonResponse response, void *data)
 	BuxtonKey key;
 	char *name;
 
-	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != 0) {
 		printf("Failed to set label\\n");
 		return;
 	}
@@ -102,11 +102,12 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", "test", "user", INT32);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
-	if (!buxton_set_label(client, key, label, set_label_cb,
-				     NULL, false)) {
+	if (buxton_set_label(client, key, label, set_label_cb,
+			     NULL, false)) {
 		printf("set label call failed to run\\n");
 		return -1;
 	}

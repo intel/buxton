@@ -91,7 +91,7 @@ An example for \fBbuxton_create_group\fR(3):
 
 void create_cb(BuxtonResponse response, void *data)
 {
-	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != 0) {
 		printf("Failed to create group\\n");
 	} else {
 		printf("Created group\\n");
@@ -112,11 +112,12 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", NULL, "user", STRING);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
-	if (!buxton_create_group(client, key, create_cb,
-				     NULL, false)) {
+	if (buxton_create_group(client, key, create_cb,
+				NULL, false)) {
 		printf("create group call failed to run\\n");
 		return -1;
 	}
@@ -156,7 +157,7 @@ An example for \fBbuxton_remove_group\fR(3):
 
 void remove_cb(BuxtonResponse response, void *data)
 {
-	if (buxton_response_status(response) != BUXTON_STATUS_OK) {
+	if (buxton_response_status(response) != 0) {
 		printf("Failed to remove group\\n");
 	} else {
 		printf("Removed group\\n");
@@ -177,11 +178,12 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", NULL, "user", STRING);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
-	if (!buxton_remove_group(client, key, remove_cb,
-				     NULL, false)) {
+	if (buxton_remove_group(client, key, remove_cb,
+				NULL, false)) {
 		printf("remove group call failed to run\\n");
 		return -1;
 	}
