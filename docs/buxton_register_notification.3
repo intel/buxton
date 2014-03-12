@@ -72,9 +72,6 @@ controls whether the operation should be synchronous or not; if
 \fIsync\fR is false, the operation is asynchronous\&.
 
 .SH "CODE EXAMPLE"
-.PP
-Example for register_notification:
-
 .nf
 .sp
 #define _GNU_SOURCE
@@ -88,10 +85,10 @@ void notify_cb(BuxtonResponse response, void *data)
 {
 	bool *status = (bool *)data;
 	BuxtonKey key;
-	int32_t value;
+	int32_t *value;
 	char *name;
 
-	if (buxton_response_status(response) == BUXTON_STATUS_FAILED) {
+	if (buxton_response_status(response) != 0) {
 		*status = false;
 		return;
 	}
@@ -99,10 +96,15 @@ void notify_cb(BuxtonResponse response, void *data)
 	key = buxton_response_key(response);
 	name = buxton_key_get_name(key);
 
-	value = *(int32_t*)buxton_response_value(response);
-	printf("key %s updated with new value %d\\n", name, value);
+	value = (int32_t*)buxton_response_value(response);
+	if (value) {
+		printf("key %s updated with new value %d\\n", name, *value);
+	} else {
+		printf("key %s was removed\\n", name);
+	}
 
 	buxton_key_free(key);
+	free(value);
 	free(name);
 }
 
@@ -114,6 +116,7 @@ int main(void)
 	struct pollfd pfd[1];
 	int r;
 	int fd;
+	int repoll_count = 10;
 
 	if ((fd = buxton_open(&client)) < 0) {
 		printf("couldn't connect\\n");
@@ -121,10 +124,11 @@ int main(void)
 	}
 
 	key = buxton_key_create("hello", "test", NULL, INT32);
-	if (!key)
+	if (!key) {
 		return -1;
+	}
 
-	if (!buxton_register_notification(client, key, notify_cb, &status, false)) {
+	if (buxton_register_notification(client, key, notify_cb, &status, false)) {
 		printf("set call failed to run\\n");
 		return -1;
 	}
@@ -138,6 +142,9 @@ repoll:
 		printf("poll error\\n");
 		return -1;
 	} else if (r == 0) {
+		if (repoll_count-- > 0) {
+			goto out;
+		}
 		goto repoll;
 	}
 
@@ -153,16 +160,18 @@ repoll:
 
 	goto repoll;
 
+out:
+	if (buxton_unregister_notification(client, key, NULL, NULL, true)) {
+		printf("Unregistration of notification failed\\n");
+		return -1;
+	}
+
 	buxton_key_free(key);
 	buxton_close(client);
 
 	return 0;
 }
-
 .fi
-
-.PP
-Example for unregister_notification: TODO
 
 .SH "RETURN VALUE"
 .PP
