@@ -57,8 +57,8 @@ distclean-local:
 	rm -f test/databases/*.db
 
 # set library version info
-LIBBUXTON_CURRENT=0
-LIBBUXTON_REVISION=1
+LIBBUXTON_CURRENT=1
+LIBBUXTON_REVISION=0
 LIBBUXTON_AGE=0
 
 pkgconfiglibdir=$(libdir)/pkgconfig
