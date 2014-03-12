@@ -211,8 +211,13 @@ bool buxton_check_smack_access(BuxtonString *subject, BuxtonString *object, Buxt
 		buxton_debug("Value: %x\n", *access);
 	}
 
-	if ((*access) & request) {
-		buxton_debug("Access granted!\n");
+	if (request == ACCESS_READ && (*access) & request) {
+		buxton_debug("Read access granted!\n");
+		return true;
+	}
+
+	if (request == ACCESS_WRITE && ((*access) & ACCESS_READ && (*access) & ACCESS_WRITE)) {
+		buxton_debug("Write access granted!\n");
 		return true;
 	}
 
