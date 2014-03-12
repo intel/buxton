@@ -29,26 +29,26 @@ buxton_create_group, buxton_remove_group \- Manage groups within buxton
 \fR
 .sp
 \fB
-bool buxton_create_group(BuxtonClient \fIclient\fB,
+int buxton_create_group(BuxtonClient \fIclient\fB,
 .br
-                         BuxtonKey \fIkey\fB,
+                        BuxtonKey \fIkey\fB,
 .br
-                         BuxtonCallback \fIcallback\fB,
+                        BuxtonCallback \fIcallback\fB,
 .br
-                         void *\fIdata\fB,
+                        void *\fIdata\fB,
 .br
-                         bool \fIsync\fB)
+                        bool \fIsync\fB)
 .sp
 .br
-bool buxton_remove_group(BuxtonClient \fIclient\fB,
+int buxton_remove_group(BuxtonClient \fIclient\fB,
 .br
-                         BuxtonKey \fIkey\fB,
+                        BuxtonKey \fIkey\fB,
 .br
-                         BuxtonCallback \fIcallback\fB,
+                        BuxtonCallback \fIcallback\fB,
 .br
-                         void *\fIdata\fB,
+                        void *\fIdata\fB,
 .br
-                         bool \fIsync\fB)
+                        bool \fIsync\fB)
 \fR
 .fi
 
@@ -209,7 +209,7 @@ int main(void)
 
 .SH "RETURN VALUE"
 .PP
-Returns "true" on success, and "false" on failure\&.
+Returns 0 on success, and a non\-zero value on failure\&.
 
 .SH "COPYRIGHT"
 .PP

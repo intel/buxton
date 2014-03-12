@@ -29,15 +29,15 @@ buxton_get_value \- Get the value of a key\-name
 \fR
 .sp
 \fB
-bool buxton_get_value(BuxtonClient \fIclient\fB,
+int buxton_get_value(BuxtonClient \fIclient\fB,
 .br
-                      BuxtonKey \fIkey\fB,
+                     BuxtonKey \fIkey\fB,
 .br
-                      BuxtonCallback \fIcallback\fB,
+                     BuxtonCallback \fIcallback\fB,
 .br
-                      void *\fIdata\fB,
+                     void *\fIdata\fB,
 .br
-                      bool \fIsync\fB)
+                     bool \fIsync\fB)
 \fR
 .fi
 
@@ -132,7 +132,7 @@ int main(void)
 
 .SH "RETURN VALUE"
 .PP
-Returns "true" on success, and "false" on failure\&.
+Returns 0 on success, and a non\-zero value on failure\&.
 
 .SH "COPYRIGHT"
 .PP

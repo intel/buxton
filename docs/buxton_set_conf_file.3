@@ -29,7 +29,7 @@ buxton_set_conf_file \- Set the path to the Buxton configuration file
 \fR
 .sp
 \fB
-bool buxton_set_conf_file(char *\fIpath\fB)
+int buxton_set_conf_file(char *\fIpath\fB)
 \fR
 .fi
 
@@ -67,7 +67,7 @@ int main(void)
 
 .SH "RETURN VALUE"
 .PP
-Returns "true" on success, "false" on failure\&.
+Returns 0 on success, and a non\-zero value on failure\&.
 
 .SH "COPYRIGHT"
 .PP
