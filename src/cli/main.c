@@ -33,7 +33,6 @@
 #include "configurator.h"
 #include "direct.h"
 #include "hashmap.h"
-#include "log.h"
 #include "protocol.h"
 #include "util.h"
 
@@ -270,7 +269,6 @@ int main(int argc, char **argv)
 			}
 		}
 		if (buxton_open(&client) < 0) {
-			buxton_log("Failed to talk to Buxton, falling back to direct\n");
 			control.client.direct = true;
 		} else {
 			control.client = *(_BuxtonClient *)client;
@@ -295,7 +293,7 @@ int main(int argc, char **argv)
 			buxton_add_cmd_line(CONFIG_CONF_FILE, conf_path);
 		}
 		if (!buxton_direct_open(&(control))) {
-			buxton_log("Failed to directly talk to Buxton\n");
+			printf("Failed to directly talk to Buxton\n");
 			ret = false;
 			goto end;
 		}
