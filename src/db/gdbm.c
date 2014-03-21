@@ -97,14 +97,16 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	GDBM_FILE db;
 	int ret = -1;
 	datum key_data;
+	datum cvalue = {0};
 	datum value;
 	_cleanup_free_ uint8_t *data_store = NULL;
 	size_t size;
 	uint32_t sz;
+	BuxtonData cdata = {0};
+	BuxtonString clabel;
 
 	assert(layer);
 	assert(key);
-	assert(data);
 	assert(label);
 
 	if (key->name.value) {
@@ -136,6 +138,21 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		goto end;
 	}
 
+	/* set_label will pass a NULL for data */
+	if (!data) {
+		cvalue = gdbm_fetch(db, key_data);
+		if (cvalue.dsize < 0 || cvalue.dptr == NULL) {
+			ret = ENOENT;
+			goto end;
+		}
+
+		data_store = (uint8_t*)cvalue.dptr;
+		buxton_deserialize(data_store, &cdata, &clabel);
+		free(clabel.value);
+		data = &cdata;
+		data_store = NULL;
+	}
+
 	size = buxton_serialize(data, label, &data_store);
 
 	value.dptr = (char *)data_store;
@@ -144,7 +161,11 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(ret == 0);
 
 end:
+	if (cdata.type == STRING) {
+		free(cdata.store.d_string.value);
+	}
 	free(key_data.dptr);
+	free(cvalue.dptr);
 
 	return ret;
 }

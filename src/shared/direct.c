@@ -309,23 +309,12 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
-	_cleanup_buxton_data_ BuxtonData *data = NULL;
-	_cleanup_buxton_string_ BuxtonString *data_label = NULL;
 	bool r = false;
 	int ret;
 
 	assert(control);
 	assert(key);
 	assert(label);
-
-	data = malloc0(sizeof(BuxtonData));
-	if (!data) {
-		abort();
-	}
-	data_label = malloc0(sizeof(BuxtonString));
-	if (!data_label) {
-		abort();
-	}
 
 	config = &control->config;
 
@@ -350,20 +339,8 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	backend = backend_for_layer(config, layer);
 	assert(backend);
 
-	ret = buxton_direct_get_value_for_layer(control, key, data, data_label, NULL);
-	if (ret) {
-		buxton_debug("Group or key does not exist\n");
-		goto fail;
-	}
-
-	free(data_label->value);
-
-	if (!buxton_string_copy(label, data_label)) {
-		abort();
-	}
-
 	layer->uid = control->client.uid;
-	ret = backend->set_value(layer, key, data, data_label);
+	ret = backend->set_value(layer, key, NULL, label);
 	if (ret) {
 		buxton_debug("set label failed\n");
 	} else {

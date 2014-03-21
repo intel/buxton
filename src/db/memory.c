@@ -79,7 +79,6 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 
 	assert(layer);
 	assert(key);
-	assert(data);
 	assert(label);
 
 	db = _db_for_resource(layer);
@@ -97,6 +96,15 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		if (!full_key) {
 			abort();
 		}
+	}
+
+	if (!data) {
+		stored = (BuxtonArray *)hashmap_get(db, full_key);
+		if (!stored) {
+			ret = ENOENT;
+			goto clean;
+		}
+		data = buxton_array_get(stored, 0);
 	}
 
 	array = buxton_array_new();
