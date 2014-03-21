@@ -489,17 +489,17 @@ START_TEST(parse_list_check)
 	l1[0].type = INT32;
 	l1[1].type = STRING;
 	l1[2].type = UINT32;
-	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 3, l1, &key, &value),
 		"Parsed bad unnotify type 1");
 	l1[0].type = STRING;
 	l1[1].type = FLOAT;
 	l1[2].type = UINT32;
-	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 3, l1, &key, &value),
 		"Parsed bad unnotify type 2");
 	l1[0].type = INT32;
 	l1[1].type = STRING;
 	l1[2].type = STRING;
-	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 1, l1, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_UNNOTIFY, 3, l1, &key, &value),
 		"Parsed bad unnotify type 3");
 	l1[0].type = STRING;
 	l1[1].type = STRING;
@@ -522,25 +522,25 @@ START_TEST(parse_list_check)
 	l2[1].type = STRING;
 	l2[2].type = STRING;
 	l2[3].type = UINT32;
-	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_GET, 4, l2, &key, &value),
 		"Parsed bad get type 1");
 	l2[0].type = STRING;
 	l2[1].type = FLOAT;
 	l2[2].type = STRING;
 	l2[3].type = UINT32;
-	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_GET, 4, l2, &key, &value),
 		"Parsed bad get type 2");
 	l2[0].type = STRING;
 	l2[1].type = STRING;
 	l2[2].type = BOOLEAN;
 	l2[3].type = UINT32;
-	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_GET, 4, l2, &key, &value),
 		"Parsed bad get type 3");
 	l2[0].type = STRING;
 	l2[1].type = STRING;
 	l2[2].type = STRING;
 	l2[3].type = STRING;
-	fail_if(parse_list(BUXTON_CONTROL_GET, 2, l2, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_GET, 4, l2, &key, &value),
 		"Parsed bad get type 4");
 	l2[0].type = STRING;
 	l2[1].type = STRING;
@@ -572,6 +572,21 @@ START_TEST(parse_list_check)
 		"Failed to set correct get name 2");
 	fail_if(key.type != l2[2].store.d_uint32,
 		"Failed to set correct get type 2");
+	l1[0].type = INT32;
+	l1[1].type = STRING;
+	l1[2].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 3, l1, &key, &value),
+		"Parsed bad get type 5");
+	l1[0].type = STRING;
+	l1[1].type = FLOAT;
+	l1[2].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 3, l1, &key, &value),
+		"Parsed bad get type 6");
+	l1[0].type = STRING;
+	l1[1].type = STRING;
+	l1[2].type = BOOLEAN;
+	fail_if(parse_list(BUXTON_CONTROL_GET, 3, l1, &key, &value),
+		"Parsed bad get type 7");
 
 	fail_if(parse_list(BUXTON_CONTROL_SET, 1, l2, &key, &value),
 		"Parsed bad set argument count");
@@ -579,19 +594,19 @@ START_TEST(parse_list_check)
 	l2[1].type = STRING;
 	l2[2].type = STRING;
 	l2[3].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l2, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_SET, 4, l2, &key, &value),
 		"Parsed bad set type 1");
 	l2[0].type = STRING;
 	l2[1].type = FLOAT;
 	l2[2].type = STRING;
 	l2[3].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l2, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_SET, 4, l2, &key, &value),
 		"Parsed bad set type 2");
 	l2[0].type = STRING;
 	l2[1].type = STRING;
 	l2[2].type = BOOLEAN;
 	l2[3].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET, 3, l2, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_SET, 4, l2, &key, &value),
 		"Parsed bad set type 3");
 	l2[0].type = STRING;
 	l2[1].type = STRING;
@@ -689,16 +704,58 @@ START_TEST(parse_list_check)
 	fail_if(!streq(value->store.d_string.value, l1[2].store.d_string.value),
 		"Failed to set correct set label label 1");
 	fail_if(key.type != STRING, "Failed to key type in set label");
+	l2[0].type = INT32;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 4, l2, &key, &value),
+		"Parsed bad set label type 4");
+	l2[0].type = STRING;
+	l2[1].type = FLOAT;
+	l2[2].type = STRING;
+	l2[3].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 4, l2, &key, &value),
+		"Parsed bad set label type 5");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = BOOLEAN;
+	l2[3].type = STRING;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 4, l2, &key, &value),
+		"Parsed bad set label type 6");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = UINT32;
+	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 4, l2, &key, &value),
+		"Parsed bad set label type 7");
+	l2[0].type = STRING;
+	l2[1].type = STRING;
+	l2[2].type = STRING;
+	l2[3].type = STRING;
+	l2[0].store.d_string = buxton_string_pack("x1");
+	l2[1].store.d_string = buxton_string_pack("x2");
+	l2[2].store.d_string = buxton_string_pack("x3");
+	l2[3].store.d_string = buxton_string_pack("x4");
+	fail_if(!parse_list(BUXTON_CONTROL_SET_LABEL, 4, l2, &key, &value),
+		"Unable to parse valid set label 2");
+	fail_if(!streq(key.layer.value, l2[0].store.d_string.value),
+		"Failed to set correct set label layer 2");
+	fail_if(!streq(key.group.value, l2[1].store.d_string.value),
+		"Failed to set correct set label group 2");
+	fail_if(!streq(key.name.value, l2[2].store.d_string.value),
+		"Failed to set correct set label name 2");
+	fail_if(!streq(value->store.d_string.value, l2[3].store.d_string.value),
+		"Failed to set correct set label label 2");
 
 	fail_if(parse_list(BUXTON_CONTROL_CREATE_GROUP, 1, l3, &key, &value),
 		"Parsed bad create group argument count");
 	l3[0].type = INT32;
 	l3[1].type = STRING;
-	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 2, l3, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_CREATE_GROUP, 2, l3, &key, &value),
 		"Parsed bad create group type 1");
 	l3[0].type = STRING;
 	l3[1].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 2, l3, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_CREATE_GROUP, 2, l3, &key, &value),
 		"Parsed bad create group type 2");
 	l3[0].type = STRING;
 	l3[1].type = STRING;
@@ -716,11 +773,11 @@ START_TEST(parse_list_check)
 		"Parsed bad remove group argument count");
 	l3[0].type = INT32;
 	l3[1].type = STRING;
-	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 2, l3, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_REMOVE_GROUP, 2, l3, &key, &value),
 		"Parsed bad remove group type 1");
 	l3[0].type = STRING;
 	l3[1].type = FLOAT;
-	fail_if(parse_list(BUXTON_CONTROL_SET_LABEL, 2, l3, &key, &value),
+	fail_if(parse_list(BUXTON_CONTROL_REMOVE_GROUP, 2, l3, &key, &value),
 		"Parsed bad remove group type 2");
 	l3[0].type = STRING;
 	l3[1].type = STRING;
@@ -733,6 +790,9 @@ START_TEST(parse_list_check)
 	fail_if(!streq(key.group.value, l3[1].store.d_string.value),
 		"Failed to set correct remove group group 1");
 	fail_if(key.type != STRING, "Failed to key type in remove group");
+
+	fail_if(parse_list(BUXTON_CONTROL_MIN, 2, l3, &key, &value),
+		"Parsed bad control type 1");
 }
 END_TEST
 
