@@ -130,7 +130,8 @@ int buxton_direct_get_value_for_layer(BuxtonControl *control,
 	assert(key);
 	assert(data_label);
 
-	buxton_debug("get_value for layer start\n");
+	buxton_debug("get_value '%s:%s' for layer '%s' start\n",
+		     key->group.value, key->name.value, key->layer.value);
 
 	memzero(&g, sizeof(BuxtonData));
 	memzero(&group, sizeof(_BuxtonKey));
@@ -189,7 +190,8 @@ fail:
 	free(group.name.value);
 	free(group.layer.value);
 	free(group_label.value);
-	buxton_debug("get_value for layer end\n");
+	buxton_debug("get_value '%s:%s' for layer '%s' end\n",
+		     key->group.value, key->name.value, key->layer.value);
 	return ret;
 }
 
