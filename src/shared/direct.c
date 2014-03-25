@@ -181,7 +181,6 @@ int buxton_direct_get_value_for_layer(BuxtonControl *control,
 			ret = EPERM;
 			goto fail;
 		}
-		buxton_debug("SMACK check succeeded for get_value for layer %s\n", key->layer.value);
 	}
 
 fail:
