@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <signal.h>
+#include <sys/signalfd.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
@@ -45,16 +46,9 @@
 #include "configurator.h"
 #include "buxtonlist.h"
 
-#define POLL_TIMEOUT 250
 #define SOCKET_TIMEOUT 5
 
-static volatile bool do_shutdown = false;
 static BuxtonDaemon self;
-
-void my_handler(int sig)
-{
-	do_shutdown = true;
-}
 
 static void print_usage(char *name)
 {
@@ -79,7 +73,8 @@ int main(int argc, char *argv[])
 	int descriptors;
 	int ret;
 	bool manual_start = false;
-	struct sigaction sa;
+	sigset_t mask;
+	int sigfd;
 	bool leftover_messages = false;
 	struct stat st;
 	bool help = false;
@@ -145,23 +140,31 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	sa.sa_handler = my_handler;
-	ret = sigaction(SIGINT, &sa, NULL);
+	sigemptyset(&mask);
+	ret = sigaddset(&mask, SIGINT);
+	if (ret != 0) {
+		exit(EXIT_FAILURE);
+	}
+	ret = sigaddset(&mask, SIGTERM);
+	if (ret != 0) {
+		exit(EXIT_FAILURE);
+	}
+	ret = sigaddset(&mask, SIGPIPE);
+	if (ret != 0) {
+		exit(EXIT_FAILURE);
+	}
+
+	ret = sigprocmask(SIG_BLOCK, &mask, NULL);
 	if (ret == -1) {
 		exit(EXIT_FAILURE);
 	}
-	ret = sigaction(SIGTERM, &sa, NULL);
-	if (ret == -1) {
+
+	sigfd = signalfd(-1, &mask, 0);
+	if (sigfd == -1) {
 		exit(EXIT_FAILURE);
 	}
-	sigemptyset(&sa.sa_mask);
-	sa.sa_handler = SIG_IGN;
-	ret = sigaction(SIGPIPE, &sa, NULL);
-	if (ret == -1) {
-		exit(EXIT_FAILURE);
-	}
+
+	add_pollfd(&self, sigfd, POLLIN, false);
 
 	/* For client notifications */
 	self.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
@@ -233,17 +236,10 @@ int main(int argc, char *argv[])
 
 	/* Enter loop to accept clients */
 	for (;;) {
-		ret = poll(self.pollfds, self.nfds, leftover_messages ? 0 : POLL_TIMEOUT);
+		ret = poll(self.pollfds, self.nfds, leftover_messages ? 0 : -1);
 
 		if (ret < 0) {
 			buxton_log("poll(): %m\n");
-			if (errno == EINTR) {
-				if (do_shutdown) {
-					break;
-				} else {
-					continue;
-				}
-			}
 			break;
 		}
 		if (ret == 0) {
@@ -254,7 +250,22 @@ int main(int argc, char *argv[])
 
 		leftover_messages = false;
 
-		for (nfds_t i=0; i<self.nfds; i++) {
+		/* check sigfd if the daemon was signaled */
+		if (self.pollfds[0].revents != 0) {
+			ssize_t sinfo;
+			struct signalfd_siginfo si;
+
+			sinfo = read(self.pollfds[0].fd, &si, sizeof(struct signalfd_siginfo));
+			if (sinfo != sizeof(struct signalfd_siginfo)) {
+				exit(EXIT_FAILURE);
+			}
+
+			if (si.ssi_signo == SIGINT || si.ssi_signo == SIGTERM) {
+				break;
+			}
+		}
+
+		for (nfds_t i = 1; i < self.nfds; i++) {
 			client_list_item *cl = NULL;
 			char discard[256];
 
