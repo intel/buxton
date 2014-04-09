@@ -851,8 +851,8 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 
 	/* If we removed the last item, remove the mapping too */
 	if (!n_list) {
-		free(old_key_name);
 		(void)hashmap_remove(self->notify_mapping, key_name);
+		free(old_key_name);
 	}
 
 	*status = 0;
