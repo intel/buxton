@@ -38,11 +38,11 @@
 /**
  * Minimum size of serialized BuxtonData
  * 2 is the minimum number of characters in a valid SMACK label
- * 1 is the mimimum number of characters in a valid value
+ * 0 is the mimimum number of characters in a valid value (NULL STRING)
  */
 #define BXT_MINIMUM_SIZE sizeof(BuxtonDataType) \
 	+ (sizeof(uint32_t) * 2)		\
-	+ 2 + 1
+	+ 2
 
 /**
  * Length of valid message header
