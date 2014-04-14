@@ -14,17 +14,19 @@
 #endif
 
 #include <check.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <semaphore.h>
+#include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <signal.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "buxton.h"
 #include "buxtonresponse.h"
@@ -2217,11 +2219,297 @@ START_TEST(buxtond_eat_garbage_check)
 }
 END_TEST
 
+BuxtonClient c;
+
+void cleanup(void)
+{
+	//used to cleanup the helper groups, values, names that are needed by other fuzzed values/labels
+
+	fail_if(buxton_open(&c) == -1, "Cleanup: Open failed with daemon.");
+
+	BuxtonKey key = buxton_key_create("tempgroup", NULL, "base", STRING);
+	fail_if(buxton_remove_group(c, key, NULL, "tempgroup", true), "Cleanup: Error at removing");
+	buxton_close(c);
+
+}
+
+char *random_string(int str_size)
+{
+	//generates random strings of maximum str_size characters
+	//ignore this for now, it will be replaced by something more intelligent
+
+	int size;
+	char *str;
+
+	size = rand() % str_size;
+	str = calloc((size_t)(size + 1), sizeof(char));
+
+	for (int i = 0; i < size ; i++) {
+		str[i] = (char)(rand() % 255 + 1); //1-255, use % 25+97 to use lower-case alpha chars
+	}
+
+	return str;
+}
+
+static void SIGPIPE_handler(int signo)
+{
+	buxton_close(c);
+
+	//reconnect
+	fail_if(buxton_open(&c) == -1,"SIGPIPE: Open failed with daemon.");
+}
+
+START_TEST(buxtond_fuzz_commands)
+{
+/*	Previous fuzzer had correct MAGIC, CONTROL code, Message SIZE and randomized everything else.
+ *	This only randomizes the Data Value.
+ *
+ *	If you want to fuzz the protocol, use the above fuzzer.
+ *	If you want to fuzz the daemon, use this one. Use export BUXTON_FUZZER=NEW
+ */
+
+	daemon_pid = 0;
+	pid_t pid;
+	sigset_t sigset;
+	struct sigaction sa;
+	char *random_group, *random_layer, *random_label, *random_value, *random_name;
+	int max_length = 32768;
+	unlink(buxton_socket());
+
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGCHLD);
+	sigprocmask(SIG_BLOCK, &sigset, NULL);
+
+	// since the daemon will close the connection with the client if it receives a "weird" command
+	// we have to treat SIGPIPE
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIGPIPE_handler;
+	sigaction(SIGPIPE, &sa, NULL);
+
+	printf("============== CAUTION!!! Fuzzer at work =================\n");
+	FILE *f = fopen("debug_check_daemon.txt", "w");
+	fclose(f);
+
+	pid = fork();
+	fail_if(pid < 0, "couldn't fork");
+	if (pid) {		/* parent*/
+		FuzzContext fuzz;
+		time_t start;
+		bool keep_going = true;
+
+		srand((unsigned int) time(NULL));
+		bzero(&fuzz, sizeof(FuzzContext));
+
+		usleep(250*1000); //wait for daemon to start
+
+		fail_if(time(&start) == -1, "call to time() failed");
+		do {
+			BuxtonKey key = NULL;
+			time_t now;
+
+			fail_if(time(&now) == -1, "call to time() failed");
+			if (now - start >= fuzz_time) {
+				keep_going = false;
+			}
+
+			cleanup();
+
+			/* create a random group and layer */
+			random_group = random_string(max_length);
+			random_layer = random_string(max_length);
+
+			key = buxton_key_create(random_group, NULL, random_layer, STRING);
+			fail_if(!key, "Failed to create key");
+			fail_if(buxton_open(&c) == -1, "Open failed with daemon.");
+
+			f = fopen("debug_check_daemon.txt", "w");
+			fail_if(!f, "Unable to open file\n");
+			fprintf(f, "Create group: Group: %s\t Layer: %s\n", random_group, random_layer);
+			fflush(f);
+
+			if (buxton_create_group(c, key, NULL, random_group, true)) {
+				fprintf(f, "1: Group created!\n");
+			} else {
+				fprintf(f, "1: Group was NOT created.\n");
+			}
+			fflush(f);
+			buxton_key_free(key);
+
+			/* create a random group in an existing layer */
+			key = buxton_key_create(random_group, NULL, "base", STRING);
+			fail_if(!key, "Failed to create key");
+			fprintf(f, "Create group: Group: %s\t Layer: base\n", random_group);
+			fflush(f);
+
+			if (buxton_create_group(c, key, NULL, random_group, true)) {
+				fprintf(f, "1: Group created!\n");
+			} else {
+				fprintf(f, "1: Group was NOT created.\n");
+			}
+			fflush(f);
+			buxton_key_free(key);
+
+			// create a random name on random group on a random layer
+			random_name = random_string(max_length);
+			key = buxton_key_create(random_group, random_name, random_layer, STRING);
+			fail_if(!key, "Failed to create key");
+
+			fprintf(f, "Create name: Group: %s\t Layer: %s\t Name:%s\n", random_group, random_layer, random_name);
+			fflush(f);
+
+			if (buxton_create_group(c, key, NULL, random_group, true)) {
+				fprintf(f, "2: Name created!\n");
+			} else {
+				fprintf(f, "2: Name was NOT created.\n");
+			}
+			fflush(f);
+			buxton_key_free(key);
+
+			// create a random name on existing group
+			// create group
+			key = buxton_key_create("tempgroup", NULL, "base", STRING);
+			fail_if(!key, "Failed to create key");
+			fail_if(buxton_create_group(c, key, NULL,"tempgroup", true), "Creating group in buxton failed.");
+			buxton_key_free(key);
+
+			// put name on group
+			key = buxton_key_create("tempgroup", random_name, "base", STRING);
+			fail_if(!key, "Failed to create key");
+			fprintf(f, "Create name: Group: tempgroup\t Layer: base\t Name: %s\n", random_name);
+
+			if (buxton_create_group(c, key, NULL, "tempgroup", true)) {
+				fprintf(f, "2: Name created!\n");
+			} else {
+				fprintf(f, "2: Name was NOT created.\n");
+			}
+			fflush(f);
+			buxton_key_free(key);
+
+			// create a random value on a existing labeled group
+			//create the "existing" group, plus the name
+			random_value = random_string(max_length);
+			BuxtonKey group = buxton_key_create("tempgroup", NULL, "base", STRING);
+			fail_if(!group, "Failed to create key for group");
+			key = buxton_key_create("tempgroup", "name", "base", STRING);
+			fail_if(!key, "Failed to create key");
+
+			// set the a correct label and randomized value
+			fprintf(f, "Set label: Group: tgroup\t Layer: base\t Value: %s\n", random_value);
+			fflush(f);
+			fail_if(buxton_set_label(c, group, "*", NULL, NULL, true), "Setting label in buxton failed.");
+
+			if (buxton_set_value(c, key, random_value, NULL, "tgroup", true)) {
+				fprintf(f, "3: Value was set!\n");
+			} else {
+				fprintf(f, "3: Value was NOT set.\n");
+			}
+			fflush(f);
+			buxton_key_free(group);
+			buxton_key_free(key);
+
+			//set a random label on an existing group
+			random_label = random_string(3);
+			group = buxton_key_create("tempgroup", NULL, "base", STRING);
+			fail_if(!group, "Failed to create key for group");
+
+			fprintf(f, "Set label: Group: tempgroup\t Layer: base\t Label: %s\n", random_label);
+			if (buxton_set_label(c, group, random_label, NULL, group, true)) {
+				fprintf(f, "3: Label was set!\n");
+			} else {
+				fprintf(f, "3: Label was NOT set.\n");
+			}
+			fflush(f);
+
+			//set random value/label on name
+			BuxtonKey name = buxton_key_create("tempgroup", "name", "base", STRING);
+			fail_if(!name, "Failed to create key for name");
+
+			fprintf(f, "Set label and value: Group: tempgroup\t Layer: base\t Name: name\t Value: %s\t Label: %s \n", random_value, random_label);
+			if (buxton_set_value(c, name, random_value, NULL, NULL, true)) {
+				fprintf(f, "4: Value on name was set!\n");
+			} else {
+				fprintf(f, "4: Value on name  was NOT set.\n");
+			}
+			fflush(f);
+
+			if (buxton_set_label(c, name, random_label, NULL, name, true)) {
+				fprintf(f, "4: Label on name was set!\n");
+			} else {
+				fprintf(f, "4: Label on name was NOT set.\n");
+			}
+			fflush(f);
+			buxton_key_free(group);
+			buxton_key_free(name);
+			free(random_label);
+
+			// remove name from group
+			key = buxton_key_create(random_group, random_name, random_layer, STRING);
+			fprintf(f, "Remove group: Group: %s\t Layer: %s\t Name:%s\n", random_group, random_layer, random_name);
+			if (buxton_remove_group(c, key, NULL, random_group, true)) {
+				fprintf(f, "5: Name from group was removed!\n");
+			} else {
+				fprintf(f, "5: Name from group was NOT removed.\n");
+			}
+			fflush(f);
+			buxton_key_free(key);
+
+			// remove name from existing group
+			key = buxton_key_create("tempgroup", random_name, "base", STRING);
+			fprintf(f, "Remove group: Group: tempgroup\t Layer: base\t Name:%s\n", random_name);
+			if (buxton_remove_group(c, key, NULL, "tempgroup", true)) {
+				fprintf(f, "5: Name from group was removed!\n");
+			} else {
+				fprintf(f, "5: Name from group was NOT removed.\n");
+			}
+			fflush(f);
+			free(random_name);
+			buxton_key_free(key);
+
+			/* remove group from existing layer*/
+			key = buxton_key_create(random_group, NULL, "base", STRING);
+			fail_if(!key, "Failed to create key");
+			fprintf(f, "Remove group: Group: %s\t Layer: base\n", random_group);
+			if (buxton_remove_group(c, key, NULL, random_group, true)) {
+				fprintf(f, "5: Group was removed!\n");
+			} else {
+				fprintf(f, "5: Group was NOT removed.\n");
+			}
+			fflush(f);
+			buxton_key_free(key);
+
+			/* remove group */
+			key = buxton_key_create(random_group, NULL, random_layer, STRING);
+			fail_if(!key, "Failed to create key");
+			fprintf(f, "Remove group: Group: %s\t Layer: %s\n", random_group, random_layer);
+			if (buxton_remove_group(c, key, NULL, random_group, true)) {
+				fprintf(f, "5: Group was removed!\n");
+			} else {
+				fprintf(f, "5: Group was NOT removed.\n");
+			}
+			buxton_key_free(key);
+			fflush(f);
+
+			buxton_close(c);
+			usleep(1*1000);
+
+			fprintf(f, "5: Closed comm.\n");
+			fclose(f);
+			free(random_layer);
+			free(random_group);
+
+		} while (keep_going);
+	} else {		/* child */
+		exec_daemon();
+	}
+}
+END_TEST
+
 static Suite *
 daemon_suite(void)
 {
 	Suite *s;
 	TCase *tc;
+	char *fuzzer_engine;
 
 	s = suite_create("daemon");
 	tc = tcase_create("daemon test functions");
@@ -2240,6 +2528,7 @@ daemon_suite(void)
 	tcase_add_test(tc, create_group_check);
 	tcase_add_test(tc, remove_group_check);
 	tcase_add_test(tc, set_label_check);
+
 	tcase_add_test(tc, set_value_check);
 	tcase_add_test(tc, get_value_check);
 	tcase_add_test(tc, register_notification_check);
@@ -2260,7 +2549,16 @@ daemon_suite(void)
 
 	tc = tcase_create("buxton daemon evil tests");
 	tcase_add_checked_fixture(tc, NULL, teardown);
-	tcase_add_test(tc, buxtond_eat_garbage_check);
+	fuzzer_engine = getenv("BUXTON_FUZZER");
+	if (fuzzer_engine) {
+		if (strcmp(fuzzer_engine,"NEW") == 0) {
+			tcase_add_test(tc, buxtond_fuzz_commands);
+		} else {
+			tcase_add_test(tc, buxtond_eat_garbage_check);
+		}
+	} else {
+		tcase_add_test(tc, buxtond_eat_garbage_check);
+	}
 	tcase_set_timeout(tc, fuzz_time+2);
 	suite_add_tcase(s, tc);
 
@@ -2277,10 +2575,11 @@ int main(void)
 	putenv("BUXTON_CONF_FILE=" ABS_TOP_BUILDDIR "/test/test.conf");
 	putenv("BUXTON_ROOT_CHECK=0");
 	fuzzenv = getenv("BUXTON_FUZZ_TIME");
-	if (fuzzenv)
+	if (fuzzenv) {
 		fuzz_time = atoi(fuzzenv);
-	else
+	} else {
 		fuzz_time = 2;
+	}
 	s = daemon_suite();
 	sr = srunner_create(s);
 	srunner_run_all(sr, CK_VERBOSE);
