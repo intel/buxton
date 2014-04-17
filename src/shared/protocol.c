@@ -87,14 +87,32 @@ unlock:
 
 void cleanup_callbacks(void)
 {
+	struct notify_value *nvi;
+	Iterator it;
+#if UINTPTR_MAX == 0xffffffffffffffff
+	uint64_t hkey;
+#else
+	uint32_t hkey;
+#endif
+
 	(void)pthread_mutex_lock(&callback_guard);
 
 	if (callbacks) {
+		HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
+			(void)hashmap_remove(callbacks, (void *)hkey);
+			key_free(nvi->key);
+			free(nvi);
+		}
 		hashmap_free(callbacks);
 	}
 	callbacks = NULL;
 
 	if (notify_callbacks) {
+		HASHMAP_FOREACH_KEY(nvi, hkey, notify_callbacks, it) {
+			(void)hashmap_remove(notify_callbacks, (void *)hkey);
+			key_free(nvi->key);
+			free(nvi);
+		}
 		hashmap_free(notify_callbacks);
 	}
 	notify_callbacks = NULL;
@@ -131,20 +149,37 @@ out:
 	buxton_array_free(&array, NULL);
 }
 
-bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
-		  BuxtonCallback callback, void *data, uint32_t msgid,
-		  BuxtonControlMessage type, _BuxtonKey *key)
+void reap_callbacks(void)
 {
-	struct notify_value *nv, *nvi;
-	_BuxtonKey *k = NULL;
-	int s;
-	bool r = false;
+	struct notify_value *nvi;
+	struct timeval tv;
 	Iterator it;
 #if UINTPTR_MAX == 0xffffffffffffffff
 	uint64_t hkey;
 #else
 	uint32_t hkey;
 #endif
+
+	(void)gettimeofday(&tv, NULL);
+
+	/* remove timed out callbacks */
+	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
+		if (tv.tv_sec - nvi->tv.tv_sec > TIMEOUT) {
+			(void)hashmap_remove(callbacks, (void *)hkey);
+			key_free(nvi->key);
+			free(nvi);
+		}
+	}
+}
+
+bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
+		  BuxtonCallback callback, void *data, uint32_t msgid,
+		  BuxtonControlMessage type, _BuxtonKey *key)
+{
+	struct notify_value *nv;
+	_BuxtonKey *k = NULL;
+	int s;
+	bool r = false;
 
 	nv = malloc0(sizeof(struct notify_value));
 	if (!nv) {
@@ -172,13 +207,7 @@ bool send_message(_BuxtonClient *client, uint8_t *send, size_t send_len,
 		goto fail;
 	}
 
-	/* remove timed out callbacks */
-	HASHMAP_FOREACH_KEY(nvi, hkey, callbacks, it) {
-		if (nv->tv.tv_sec - nvi->tv.tv_sec > TIMEOUT) {
-			(void)hashmap_remove(callbacks, (void *)hkey);
-			free(nvi);
-		}
-	}
+	reap_callbacks();
 
 #if UINTPTR_MAX == 0xffffffffffffffff
 	s = hashmap_put(callbacks, (void *)((uint64_t)msgid), nv);
@@ -230,9 +259,9 @@ void handle_callback_response(BuxtonControlMessage msg, uint32_t msgid,
 	}
 
 #if UINTPTR_MAX == 0xffffffffffffffff
-		nv = hashmap_remove(callbacks, (void *)((uint64_t)msgid));
+	nv = hashmap_remove(callbacks, (void *)((uint64_t)msgid));
 #else
-		nv = hashmap_remove(callbacks, (void *)msgid);
+	nv = hashmap_remove(callbacks, (void *)msgid);
 #endif
 	if (!nv) {
 		return;
@@ -285,6 +314,13 @@ ssize_t buxton_wire_handle_response(_BuxtonClient *client)
 	uint32_t r_msgid;
 	int s;
 	ssize_t handled = 0;
+
+	s = pthread_mutex_lock(&callback_guard);
+	if (s) {
+		return 0;
+	}
+	reap_callbacks();
+	(void)pthread_mutex_unlock(&callback_guard);
 
 	response = malloc0(BUXTON_MESSAGE_HEADER_LENGTH);
 	if (!response) {

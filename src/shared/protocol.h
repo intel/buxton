@@ -53,6 +53,11 @@ void run_callback(BuxtonCallback callback, void *data, size_t count,
 		  _BuxtonKey *key);
 
 /**
+ * cleanup expired messages (must hold callback_guard lock)
+ */
+void reap_callbacks(void);
+
+/**
  * Write message to buxtond
  * @param client Client connection
  * @param send serialized data to send to buxtond
