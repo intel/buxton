@@ -383,7 +383,7 @@ void get_value_callback(BuxtonResponse response, void *data)
 		r->type = FLOAT;
 		break;
 	case DOUBLE:
-		r->store.d_double = *(double *)p;
+		memcpy(&r->store.d_double, p, sizeof(double));
 		r->type = DOUBLE;
 		break;
 	case BOOLEAN:
