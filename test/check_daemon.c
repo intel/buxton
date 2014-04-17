@@ -2229,6 +2229,7 @@ void cleanup(void)
 
 	BuxtonKey key = buxton_key_create("tempgroup", NULL, "base", STRING);
 	fail_if(buxton_remove_group(c, key, NULL, "tempgroup", true), "Cleanup: Error at removing");
+	buxton_key_free(key);
 	buxton_close(c);
 
 }
@@ -2430,6 +2431,7 @@ START_TEST(buxtond_fuzz_commands)
 			} else {
 				fprintf(f, "4: Value on name  was NOT set.\n");
 			}
+			free(random_value);
 			fflush(f);
 
 			if (buxton_set_label(c, name, random_label, NULL, name, true)) {
@@ -2497,10 +2499,14 @@ START_TEST(buxtond_fuzz_commands)
 			free(random_layer);
 			free(random_group);
 
+			reap_callbacks();
 		} while (keep_going);
 	} else {		/* child */
 		exec_daemon();
 	}
+
+	usleep(3 * 1000);
+	reap_callbacks();
 }
 END_TEST
 
