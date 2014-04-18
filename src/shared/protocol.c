@@ -450,7 +450,7 @@ bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
 		d_value.store.d_float = *(float *)value;
 		break;
 	case DOUBLE:
-		d_value.store.d_double = *(double *)value;
+		memcpy(&d_value.store.d_double, value, sizeof(double));
 		break;
 	case BOOLEAN:
 		d_value.store.d_boolean = *(bool *)value;

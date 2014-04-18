@@ -172,7 +172,7 @@ void buxton_deserialize(uint8_t *source, BuxtonData *target,
 		target->store.d_float = *(float*)(source+offset);
 		break;
 	case DOUBLE:
-		target->store.d_double = *(double*)(source+offset);
+		memcpy(&target->store.d_double, source + offset, sizeof(double));
 		break;
 	case BOOLEAN:
 		target->store.d_boolean = *(bool*)(source+offset);
@@ -499,7 +499,7 @@ ssize_t buxton_deserialize_message(uint8_t *data,
 			c_data.store.d_float = *(float*)(data+offset);
 			break;
 		case DOUBLE:
-			c_data.store.d_double = *(double*)(data+offset);
+			memcpy(&c_data.store.d_double, data + offset, sizeof(double));
 			break;
 		case BOOLEAN:
 			c_data.store.d_boolean = *(bool*)(data+offset);
