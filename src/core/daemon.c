@@ -964,7 +964,7 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i)
 			(size_t)(self->nfds - i - 1) * sizeof(struct pollfd));
 		memmove(&(self->accepting[i]),
 			&(self->accepting[i + 1]),
-			(size_t)(self->nfds - i - 1) * sizeof(self->accepting));
+			(size_t)(self->nfds - i - 1) * sizeof(bool));
 	}
 	self->nfds--;
 }
