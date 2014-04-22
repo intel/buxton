@@ -67,13 +67,21 @@ int buxton_open(BuxtonClient *client)
 	_BuxtonClient *cl = NULL;
 	int bx_socket, r;
 	struct sockaddr_un remote;
+	size_t sock_name_len;
 
 	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		return -1;
 	}
 
 	remote.sun_family = AF_UNIX;
-	strncpy(remote.sun_path, buxton_socket(), sizeof(remote.sun_path));
+	sock_name_len = strlen(buxton_socket()) + 1;
+	if (sock_name_len >= sizeof(remote.sun_path)) {
+		buxton_log("Provided socket name: %s is too long, maximum allowed length is %d bytes\n",
+			   buxton_socket(), sizeof(remote.sun_path));
+		return -1;
+	}
+
+	strncpy(remote.sun_path, buxton_socket(), sock_name_len);
 	r = connect(bx_socket, (struct sockaddr *)&remote, sizeof(remote));
 	if ( r == -1) {
 		close(bx_socket);
