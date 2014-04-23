@@ -162,7 +162,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, char *four)
 {
 	BuxtonString value;
-	BuxtonKey key;
+	_cleanup_buxton_key_ BuxtonKey key;
 	BuxtonData set;
 	bool ret = false;
 
@@ -332,7 +332,6 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		free(layer);
 	}
 
-	free(key);
 	return ret;
 }
 
@@ -403,7 +402,7 @@ void get_value_callback(BuxtonResponse response, void *data)
 bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		   char *one, char *two, char *three, __attribute__((unused)) char * four)
 {
-	BuxtonKey key;
+	_cleanup_buxton_key_ BuxtonKey key;
 	BuxtonData get;
 	_cleanup_free_ char *prefix = NULL;
 	_cleanup_free_ char *group = NULL;
@@ -550,7 +549,7 @@ bool cli_unset_value(BuxtonControl *control,
 		     char *one, char *two, char *three,
 		     __attribute__((unused)) char *four)
 {
-	BuxtonKey key;
+	_cleanup_buxton_key_ BuxtonKey key;
 
 	key = buxton_key_create(two, three, one, type);
 
