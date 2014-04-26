@@ -309,7 +309,12 @@ int main(int argc, char **argv)
 end:
 	free(conf_path);
 	hashmap_free(commands);
-	buxton_direct_close(&control);
+	if (control.client.direct) {
+		buxton_direct_close(&control);
+	} else {
+		buxton_close(client);
+	}
+
 	if (ret) {
 		return EXIT_SUCCESS;
 	}
