@@ -39,6 +39,16 @@
 static Hashmap *commands;
 static BuxtonControl control;
 
+static void print_version(void)
+{
+	printf("buxtonctl " PACKAGE_VERSION "\n"
+	       "Copyright (C) 2013 Intel Corporation\n"
+	       "buxton is free software; you can redistribute it and/or modify\n"
+	       "it under the terms of the GNU Lesser General Public License as\n"
+	       "published by the Free Software Foundation; either version 2.1\n"
+	       "of the License, or (at your option) any later version.\n");
+}
+
 static bool print_help(void)
 {
 	const char *key;
@@ -88,6 +98,7 @@ int main(int argc, char **argv)
 	int i = 0;
 	int c;
 	bool help = false;
+	bool version = false;
 	control.client.direct = false;
 	char *conf_path = NULL;
 	BuxtonClient client;
@@ -204,11 +215,12 @@ int main(int argc, char **argv)
 		{ "config-file", 1, NULL, 'c' },
 		{ "direct",	 0, NULL, 'd' },
 		{ "help",	 0, NULL, 'h' },
+		{ "version", 0, NULL, 'v' },
 		{ NULL, 0, NULL, 0 }
 	};
 
 	while (true) {
-		c = getopt_long(argc, argv, "c:dh", opts, &i);
+		c = getopt_long(argc, argv, "c:dvh", opts, &i);
 
 		if (c == -1) {
 			break;
@@ -224,10 +236,18 @@ int main(int argc, char **argv)
 		case 'd':
 			control.client.direct = true;
 			break;
+		case 'v':
+			version = true;
+			break;
 		case 'h':
 			help = true;
 			break;
 		}
+	}
+
+	if (version) {
+		print_version();
+		goto end;
 	}
 
 	if (optind == argc) {
