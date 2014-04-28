@@ -827,10 +827,6 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	}
 
 	BUXTON_LIST_FOREACH(n_list, elem) {
-		if (!elem) {
-			//FIXME abort here null element
-			break;
-		}
 		nitem = elem->data;
 		/* Find the list item for this client */
 		if (nitem->client == client) {
