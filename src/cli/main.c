@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	bool version = false;
 	control.client.direct = false;
 	char *conf_path = NULL;
-	BuxtonClient client;
+	BuxtonClient client = NULL;
 
 	/* libtool bites my twinkie */
 	include_configurator();
@@ -332,7 +332,9 @@ end:
 	if (control.client.direct) {
 		buxton_direct_close(&control);
 	} else {
-		buxton_close(client);
+		if (client) {
+			buxton_close(client);
+		}
 	}
 
 	if (ret) {
