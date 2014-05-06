@@ -410,14 +410,21 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	BuxtonString dlabel;
 	bool ret = false;
 	int32_t ret_val;
+	int r;
 
 	memzero((void*)&get, sizeof(BuxtonData));
 	if (three != NULL) {
 		key = buxton_key_create(two, three, one, type);
-		asprintf(&prefix, "[%s] ", one);
+		r = asprintf(&prefix, "[%s] ", one);
+		if (!r) {
+			abort();
+		}
 	} else {
 		key = buxton_key_create(one, two, NULL, type);
-		asprintf(&prefix, " ");
+		r = asprintf(&prefix, " ");
+		if (!r) {
+			abort();
+		}
 	}
 
 	if (!key) {

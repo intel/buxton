@@ -78,7 +78,7 @@ static void buxton_test_class_init(BuxtonTestClass *klass)
 
 static void buxton_test_init(BuxtonTest *self)
 {
-	GtkWidget *header, *info, *layout;
+	GtkWidget *info, *layout;
 	GtkWidget *label, *container, *box, *box2;
 	GtkWidget *entry, *button;
 	GtkStyleContext *style;
@@ -136,12 +136,6 @@ static void buxton_test_init(BuxtonTest *self)
 	g_signal_connect(button, "clicked", G_CALLBACK(update_key), self);
 	gtk_box_pack_start(GTK_BOX(box2), button, FALSE, FALSE, 0);
 
-	/* Integrate with Mutter userd desktops */
-	header = gtk_header_bar_new();
-	gtk_header_bar_set_title(GTK_HEADER_BAR(header), "BuxtonTest");
-	gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header), TRUE);
-	gtk_window_set_titlebar(GTK_WINDOW(self), header);
-
 	gtk_widget_show_all(GTK_WIDGET(self));
 	gtk_widget_grab_focus(button);
 
@@ -167,7 +161,10 @@ static void buxton_test_dispose(GObject *object)
 		g_source_remove(self->tag);
 		self->tag = 0;
 	}
-	buxton_close(self->client);
+	if (self->client) {
+		buxton_close(self->client);
+		self->client = NULL;
+	}
         /* Destruct */
         G_OBJECT_CLASS (buxton_test_parent_class)->dispose (object);
 }
