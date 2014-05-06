@@ -161,7 +161,10 @@ static void buxton_test_dispose(GObject *object)
 		g_source_remove(self->tag);
 		self->tag = 0;
 	}
-	buxton_close(self->client);
+	if (self->client) {
+		buxton_close(self->client);
+		self->client = NULL;
+	}
         /* Destruct */
         G_OBJECT_CLASS (buxton_test_parent_class)->dispose (object);
 }
