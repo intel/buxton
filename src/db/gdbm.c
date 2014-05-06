@@ -31,20 +31,29 @@
 
 static Hashmap *_resources = NULL;
 
-static char *key_get_name(BuxtonString *key)
+static char *key_get_group(char *text)
 {
-	char *c;
+	size_t len = strlen(text);
+	size_t i = len+1;
+	char c = text[i];
+	char *group = NULL;
+	size_t newlen;
 
-	c = strchr(key->value, 0);
-	if (!c) {
+	/* Loop past the first nil - thankfully only dealing with
+	 * our own serialized data */
+	while (c != 0x0) {
+		i++;
+		c = text[i];
+	}
+	newlen = i - len;
+	if (newlen <= 2) {
+		/* Empty group (offset+check1) */
 		return NULL;
 	}
-	if (c - (key->value + (key->length - 1)) >= 0) {
-		return NULL;
-	}
-	c++;
-
-	return c;
+	group = malloc(sizeof(char)*newlen);
+	len += 1;
+	memcpy(group, text+len, newlen);
+	return group;
 }
 
 /* Open or create databases on the fly */
@@ -307,8 +316,8 @@ static bool list_keys(BuxtonLayer *layer,
 	datum key, nextkey;
 	BuxtonArray *k_list = NULL;
 	BuxtonData *current = NULL;
-	BuxtonString in_key;
 	char *name;
+	char *group = NULL;
 	bool ret = false;
 
 	assert(layer);
@@ -323,12 +332,21 @@ static bool list_keys(BuxtonLayer *layer,
 	/* Iterate through all of the keys */
 	while (key.dptr) {
 		/* Split the key name from the rest of the key */
-		in_key.value = (char*)key.dptr;
-		in_key.length = (uint32_t)key.dsize;
-		name = key_get_name(&in_key);
+		name = (char*)key.dptr;
+		/* Eventually we'll want this to reconstruct BuxtonKey's
+		 * for returns instead of BuxtonString */
+		group = key_get_group(name);
+
 		if (!name) {
+			free(group);
 			continue;
 		}
+
+		if (!group) {
+			/* Actually, this just makes it a 1-part key,
+			 * and is the real group. So we skip it */
+			 goto next;
+		 }
 
 		current = malloc0(sizeof(BuxtonData));
 		if (!current) {
@@ -344,9 +362,11 @@ static bool list_keys(BuxtonLayer *layer,
 			abort();
 		}
 
+next:
 		/* Visit the next key */
 		nextkey = gdbm_nextkey(db, key);
 		free(key.dptr);
+		free(group);
 		key = nextkey;
 	}
 

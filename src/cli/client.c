@@ -20,6 +20,7 @@
 
 #include "buxton.h"
 #include "buxtonarray.h"
+#include "buxtonlist.h"
 #include "buxtonresponse.h"
 #include "client.h"
 #include "direct.h"
@@ -517,13 +518,65 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	return true;
 }
 
+void list_keys_callback(BuxtonResponse response, void *data)
+{
+	int32_t r = buxton_response_status(response);
+	BuxtonList* list = buxton_response_value(response);
+	BuxtonList *item = NULL;
+	BuxtonString *key_name = NULL;
+	char *layer = (char*)data;
+
+	if (r != 0) {
+		printf("Unable to list keys in layer %s\n", layer);
+	}
+	if (!list) {
+		printf("No keys found for layer %s\n", layer);
+		return;
+	}
+
+	printf("Listing keys in layer \"%s\":\n", layer);
+	BUXTON_LIST_FOREACH(list, item) {
+		key_name = (BuxtonString*)item->data;
+		if (!key_name) {
+			abort();
+		}
+		printf("\t%s\n", key_name->value);
+	}
+
+	buxton_list_free(&list);
+}
+
 bool cli_list_keys(BuxtonControl *control,
 		   __attribute__((unused))BuxtonDataType type,
 		   char *one, char *two, char *three,
 		   __attribute__((unused)) char *four)
 {
-	/* not yet implemented */
-	return false;
+	int rc = 0;
+	BuxtonArray *list = NULL;
+	BuxtonString layer_name;
+
+	if (control->client.direct) {
+		layer_name = buxton_string_pack(one);
+		if (!buxton_direct_list_keys(control, &layer_name, &list)) {
+			printf("Unable to list keys in layer %s\n", one);
+			return false;
+		}
+
+		printf("Listing keys in layer \"%s\":\n", one);
+		for (uint16_t i = 0; i < list->len; i++) {
+			BuxtonData *d = buxton_array_get(list, i);
+			if (!d || !d->store.d_string.value) {
+				abort();
+			}
+			printf("\t%s\n", d->store.d_string.value);
+			free(d->store.d_string.value);
+			free(d);
+		}
+		buxton_array_free(&list, NULL);
+	} else {
+		rc = buxton_client_list_keys(&control->client, one, list_keys_callback, one, true);
+	}
+	return rc == 0;
 }
 
 void unset_value_callback(BuxtonResponse response, void *data)

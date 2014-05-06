@@ -9,6 +9,7 @@ BUXTON_1 {
 		buxton_remove_group;
 		buxton_get_value;
 		buxton_unset_value;
+		buxton_client_list_keys;
 		buxton_register_notification;
 		buxton_unregister_notification;
 		buxton_client_handle_response;

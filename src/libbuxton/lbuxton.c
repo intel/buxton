@@ -33,6 +33,7 @@
 #include "buxton.h"
 #include "buxtonclient.h"
 #include "buxtonkey.h"
+#include "buxtonlist.h"
 #include "buxtonresponse.h"
 #include "buxtonstring.h"
 #include "configurator.h"
@@ -633,6 +634,17 @@ void *buxton_response_value(BuxtonResponse response)
 		if (r->data->len) {
 			d = buxton_array_get(r->data, 0);
 		}
+	} else if (type == BUXTON_CONTROL_LIST) {
+		BuxtonList *list = NULL;
+		BuxtonData *current = NULL;
+		for (uint16_t i = 1; i < r->data->len; i++) {
+			current = buxton_array_get(r->data, i);
+			/* Expose the BuxtonString only for now (name) */
+			if (!buxton_list_append(&list, &(current->store.d_string))) {
+				goto out;
+			}
+		}
+		return list;
 	} else {
 		goto out;
 	}
