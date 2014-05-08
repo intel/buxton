@@ -458,7 +458,6 @@ BuxtonKey buxton_key_create(char *group, char *name, char *layer,
 		/* Create on hashmap on first call to key_create */
 		key_hash = hashmap_new(trivial_hash_func, trivial_compare_func);
 		if (!key_hash) {
-			printf("Failed to allocate keys hashmap\n");
 			return NULL;
 		}
 	}
