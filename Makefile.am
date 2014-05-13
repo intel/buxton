@@ -65,6 +65,7 @@ pkgconfiglibdir=$(libdir)/pkgconfig
 pkgconfiglib_DATA = \
 	data/libbuxton.pc
 
+if MANPAGE
 dist_man_MANS = \
 	docs/buxton.7 \
 	docs/buxtonctl.1 \
@@ -95,6 +96,7 @@ dist_man_MANS = \
 	docs/buxton_set_value.3 \
 	docs/buxton_unregister_notification.3 \
 	docs/buxton_unset_value.3
+endif
 
 TESTS = \
 	check_db_clean \

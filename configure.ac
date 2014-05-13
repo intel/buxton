@@ -161,6 +161,13 @@ AS_IF([test "x$enable_debug" = "xyes"],
 	[AC_DEFINE([NDEBUG], [1], [Debugging and assertions disabled])])
 AM_CONDITIONAL([DEBUG], [test x$enable_debug = x"yes"])
 
+AC_ARG_ENABLE(manpages, AS_HELP_STRING([--enable-manpages], [enable man pages @<:@default=yes@:>@]),
+	      [], [enable_manpages=yes])
+AS_IF([test "x$enable_manpages" = "xyes"],
+	[AC_DEFINE([MANPAGE], [1], [Man pages will be included])],
+	[AC_DEFINE([NMANPAGE], [1], [Man pages will not be included])])
+AM_CONDITIONAL([MANPAGE], [test x$enable_manpages = x"yes"])
+
 have_coverage=no
 AC_ARG_ENABLE(coverage, AS_HELP_STRING([--enable-coverage], [enable test coverage]))
 if test "x$enable_coverage" = "xyes" ; then
@@ -232,4 +239,5 @@ AC_MSG_RESULT([
         debug:                  ${enable_debug}
         demos:                  ${enable_demos}
         coverage:               ${have_coverage}
+        manpages:               ${enable_manpages}
 ])
