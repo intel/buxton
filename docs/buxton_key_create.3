@@ -86,9 +86,9 @@ return STRING, since buxton treats groups as strings internally\&.
 Calling \fBbuxton_key_get_name\fR(3) for a group will return NULL,
 since the name field is not used for groups\&.
 
-When the client no longer needs a BuxtonKey, its memory should freed
-by calling \fBbuxton_key_free\fR(3)\&. This function takes a single
-argument, the BuxtonKey to be freed\&.
+All BuxtonKey's are freed automatically on buxton_close, but can
+be freed manually if desired by calling \fBbuxton_key_free\fR(3)\&. 
+This function takes a single argument, the BuxtonKey to be freed\&.
 
 .SH "COPYRIGHT"
 .PP

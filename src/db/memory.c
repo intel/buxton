@@ -84,7 +84,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	db = _db_for_resource(layer);
 	if (!db) {
 		ret = ENOENT;
-		goto clean;
+		goto end;
 	}
 
 	if (key->name.value) {
@@ -102,7 +102,8 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		stored = (BuxtonArray *)hashmap_get(db, full_key);
 		if (!stored) {
 			ret = ENOENT;
-			goto clean;
+			free(full_key);
+			goto end;
 		}
 		data = buxton_array_get(stored, 0);
 	}
@@ -160,20 +161,6 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	ret = 0;
-	goto end;
-
-clean:
-	buxton_array_free(&array, NULL);
-	if (data_copy && data_copy->type == STRING &&
-	    data_copy->store.d_string.value) {
-		free(data_copy->store.d_string.value);
-	}
-	free(data_copy);
-	if (label_copy && label_copy->value) {
-		free(label_copy->value);
-	}
-	free(label_copy);
-	free(full_key);
 
 end:
 	return ret;

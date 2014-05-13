@@ -41,6 +41,7 @@
 #include "protocol.h"
 #include "util.h"
 
+static Hashmap *key_hash = NULL;
 
 int buxton_set_conf_file(char *path)
 {
@@ -67,13 +68,21 @@ int buxton_open(BuxtonClient *client)
 	_BuxtonClient *cl = NULL;
 	int bx_socket, r;
 	struct sockaddr_un remote;
+	size_t sock_name_len;
 
 	if ((bx_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		return -1;
 	}
 
 	remote.sun_family = AF_UNIX;
-	strncpy(remote.sun_path, buxton_socket(), sizeof(remote.sun_path));
+	sock_name_len = strlen(buxton_socket()) + 1;
+	if (sock_name_len >= sizeof(remote.sun_path)) {
+		buxton_log("Provided socket name: %s is too long, maximum allowed length is %d bytes\n",
+			   buxton_socket(), sizeof(remote.sun_path));
+		return -1;
+	}
+
+	strncpy(remote.sun_path, buxton_socket(), sock_name_len);
 	r = connect(bx_socket, (struct sockaddr *)&remote, sizeof(remote));
 	if ( r == -1) {
 		close(bx_socket);
@@ -105,6 +114,17 @@ int buxton_open(BuxtonClient *client)
 void buxton_close(BuxtonClient client)
 {
 	_BuxtonClient *c;
+	BuxtonKey key = NULL;
+	Iterator i;
+
+	/* Free all remaining allocated keys */
+	HASHMAP_FOREACH_KEY(key, key, key_hash, i) {
+		hashmap_remove_value(key_hash, key, key);
+		buxton_key_free(key);
+	}
+
+	hashmap_free(key_hash);
+
 	if (!client) {
 		return;
 	}
@@ -434,6 +454,14 @@ BuxtonKey buxton_key_create(char *group, char *name, char *layer,
 		goto fail;
 	}
 
+	if (!key_hash) {
+		/* Create on hashmap on first call to key_create */
+		key_hash = hashmap_new(trivial_hash_func, trivial_compare_func);
+		if (!key_hash) {
+			return NULL;
+		}
+	}
+
 	g = strdup(group);
 	if (!g) {
 		goto fail;
@@ -475,6 +503,9 @@ BuxtonKey buxton_key_create(char *group, char *name, char *layer,
 		key->layer.length = 0;
 	}
 	key->type = type;
+
+	/* Add new keys to internal hash for cleanup on close */
+	hashmap_put(key_hash, key, key);
 
 	return (BuxtonKey)key;
 
@@ -536,6 +567,8 @@ void buxton_key_free(BuxtonKey key)
 	if (!k) {
 		return;
 	}
+
+	hashmap_remove_value(key_hash, key, key);
 
 	free(k->group.value);
 	free(k->name.value);
