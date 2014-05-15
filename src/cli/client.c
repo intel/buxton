@@ -327,6 +327,11 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 
 		printf("Failed to update key \'%s:%s\' in layer '%s'\n",
 		       nv(group), nv(name), nv(layer));
+		switch (ret)
+		{
+			case EROFS:
+				printf("Readonly layer!\n");
+		}
 		free(group);
 		free(name);
 		free(layer);

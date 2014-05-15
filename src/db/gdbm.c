@@ -47,6 +47,17 @@ static char *key_get_name(BuxtonString *key)
 	return c;
 }
 
+static GDBM_FILE try_open_database(char *path, const int oflag)
+{
+	GDBM_FILE db = gdbm_open(path, 0, oflag, 0600, NULL);
+	if (!db && (errno == EACCES || errno == EROFS))
+	{
+		db = gdbm_open(path, 0, GDBM_READER, 0600, NULL);
+	}
+
+	return db;
+}
+
 /* Open or create databases on the fly */
 static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 {
@@ -54,6 +65,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 	_cleanup_free_ char *path = NULL;
 	char *name = NULL;
 	int r;
+	int oflag = layer->readonly ? GDBM_READER : GDBM_WRCREAT;
 
 	assert(layer);
 	assert(_resources);
@@ -73,10 +85,10 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 		if (!path) {
 			abort();
 		}
-		db = gdbm_open(path, 0, GDBM_WRCREAT, 0600, NULL);
+		db = try_open_database(path, oflag);
 		if (!db) {
-			free(name);
 			buxton_log("Couldn't create db for path: %s\n", path);
+			free(name);
 			return 0;
 		}
 		r = hashmap_put(_resources, name, db);
@@ -109,6 +121,9 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(key);
 	assert(label);
 
+	if (layer->readonly)
+		return EPERM;
+
 	if (key->name.value) {
 		sz = key->group.length + key->name.length;
 		key_data.dptr = malloc(sz);
@@ -133,7 +148,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	db = db_for_resource(layer);
-	if (!db) {
+	if (!db || errno == EACCES || errno == EROFS) {
 		ret = ENOENT;
 		goto end;
 	}

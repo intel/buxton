@@ -111,6 +111,12 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 		}
 	}
 
+	if (conf_layer->access && strcmp(conf_layer->access, "read-only") == 0) {
+		out->readonly = true;
+	} else {
+		out->readonly = false;
+	}
+
 	out->priority = conf_layer->priority;
 	return out;
 fail:

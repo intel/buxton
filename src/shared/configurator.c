@@ -122,7 +122,7 @@ static inline char *_strdup(const char* string)
  * Something is really wrong and even if we could recover, the system
  * is not working correctly.
  */
-static char *get_ini_string(char *section, char *name)
+static char *get_ini_string(char *section, char *name, bool required)
 {
 	char buf[PATH_MAX];
 	char *s;
@@ -130,7 +130,7 @@ static char *get_ini_string(char *section, char *name)
 	assert(conf.ini);
 	snprintf(buf, sizeof(buf), "%s:%s", section, name);
 	s = iniparser_getstring(conf.ini, buf, NULL);
-	if (s == NULL) {
+	if (s == NULL && required) {
 		abort();
 	}
 	return s;
@@ -299,10 +299,11 @@ int buxton_key_get_layers(ConfigLayer **layers)
 			continue;
 		}
 		_layers[j].name = section_name;
-		_layers[j].description = get_ini_string(section_name, "Description");
-		_layers[j].backend = get_ini_string(section_name, "Backend");
-		_layers[j].type = get_ini_string(section_name, "Type");
+		_layers[j].description = get_ini_string(section_name, "Description", true);
+		_layers[j].backend = get_ini_string(section_name, "Backend", true);
+		_layers[j].type = get_ini_string(section_name, "Type", true);
 		_layers[j].priority = get_ini_int(section_name, "Priority");
+		_layers[j].access = get_ini_string(section_name, "Access", false);
 		j++;
 	}
 	*layers = _layers;

@@ -393,6 +393,11 @@ bool buxton_direct_create_group(BuxtonControl *control,
 		goto fail;
 	}
 
+	if (layer->readonly) {
+		buxton_debug("Read-only layer!\n");
+		goto fail;
+	}
+
 	if (layer->type == LAYER_SYSTEM) {
 		char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 		bool skip_check = (root_check && streq(root_check, "0"));
@@ -470,6 +475,11 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 	config = &control->config;
 
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+		goto fail;
+	}
+
+	if (layer->readonly) {
+		buxton_debug("Read-ony layer!");
 		goto fail;
 	}
 
