@@ -2132,6 +2132,38 @@ START_TEST(handle_smack_label_check)
 
 	setup_socket_pair(&client.fd, &server);
 	handle_smack_label(&client);
+
+	close(client.fd);
+	close(server);
+}
+END_TEST
+
+START_TEST(terminate_client_check)
+{
+	client_list_item *client;
+	BuxtonDaemon daemon;
+	int dummy;
+
+	client = malloc0(sizeof(client_list_item));
+	fail_if(!client, "client malloc failed");
+	client->smack_label = malloc0(sizeof(BuxtonString));
+	fail_if(!client->smack_label, "smack label malloc failed");
+	daemon.client_list = client;
+	setup_socket_pair(&client->fd, &dummy);
+	daemon.nfds_alloc = 0;
+	daemon.accepting_alloc = 0;
+	daemon.nfds = 0;
+	daemon.pollfds = NULL;
+	daemon.accepting = NULL;
+	add_pollfd(&daemon, client->fd, 2, false);
+	fail_if(daemon.nfds != 1, "Failed to add pollfd");
+	client->smack_label->value = strdup("dummy");
+	client->smack_label->length = 6;
+	fail_if(!client->smack_label->value, "label strdup failed");
+
+	terminate_client(&daemon, client, 0);
+	fail_if(daemon.client_list, "Failed to set client list item to NULL");
+	close(dummy);
 }
 END_TEST
 
@@ -2561,6 +2593,7 @@ daemon_suite(void)
 	tcase_add_test(tc, add_pollfd_check);
 	tcase_add_test(tc, del_pollfd_check);
 	tcase_add_test(tc, handle_smack_label_check);
+	tcase_add_test(tc, terminate_client_check);
 	tcase_add_test(tc, handle_client_check);
 	suite_add_tcase(s, tc);
 
