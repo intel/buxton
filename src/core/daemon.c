@@ -892,19 +892,20 @@ bool identify_client(client_list_item *cl)
 	cmhp = CMSG_FIRSTHDR(&msgh);
 
 	if (cmhp == NULL || cmhp->cmsg_len != CMSG_LEN(sizeof(struct ucred))) {
-		//FIXME figure out if abort here since socket setup
-		//didn't work quite right
-		return false;
+		buxton_log("Invalid cmessage header from kernel\n");
+		abort();
 	}
 
 	if (cmhp->cmsg_level != SOL_SOCKET || cmhp->cmsg_type != SCM_CREDENTIALS) {
-		return false;
+		buxton_log("Missing credentials on socket\n");
+		abort();
 	}
 
 	ucredp = (struct ucred *) CMSG_DATA(cmhp);
 
 	if (getsockopt(cl->fd, SOL_SOCKET, SO_PEERCRED, &cl->cred, &len) == -1) {
-		return false;
+		buxton_log("Missing label on socket\n");
+		abort();
 	}
 
 	return true;
