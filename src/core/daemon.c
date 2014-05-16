@@ -530,8 +530,7 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 				abort();
 			}
 			buxton_log("Failed to serialize notification\n");
-			//FIXME abort here serialize message error
-			return;
+			abort();
 		}
 		buxton_debug("Notification to %d of key change (%s)\n", nitem->client->fd,
 			     key_name);
