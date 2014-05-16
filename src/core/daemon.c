@@ -438,11 +438,6 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 	}
 
 	BUXTON_LIST_FOREACH(list, elem) {
-		if (!elem) {
-			//FIXME abort here since NULL elements
-			//shouldn't be added to the list
-			break;
-		}
 		nitem = elem->data;
 		int c = 1;
 		__attribute__((unused)) bool unused;
