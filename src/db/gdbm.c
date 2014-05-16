@@ -47,6 +47,24 @@ static char *key_get_name(BuxtonString *key)
 	return c;
 }
 
+static GDBM_FILE try_open_database(char *path, const int oflag)
+{
+	GDBM_FILE db = gdbm_open(path, 0, oflag, S_IRUSR | S_IWUSR, NULL);
+	/* For whatever reason gdbm_open will fail with
+	   GDBM_READER_CANT_REORGANIZE when the file has read only
+	   permissions but open is using GDBM_WRCREAT so test for
+	   this error when we try to fallback to read only access */
+	if (!db && (errno == GDBM_READER_CANT_REORGANIZE)) {
+		db = gdbm_open(path, 0, GDBM_READER, S_IRUSR | S_IWUSR, NULL);
+	}
+	/* gdbm_open will always seem to set GDBM_BAD_FILE_OFFSET
+	   regardless the db works properly so ignore this error */
+	if (errno == GDBM_BAD_FILE_OFFSET) {
+		errno = 0;
+	}
+	return db;
+}
+
 /* Open or create databases on the fly */
 static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 {
@@ -54,6 +72,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 	_cleanup_free_ char *path = NULL;
 	char *name = NULL;
 	int r;
+	int oflag = layer->readonly ? GDBM_READER : GDBM_WRCREAT;
 
 	assert(layer);
 	assert(_resources);
@@ -73,7 +92,8 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 		if (!path) {
 			abort();
 		}
-		db = gdbm_open(path, 0, GDBM_WRCREAT, 0600, NULL);
+
+		db = try_open_database(path, oflag);
 		if (!db) {
 			free(name);
 			buxton_log("Couldn't create db for path: %s\n", path);
@@ -132,9 +152,13 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		key_data.dsize = (int)key->group.length;
 	}
 
+	errno = 0;
 	db = db_for_resource(layer);
 	if (!db) {
 		ret = ENOENT;
+		goto end;
+	} else if (errno) {
+		ret = EROFS;
 		goto end;
 	}
 
@@ -282,9 +306,13 @@ static int unset_value(BuxtonLayer *layer,
 		key_data.dsize = (int)key->group.length;
 	}
 
+	errno = 0;
 	db = db_for_resource(layer);
 	if (!db) {
 		ret = ENOENT;
+		goto end;
+	} else if (errno) {
+		ret = EROFS;
 		goto end;
 	}
 
