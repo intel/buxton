@@ -2125,6 +2125,16 @@ START_TEST(del_pollfd_check)
 }
 END_TEST
 
+START_TEST(handle_smack_label_check)
+{
+	client_list_item client;
+	int server;
+
+	setup_socket_pair(&client.fd, &server);
+	handle_smack_label(&client);
+}
+END_TEST
+
 START_TEST(handle_client_check)
 {
 }
@@ -2550,6 +2560,7 @@ daemon_suite(void)
 	tcase_add_test(tc, identify_client_check);
 	tcase_add_test(tc, add_pollfd_check);
 	tcase_add_test(tc, del_pollfd_check);
+	tcase_add_test(tc, handle_smack_label_check);
 	tcase_add_test(tc, handle_client_check);
 	suite_add_tcase(s, tc);
 

@@ -958,7 +958,7 @@ void del_pollfd(BuxtonDaemon *self, nfds_t i)
 	self->nfds--;
 }
 
-static void handle_smack_label(client_list_item *cl)
+void handle_smack_label(client_list_item *cl)
 {
 	socklen_t slabel_len = 1;
 	char *buf = NULL;

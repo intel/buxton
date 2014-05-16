@@ -228,6 +228,13 @@ void add_pollfd(BuxtonDaemon *self, int fd, short events, bool a);
 void del_pollfd(BuxtonDaemon *self, nfds_t i);
 
 /**
+ * Setup a client's smack label
+ * @param cl Client to set smack label on
+ * @return None
+ */
+void handle_smack_label(client_list_item *cl);
+
+/**
  * Handle a client connection
  * @param self buxtond instance being run
  * @param cl The currently activate client
