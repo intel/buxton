@@ -114,6 +114,8 @@ static inline char *_strdup(const char* string)
  *
  * @param section the section of the ini file
  * @param name the name of the key
+ * @param required is key required or not
+ * @param def in case of key isn't required
  *
  * @note This function may abort()
  *
@@ -122,15 +124,16 @@ static inline char *_strdup(const char* string)
  * Something is really wrong and even if we could recover, the system
  * is not working correctly.
  */
-static char *get_ini_string(char *section, char *name)
+static char *get_ini_string(char *section, char *name, bool required,
+	char *def)
 {
 	char buf[PATH_MAX];
 	char *s;
 
 	assert(conf.ini);
 	snprintf(buf, sizeof(buf), "%s:%s", section, name);
-	s = iniparser_getstring(conf.ini, buf, NULL);
-	if (s == NULL) {
+	s = iniparser_getstring(conf.ini, buf, def);
+	if (s == NULL && required) {
 		abort();
 	}
 	return s;
@@ -141,18 +144,26 @@ static char *get_ini_string(char *section, char *name)
  *
  * @param section the section of the ini file
  * @param name the name of the key
+ * @param required is key required or not
+ * @param def in case of key isn't required
  *
  * @note inlined b/c only used once and why not.
  *
  * @return the value
  */
-static inline int get_ini_int(char *section, char *name)
+static inline int get_ini_int(char *section, char *name, bool required,
+	int def)
 {
 	char buf[PATH_MAX];
+	int exists;
 
 	assert(conf.ini);
 	snprintf(buf, sizeof(buf), "%s:%s", section, name);
-	return iniparser_getint(conf.ini, buf, -1);
+	exists = iniparser_find_entry(conf.ini, buf);
+	if (!exists && required) {
+		abort();
+	}
+	return iniparser_getint(conf.ini, buf, def);
 }
 
 /**
@@ -299,10 +310,16 @@ int buxton_key_get_layers(ConfigLayer **layers)
 			continue;
 		}
 		_layers[j].name = section_name;
-		_layers[j].description = get_ini_string(section_name, "Description");
-		_layers[j].backend = get_ini_string(section_name, "Backend");
-		_layers[j].type = get_ini_string(section_name, "Type");
-		_layers[j].priority = get_ini_int(section_name, "Priority");
+		_layers[j].description = get_ini_string(section_name,
+			"Description", true, NULL);
+		_layers[j].backend = get_ini_string(section_name, "Backend",
+			true, NULL);
+		_layers[j].type = get_ini_string(section_name, "Type", true,
+			NULL);
+		_layers[j].priority = get_ini_int(section_name, "Priority",
+			true, 0);
+		_layers[j].access = get_ini_int(section_name, "Access",
+			false, "read-write");
 		j++;
 	}
 	*layers = _layers;

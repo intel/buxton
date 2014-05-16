@@ -61,6 +61,7 @@ typedef struct BuxtonLayer {
 	uid_t uid; /**<User ID for layers of type LAYER_USER */
 	int priority; /**<Priority of this layer */
 	char *description; /**<Description of this layer */
+	bool readonly;
 } BuxtonLayer;
 
 /**

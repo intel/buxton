@@ -67,6 +67,11 @@ void buxton_init_layers(BuxtonConfig *config)
 	free(config_layers);
 }
 
+static bool is_read_only(ConfigLayer *conf_layer)
+{
+	return strcmp(conf_layer->access, "read-only") == 0;
+}
+
 static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 {
 	BuxtonLayer *out;
@@ -111,6 +116,7 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer)
 		}
 	}
 
+	out->readonly = is_read_only(conf_layer);
 	out->priority = conf_layer->priority;
 	return out;
 fail:
