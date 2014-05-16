@@ -40,6 +40,7 @@ typedef struct ConfigLayer {
 	char *type;
 	char *backend;
 	char *description;
+	char *access;
 	int priority;
 } ConfigLayer;
 

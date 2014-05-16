@@ -318,6 +318,8 @@ int buxton_key_get_layers(ConfigLayer **layers)
 			NULL);
 		_layers[j].priority = get_ini_int(section_name, "Priority",
 			true, 0);
+		_layers[j].access = get_ini_int(section_name, "Access",
+			false, "read-write");
 		j++;
 	}
 	*layers = _layers;

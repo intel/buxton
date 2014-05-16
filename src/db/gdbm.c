@@ -54,6 +54,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 	_cleanup_free_ char *path = NULL;
 	char *name = NULL;
 	int r;
+	int oflag = layer->readonly ? GDBM_READER : GDBM_WRCREAT;
 
 	assert(layer);
 	assert(_resources);
@@ -73,7 +74,8 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 		if (!path) {
 			abort();
 		}
-		db = gdbm_open(path, 0, GDBM_WRCREAT, 0600, NULL);
+
+		db = gdbm_open(path, 0, oflag, 0600, NULL);
 		if (!db) {
 			free(name);
 			buxton_log("Couldn't create db for path: %s\n", path);
@@ -133,7 +135,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	db = db_for_resource(layer);
-	if (!db) {
+	if (!db || errno == EACCES || errno == EROFS) {
 		ret = ENOENT;
 		goto end;
 	}
