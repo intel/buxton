@@ -47,6 +47,16 @@ static char *key_get_name(BuxtonString *key)
 	return c;
 }
 
+static GDBM_FILE try_open_database(char *path, const int oflag)
+{
+	GDBM_FILE db = gdbm_open(path, 0, oflag, 0600, NULL);
+	if (!db && (errno == EACCES || errno == EROFS))
+	{
+		db = gdbm_open(path, 0, GDBM_READER, 0600, NULL);
+	}
+	return db;
+}
+
 /* Open or create databases on the fly */
 static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 {
@@ -75,7 +85,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 			abort();
 		}
 
-		db = gdbm_open(path, 0, oflag, 0600, NULL);
+		db = try_open_database(path, oflag);
 		if (!db) {
 			free(name);
 			buxton_log("Couldn't create db for path: %s\n", path);
