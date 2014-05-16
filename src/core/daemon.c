@@ -489,7 +489,7 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 				break;
 			default:
 				buxton_log("Internal state corruption: Notification data type invalid\n");
-				return;
+				abort();
 			}
 		}
 
