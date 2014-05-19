@@ -2256,39 +2256,9 @@ START_TEST(handle_client_check)
 	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 5");
 	fail_if(!daemon.client_list, "Terminated client with correct data length");
 
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
-	write(dummy, message, ret);
+	for (int i = 0; i < 33; i++) {
+		write(dummy, message, ret);
+	}
 	fail_if(!handle_client(&daemon, daemon.client_list, 0), "No more data available");
 	fail_if(!daemon.client_list, "Terminated client with correct data length");
 	terminate_client(&daemon, daemon.client_list, 0);
