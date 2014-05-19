@@ -1083,6 +1083,8 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 
 		message_limit--;
 		if (message_limit) {
+			cl->size = BUXTON_MESSAGE_HEADER_LENGTH;
+			cl->offset = 0;
 			continue;
 		}
 		if (recv(cl->fd, &peek, sizeof(uint16_t), MSG_PEEK | MSG_DONTWAIT) > 0) {
