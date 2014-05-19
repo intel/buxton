@@ -2169,6 +2169,143 @@ END_TEST
 
 START_TEST(handle_client_check)
 {
+	BuxtonDaemon daemon;
+	int dummy;
+	uint8_t buf[4096];
+	uint8_t *message = NULL;
+	BuxtonData data1, data2, data3, data4;
+	BuxtonArray *list = NULL;
+	bool r;
+	size_t ret;
+	uint32_t bsize;
+
+	list = buxton_array_new();
+	data1.type = STRING;
+	data1.store.d_string = buxton_string_pack("test-gdbm-user");
+	data2.type = STRING;
+	data2.store.d_string = buxton_string_pack("daemon-check");
+	data3.type = STRING;
+	data3.store.d_string = buxton_string_pack("name");
+	data4.type = UINT32;
+	data4.store.d_uint32 = STRING;
+	r = buxton_array_add(list, &data1);
+	fail_if(!r, "Failed to add data to array");
+	r = buxton_array_add(list, &data2);
+	fail_if(!r, "Failed to add data to array");
+	r = buxton_array_add(list, &data3);
+	fail_if(!r, "Failed to add data to array");
+	r = buxton_array_add(list, &data4);
+	fail_if(!r, "Failed to add data to array");
+	ret = buxton_serialize_message(&message, BUXTON_CONTROL_GET, 0, list);
+	fail_if(ret == 0, "Failed to serialize string data");
+	daemon.client_list = malloc0(sizeof(client_list_item));
+	fail_if(!daemon.client_list, "client malloc failed");
+	setup_socket_pair(&daemon.client_list->fd, &dummy);
+	fcntl(daemon.client_list->fd, F_SETFL, O_NONBLOCK);
+	daemon.nfds_alloc = 0;
+	daemon.accepting_alloc = 0;
+	daemon.nfds = 0;
+	daemon.pollfds = NULL;
+	daemon.accepting = NULL;
+	add_pollfd(&daemon, daemon.client_list->fd, 2, false);
+	fail_if(daemon.nfds != 1, "Failed to add pollfd 1");
+	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 1");
+	fail_if(daemon.client_list, "Failed to terminate client with no data");
+	close(dummy);
+
+	daemon.client_list = malloc0(sizeof(client_list_item));
+	fail_if(!daemon.client_list, "client malloc failed");
+	setup_socket_pair(&daemon.client_list->fd, &dummy);
+	fcntl(daemon.client_list->fd, F_SETFL, O_NONBLOCK);
+	add_pollfd(&daemon, daemon.client_list->fd, 2, false);
+	fail_if(daemon.nfds != 1, "Failed to add pollfd 2");
+	write(dummy, buf, 1);
+	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 2");
+	fail_if(!daemon.client_list, "Terminated client with insufficient data");
+	fail_if(daemon.client_list->data, "Didn't clean up left over client data 1");
+
+	bsize = 0;
+	memcpy(message + BUXTON_LENGTH_OFFSET, &bsize, sizeof(uint32_t));
+	write(dummy, message, BUXTON_MESSAGE_HEADER_LENGTH);
+	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 3");
+	fail_if(daemon.client_list, "Failed to terminate client with bad size 1");
+	close(dummy);
+
+	daemon.client_list = malloc0(sizeof(client_list_item));
+	fail_if(!daemon.client_list, "client malloc failed");
+	setup_socket_pair(&daemon.client_list->fd, &dummy);
+	fcntl(daemon.client_list->fd, F_SETFL, O_NONBLOCK);
+	add_pollfd(&daemon, daemon.client_list->fd, 2, false);
+	fail_if(daemon.nfds != 1, "Failed to add pollfd 3");
+	bsize = BUXTON_MESSAGE_MAX_LENGTH + 1;
+	memcpy(message + BUXTON_LENGTH_OFFSET, &bsize, sizeof(uint32_t));
+	write(dummy, message, BUXTON_MESSAGE_HEADER_LENGTH);
+	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 4");
+	fail_if(daemon.client_list, "Failed to terminate client with bad size 2");
+	close(dummy);
+
+	daemon.client_list = malloc0(sizeof(client_list_item));
+	fail_if(!daemon.client_list, "client malloc failed");
+	setup_socket_pair(&daemon.client_list->fd, &dummy);
+	fcntl(daemon.client_list->fd, F_SETFL, O_NONBLOCK);
+	add_pollfd(&daemon, daemon.client_list->fd, 2, false);
+	fail_if(daemon.nfds != 1, "Failed to add pollfd 4");
+	bsize = (uint32_t)ret;
+	memcpy(message + BUXTON_LENGTH_OFFSET, &bsize, sizeof(uint32_t));
+	write(dummy, message, ret);
+	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 5");
+	fail_if(!daemon.client_list, "Terminated client with correct data length");
+
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	write(dummy, message, ret);
+	fail_if(!handle_client(&daemon, daemon.client_list, 0), "No more data available");
+	fail_if(!daemon.client_list, "Terminated client with correct data length");
+	terminate_client(&daemon, daemon.client_list, 0);
+	fail_if(daemon.client_list, "Failed to remove client 1");
+	close(dummy);
+
+	//FIXME add SIGPIPE handler
+	/* daemon.client_list = malloc0(sizeof(client_list_item)); */
+	/* fail_if(!daemon.client_list, "client malloc failed"); */
+	/* setup_socket_pair(&daemon.client_list->fd, &dummy); */
+	/* fcntl(daemon.client_list->fd, F_SETFL, O_NONBLOCK); */
+	/* add_pollfd(&daemon, daemon.client_list->fd, 2, false); */
+	/* fail_if(daemon.nfds != 1, "Failed to add pollfd 5"); */
+	/* write(dummy, message, ret); */
+	/* close(dummy); */
+	/* fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 6"); */
+	/* fail_if(daemon.client_list, "Failed to terminate client"); */
 }
 END_TEST
 
