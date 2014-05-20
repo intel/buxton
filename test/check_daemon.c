@@ -882,15 +882,14 @@ START_TEST(set_label_check)
 	else
 		client.smack_label = NULL;
 	server.buxton.client.uid = 0;
-	key.layer = buxton_string_pack("test-gdbm-user");
+	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("daemon-check");
 	key.type = STRING;
 	value.type = STRING;
 	value.store.d_string = buxton_string_pack("*");
 
-	key.layer = buxton_string_pack("test-gdbm");
 	set_label(&server, &client, &key, &value, &status);
-	fail_if(status != 0, "Failed to set label 2");
+	fail_if(status != 0, "Failed to set label");
 	buxton_direct_close(&server.buxton);
 }
 END_TEST
