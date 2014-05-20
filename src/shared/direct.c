@@ -287,6 +287,11 @@ bool buxton_direct_set_value(BuxtonControl *control,
 		goto fail;
 	}
 
+	if (layer->readonly) {
+		buxton_debug("Read-only layer!\n");
+		goto fail;
+	}
+
 	backend = backend_for_layer(config, layer);
 	assert(backend);
 
@@ -320,6 +325,11 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	config = &control->config;
 
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+		goto fail;
+	}
+
+	if (layer->readonly) {
+		buxton_debug("Read-only layer!\n");
 		goto fail;
 	}
 
@@ -390,6 +400,11 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	config = &control->config;
 
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+		goto fail;
+	}
+
+	if (layer->readonly) {
+		buxton_debug("Read-only layer!\n");
 		goto fail;
 	}
 
@@ -470,6 +485,11 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 	config = &control->config;
 
 	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+		goto fail;
+	}
+
+	if (layer->readonly) {
+		buxton_debug("Read-ony layer!\n");
 		goto fail;
 	}
 
@@ -603,6 +623,10 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 		return false;
 	}
 
+	if (layer->readonly) {
+		buxton_debug("Read-only layer!\n");
+		return false;
+	}
 	backend = backend_for_layer(config, layer);
 	assert(backend);
 
