@@ -298,7 +298,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	layer->uid = control->client.uid;
 	ret = backend->set_value(layer, key, data, l);
 	if (ret) {
-		buxton_debug("set value failed\n");
+		buxton_debug("set value failed: %s\n", strerror(ret));
 	} else {
 		r = true;
 	}
@@ -353,7 +353,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 	layer->uid = control->client.uid;
 	ret = backend->set_value(layer, key, NULL, label);
 	if (ret) {
-		buxton_debug("set label failed\n");
+		buxton_debug("set label failed: %s\n", strerror(ret));
 	} else {
 		r = true;
 	}
@@ -449,7 +449,7 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	layer->uid = control->client.uid;
 	ret = backend->set_value(layer, key, data, dlabel);
 	if (ret) {
-		buxton_debug("create group failed\n");
+		buxton_debug("create group failed: %s\n", strerror(ret));
 	} else {
 		r = true;
 	}
@@ -522,7 +522,7 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 
 	ret = backend->unset_value(layer, key, NULL, NULL);
 	if (ret) {
-		buxton_debug("remove group failed\n");
+		buxton_debug("remove group failed: %s\n", strerror(ret));
 	} else {
 		r = true;
 	}
@@ -633,7 +633,7 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	layer->uid = control->client.uid;
 	ret = backend->unset_value(layer, key, NULL, NULL);
 	if (ret) {
-		buxton_debug("Unset value failed\n");
+		buxton_debug("Unset value failed: %s\n", strerror(ret));
 	} else {
 		r = true;
 	}
