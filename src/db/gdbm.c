@@ -50,16 +50,17 @@ static char *key_get_name(BuxtonString *key)
 static GDBM_FILE try_open_database(char *path, const int oflag)
 {
 	GDBM_FILE db = gdbm_open(path, 0, oflag, S_IRUSR | S_IWUSR, NULL);
-	/* For whatever reason gdbm_open will fail with
-	   GDBM_READER_CANT_REORGANIZE when the file has read only
-	   permissions but open is using GDBM_WRCREAT so test for
-	   this error when we try to fallback to read only access */
-	if (!db && (errno == GDBM_READER_CANT_REORGANIZE)) {
+	/* handle open under write mode failing by falling back to
+	   reader mode */
+	if (!db && (gdbm_errno == GDBM_FILE_OPEN_ERROR)) {
 		db = gdbm_open(path, 0, GDBM_READER, S_IRUSR | S_IWUSR, NULL);
-	}
-	/* gdbm_open will always seem to set GDBM_BAD_FILE_OFFSET
-	   regardless the db works properly so ignore this error */
-	if (errno == GDBM_BAD_FILE_OFFSET) {
+		buxton_debug("Attempting to fallback to opening db as read-only\n");
+		errno = EROFS;
+	} else {
+		if (!db) {
+			abort();
+		}
+		/* Must do this as gdbm_open messes with errno */
 		errno = 0;
 	}
 	return db;
@@ -73,6 +74,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 	char *name = NULL;
 	int r;
 	int oflag = layer->readonly ? GDBM_READER : GDBM_WRCREAT;
+	int save_errno = 0;
 
 	assert(layer);
 	assert(_resources);
@@ -94,6 +96,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 		}
 
 		db = try_open_database(path, oflag);
+		save_errno = errno;
 		if (!db) {
 			free(name);
 			buxton_log("Couldn't create db for path: %s\n", path);
@@ -108,6 +111,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 		free(name);
 	}
 
+	errno = save_errno;
 	return db;
 }
 
@@ -152,13 +156,9 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		key_data.dsize = (int)key->group.length;
 	}
 
-	errno = 0;
 	db = db_for_resource(layer);
-	if (!db) {
-		ret = ENOENT;
-		goto end;
-	} else if (errno) {
-		ret = EROFS;
+	if (!db || errno) {
+		ret = errno;
 		goto end;
 	}
 
@@ -182,6 +182,9 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	value.dptr = (char *)data_store;
 	value.dsize = (int)size;
 	ret = gdbm_store(db, key_data, value, GDBM_REPLACE);
+	if (ret && gdbm_errno == GDBM_READER_CANT_STORE) {
+		ret = EROFS;
+	}
 	assert(ret == 0);
 
 end:
@@ -308,18 +311,20 @@ static int unset_value(BuxtonLayer *layer,
 
 	errno = 0;
 	db = db_for_resource(layer);
-	if (!db) {
-		ret = ENOENT;
-		goto end;
-	} else if (errno) {
+	if (!db || gdbm_errno) {
 		ret = EROFS;
 		goto end;
 	}
 
-	/* Negative value means the key wasn't found */
 	ret = gdbm_delete(db, key_data);
-	if (ret == -1) {
-		ret = ENOENT;
+	if (ret) {
+		if (gdbm_errno == GDBM_READER_CANT_DELETE) {
+			ret = EROFS;
+		} else if (gdbm_errno == GDBM_ITEM_NOT_FOUND) {
+			ret = ENOENT;
+		} else {
+			abort();
+		}
 	}
 
 end:
