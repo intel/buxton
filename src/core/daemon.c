@@ -114,7 +114,6 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		}
 		break;
 	case BUXTON_CONTROL_LIST:
-		return false;
 		if (count != 1) {
 			return false;
 		}

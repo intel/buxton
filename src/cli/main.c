@@ -92,6 +92,7 @@ int main(int argc, char **argv)
 	Command c_get_bool, c_set_bool;
 	Command c_set_label;
 	Command c_create_group, c_remove_group;
+	Command c_list_keys;
 	Command c_unset_value;
 	Command c_create_db;
 	Command *command;
@@ -200,6 +201,11 @@ int main(int argc, char **argv)
 	c_remove_group = (Command) { "remove-group", "Remove a group from a layer",
 				     2, 2, "layer group", &cli_remove_group, STRING };
 	hashmap_put(commands, c_remove_group.name, &c_remove_group);
+
+	/* List keys */
+	c_list_keys = (Command) { "list-keys", "List keys in a layer",
+				   1, 1, "layer", &cli_list_keys, STRING };
+	hashmap_put(commands, c_list_keys.name, &c_list_keys);
 
 	/* Unset value */
 	c_unset_value = (Command) { "unset-value", "Unset a value by key",
