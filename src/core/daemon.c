@@ -777,7 +777,8 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	}
 
 	r = asprintf(&key_name_copy, "%s%s", key->group.value, key->name.value);
-	if (r == -1) {
+	key_name_copy = strdup(key_name);
+	if (!key_name_copy) {
 		abort();
 	}
 
@@ -798,11 +799,11 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	}
 
 	fd = malloc0(sizeof(uint64_t));
-        if (!fd) {
-                abort();
-        }
-        *fd = (uint64_t)client->fd;
-        
+	if (!fd) {
+		abort();
+	}
+	*fd = (uint64_t)client->fd;
+
 	key_list = hashmap_get(self->client_key_mapping, fd);
 	if (!key_list) {
 		if (!buxton_list_append(&key_list, key_name_copy)) {
@@ -816,7 +817,6 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 			abort();
 		}
 		free(fd);
-		free(key_name_copy);
 	}
 
 	*status = 0;
@@ -868,24 +868,25 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	}
 
 	fd = (uint64_t)client->fd;
-	// Remove key name from client hashmap
+	/* Remove key name from client hashmap */
 	key_list = hashmap_get2(self->client_key_mapping, &fd, &old_fd);
 	
-	if (key_list) {
-		BUXTON_LIST_FOREACH(key_list, elem) {
-			if (!strcmp(elem->data, key_name)) {
-				client_keyname = elem->data;
-				break;
-			}
-		};
-	} 
+	if (!key_list || !old_fd) {
+		abort();
+	}
+	
+	BUXTON_LIST_FOREACH(key_list, elem) {
+		if (!strcmp(elem->data, key_name)) {
+			client_keyname = elem->data;
+			break;
+		}
+	};
 
 	if (client_keyname) {
 		buxton_list_remove(&key_list, client_keyname, true);
 		if (!key_list) {
 			hashmap_remove(self->client_key_mapping, &fd);
-			if (old_fd) 
-				free(old_fd);
+			free(old_fd);
 		}
 	} 
 
@@ -1179,29 +1180,32 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 			BuxtonList *n_list = NULL;
 
 			n_list = hashmap_get2(self->notify_mapping, key_name, &old_key_name);
-			if (n_list) {
-				BuxtonNotification *nitem, *citem = NULL;
+			if (!n_list || !old_key_name) {
+				abort();
+			}
 
-				BUXTON_LIST_FOREACH(n_list, notify_elem) {
-			                nitem = notify_elem->data;
-			                if (nitem->client == cl) {
-			                        citem = nitem;
-			                	break;
-			                }
-				};
-				if(citem) {
-					//Remove client from notifications
-					free_buxton_data(&(citem->old_data));
-					buxton_list_remove(&n_list, citem, true);
+			BuxtonNotification *nitem, *citem = NULL;
 
-					// If we removed the last item, remove the mapping too
-					if (!n_list) {
-						(void)hashmap_remove(self->notify_mapping, key_name);
-						if (old_key_name) {
-							free(old_key_name);
-						}
-					}
+			BUXTON_LIST_FOREACH(n_list, notify_elem) {
+				nitem = notify_elem->data;
+				if (nitem->client == cl) {
+					citem = nitem;
+					break;
 				}
+			};
+			
+			if (!citem) {
+				abort();
+			}	
+			
+			/* Remove client from notifications */
+			free_buxton_data(&(citem->old_data));
+			buxton_list_remove(&n_list, citem, true);
+
+			/* If we removed the last item, remove the mapping too */
+			if (!n_list) {
+				(void)hashmap_remove(self->notify_mapping, key_name);
+				free(old_key_name);
 			}
 		};
 		//Remove key from client hashmap

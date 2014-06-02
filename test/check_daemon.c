@@ -2184,7 +2184,7 @@ START_TEST(terminate_client_check)
 	fail_if(!client->smack_label->value, "label strdup failed");
 	daemon.notify_mapping = NULL;
 	daemon.client_key_mapping = NULL;
-	
+
 	terminate_client(&daemon, client, 0);
 	
 	fail_if(daemon.client_list, "Failed to set client list item to NULL");
@@ -2233,9 +2233,9 @@ START_TEST(handle_client_check)
 	daemon.pollfds = NULL;
 	daemon.accepting = NULL;
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
-        fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
-        daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
-        fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
+	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
 
 	add_pollfd(&daemon, daemon.client_list->fd, 2, false);
 	fail_if(daemon.nfds != 1, "Failed to add pollfd 1");
@@ -2274,7 +2274,7 @@ START_TEST(handle_client_check)
 	fail_if(daemon.client_list, "Failed to terminate client with bad size 2");
 	close(dummy);
 
-	/*daemon.client_list = malloc0(sizeof(client_list_item));
+	daemon.client_list = malloc0(sizeof(client_list_item));
 	fail_if(!daemon.client_list, "client malloc failed");
 	setup_socket_pair(&daemon.client_list->fd, &dummy);
 	fcntl(daemon.client_list->fd, F_SETFL, O_NONBLOCK);
@@ -2294,9 +2294,9 @@ START_TEST(handle_client_check)
 	terminate_client(&daemon, daemon.client_list, 0);
 	fail_if(daemon.client_list, "Failed to remove client 1");
 	close(dummy);
-*/	
+
 	hashmap_free(daemon.notify_mapping);
-        hashmap_free(daemon.client_key_mapping);
+	hashmap_free(daemon.client_key_mapping);
 
 	//FIXME add SIGPIPE handler
 	/* daemon.client_list = malloc0(sizeof(client_list_item)); */

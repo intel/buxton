@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	Iterator iter;
 	char *notify_key;
 	BuxtonList *key_list = NULL;
-        uint64_t *client_fd;
+	uint64_t *client_fd;
 
 	static struct option opts[] = {
 		{ "config-file", 1, NULL, 'c' },
