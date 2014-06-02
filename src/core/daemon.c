@@ -1208,10 +1208,9 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 				free(old_key_name);
 			}
 		};
-		//Remove key from client hashmap
+		/* Remove key from client hashmap */
 		hashmap_remove(self->client_key_mapping, &fd);
-		if (old_fd)
-			free(old_fd);
+		free(old_fd);
 		buxton_list_free_all(&key_list);
 	}
 
