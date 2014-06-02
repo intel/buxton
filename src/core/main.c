@@ -81,6 +81,8 @@ int main(int argc, char *argv[])
 	BuxtonList *map_list = NULL;
 	Iterator iter;
 	char *notify_key;
+	BuxtonList *key_list = NULL;
+	uint64_t *client_fd;
 
 	static struct option opts[] = {
 		{ "config-file", 1, NULL, 'c' },
@@ -168,6 +170,8 @@ int main(int argc, char *argv[])
 
 	/* For client notifications */
 	self.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	/* For keeping track of keys a client is registered to*/
+	self.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
 	/* Store a list of connected clients */
 	LIST_HEAD_INIT(client_list_item, self.client_list);
 
@@ -389,7 +393,14 @@ int main(int argc, char *argv[])
 		buxton_list_free_all(&map_list);
 	}
 
+	/* Clean up key lists */
+	HASHMAP_FOREACH_KEY(key_list, client_fd, self.client_key_mapping, iter) {
+		hashmap_remove(self.client_key_mapping, client_fd);
+		buxton_list_free_all(&key_list);
+		free(client_fd);
+	}
 	hashmap_free(self.notify_mapping);
+	hashmap_free(self.client_key_mapping);
 	buxton_direct_close(&self.buxton);
 	return EXIT_SUCCESS;
 }

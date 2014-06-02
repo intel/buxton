@@ -1001,6 +1001,8 @@ START_TEST(register_notification_check)
 		"Failed to open buxton direct connection");
 	server.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!server.notify_mapping, "Failed to allocate hashmap");
+	server.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!server.client_key_mapping, "Failed to allocate hashmap");
 
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name");
@@ -1029,6 +1031,7 @@ START_TEST(register_notification_check)
 	fail_if(status == 0, "Registered notification with key not in db");
 
 	hashmap_free(server.notify_mapping);
+	hashmap_free(server.client_key_mapping);
 	buxton_direct_close(&server.buxton);
 }
 END_TEST
@@ -1130,6 +1133,8 @@ START_TEST(buxtond_handle_message_create_group_check)
 		"Failed to open buxton direct connection");
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
 
 	out_list1 = buxton_array_new();
 	fail_if(!out_list1, "Failed to allocate list");
@@ -1194,6 +1199,7 @@ START_TEST(buxtond_handle_message_create_group_check)
 	cleanup_callbacks();
 	close(client);
 	hashmap_free(daemon.notify_mapping);
+	hashmap_free(daemon.client_key_mapping);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list1, NULL);
 	buxton_array_free(&out_list2, NULL);
@@ -1238,6 +1244,8 @@ START_TEST(buxtond_handle_message_remove_group_check)
 		"Failed to open buxton direct connection");
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
 
 	data1.type = STRING;
 	data1.store.d_string = buxton_string_pack("base");
@@ -1271,6 +1279,7 @@ START_TEST(buxtond_handle_message_remove_group_check)
 	cleanup_callbacks();
 	close(client);
 	hashmap_free(daemon.notify_mapping);
+	hashmap_free(daemon.client_key_mapping);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list, NULL);
 }
@@ -1314,6 +1323,8 @@ START_TEST(buxtond_handle_message_set_label_check)
 		"Failed to open buxton direct connection");
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
 
 	data1.type = STRING;
 	data1.store.d_string = buxton_string_pack("base");
@@ -1351,6 +1362,7 @@ START_TEST(buxtond_handle_message_set_label_check)
 	cleanup_callbacks();
 	close(client);
 	hashmap_free(daemon.notify_mapping);
+	hashmap_free(daemon.client_key_mapping);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list, NULL);
 }
@@ -1394,6 +1406,8 @@ START_TEST(buxtond_handle_message_set_value_check)
 		"Failed to open buxton direct connection");
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
 
 	data1.type = STRING;
 	data1.store.d_string = buxton_string_pack("base");
@@ -1441,6 +1455,7 @@ START_TEST(buxtond_handle_message_set_value_check)
 	cleanup_callbacks();
 	close(client);
 	hashmap_free(daemon.notify_mapping);
+	hashmap_free(daemon.client_key_mapping);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list, NULL);
 }
@@ -1589,6 +1604,8 @@ START_TEST(buxtond_handle_message_notify_check)
 	daemon.buxton.client.uid = 1001;
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
 	fail_if(!buxton_cache_smack_rules(), "Failed to cache Smack rules");
 	fail_if(!buxton_direct_open(&daemon.buxton),
 		"Failed to open buxton direct connection");
@@ -1652,6 +1669,7 @@ START_TEST(buxtond_handle_message_notify_check)
 	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
+	hashmap_free(daemon.client_key_mapping);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list, NULL);
 }
@@ -1691,6 +1709,8 @@ START_TEST(buxtond_handle_message_unset_check)
 		"Failed to open buxton direct connection");
 	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
 
 	data1.type = STRING;
 	data1.store.d_string = buxton_string_pack("base");
@@ -1730,6 +1750,7 @@ START_TEST(buxtond_handle_message_unset_check)
 	free(list);
 	close(client);
 	hashmap_free(daemon.notify_mapping);
+	hashmap_free(daemon.client_key_mapping);
 	buxton_direct_close(&daemon.buxton);
 	buxton_array_free(&out_list, NULL);
 }
@@ -1764,6 +1785,8 @@ START_TEST(buxtond_notify_clients_check)
 	daemon.notify_mapping = hashmap_new(string_hash_func,
 					    string_compare_func);
 	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
 	fail_if(!buxton_cache_smack_rules(),
 		"Failed to cache Smack rules");
 	fail_if(!buxton_direct_open(&daemon.buxton),
@@ -2159,8 +2182,11 @@ START_TEST(terminate_client_check)
 	client->smack_label->value = strdup("dummy");
 	client->smack_label->length = 6;
 	fail_if(!client->smack_label->value, "label strdup failed");
+	daemon.notify_mapping = NULL;
+	daemon.client_key_mapping = NULL;
 
 	terminate_client(&daemon, client, 0);
+
 	fail_if(daemon.client_list, "Failed to set client list item to NULL");
 	close(dummy);
 }
@@ -2206,6 +2232,11 @@ START_TEST(handle_client_check)
 	daemon.nfds = 0;
 	daemon.pollfds = NULL;
 	daemon.accepting = NULL;
+	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
+
 	add_pollfd(&daemon, daemon.client_list->fd, 2, false);
 	fail_if(daemon.nfds != 1, "Failed to add pollfd 1");
 	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 1");
@@ -2275,6 +2306,9 @@ START_TEST(handle_client_check)
 	/* close(dummy); */
 	/* fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 6"); */
 	/* fail_if(daemon.client_list, "Failed to terminate client"); */
+
+	hashmap_free(daemon.notify_mapping);
+	hashmap_free(daemon.client_key_mapping);
 }
 END_TEST
 
