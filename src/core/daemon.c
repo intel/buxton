@@ -870,11 +870,11 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	fd = (uint64_t)client->fd;
 	/* Remove key name from client hashmap */
 	key_list = hashmap_get2(self->client_key_mapping, &fd, &old_fd);
-	
+
 	if (!key_list || !old_fd) {
 		abort();
 	}
-	
+
 	BUXTON_LIST_FOREACH(key_list, elem) {
 		if (!strcmp(elem->data, key_name)) {
 			client_keyname = elem->data;
@@ -888,7 +888,7 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 			hashmap_remove(self->client_key_mapping, &fd);
 			free(old_fd);
 		}
-	} 
+	}
 
 	msgid = citem->msgid;
 	/* Remove client from notifications */
@@ -1171,7 +1171,7 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	void *old_key_name = NULL;
 	void *old_fd = NULL;
 	uint64_t fd = (uint64_t)cl->fd;
-	
+
 	key_list = hashmap_get2(self->client_key_mapping, &fd, &old_fd);
 
 	if (key_list) {
@@ -1193,11 +1193,11 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 					break;
 				}
 			};
-			
+
 			if (!citem) {
 				abort();
-			}	
-			
+			}
+
 			/* Remove client from notifications */
 			free_buxton_data(&(citem->old_data));
 			buxton_list_remove(&n_list, citem, true);

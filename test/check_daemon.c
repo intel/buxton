@@ -2186,7 +2186,7 @@ START_TEST(terminate_client_check)
 	daemon.client_key_mapping = NULL;
 
 	terminate_client(&daemon, client, 0);
-	
+
 	fail_if(daemon.client_list, "Failed to set client list item to NULL");
 	close(dummy);
 }
