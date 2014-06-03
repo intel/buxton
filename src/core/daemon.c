@@ -776,7 +776,6 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 		abort();
 	}
 
-	r = asprintf(&key_name_copy, "%s%s", key->group.value, key->name.value);
 	key_name_copy = strdup(key_name);
 	if (!key_name_copy) {
 		abort();
@@ -1175,6 +1174,7 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 	key_list = hashmap_get2(self->client_key_mapping, &fd, &old_fd);
 
 	if (key_list) {
+		buxton_debug("Removing notifications for client before terminating\n");
 		BUXTON_LIST_FOREACH(key_list, elem) {
 			key_name = elem->data;
 			BuxtonList *n_list = NULL;
