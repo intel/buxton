@@ -2211,9 +2211,9 @@ START_TEST(terminate_client_check)
 	*fd = (uint64_t)client->fd;
 
 	ret = hashmap_put(daemon.notify_mapping, key_name, n_list);
-	fail_if(ret < 0,"Failed to put in hashmap\n"); 	
+	fail_if(ret < 0,"Failed to put in hashmap\n");
 	ret = hashmap_put(daemon.client_key_mapping, fd, key_list);
-	fail_if(ret < 0,"Failed to put in hashmap\n"); 	
+	fail_if(ret < 0,"Failed to put in hashmap\n");
 
 	terminate_client(&daemon, client, 0);
 	fail_if(daemon.client_list, "Failed to set client list item to NULL");
