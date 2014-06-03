@@ -38,6 +38,7 @@
 #include "log.h"
 #include "smack.h"
 #include "util.h"
+#include "buxtonlist.h"
 
 #ifdef NDEBUG
 #error "re-run configure with --enable-debug"
@@ -2165,6 +2166,13 @@ START_TEST(terminate_client_check)
 	client_list_item *client;
 	BuxtonDaemon daemon;
 	int dummy;
+	BuxtonList *n_list = NULL;
+	BuxtonList *key_list = NULL;
+	char *key_name = strdup("groupkey");
+	char *key_name_copy = strdup("groupkey");
+	int ret = -1;
+	uint64_t *fd = NULL;
+	BuxtonNotification *nitem = NULL;
 
 	client = malloc0(sizeof(client_list_item));
 	fail_if(!client, "client malloc failed");
@@ -2182,12 +2190,36 @@ START_TEST(terminate_client_check)
 	client->smack_label->value = strdup("dummy");
 	client->smack_label->length = 6;
 	fail_if(!client->smack_label->value, "label strdup failed");
-	daemon.notify_mapping = NULL;
-	daemon.client_key_mapping = NULL;
+	daemon.notify_mapping = hashmap_new(string_hash_func, string_compare_func);
+	fail_if(!daemon.notify_mapping, "Failed to allocate hashmap");
+	daemon.client_key_mapping = hashmap_new(uint64_hash_func, uint64_compare_func);
+	fail_if(!daemon.client_key_mapping, "Failed to allocate hashmap");
+
+	nitem = malloc0(sizeof(BuxtonNotification));
+	fail_if(!nitem,"Failed to allocate notification item\n");
+	nitem->client = client;
+	nitem->old_data = NULL;
+	nitem->msgid = 0;
+
+	ret = buxton_list_append(&n_list, nitem);
+	fail_if(!ret, "Failed to append to list\n");
+	ret = buxton_list_append(&key_list, key_name_copy);
+	fail_if(!ret, "Failed to append to list\n");
+
+	fd = malloc0(sizeof(uint64_t));
+	fail_if(!fd, "Failed to allocate fd\n");
+	*fd = (uint64_t)client->fd;
+
+	ret = hashmap_put(daemon.notify_mapping, key_name, n_list);
+	fail_if(ret < 0,"Failed to put in hashmap\n");
+	ret = hashmap_put(daemon.client_key_mapping, fd, key_list);
+	fail_if(ret < 0,"Failed to put in hashmap\n");
 
 	terminate_client(&daemon, client, 0);
-
 	fail_if(daemon.client_list, "Failed to set client list item to NULL");
+
+	hashmap_free(daemon.notify_mapping);
+	hashmap_free(daemon.client_key_mapping);
 	close(dummy);
 }
 END_TEST
