@@ -63,6 +63,7 @@ typedef struct BuxtonDaemon {
 	struct pollfd *pollfds;
 	client_list_item *client_list;
 	Hashmap *notify_mapping;
+	Hashmap *client_key_mapping;
 	BuxtonControl buxton;
 } BuxtonDaemon;
 
