@@ -118,6 +118,7 @@ endif
 EXTRA_DIST = \
 	Doxyfile \
 	LICENSE.LGPL2.1 \
+	HACKING \
 	check_db_clean \
 	data/libbuxton.pc.in \
 	docs/LICENSE.MIT \

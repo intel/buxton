@@ -1,0 +1,97 @@
+Buxton Hacking
+--------------
+
+Note that in order to contribute to Buxton you should first fork the
+repository on GitHub [1], and create a pull request to master from your
+feature branch.
+
+Indentation
+-----------
+Buxton uses tabs for indentation, with a tab width of 8. Ensure you do
+not mix spaces with tabs, all source files within Buxton provide modelines,
+please ensure your editor complies.
+
+Coding Style
+------------
+Always use a fail-first approach, ensuring you exit from your function if
+there is erronous input, for example, and not deep within a function.
+
+Buxton does not use spaces after function invocations, example:
+
+	buxton_function(x, y, z);
+
+Whereas this is considered invalid:
+
+	buxton_function (x, y, z);
+
+Spaces should still be used for loops, if-checks, etc:
+
+	while (someCondition) {
+	}
+
+And not:
+
+	while(someCondition) {
+	}
+
+When using internal (core/library) functionality, and not the *public API*,
+you should use helpers/workflow that already exist. For example we have
+automatic macros for freeing various types of data:
+
+	_cleanup_buxton_key_ BuxtonKey key;
+	
+This ensures that where appropriate, your memory is automatically free'd
+when it is out of scope. For more information please consult src/shared/util.h
+
+All if-blocks should have parentheses, even if they are single line checks.
+A valid example:
+
+	if (connected) {
+		/* Do something */
+	}
+	dosomethingelse();
+
+Invalid:
+	if (connected)
+		/* Do something */
+	dosomethingelse();
+	
+Always use C style comments (/* */) unless it is a FIXME (also try
+to avoid these where possible.)
+
+	/* Valid comment */
+	// Invalid comment
+	//FIXME: Valid FIXME statement with short description
+	
+A word on data types:
+----------
+When using the public API please ensure you keep your data types consistent
+with those publicly accessible. This means ensuring you are using uint64_t,
+uint32_t, etc.
+When using internal APIs, ensure that you use all available internal data
+types, such as BuxtonList, BuxtonArray, taking note of the pros and cons
+of vector approaches versus linked-list, etc. In order of degrading performance
+and resource usage:
+
+	BuxtonArray (simple vector)
+	BuxtonList (doubly linked list)
+	Hashmap (key,value hashmap)
+
+Mixing APIs
+-----------
+Note that internal library APIs may not be mixed with the public consumable
+API, as only the public API has guarantee of stability, and is unlikely
+to change. This means you should not use the cleanup helpers, etc, within
+your public components.
+
+Final note
+---------
+If changing "core" (daemon/library/cli) functionality, ensure that you
+run "make check" and "make distcheck" to validate changes. Always aim
+to provide maximum coverage (as checked by gcov), which may mean providing
+extra unit tests within test/ - Provide these as a separate commit if
+necessary.
+
+---
+ * [1] https://github.com/sofar/buxton
+
