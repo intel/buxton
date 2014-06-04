@@ -14,7 +14,7 @@ please ensure your editor complies.
 Coding Style
 ------------
 Always use a fail-first approach, ensuring you exit from your function if
-there is erronous input, for example, and not deep within a function.
+there is erroneous input, for example, and not deep within a function.
 
 Buxton does not use spaces after function invocations, example:
 
