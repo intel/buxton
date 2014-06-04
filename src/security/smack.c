@@ -59,7 +59,7 @@ bool buxton_cache_smack_rules(void)
 		abort();
 	}
 
-	/* FIXME: should check for a proper mount point instead */
+	//FIXME: should check for a proper mount point instead
 	if ((stat(SMACK_MOUNT_DIR, &buf) == -1) || !S_ISDIR(buf.st_mode)) {
 		buxton_log("Smack filesystem not detected; disabling Smack checks\n");
 		have_smack = false;

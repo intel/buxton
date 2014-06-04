@@ -242,8 +242,7 @@ static void update_value(BuxtonTest *self)
 
 	if (buxton_get_value(self->client, key,
 			     buxton_callback, self, false)) {
-		/* Buxton disconnects us when this happens. ##FIXME##
-		 * We force a reconnect */
+		//FIXME: We force reconnect as Buxton disconnects us here
 		report_error(self, "Cannot retrieve value");
 		buxton_close(self->client);
 		self->fd = -1;

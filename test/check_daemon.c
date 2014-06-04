@@ -2264,7 +2264,7 @@ START_TEST(handle_client_check)
 	fail_if(daemon.client_list, "Failed to remove client 1");
 	close(dummy);
 
-	//FIXME add SIGPIPE handler
+	//FIXME: add SIGPIPE handler
 	/* daemon.client_list = malloc0(sizeof(client_list_item)); */
 	/* fail_if(!daemon.client_list, "client malloc failed"); */
 	/* setup_socket_pair(&daemon.client_list->fd, &dummy); */

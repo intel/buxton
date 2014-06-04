@@ -161,7 +161,7 @@ START_TEST(buxton_direct_get_value_for_layer_check)
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
-	//FIXME get label test figured out
+	//FIXME: get label test figured out
 	fail_if(strcmp(result.store.d_string.value, "bxt_test_value") != 0,
 		"Buxton gdbm returned a different value to that set.");
 	if (result.store.d_string.value)
@@ -195,7 +195,7 @@ START_TEST(buxton_direct_get_value_check)
 		"Retrieving value from buxton gdbm backend failed.");
 	fail_if(result.type != STRING,
 		"Buxton gdbm backend returned incorrect result type.");
-	//FIXME figure out label check
+	//FIXME: figure out label check
 	fail_if(strcmp(result.store.d_string.value, "bxt_test_value2") != 0,
 		"Buxton gdbm returned a different value to that set.");
 	if (result.store.d_string.value)

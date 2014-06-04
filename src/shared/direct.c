@@ -337,7 +337,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 		char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 		bool skip_check = (root_check && streq(root_check, "0"));
 
-		/* FIXME: should check client's capability set instead of UID */
+		//FIXME: should check client's capability set instead of UID
 		if (control->client.uid != 0 && !skip_check) {
 			buxton_debug("Not permitted to create group '%s'\n", key->group.value);
 			goto fail;
@@ -412,7 +412,7 @@ bool buxton_direct_create_group(BuxtonControl *control,
 		char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 		bool skip_check = (root_check && streq(root_check, "0"));
 
-		/* FIXME: should check client's capability set instead of UID */
+		//FIXME: should check client's capability set instead of UID
 		if (control->client.uid != 0 && !skip_check) {
 			buxton_debug("Not permitted to create group '%s'\n", key->group.value);
 			goto fail;
@@ -497,7 +497,7 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 		char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 		bool skip_check = (root_check && streq(root_check, "0"));
 
-		/* FIXME: should check client's capability set instead of UID */
+		//FIXME: should check client's capability set instead of UID
 		if (control->client.uid != 0 && !skip_check) {
 			buxton_debug("Not permitted to remove group '%s'\n", key->group.value);
 			goto fail;
