@@ -43,7 +43,8 @@ automatic macros for freeing various types of data:
 This ensures that where appropriate, your memory is automatically free'd
 when it is out of scope. For more information please consult src/shared/util.h
 
-All if-blocks should have parentheses, even if they are single line checks.
+All if-blocks should have curly braces (brackets) and parentheses, even if
+they are single line checks.
 A valid example:
 
 	if (connected) {
@@ -55,7 +56,36 @@ Invalid:
 	if (connected)
 		/* Do something */
 	dosomethingelse();
+
+Additionally, curly braces should always be on the same line as the conditional,
+and are only on separate lines in the opening body of a function declaration.
+A valid example in a conditional check:
+
+
+	if (someCondition) {
+		/* Do something */
+	}
 	
+An invalid conditional check:
+
+	if (someCondition)
+	{
+		/* Do something */
+	}
+
+An invalid function declaration:
+
+	void doSomething(void) {
+		/* Body */
+	}
+
+Whereas this would be a valid example:
+
+	void doSomething(void)
+	{
+		/* Body */
+	}
+
 Always use C style comments (/* */) unless it is a FIXME (also try
 to avoid these where possible.)
 
