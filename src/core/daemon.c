@@ -857,8 +857,8 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 		/* Find the list item for this client */
 		if (nitem->client == client) {
 			citem = nitem;
+			break;
 		}
-		break;
 	};
 
 	/* Client hasn't registered for notifications on this key */
