@@ -253,8 +253,14 @@ void handle_callback_response(BuxtonControlMessage msg, uint32_t msgid,
 			return;
 		}
 
+		/*
+		* unlocking mutex to be able to call other client api's
+		* in notification callbacks
+		*/
+		(void)pthread_mutex_unlock(&callback_guard);
 		run_callback((BuxtonCallback)(nv->cb), nv->data, count, list,
 			     BUXTON_CONTROL_CHANGED, nv->key);
+		(void)pthread_mutex_lock(&callback_guard);
 		return;
 	}
 
