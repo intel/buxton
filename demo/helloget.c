@@ -58,6 +58,10 @@ int main(void)
 		return -1;
 	}
 
+/*
+ * A fully qualified key-name is being created since both group and key-name are not null.
+ * Group: "hello", Key-name: "test", Layer: "user", DataType: INT
+ */
 	key = buxton_key_create("hello", "test", "user", INT32);
 	if (!key) {
 		return -1;
