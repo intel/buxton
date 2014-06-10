@@ -66,6 +66,7 @@ group:"hello", name of key-name: "test", layer: "user", dataType: INT
 	if (!key) {
 		return -1;
 	}
+	
 	if (buxton_get_value(client, key, get_cb,
 			     &gvalue, false)) {
 		printf("get call failed to run\n");
