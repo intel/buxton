@@ -619,13 +619,17 @@ START_TEST(handle_callback_response_check)
 	fail_if(test_data, "Failed to set notify duplicate msgid");
 
 	test_data = true;
+	lock_mutex();
 	handle_callback_response(BUXTON_CONTROL_CHANGED, msgid, good, 1);
 	fail_if(test_data, "Failed to set changed data");
+	unlock_mutex();
 
 	/* ensure we don't remove callback on changed */
 	test_data = true;
+	lock_mutex();
 	handle_callback_response(BUXTON_CONTROL_CHANGED, msgid, good, 1);
 	fail_if(test_data, "Failed to set changed data");
+	unlock_mutex();
 
 	test_data = true;
 	msgid = 6;
@@ -653,8 +657,10 @@ START_TEST(handle_callback_response_check)
 
 	test_data = true;
 	msgid = 4;
+	lock_mutex();
 	handle_callback_response(BUXTON_CONTROL_CHANGED, msgid, good, 1);
 	fail_if(!test_data, "Didn't remove changed callback");
+	unlock_mutex();
 
 	cleanup_callbacks();
 	free(dest);

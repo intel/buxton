@@ -230,6 +230,13 @@ bool buxton_wire_unregister_notification(_BuxtonClient *client,
 
 void include_protocol(void);
 
+/**
+ * These functions are internal and are used in the test cases only for handle_client_check
+ */
+void lock_mutex(void);
+void unlock_mutex(void);
+
+
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
