@@ -58,11 +58,14 @@ int main(void)
 		return -1;
 	}
 
+/*
+ * Key-name is being created since both group and key-name are not null.
+group:"hello", name of key-name: "test", layer: "user", dataType: INT
+*/
 	key = buxton_key_create("hello", "test", "user", INT32);
 	if (!key) {
 		return -1;
 	}
-
 	if (buxton_get_value(client, key, get_cb,
 			     &gvalue, false)) {
 		printf("get call failed to run\n");
