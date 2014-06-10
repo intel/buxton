@@ -237,6 +237,17 @@ fail:
 	return false;
 }
 
+void lock_mutex(void)
+{
+	buxton_debug("Value of mutex %d", callback_guard.__data.__lock);
+	pthread_mutex_lock(&callback_guard);
+}
+
+void unlock_mutex(void)
+{
+	pthread_mutex_unlock(&callback_guard);
+}
+
 void handle_callback_response(BuxtonControlMessage msg, uint32_t msgid,
 			      BuxtonData *list, size_t count)
 {
