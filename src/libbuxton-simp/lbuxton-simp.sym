@@ -1,0 +1,6 @@
+BUXTON_1 {
+	global:
+		buxton_set_int32;
+	local:
+		*;
+};

@@ -64,6 +64,8 @@ LIBBUXTON_AGE=0
 pkgconfiglibdir=$(libdir)/pkgconfig
 pkgconfiglib_DATA = \
 	data/libbuxton.pc
+pkgconfiglib_DATA = \
+	data/libbuxton-simp.pc
 
 if MANPAGE
 dist_man_MANS = \
@@ -121,8 +123,10 @@ EXTRA_DIST = \
 	HACKING \
 	check_db_clean \
 	data/libbuxton.pc.in \
+	data/libbuxton-simp.pc.in \
 	docs/LICENSE.MIT \
 	src/libbuxton/lbuxton.sym \
+	src/libbuxton-simp/lbuxton-simp.sym \
 	test/test.load2 \
 	test/test.conf \
 	test/test-configurator.conf
@@ -211,7 +215,25 @@ include_HEADERS += \
 	src/include/buxton.h
 
 lib_LTLIBRARIES += \
-	libbuxton.la
+	libbuxton.la \
+	libbuxton-simp.la
+libbuxton_simp_la_SOURCES = \
+	src/libbuxton-simp/lbuxton-simp.c
+
+libbuxton_simp_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	@INIPARSER_CFLAGS@
+	-fvisibility=hidden
+
+libbuxton_simp_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	@INIPARSER_LIBS@ \
+	-version-info $(LIBBUXTON_SIMP_CURRENT):$(LIBBUXTON_SIMP_REVISION):$(LIBBUXTON_SIMP_AGE) \
+	-Wl,--version-script=$(top_srcdir)/src/libbuxton-simp/lbuxton-simp.sym
+
+libbuxton_simp_la_LIBADD = \
+	libbuxton.la \
+	-ldl
 
 libbuxton_la_SOURCES = \
 	src/libbuxton/lbuxton.c
@@ -277,7 +299,8 @@ check_buxton_CFLAGS = \
 check_buxton_LDADD = \
 	@CHECK_LIBS@ \
 	libbuxton.la \
-	libbuxton-shared.la
+	libbuxton-shared.la \
+	libbuxton-simp.la
 
 check_shared_lib_SOURCES = \
 	test/check_utils.c \
