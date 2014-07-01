@@ -7,10 +7,12 @@ arbitrary number of groups, each of which may contain key-value pairs.
 Mandatory Access Control (MAC) is implemented at the group level and at the
 key-value level.
 
-Buxton provides a C library (libbuxton) for client applications to use.
-Internally, buxton uses a daemon (buxtond) for processing client requests and
-enforcing MAC. Also, a CLI (buxtonctl) is provided for interactive use and for
-use in shell scripts.
+Buxton provides a C library (libbuxton) for client applications to use. As an
+alternative, it also provides a simpler C library (libbuxtonsimp) for client
+applications that reduces the amount of code needed to use buxton. Internally,
+buxton uses a daemon (buxtond) for processing client requests and enforcing MAC.
+Also, a CLI (buxtonctl) is provided for interactive use and for use in shell
+scripts.
 
 
 Build dependencies
