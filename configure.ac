@@ -212,6 +212,7 @@ AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket
 data/libbuxton.pc
+data/libbuxtonsimple.pc
 test/test-pass.ini
 test/test-fail.ini
 test/test.conf
