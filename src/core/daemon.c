@@ -1130,7 +1130,7 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 				abort();
 			}
 		}
-		if (cl->size != cl->offset) {
+		if (cl->size > cl->offset) {
 			continue;
 		}
 		if (!buxtond_handle_message(self, cl, cl->size)) {
