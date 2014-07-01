@@ -241,12 +241,14 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		 * set value
 		 */
 		ret = -ENOENT;
+		buxton_debug("!db\n");	
 		goto end;
 	}
 
 	value = gdbm_fetch(db, key_data);
 	if (value.dsize < 0 || value.dptr == NULL) {
 		ret = ENOENT;
+		buxton_debug("value.dsize < 0 || value.dptr == NULL\n");
 		goto end;
 	}
 
@@ -261,6 +263,7 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 			data->store.d_string.value = NULL;
 		}
 		ret = EINVAL;
+		buxton_debug("data->type != key->type\n");
 		goto end;
 	}
 	ret = 0;

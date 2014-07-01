@@ -48,8 +48,6 @@ int main(void)
 {
 	BuxtonClient client;
 	BuxtonKey key;
-	struct pollfd pfd[1];
-	int r;
 	int32_t gvalue = -1;
 	int fd;
 
@@ -68,25 +66,11 @@ int main(void)
 	}
 
 	if (buxton_get_value(client, key, get_cb,
-			     &gvalue, false)) {
+			     &gvalue, true)) {
 		printf("get call failed to run\n");
 		return -1;
 	}
 
-	pfd[0].fd = fd;
-	pfd[0].events = POLLIN;
-	pfd[0].revents = 0;
-	r = poll(pfd, 1, 5000);
-
-	if (r <= 0) {
-		printf("poll error\n");
-		return -1;
-	}
-
-	if (!buxton_client_handle_response(client)) {
-		printf("bad response from daemon\n");
-		return -1;
-	}
 
 	if (gvalue >= 0) {
 		printf("got value: %d\n", gvalue);
