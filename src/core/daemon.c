@@ -941,6 +941,8 @@ bool identify_client(client_list_item *cl)
 	msgh.msg_name = NULL;
 	msgh.msg_namelen = 0;
 
+	msgh.msg_flags = 0;
+
 	nr = recvmsg(cl->fd, &msgh, MSG_PEEK | MSG_DONTWAIT);
 	if (nr == -1) {
 		return false;
