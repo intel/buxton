@@ -1,0 +1,23 @@
+BUXTONSIMPLE_1 {
+	global:
+		sbuxton_set_group;
+		sbuxton_set_int32;
+		sbuxton_get_int32;
+		sbuxton_set_string;
+		sbuxton_get_string;
+		sbuxton_set_uint32;
+		sbuxton_get_uint32;
+		sbuxton_set_int64;
+		sbuxton_get_int64;
+		sbuxton_set_uint64;
+		sbuxton_get_uint64;
+		sbuxton_set_float;
+		sbuxton_get_float;
+		sbuxton_set_double;
+		sbuxton_get_double;
+		sbuxton_set_bool;
+		sbuxton_get_bool;
+		sbuxton_remove_group;
+	local:
+		*;
+};
