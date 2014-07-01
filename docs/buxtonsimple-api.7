@@ -1,0 +1,114 @@
+'\" t
+.TH "BUXTONSIMPLE\-API" "7" "" "buxton 1" "buxtonsimple\-api"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxtonsimple\-api \- List of all Buxton Simple API functions
+
+.SH "DESCRIPTION"
+.PP
+This document contains the complete list of Buxton Simple API functions,
+each having its own manual page\&.
+
+In addition, there are several "hello world" demo programs in the
+buxton source tree, in the demos/ directory, that demonstrate how to
+use these API functions\&.
+
+.SH "API functions"
+
+.SS "Group storage and manipulation"
+.PP
+\fBsbuxton_set_group\fR(3)
+\(em Create or change to a group within a layer
+.br
+\fBsbuxton_remove_group\fR(3)
+\(em Remove a group within a layer
+.br
+
+.SS "Key set functions"
+.PP
+\fBsbuxton_set_int32\fR(3)
+\(em Set the value for an int32_t type key
+.br
+\fBsbuxton_set_string\fR(3)
+\(em Set the value for a string type key
+.br
+\fBsbuxton_set_uint32\fR(3)
+\(em Set the value for a uint32_t type key
+.br
+\fBsbuxton_set_int64\fR(3)
+\(em Set the value for an int64_t type key
+.br
+\fBsbuxton_set_uint64\fR(3)
+\(em Set the value for a uint64_t type key
+.br
+\fBsbuxton_set_float\fR(3)
+\(em Set the value of a float type key
+.br
+\fBsbuxton_set_double\fR(3)
+\(em Set the value for a double type key
+.br
+\fBsbuxton_set_bool\fR(3)
+\(em Set the value for a bool type key
+.br
+
+.SS "Key get functions"
+.PP
+\fBsbuxton_get_int32\fR(3)
+\(em Get the value for an int32_t type key
+.br
+\fBsbuxton_get_string\fR(3)
+\(em Get the value for a string type key
+.br
+\fBsbuxton_get_uint32\fR(3)
+\(em Get the value for a uint32_t type key
+.br
+\fBsbuxton_get_int64\fR(3)
+\(em Get the value for an int64_t type key
+.br
+\fBsbuxton_get_uint64\fR(3)
+\(em Get the value for a uint64_t type key
+.br
+\fBsbuxton_get_float\fR(3)
+\(em Get the value of a float type key
+.br
+\fBsbuxton_get_double\fR(3)
+\(em Get the value for a double type key
+.br
+\fBsbuxton_get_bool\fR(3)
+\(em Get the value for a bool type key
+.br
+
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE
