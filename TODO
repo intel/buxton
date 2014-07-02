@@ -5,13 +5,6 @@ Time to complete: (estimate in days)
 Target: Version to be released in
 Status: If multi part change, what has been done so far
 
-Description: Update logic for smack access checks
-Difficulty: Medium
-Time to complete: 6
-Target: v1
-Status: In progress. Refer to https://github.com/sofar/buxton/wiki/Smack-TODO
-        for details.
-
 Description: Test multi-part messaging in the client-side of the library,
 	     mirroring changes made to buxtond's protocol handling
 Difficulty: Complex
@@ -26,17 +19,11 @@ Time to complete: 4
 Target: ??
 Status:
 
-Description: Tests for nonblocking calls between client and server
-Difficulty: Simple
-Time to complete: 4
-Target: ??
-Status:
-
 Description: Fixup list keys
 Difficulty: Medium
 Time to complete: 5
 Target: ??
-Status:
+Status: In Progress
 
 Description: Bulk send receive messages
 Difficulty: Complex
@@ -48,7 +35,7 @@ Description: Complete code coverage (minus exceptional cases)
 Difficulty: Simple
 Time to complete: 10
 Target: after v1
-Status: 79.6% of lines covered
+Status: 79.1% of lines covered (Update should be file list which has complete, minus exception, coverage)
 
 Description: Use BuxtonArray for message deserialization
 Difficulty: Medium
@@ -66,7 +53,7 @@ Description: Tizen programs converted to use Buxton
 Difficulty: Complex
 Time to complete: 10
 Target: v1
-Status:
+Status: In Progress
 
 Description: Allow notification registration for non existant keys
 Difficulty: Simple
@@ -79,12 +66,6 @@ Difficulty: Medium
 Time to complete: 3
 Target: ??
 Status:
-
-Description: Ensure all public apis give copies of data
-Difficulty: Simple
-Time to complete: 1
-Target: ??
-Status: All done aside from list_keys which needs to be updated for the new api
 
 Description: Add Wextra to compiler flags once iniparser is gone
 Difficulty: Simple
