@@ -77,7 +77,7 @@ PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
 # Checks for header files.
 AC_FUNC_ALLOCA
 AC_HEADER_STDBOOL
-AC_CHECK_HEADERS([attr/xattr.h], [], [AC_MSG_ERROR([Unable to fin xattr headers])])
+AC_CHECK_HEADERS([attr/xattr.h], [], [AC_MSG_ERROR([Unable to find xattr headers])])
 AC_CHECK_HEADERS([fcntl.h])
 AC_CHECK_HEADERS([gdbm.h], [], [AC_MSG_ERROR([Unable to find gdbm headers])])
 AC_CHECK_HEADERS([inttypes.h])
