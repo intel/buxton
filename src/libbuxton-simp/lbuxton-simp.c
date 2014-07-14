@@ -7,8 +7,6 @@
 #include "buxton.h"
 
 static BuxtonClient client=NULL;
-static int fd =-1;
-/*remove global and do local open and close*/
 static char _layer[256];
 static char _group[256];
 typedef struct vstatus {
@@ -26,7 +24,7 @@ typedef struct vstatus {
 	};
 } vstatus;
 /*Save errno*/
-int saved_errno;
+int saved_errno; 
 void save_errno(void)
 {
 	saved_errno = errno;
@@ -34,11 +32,18 @@ void save_errno(void)
 /*Open client connection*/
 void sbuxton_open(void)
 {
+	int fd = -1;
 	if ((fd= buxton_open(&client)) <0 ){
 		printf("Couldn't connect.\n");
 		return;
 	}
 	printf("Connection successful.\n");
+}
+/*Close client connection*/
+void sbuxton_close(void)
+{ 
+	buxton_close(client);
+	printf("Connection closed\n");
 }
 /*Make sure client connection is open*/
 void client_connection(void)
@@ -47,6 +52,16 @@ void client_connection(void)
 	if(!client){
 		/*Open connection if needed*/
 		sbuxton_open();
+	}
+}
+/*Close an open client connection*/
+void client_disconnect(void)
+{
+	/*Only attempt to close the client if it != NULL*/
+	if(client) {
+		/*Close the connection*/
+		sbuxton_close();
+		client = NULL;
 	}
 }
 /*Create group callback*/
@@ -66,24 +81,21 @@ void buxtond_set_group(char *group, char *layer)
 {
 	client_connection();
 	save_errno();
-	if(_layer){
-		free(_layer);
-	}
-	if(_group){
-		free(_group);
-	}
-	_layer = strcpy(layer);
+	strncpy(_layer, layer, sizeof(_layer));
+	printf("_layer = %s\n", _layer);
 	/*add cleanup for strdups*/
 	if(!_layer){
 		printf("Layer assignment failed. Aborting operation.\n");
 		return;
 	}
-	_group = strcpy(group);
+	strncpy(_group, group, sizeof(_group));
+	printf("_group = %s\n", _group);
 	if(!_group){
 		printf("Group assignment failed. Aborting operation.\n");
 		return;
 	}
 	BuxtonKey g = buxton_key_create(_group, NULL, _layer, STRING);
+	printf("buxton key group = %s\n", buxton_key_get_group(g));
 	int status;
 	if (buxton_create_group(client, g, cg_cb, &status, true)){
 		printf("Create group call failed.\n");
@@ -92,6 +104,7 @@ void buxtond_set_group(char *group, char *layer)
 		errno = saved_errno;
 	}
 	buxton_key_free(g);
+	//client_disconnect();
 }
 /*buxton_set_value callback for all buxton data types*/
 void bs_cb(BuxtonResponse response, void *data){
@@ -265,6 +278,7 @@ void buxtond_set_int32(char *key, int32_t value)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 }
 /*buxton_get_value callback and function for int32_t*/
 void bgi32_cb(BuxtonResponse response, void *data)
@@ -298,6 +312,7 @@ int32_t buxtond_get_int32(char *key)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 	return ret.i32val;
 }
 /*buxton_set_value callback and function for string*/
@@ -318,7 +333,8 @@ void buxtond_set_string(char *key, char *value )
 	/*make sure client connection is open*/
 	client_connection();
 	/*create key*/
-	BuxtonKey _key = buxton_key_create(_group, strdup(key), _layer, STRING);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, STRING);
+//try w/o strdup-ing key
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = STRING;
@@ -334,6 +350,7 @@ void buxtond_set_string(char *key, char *value )
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 }
 /*buxton_get_value callback and function for string*/
 void bgs_cb(BuxtonResponse response, void *data)
@@ -352,7 +369,7 @@ char* buxtond_get_string(char *key)
 	/*make sure client connection is open*/
 	client_connection();
 	/*create key*/
-	BuxtonKey _key = buxton_key_create(_group, strdup(key), _layer, STRING);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, STRING);
 	/*return value*/
 	vstatus ret;
 	ret.type = STRING;
@@ -367,6 +384,7 @@ char* buxtond_get_string(char *key)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 	return ret.sval;
 }
 /*buxton_set_value callback and function for uint32_t*/
@@ -402,6 +420,7 @@ void buxtond_set_uint32(char *key, uint32_t value)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 }
 /*buxton_get_value callback and function for uint32_t*/
 void bgui32_cb(BuxtonResponse response, void *data)
@@ -435,6 +454,7 @@ uint32_t buxtond_get_uint32(char *key)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 	return ret.ui32val;
 }
 /*buxton_set_value callback and function for int64_t*/
@@ -470,6 +490,7 @@ void buxtond_set_int64(char *key, int64_t value)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 }
 /*buxton_get_value callback and function for int64_t*/
 void bgi64_cb(BuxtonResponse response, void *data)
@@ -503,6 +524,7 @@ int64_t buxtond_get_int64(char *key)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 	return ret.i64val;
 }
 /*buxton_set_value callback and function for uint64_t*/
@@ -538,6 +560,7 @@ void buxtond_set_uint64(char *key, uint64_t value)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 }
 /*buxton_get_value callback and function for uint64_t*/
 void bgui64_cb(BuxtonResponse response, void *data)
@@ -571,6 +594,7 @@ uint64_t buxtond_get_uint64(char *key)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 	return ret.ui64val;
 }
 /*buxton_set_value callback and function for float*/
@@ -606,6 +630,7 @@ void buxtond_set_float(char *key, float value)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 }
 /*buxton_get_value callback and function for float*/
 void bgf_cb(BuxtonResponse response, void *data)
@@ -639,6 +664,7 @@ float buxtond_get_float(char *key)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 	return ret.fval;
 }
 /*buxton_set_value callback and function for double*/
@@ -674,6 +700,7 @@ void buxtond_set_double(char *key, double value)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 }
 /*buxton_get_value callback and function for double*/
 void bgd_cb(BuxtonResponse response, void *data)
@@ -707,6 +734,7 @@ double buxtond_get_double(char *key)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 	return ret.dval;
 }
 /*buxton_set_value callback and function for boolean*/
@@ -742,6 +770,7 @@ void buxtond_set_bool(char *key, bool value)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 }
 /*buxton_get_value callback and function for boolean*/
 void bgb_cb(BuxtonResponse response, void *data)
@@ -775,13 +804,18 @@ bool buxtond_get_bool(char *key)
 		errno = saved_errno;
 	}
 	buxton_key_free(_key);
+	client_disconnect();
 	return ret.bval;
 }
-/*create a client side group TODO: create BuxtonGroup type*/
+/*create a client side group TODO: create BuxtonGroup type
+	probably not really needed*/
 BuxtonKey buxton_group_create(char *name, char *layer)
 {
-	client_connection();
+	/* Only helper function- not called outside the library, so doesn't need
+	to connect/disconnect
+	client_connection();*/
 	BuxtonKey ret = buxton_key_create(name, NULL, layer, STRING);
+	/*client_disconnect();*/
 	return ret;
 }
 /*create a buxtond side group*/
@@ -791,10 +825,12 @@ void buxtond_create_group(BuxtonKey group)
 	if (buxton_create_group(client, group, NULL, NULL, true)){
 		printf("Create group call failed.\n");
 		buxton_key_free(group);
+		client_disconnect();
 		return;
 	}
 	/*TODO*/
 	//buxton_key_free(group);
+	client_disconnect();
 }
 BuxtonKey buxtond_create_group2(char *group_name, char *layer)
 {
@@ -803,8 +839,11 @@ BuxtonKey buxtond_create_group2(char *group_name, char *layer)
 	if (buxton_create_group(client, group, NULL, NULL, true)){
 		printf("Create group call failed.\n");
 		buxton_key_free(group);
+		client_disconnect();
 		return;
 	}
+	client_disconnect();
+
 	return group;
 	/*Buxton free key? TODO*/
 }
@@ -823,6 +862,7 @@ void buxtond_remove_group(BuxtonKey group)
 	if (buxton_remove_group(client, group, rg_cb, NULL, true)){
 		printf("Remove group call failed.\n");
 	}
+	client_disconnect();
 }
 void buxtond_remove_group2(char *group_name, char *layer)
 {
@@ -832,6 +872,7 @@ void buxtond_remove_group2(char *group_name, char *layer)
 		printf("Remove group call failed.\n");
 	}
 	buxton_key_free(group);
+	client_disconnect();
 }
 /*buxton_key_free insert char key name and type*/
 void buxtond_key_free(char * key_name, BuxtonDataType type)
@@ -840,3 +881,132 @@ void buxtond_key_free(char * key_name, BuxtonDataType type)
 	buxton_key_free(k);
 }
 
+/*DEMONSTRATION*/
+int main(void)
+{
+	/*Create group*/
+	errno = 0;
+	buxtond_set_group("tg_s0", "user");
+//	printf("set_group: 'tg_s0', 'user', Error number: %s.\n", strerror(errno));
+	/*Test string setting*/
+	srand(time(NULL));
+	char * s="Watermelon";
+	printf("value should be set to %s.\n", s);
+	errno = 0;
+	buxtond_set_string("tk_s1", s);
+//	printf("set_string: 'tg_s0', 'tk_s1', Error number: %s.\n", strerror(errno));
+	/*Test string getting*/
+	char * sv = buxtond_get_string("tk_s1");
+	printf("Got value: %s(string).\n", sv);		
+//	printf("get_string: 'tk_s1', Error number: %s.\n", strerror(errno));
+	/*Create group*/
+	errno = 0;
+	buxtond_set_group("tg_s1", "user");
+//	printf("set_group: 'tg_s1', Error number: %s.\n", strerror(errno));
+	/*Test int32 setting*/
+	srand(time(NULL));
+	int32_t i=rand()%100+1;
+	printf("value should be set to %i.\n",i);
+	errno = 0;
+	buxtond_set_int32("tk_i32", i);
+//	printf("set_int32: 'tg_s1', 'tk_i32', Error number: %s.\n", strerror(errno));
+
+	errno = 0;
+	buxtond_set_group("tg_s2", "user");
+//	printf("set_group: 'tg_s2', Error number: %s.\n", strerror(errno));
+	srand(time(NULL));
+	int32_t i2=rand()%1000+1;
+	printf("Second value should be set to %i.\n", i2);
+	errno = 0;
+	buxtond_set_int32("tk_i32b", i2);
+//	printf("set_int32: 'tg_s2', 'tk_i32b', Error number: %s.\n", strerror(errno));
+	/*Test int32 getting*/
+	errno = 0;
+	buxtond_set_group("tg_s1", "user");
+//	printf("set_group: 'tg_s1', Error number: %s.\n", strerror(errno));
+	errno = 0;
+	int32_t iv = buxtond_get_int32("tk_i32");
+//	printf("get_int32: 'tg_s1', 'tk_i32', Error number: %s.\n", strerror(errno));
+	printf("Got value: %i(int32_t).\n", iv);
+	errno = 0;
+	buxtond_set_group("tg_s2", "user");
+//	printf("set_group: 'tg_s2', Error number: %s.\n", strerror(errno));
+	errno = 0;
+	int32_t i2v = buxtond_get_int32("tk_i32b");
+	printf("Got value: %i(int32_t).\n", i2v);
+//	printf("get_int32: 'tg_s2', 'tk_i32b', Error number: %s.\n", strerror(errno));
+	/*Test uint32 setting*/
+	errno = 0;
+	buxtond_set_group("tg_s3", "user");
+//	printf("set_group: 'tg_s3', Error number: %s.\n", strerror(errno));
+	uint32_t ui32 = rand()%50+1;
+	printf("value should be set to %u.\n", ui32);
+	errno = 0;
+	buxtond_set_uint32("tk_ui32", ui32);
+//	printf("set_uint32: 'tg_s3', 'tk_ui32', Error number: %s.\n", strerror(errno));
+	/*Test uint32 getting*/
+	errno = 0;
+	uint32_t ui32v = buxtond_get_uint32("tk_ui32");
+	printf("Got value: %i(uint32_t).\n", ui32v);
+//	printf("get_uint32: 'tg_s3', 'tk_ui32', Error number: %s.\n", strerror(errno));
+	/*Test  int64 setting*/
+	int64_t i64 = rand()%1000+1;
+	printf("value should be set to ""%"PRId64".\n", i64);
+	errno = 0;
+	buxtond_set_int64("tk_i64", i64);
+	/*Test int64 getting*/
+	errno = 0;
+	int64_t i64v = buxtond_get_int64("tk_i64");
+	printf("Got value: ""%"PRId64"(int64_t).\n", i64v);
+//	printf("get_int64: 'tg_s3', 'tk_i64', Error number: %s.\n", strerror(errno));
+	/*Test uint64 setting*/
+	errno = 0;
+	buxtond_set_group("tg_s0", "user");
+	uint64_t ui64 = rand()%500+1;
+	printf("value should be set to ""%"PRIu64".\n", ui64);
+	errno = 0;
+	buxtond_set_uint64("tk_ui64", ui64);
+	/*Test uint64 getting*/
+	errno = 0;
+	uint64_t ui64v = buxtond_get_uint64("tk_ui64");
+	printf("Got value: ""%"PRIu64"(uint64_t).\n", ui64v);
+//	printf("get_uint64: 'tg_s0', 'tk_ui64', Error number: %s.\n", strerror(errno));
+	/*Test float setting*/
+	float f = rand()%9+1;
+	printf("value should be set to %e.\n", f);
+	errno = 0;
+	buxtond_set_float("tk_f", f);
+	/*Test float getting*/
+	errno = 0;
+	float fv = buxtond_get_float("tk_f");
+	printf("Got value: %e(float).\n", fv);
+//	printf("get_float: 'tg_s0', 'tk_f', Error number: %s.\n", strerror(errno));
+	/*Test double setting*/
+	double d = rand()%7000+1;
+	printf("value should be set to %e.\n", d);
+	errno = 0;
+	buxtond_set_double("tk_d", d);
+	/*Test double getting*/
+	errno = 0;
+	double dv = buxtond_get_double("tk_d");
+	printf("Got value: %e(double).\n", dv);
+//	printf("get_double: 'tg_s0', 'tk_f', Error number: %s.\n", strerror(errno));
+	/*Test boolean setting*/
+	bool b = true;
+	printf("value should be set to %i.\n", b);
+	errno = 0;
+	buxtond_set_bool("tk_b", b);
+	/*Test boolean getting*/
+	errno = 0;
+	bool bv = buxtond_get_bool("tk_b");
+	printf("Got value: %i(bool).\n", bv);		
+//	printf("get_bool: 'tg_s0', 'tk_b', Error number: %s.\n", strerror(errno));
+	/*Close connection*/
+	errno = 0;
+	buxtond_remove_group2("tg_s1", "user");
+	printf("Remove group: 'tg_s1', 'user' Error number: %s.\n", strerror(errno));
+	buxtond_remove_group2("tg_s0", "user");
+	buxtond_remove_group2("tg_s2", "user");
+	buxtond_remove_group2("tg_s3", "user");
+	buxton_close(client);
+}
