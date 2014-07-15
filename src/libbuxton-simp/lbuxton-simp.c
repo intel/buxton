@@ -104,7 +104,7 @@ void buxtond_set_group(char *group, char *layer)
 		errno = saved_errno;
 	}
 	buxton_key_free(g);
-	//client_disconnect();
+	client_disconnect();
 }
 /*buxton_set_value callback for all buxton data types*/
 void bs_cb(BuxtonResponse response, void *data){
