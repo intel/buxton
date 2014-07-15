@@ -63,7 +63,8 @@ LIBBUXTON_AGE=0
 
 pkgconfiglibdir=$(libdir)/pkgconfig
 pkgconfiglib_DATA = \
-	data/libbuxton.pc
+	data/libbuxton.pc \
+	data/libbuxton-simp.pc
 
 if MANPAGE
 dist_man_MANS = \
