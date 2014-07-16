@@ -1,6 +1,54 @@
-BUXTON_1 {
+BUXTONSIMP_1 {
 	global:
-		buxton_set_int32;
+		save_errno;
+		sbuxton_open;
+		sbuxton_close;
+		client_connection;
+		client_disconnect;
+		cg_cb;
+		buxtond_set_group;
+		bs_print;
+		bs_cb;
+		bg_cb;
+		bsi32_cb;
+		buxtond_set_int32;
+		bgi32_cb;
+		buxtond_get_int32;
+		bss_cb;
+		buxtond_set_string;
+		bgs_cb;
+		buxtond_get_string;
+		bsui32_cb;
+		buxtond_set_uint32;
+		bgui32_cb;
+		buxtond_get_uint32;
+		bsi64_cb;
+		buxtond_set_int64;
+		bgi64_cb;
+		buxtond_get_int64;
+		bsui64_cb;
+		buxtond_set_uint64;
+		bgui64_cb;
+		buxtond_get_uint64;
+		bsf_cb;
+		buxtond_set_float;
+		bgf_cb;
+		buxtond_get_float;
+		bsd_cb;
+		buxtond_set_double;
+		bgd_cb;
+		buxtond_get_double;
+		bsb_cb;
+		buxtond_set_bool;
+		bgb_cb;
+		buxtond_get_bool;
+		buxton_group_create;
+		buxtond_create_group;
+		buxtond_create_group2;
+		rg_cb;
+		buxtond_remove_group;
+		buxtond_remove_group2;
+		buxtond_key_free;
 	local:
 		*;
 };

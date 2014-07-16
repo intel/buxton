@@ -8,7 +8,7 @@
 #include "buxton.h"
 #include "lbuxton-simp.h"
 
-/*DEMONSTRATION*/
+/*DEMONSTRATION*/						
 int main(void)
 {
 	/*Create group*/

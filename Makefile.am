@@ -122,8 +122,10 @@ EXTRA_DIST = \
 	HACKING \
 	check_db_clean \
 	data/libbuxton.pc.in \
+	data/libbuxton.pc.in
 	docs/LICENSE.MIT \
 	src/libbuxton/lbuxton.sym \
+	src/libbuxton-simp/libbuxton-simp.sym
 	test/test.load2 \
 	test/test.conf \
 	test/test-configurator.conf
@@ -209,10 +211,13 @@ libbuxton_shared_la_LDFLAGS = \
 	-static
 
 include_HEADERS += \
-	src/include/buxton.h
+	src/include/buxton.h \
+	src/libbuxton-simp/lbuxton-simp.h
 
+#added libbuxton-simp.la
 lib_LTLIBRARIES += \
-	libbuxton.la
+	libbuxton.la \
+	libbuxtonsimp.la 
 
 libbuxton_la_SOURCES = \
 	src/libbuxton/lbuxton.c
@@ -231,6 +236,26 @@ libbuxton_la_LDFLAGS = \
 libbuxton_la_LIBADD = \
 	libbuxton-shared.la \
 	-ldl
+
+#adding stuff for libbuxtonsimp
+libbuxtonsimp_la_SOURCES = \
+	src/libbuxton/lbuxton.c \
+	src/libbuxton-simp/lbuxton-simp.c
+
+libbuxtonsimp_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	@INIPARSER_CFLAGS@
+	-fvisibility=hidden #add this after putting in the visibility stuff in .h
+
+libbuxtonsimp_la_LDFLAGS = \
+	-version-info 1:0:1 \
+	-version-info $(LIBBUXTON_CURRENT):$(LIBBUXTON_REVISION):$(LIBBUXTON_AGE) \
+	-Wl,--version-script=$(top_srcdir)/src/libbuxton-simp/lbuxton-simp.sym
+
+libbuxtonsimp_la_LIBADD = \
+	libbuxton-shared.la \
+	-ldl
+#end adding stuff for libbuxtonsimp
 
 pkglib_LTLIBRARIES += \
 	gdbm.la \
