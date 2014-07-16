@@ -1,7 +1,7 @@
 /*
  * This file is part of buxton.
  *
- * Copyright (C) 2013 Intel Corporation
+ * Copyright (C) 2014 Intel Corporation
  *
  * buxton is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -10,10 +10,10 @@
  */
 
 /**
- * \file lbuxton-simp.h Buxton public header
+ * \file buxton-simp.h Buxton public header
  *
  *
- * \copyright Copyright (C) 2013 Intel corporation
+ * \copyright Copyright (C) 2014 Intel corporation
  * \par License
  * GNU Lesser General Public License 2.1
  */

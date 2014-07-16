@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "buxton.h"
-#include "lbuxton-simp.h"
+#include "buxton-simp.h"
 
 static BuxtonClient client=NULL;
 static char _layer[256];

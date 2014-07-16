@@ -212,7 +212,7 @@ libbuxton_shared_la_LDFLAGS = \
 
 include_HEADERS += \
 	src/include/buxton.h \
-	src/libbuxton-simp/lbuxton-simp.h
+	src/include/buxton-simp.h
 
 #added libbuxton-simp.la
 lib_LTLIBRARIES += \
