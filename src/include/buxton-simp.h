@@ -41,7 +41,7 @@ typedef struct vstatus {
 		float fval;
 		double dval;
 		bool bval;
-	};
+	} val;
 } vstatus;
 
 /*TODO: add descriptions to all the function w/ parameters and return values*/

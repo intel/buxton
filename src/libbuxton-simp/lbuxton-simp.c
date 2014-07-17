@@ -11,7 +11,7 @@
 static BuxtonClient client=NULL;
 static char _layer[256];
 static char _group[256];
-static const int MAX_STRING_LENGTH=sizeof(_layer)<sizeof(_group)?sizeof(_group):sizeof(_layer);
+static const size_t MAX_STRING_LENGTH=sizeof(_layer)<sizeof(_group)?sizeof(_group):sizeof(_layer);
 
 /*Save errno*/
 int saved_errno;
@@ -99,50 +99,55 @@ void bs_print(vstatus *data, BuxtonResponse response)
 	switch(data->type){
 		case STRING:
 		{
-			char * val = data->sval;
+			char * val = data->val.sval;
 			printf("Success: value has been set: %s(string). ", val);
 			break;
 		}
 		case INT32:
 		{
-			int32_t val = data->i32val;
+			int32_t val = data->val.i32val;
 			printf("Success: value has been set: %d(int32_t). ", val);
 			break;
 		}
 		case UINT32:
 		{
-			uint32_t val = data->ui32val;
+			uint32_t val = data->val.ui32val;
 			printf("Success: value has been set: %d(uint32_t). ", val);
 			break;
 		}
 		case INT64:
 		{
-			int64_t val = data->i64val;
+			int64_t val = data->val.i64val;
 			printf("Success: value has been set: ""%"PRId64"(int64_t). ", val);
 			break;
 		}
 		case UINT64:
 		{
-			uint64_t val = data->ui64val;
+			uint64_t val = data->val.ui64val;
 			printf("Success: value has been set: ""%"PRIu64"(uint64_t). ", val);
 			break;
 		}
 		case FLOAT:
 		{
-			float val = data->fval;
+			float val = data->val.fval;
 			printf("Success: value has been set: %f(float). ", val);
 			break;
 		}
 		case DOUBLE:
 		{
-			double val = data->dval;
+			double val = data->val.dval;
 			printf("Success: value has been set: %e(double). ", val);
 			break;
 		}
 		case BOOLEAN:
 		{
-			bool val = data->bval;
+			bool val = data->val.bval;
 			printf("Success: value has been set: %i(bool). ", val);
+			break;
+		}
+		default:
+		{
+			printf("Data type not found\n");
 			break;
 		}
 	}
@@ -172,50 +177,55 @@ void bg_cb(BuxtonResponse response, void *data)
 	switch (ret->type){
 		case STRING:
 		{
-			ret->sval = *(char**)buxton_response_value(response);
+			ret->val.sval = *(char**)buxton_response_value(response);
 			type = "string";
 			break;
 		}
 		case INT32:
 		{
-			ret->i32val = *(int32_t*)buxton_response_value(response);
+			ret->val.i32val = *(int32_t*)buxton_response_value(response);
 			type = "int32_t";
 			break;
 		}
 		case UINT32:
 		{
-			ret->ui32val = *(uint32_t*)buxton_response_value(response);
+			ret->val.ui32val = *(uint32_t*)buxton_response_value(response);
 			type = "uint32_t";
 			break;
 		}
 		case INT64:
 		{
-			ret->i64val = *(int64_t*)buxton_response_value(response);
+			ret->val.i64val = *(int64_t*)buxton_response_value(response);
 			type = "int64_t";
 			break;
 		}
 		case UINT64:
 		{
-			ret->ui64val = *(uint64_t*)buxton_response_value(response);
+			ret->val.ui64val = *(uint64_t*)buxton_response_value(response);
 			type = "uint64_t";
 			break;
 		}
 		case FLOAT:
 		{
-			ret->fval = *(float*)buxton_response_value(response);
+			ret->val.fval = *(float*)buxton_response_value(response);
 			type = "float";
 			break;
 		}
 		case DOUBLE:
 		{
-			ret->dval = *(double*)buxton_response_value(response);
+			ret->val.dval = *(double*)buxton_response_value(response);
 			type = "double";
 			break;
 		}
 		case BOOLEAN:
 		{
-			ret->bval = *(bool*)buxton_response_value(response);
+			ret->val.bval = *(bool*)buxton_response_value(response);
 			type = "bool";
+			break;
+		}
+		default:
+		{
+			type = "unknown";
 			break;
 		}
 	}
@@ -251,7 +261,7 @@ void buxtond_set_int32(char *key, int32_t value)
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = INT32;
-	ret.i32val = value;
+	ret.val.i32val = value;
 	save_errno();
 	/*call buxton_set_value for type INT32*/
 	if (buxton_set_value(client, _key, &value, bs_cb, &ret, true)){
@@ -277,7 +287,7 @@ void bgi32_cb(BuxtonResponse response, void *data)
 		return;
 	}
 	ret->status=1;
-	ret->i32val = *(int32_t*)buxton_response_value(response);
+	ret->val.i32val = *(int32_t*)buxton_response_value(response);
 }
 
 int32_t buxtond_get_int32(char *key)
@@ -301,7 +311,7 @@ int32_t buxtond_get_int32(char *key)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-	return ret.i32val;
+	return ret.val.i32val;
 }
 
 /*buxton_set_value callback and function for string*/
@@ -327,7 +337,7 @@ void buxtond_set_string(char *key, char *value )
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = STRING;
-	ret.sval = value;
+	ret.val.sval = value;
 	save_errno();
 	/*set value*/
 	if (buxton_set_value(client, _key, &value, bs_cb, &ret, true)){
@@ -352,7 +362,7 @@ void bgs_cb(BuxtonResponse response, void *data)
 		return;
 	}
 	ret->status=1;
-	ret->sval = *(char**)buxton_response_value(response);
+	ret->val.sval = *(char**)buxton_response_value(response);
 }
 
 char* buxtond_get_string(char *key)
@@ -376,7 +386,7 @@ char* buxtond_get_string(char *key)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-	return ret.sval;
+	return ret.val.sval;
 }
 
 /*buxton_set_value callback and function for uint32_t*/
@@ -402,7 +412,7 @@ void buxtond_set_uint32(char *key, uint32_t value)
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = UINT32;
-	ret.ui32val = value;
+	ret.val.ui32val = value;
 	save_errno();
 	if (buxton_set_value(client,_key, &value, bs_cb, &ret, true)){
 		printf("Set uint32_t call failed.\n");
@@ -426,7 +436,7 @@ void bgui32_cb(BuxtonResponse response, void *data)
 		return;
 	}		
 	ret->status = 1;
-	ret->i32val = *(uint32_t*)buxton_response_value(response);
+	ret->val.ui32val = *(uint32_t*)buxton_response_value(response);
 }
 
 uint32_t buxtond_get_uint32(char *key)
@@ -450,7 +460,7 @@ uint32_t buxtond_get_uint32(char *key)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-	return ret.ui32val;
+	return ret.val.ui32val;
 }
 
 /*buxton_set_value callback and function for int64_t*/
@@ -476,7 +486,7 @@ void buxtond_set_int64(char *key, int64_t value)
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = INT64;
-	ret.i64val = value;
+	ret.val.i64val = value;
 	save_errno();
 	if(buxton_set_value(client, _key, &value, bs_cb, &ret, true)){
 		printf("Set int64_t call failed.\n");
@@ -500,7 +510,7 @@ void bgi64_cb(BuxtonResponse response, void *data)
 		return;
 	}
 	ret->status = 1;
-	ret->i64val = *(int64_t*)buxton_response_value(response);
+	ret->val.i64val = *(int64_t*)buxton_response_value(response);
 }
 
 int64_t buxtond_get_int64(char *key)
@@ -524,7 +534,7 @@ int64_t buxtond_get_int64(char *key)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-	return ret.i64val;
+	return ret.val.i64val;
 }
 
 /*buxton_set_value callback and function for uint64_t*/
@@ -550,7 +560,7 @@ void buxtond_set_uint64(char *key, uint64_t value)
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = UINT64;
-	ret.ui64val = value;
+	ret.val.ui64val = value;
 	save_errno();
 	if(buxton_set_value(client, _key, &value, bs_cb, &ret, true)){
 		printf("Set uint64_t call failed.\n");
@@ -574,7 +584,7 @@ void bgui64_cb(BuxtonResponse response, void *data)
 		return;
 	}
 	ret->status = 1;
-	ret->ui64val = *(uint64_t*)buxton_response_value(response);
+	ret->val.ui64val = *(uint64_t*)buxton_response_value(response);
 }
 
 uint64_t buxtond_get_uint64(char *key)
@@ -598,7 +608,7 @@ uint64_t buxtond_get_uint64(char *key)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-	return ret.ui64val;
+	return ret.val.ui64val;
 }
 
 /*buxton_set_value callback and function for float*/
@@ -624,7 +634,7 @@ void buxtond_set_float(char *key, float value)
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = FLOAT;
-	ret.fval = value;
+	ret.val.fval = value;
 	save_errno();
 	if(buxton_set_value(client, _key, &value, bs_cb, &ret, true)){
 		printf("Set float call failed.\n");
@@ -648,7 +658,7 @@ void bgf_cb(BuxtonResponse response, void *data)
 		return;
 	}
 	ret->status = 1;
-	ret->fval = *(float*)buxton_response_value(response);
+	ret->val.fval = *(float*)buxton_response_value(response);
 }
 
 float buxtond_get_float(char *key)
@@ -672,7 +682,7 @@ float buxtond_get_float(char *key)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-	return ret.fval;
+	return ret.val.fval;
 }
 
 /*buxton_set_value callback and function for double*/
@@ -698,7 +708,7 @@ void buxtond_set_double(char *key, double value)
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = DOUBLE;
-	ret.dval = value;
+	ret.val.dval = value;
 	save_errno();
 	if(buxton_set_value(client, _key, &value, bs_cb, &ret, true)){
 		printf("Set double call failed.\n");
@@ -722,7 +732,7 @@ void bgd_cb(BuxtonResponse response, void *data)
 		return;
 	}
 	ret->status = 1;
-	ret->dval = *(double*)buxton_response_value(response);
+	ret->val.dval = *(double*)buxton_response_value(response);
 }
 
 double buxtond_get_double(char *key)
@@ -746,7 +756,7 @@ double buxtond_get_double(char *key)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-	return ret.dval;
+	return ret.val.dval;
 }
 
 /*buxton_set_value callback and function for boolean*/
@@ -772,7 +782,7 @@ void buxtond_set_bool(char *key, bool value)
 	/*Return value and status*/
 	vstatus ret;
 	ret.type = BOOLEAN;
-	ret.bval = value;
+	ret.val.bval = value;
 	save_errno();
 	if(buxton_set_value(client, _key, &value, bs_cb, &ret, true)){
 		printf("Set bool call failed.\n");
@@ -796,7 +806,7 @@ void bgb_cb(BuxtonResponse response, void *data)
 		return;
 	}
 	ret->status = 1;
-	ret->bval = *(bool*)buxton_response_value(response);
+	ret->val.bval = *(bool*)buxton_response_value(response);
 }
 
 bool buxtond_get_bool(char *key)
@@ -820,7 +830,7 @@ bool buxtond_get_bool(char *key)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-	return ret.bval;
+	return ret.val.bval;
 }
 
 /*create a client side group TODO: create BuxtonGroup type
@@ -857,8 +867,9 @@ BuxtonKey buxtond_create_group2(char *group_name, char *layer)
 	if (buxton_create_group(client, group, NULL, NULL, true)){
 		printf("Create group call failed.\n");
 		buxton_key_free(group);
-		client_disconnect();
-		return;
+		group = NULL;
+		//client_disconnect();
+		//return;
 	}
 	client_disconnect();
 
