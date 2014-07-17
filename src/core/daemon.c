@@ -1130,8 +1130,11 @@ bool handle_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 				abort();
 			}
 		}
-		if (cl->size != cl->offset) {
+		if (cl->size > cl->offset) {
 			continue;
+		} else if (cl->size < cl->offset) {
+			buxton_log("Somehow read more bytes than from client requested\n");
+			abort();
 		}
 		if (!buxtond_handle_message(self, cl, cl->size)) {
 			buxton_log("Communication failed with client %d\n", cl->fd);
