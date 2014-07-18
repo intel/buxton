@@ -1,5 +1,5 @@
 '\" t
-.TH "BUXTOND_GET" "3" "buxton 1" "buxtond_get"
+.TH "BUXTOND_SET" "3" "buxton 1" "buxtond_set"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -20,9 +20,10 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-buxtond_get_string, buxtond_get_int32, buxtond_get_uint32, buxtond_get_int64,
-buxtond_get_uint64, buxtond_get_float, buxtond_get_double, buxtond_get_bool
-\- Get the value of a typed key\-name
+buxtond_set_string, buxtond_set_int32, buxtond_set_uint32, buxtond_set_int64, 
+buxtond_set_uint64, buxtond_set_float, buxtond_set_double, buxtond_set_bool
+.sp
+\- Modify values for BuxtonKeys\
 
 .SH "SYNOPSIS"
 .nf
@@ -31,35 +32,35 @@ buxtond_get_uint64, buxtond_get_float, buxtond_get_double, buxtond_get_bool
 \fR
 .sp
 \fB
-char* buxtond_get_string(char *\fIkey)
+void buxtond_set_string(char *\fIkey\fB, char *\fIvalue\fB);
 .sp
 \fB
-int32_t buxtond_get_int32(char *\fIkey)
+void buxtond_set_int32(char *\fIkey\fB, int32_t \fIvalue\fB);
 .sp
 \fB
-uint32_t buxtond_get_uint32(char *\fIkey)
+void buxtond_set_uint32(char *\fIkey\fB, uint32_t \fIvalue\fB);
 .sp
 \fB
-int64_t buxtond_get_int64(char *\fIkey)
+void buxtond_set_int64(char *\fIkey\fB, int64_t \fIvalue\fB);
 .sp
 \fB
-uint64_t buxtond_get_uint64(char *\fIkey)
+void buxtond_set_uint64(char *\fIkey\fB, uint64_t \fIvalue\fB);
 .sp
 \fB
-float buxtond_get_float(char *\fIkey)
+void buxtond_set_float(char *\fIkey\fB, float \fIvalue\fB);
 .sp
 \fB
-double buxtond_get_double(char *\fIkey)
+void buxtond_set_double(char *\fIkey\fB, double \fIvalue\fB);
 .sp
 \fB
-bool buxtond_get_bool(char *\fIkey)
+void buxtond_set_bool(char *\fIkey\fB, bool \fIvalue\fB);
 \fR
 .fi
 
 .SH "DESCRIPTION"
 .PP
-These functions are used to get the value of a typed key\-name
-for the client program. E.g. buxtond_get_int32 will return a value of type
+These functions are used to set the value of a typed key\-name
+for the client program. E.g. buxtond_set_int32 will set a value of type
 int32_t. The key\-name is referenced by \fIkey\fR,
 a string that corresponds to a key\-name in the current group and layer.
 
@@ -76,7 +77,6 @@ set to EACCES.
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <buxton.h>
 #include "buxton-simp.h"
 
 /*DEMONSTRATION*/
@@ -235,7 +235,7 @@ int main(void)
 
 .SH "RETURN VALUE"
 .PP
-Returns the value of the key on success. On failure, errno is set to EACCES
+Returns void. On failure, errno is set to EACCES
 
 .SH "COPYRIGHT"
 .PP
@@ -248,8 +248,8 @@ file from this buxton distribution\&.
 .SH "SEE ALSO"
 .PP
 \fBbuxton\fR(7),
-\fBbuxtond\fR(8),
-\fBbuxton\-simp\-api\fR(7)
+\fBbuxton\-simp\-api\fR(7),
+\fBbuxtond\fR(8)
 
 .SH "NOTES"
 .IP " 1." 4

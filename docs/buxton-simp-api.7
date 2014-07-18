@@ -1,5 +1,5 @@
 '\" t
-.TH "BUXTON\-API" "7" "" "buxton 1" "buxton\-api"
+.TH "BUXTON\-SIMP\-API" "7" "" "buxton 1" "buxton\-simp\-api"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -20,11 +20,11 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-buxton\-api \- List of all Buxton API functions
+buxton\-simp\-api \- List of all Buxton Simple API functions
 
 .SH "DESCRIPTION"
 .PP
-This document contains the complete list of buxton-simp API functions,
+This document contains the complete list of Buxton Simple API functions,
 each having its own manual page\&.
 
 In addition, there are several "hello world" demo programs in the
@@ -38,26 +38,26 @@ use these API functions\&.
 \fBbuxtond_set_group\fR(3)
 \(em Create or change to a group within a layer
 .br
-\fBbuxtond_remove_group2\fR(3)
+\fBbuxtond_remove_group\fR(3)
 \(em Remove a group within a layer
 .br
 
 .SS "Key set functions"
 .PP
 \fBbuxtond_set_int32\fR(3)
-\(em Set the value for an int 32 type key
+\(em Set the value for an int32_t type key
 .br
 \fBbuxtond_set_string\fR(3)
 \(em Set the value for a string type key
 .br
 \fBbuxtond_set_uint32\fR(3)
-\(em Set the value for an unsigned int 32 type key
+\(em Set the value for a uint32_t type key
 .br
 \fBbuxtond_set_int64\fR(3)
-\(em Set the value for an int 64 type key
+\(em Set the value for an int64_t type key
 .br
 \fBbuxtond_set_uint64\fR(3)
-\(em Set the value for an unsigned int 64 type key
+\(em Set the value for a uint64_t type key
 .br
 \fBbuxtond_set_float\fR(3)
 \(em Set the value of a float type key
@@ -66,25 +66,25 @@ use these API functions\&.
 \(em Set the value for a double type key
 .br
 \fBbuxtond_set_bool\fR(3)
-\(em Set the value for a boolean type key
+\(em Set the value for a bool type key
 .br
 
 .SS "Key get functions"
 .PP
 \fBbuxtond_get_int32\fR(3)
-\(em Get the value for an int 32 type key
+\(em Get the value for an int32_t type key
 .br
 \fBbuxtond_get_string\fR(3)
 \(em Get the value for a string type key
 .br
 \fBbuxtond_get_uint32\fR(3)
-\(em Get the value for an unsigned int 32 type key
+\(em Get the value for a uint32_t type key
 .br
 \fBbuxtond_get_int64\fR(3)
-\(em Get the value for an int 64 type key
+\(em Get the value for an int64_t type key
 .br
 \fBbuxtond_get_uint64\fR(3)
-\(em Get the value for an unsigned int 64 type key
+\(em Get the value for a uint64_t type key
 .br
 \fBbuxtond_get_float\fR(3)
 \(em Get the value of a float type key
@@ -93,7 +93,7 @@ use these API functions\&.
 \(em Get the value for a double type key
 .br
 \fBbuxtond_get_bool\fR(3)
-\(em Get the value for a boolean type key
+\(em Get the value for a bool type key
 .br
 
 
