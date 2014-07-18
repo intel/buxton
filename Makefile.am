@@ -96,7 +96,16 @@ dist_man_MANS = \
 	docs/buxton_set_label.3 \
 	docs/buxton_set_value.3 \
 	docs/buxton_unregister_notification.3 \
-	docs/buxton_unset_value.3
+	docs/buxton_unset_value.3 \
+	docs/buxton-simp-api.7 \
+	docs/buxtond_get_int32.3 \
+	docs/buxtond_get_uint32.3 \
+	docs/buxtond_get_string.3 \
+	docs/buxtond_get_int64.3 \
+	docs/buxtond_get_uint64.3 \
+	docs/buxtond_get_float.3 \
+	docs/buxtond_get_double.3 \
+	docs/buxtond_get_bool.3 
 endif
 
 TESTS = \
