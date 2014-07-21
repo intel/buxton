@@ -153,10 +153,10 @@ int main(void)
 
 	/*Remove groups*/
 	errno = 0;
-	buxtond_remove_group2("tg_s1", "user");
-	buxtond_remove_group2("tg_s0", "user");
-	buxtond_remove_group2("tg_s2", "user");
-	buxtond_remove_group2("tg_s3", "user");
+	buxtond_remove_group("tg_s1", "user");
+	buxtond_remove_group("tg_s0", "user");
+	buxtond_remove_group("tg_s2", "user");
+	buxtond_remove_group("tg_s3", "user");
 
 	return 0;
 }

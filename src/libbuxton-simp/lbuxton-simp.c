@@ -237,20 +237,6 @@ void bg_cb(BuxtonResponse response, void *data)
 	ret->status = 1;
 }
 
-/*buxton_set_value callback and function for int32_t*/
-void bsi32_cb(BuxtonResponse response, void *data)
-{
-	int32_t *ret=(int32_t*)data;
-	if (buxton_response_status(response)){
-		printf("Failed to set int32_t.\n");
-		return;
-	}
-	printf("Value has been set: %i(int32_t)\n", *ret);
-	BuxtonKey k = buxton_response_key(response);
-	printf("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k), 
-		buxton_key_get_layer(k));	
-}
-
 void buxtond_set_int32(char *key, int32_t value)
 {
 	/*make sure client connection is open*/
@@ -277,19 +263,6 @@ void buxtond_set_int32(char *key, int32_t value)
 	client_disconnect();
 }
 
-/*buxton_get_value callback and function for int32_t*/
-void bgi32_cb(BuxtonResponse response, void *data)
-{
-	vstatus *ret = (vstatus*)data;
-	ret->status=0;
-	if (buxton_response_status(response)){
-		printf("Failed to get int32_t.\n");
-		return;
-	}
-	ret->status=1;
-	ret->val.i32val = *(int32_t*)buxton_response_value(response);
-}
-
 int32_t buxtond_get_int32(char *key)
 {
 	/*make sure client connection is open*/
@@ -312,20 +285,6 @@ int32_t buxtond_get_int32(char *key)
 	buxton_key_free(_key);
 	client_disconnect();
 	return ret.val.i32val;
-}
-
-/*buxton_set_value callback and function for string*/
-void bss_cb(BuxtonResponse response, void *data)
-{
-	char **ret=(char**)data;
-	if (buxton_response_status(response)){
-		printf("Failed to set string.\n");
-		return;
-	}
-	printf("Value has been set: %s(string)\n", *ret);
-	BuxtonKey k = buxton_response_key(response);
-	printf("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k),
-		buxton_key_get_layer(k));
 }
 
 void buxtond_set_string(char *key, char *value )
@@ -352,19 +311,6 @@ void buxtond_set_string(char *key, char *value )
 	client_disconnect();
 }
 
-/*buxton_get_value callback and function for string*/
-void bgs_cb(BuxtonResponse response, void *data)
-{
-	vstatus *ret = (vstatus*)data;
-	ret->status=0;
-	if (buxton_response_status(response)){
-		printf("Failed to get string.\n");
-		return;
-	}
-	ret->status=1;
-	ret->val.sval = *(char**)buxton_response_value(response);
-}
-
 char* buxtond_get_string(char *key)
 {
 	/*make sure client connection is open*/
@@ -389,20 +335,6 @@ char* buxtond_get_string(char *key)
 	return ret.val.sval;
 }
 
-/*buxton_set_value callback and function for uint32_t*/
-void bsui32_cb(BuxtonResponse response, void *data)
-{
-	uint32_t *ret=(uint32_t*)data;
-	if (buxton_response_status(response)){
-		printf("Failed to set uint32_t.\n");
-		return;
-	}
-	printf("Value has been set: %i(uint32_t)\n", *ret);
-	BuxtonKey k = buxton_response_key(response);
-	printf("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k),
-		buxton_key_get_layer(k));
-}
-
 void buxtond_set_uint32(char *key, uint32_t value)
 {
 	/*make sure client connection is open*/
@@ -424,19 +356,6 @@ void buxtond_set_uint32(char *key, uint32_t value)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-}
-
-/*buxton_get_value callback and function for uint32_t*/
-void bgui32_cb(BuxtonResponse response, void *data)
-{
-	vstatus *ret = (vstatus*)data;
-	ret->status=0;
-	if (buxton_response_status(response)){
-		printf("Failed to get uint32_t.\n");
-		return;
-	}		
-	ret->status = 1;
-	ret->val.ui32val = *(uint32_t*)buxton_response_value(response);
 }
 
 uint32_t buxtond_get_uint32(char *key)
@@ -463,20 +382,6 @@ uint32_t buxtond_get_uint32(char *key)
 	return ret.val.ui32val;
 }
 
-/*buxton_set_value callback and function for int64_t*/
-void bsi64_cb(BuxtonResponse response, void *data)
-{
-	int64_t *ret = (int64_t*)data;
-	if (buxton_response_status(response)){
-		printf("Failed to set int64_t.\n");
-		return;
-	}
-	printf("Value has been set: ""%"PRId64"(int64_t)\n", *ret);
-	BuxtonKey k = buxton_response_key(response);
-	printf("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k),
-		buxton_key_get_layer(k));
-}
-
 void buxtond_set_int64(char *key, int64_t value)
 {
 	/*make sure client connection is open*/
@@ -498,19 +403,6 @@ void buxtond_set_int64(char *key, int64_t value)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-}
-
-/*buxton_get_value callback and function for int64_t*/
-void bgi64_cb(BuxtonResponse response, void *data)
-{
-	vstatus *ret = (vstatus*)data;
-	ret->status=0;
-	if (buxton_response_status(response)){
-		printf("Failed to get int64_t.\n");
-		return;
-	}
-	ret->status = 1;
-	ret->val.i64val = *(int64_t*)buxton_response_value(response);
 }
 
 int64_t buxtond_get_int64(char *key)
@@ -537,20 +429,6 @@ int64_t buxtond_get_int64(char *key)
 	return ret.val.i64val;
 }
 
-/*buxton_set_value callback and function for uint64_t*/
-void bsui64_cb(BuxtonResponse response, void *data)
-{
-	uint64_t *ret = (uint64_t*)data;
-	if (buxton_response_status(response)){
-		printf("Failed to set uint64_t.\n");
-		return;
-	}
-	printf("Value has been set: ""%"PRIu64"(uint64_t)\n", *ret);
-	BuxtonKey k = buxton_response_key(response);
-	printf("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k),
-		buxton_key_get_layer(k));
-}
-
 void buxtond_set_uint64(char *key, uint64_t value)
 {
 	/*make sure client connection is open*/
@@ -572,19 +450,6 @@ void buxtond_set_uint64(char *key, uint64_t value)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-}
-
-/*buxton_get_value callback and function for uint64_t*/
-void bgui64_cb(BuxtonResponse response, void *data)
-{
-	vstatus *ret = (vstatus*)data;
-	ret->status=0;
-	if (buxton_response_status(response)){
-		printf("Failed to get uint64_t.\n");
-		return;
-	}
-	ret->status = 1;
-	ret->val.ui64val = *(uint64_t*)buxton_response_value(response);
 }
 
 uint64_t buxtond_get_uint64(char *key)
@@ -611,20 +476,6 @@ uint64_t buxtond_get_uint64(char *key)
 	return ret.val.ui64val;
 }
 
-/*buxton_set_value callback and function for float*/
-void bsf_cb(BuxtonResponse response, void *data)
-{
-	float *ret = (float*)data;
-	if (buxton_response_status(response)){
-		printf("Failed to set float.\n");
-		return;
-	}
-	printf("Value has been set: %f(float)\n", *ret);
-	BuxtonKey k = buxton_response_key(response);
-	printf("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k),
-		buxton_key_get_layer(k));
-}
-
 void buxtond_set_float(char *key, float value)
 {
 	/*make sure client connection is open*/
@@ -646,19 +497,6 @@ void buxtond_set_float(char *key, float value)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-}
-
-/*buxton_get_value callback and function for float*/
-void bgf_cb(BuxtonResponse response, void *data)
-{
-	vstatus *ret = (vstatus*)data;
-	ret->status=0;
-	if (buxton_response_status(response)){
-		printf("Failed to get float.\n");
-		return;
-	}
-	ret->status = 1;
-	ret->val.fval = *(float*)buxton_response_value(response);
 }
 
 float buxtond_get_float(char *key)
@@ -685,20 +523,6 @@ float buxtond_get_float(char *key)
 	return ret.val.fval;
 }
 
-/*buxton_set_value callback and function for double*/
-void bsd_cb(BuxtonResponse response, void *data)
-{
-	double *ret = (double*)data;
-	if (buxton_response_status(response)){
-		printf("Failed to set double.\n");
-		return;
-	}
-	printf("Value has been set: %e(double)\n", *ret);
-	BuxtonKey k = buxton_response_key(response);
-	printf("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k),
-		buxton_key_get_layer(k));
-}
-
 void buxtond_set_double(char *key, double value)
 {
 	/*make sure client connection is open*/
@@ -720,19 +544,6 @@ void buxtond_set_double(char *key, double value)
 	}
 	buxton_key_free(_key);
 	client_disconnect();
-}
-
-/*buxton_get_value callback and function for double*/
-void bgd_cb(BuxtonResponse response, void *data)
-{
-	vstatus *ret = (vstatus*)data;
-	ret->status=0;
-	if (buxton_response_status(response)){
-		printf("Failed to get double.\n");
-		return;
-	}
-	ret->status = 1;
-	ret->val.dval = *(double*)buxton_response_value(response);
 }
 
 double buxtond_get_double(char *key)
@@ -759,20 +570,6 @@ double buxtond_get_double(char *key)
 	return ret.val.dval;
 }
 
-/*buxton_set_value callback and function for boolean*/
-void bsb_cb(BuxtonResponse response, void *data)
-{
-	bool *ret = (bool*)data;
-	if(buxton_response_status(response)){
-		printf("Failed to set boolean.\n");
-		return;
-	}
-	printf("Value has been set: %i(bool)\n", *ret);
-	BuxtonKey k = buxton_response_key(response);
-	printf("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k),
-		buxton_key_get_layer(k));
-}
-
 void buxtond_set_bool(char *key, bool value)
 {
 	/*make sure client connection is open*/
@@ -796,19 +593,6 @@ void buxtond_set_bool(char *key, bool value)
 	client_disconnect();
 }
 
-/*buxton_get_value callback and function for boolean*/
-void bgb_cb(BuxtonResponse response, void *data)
-{
-	vstatus *ret = (vstatus*)data;
-	ret->status=0;
-	if (buxton_response_status(response)){
-		printf("Failed to get boolean.\n");
-		return;
-	}
-	ret->status = 1;
-	ret->val.bval = *(bool*)buxton_response_value(response);
-}
-
 bool buxtond_get_bool(char *key)
 {
 	/*make sure client connection is open*/
@@ -820,7 +604,7 @@ bool buxtond_get_bool(char *key)
 	ret.type = BOOLEAN;
 	save_errno();
 	/*get value*/
-	if (buxton_get_value(client, _key, bgb_cb, &ret, true)){
+	if (buxton_get_value(client, _key, bg_cb, &ret, true)){
 		printf("Get bool call failed.\n");
 	}
 	if (!ret.status){
@@ -860,23 +644,6 @@ void buxtond_create_group(BuxtonKey group)
 	client_disconnect();
 }
 
-BuxtonKey buxtond_create_group2(char *group_name, char *layer)
-{
-	client_connection();
-	BuxtonKey group = buxton_key_create(group_name, NULL, layer, STRING);
-	if (buxton_create_group(client, group, NULL, NULL, true)){
-		printf("Create group call failed.\n");
-		buxton_key_free(group);
-		group = NULL;
-		//client_disconnect();
-		//return;
-	}
-	client_disconnect();
-
-	return group;
-	/*Buxton free key? TODO*/
-}
-
 /*buxton_remove_group callback and function*/
 void rg_cb(BuxtonResponse response, void *data)
 {
@@ -887,16 +654,7 @@ void rg_cb(BuxtonResponse response, void *data)
 	}
 }
 
-void buxtond_remove_group(BuxtonKey group)
-{
-	client_connection();
-	if (buxton_remove_group(client, group, rg_cb, NULL, true)){
-		printf("Remove group call failed.\n");
-	}
-	client_disconnect();
-}
-
-void buxtond_remove_group2(char *group_name, char *layer)
+void buxtond_remove_group(char *group_name, char *layer)
 {
 	client_connection();
 	BuxtonKey group = buxton_group_create(group_name, layer);
