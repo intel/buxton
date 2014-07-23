@@ -1,4 +1,3 @@
-#a new .spec file for buxton-simp, still a work in progress
 Name:           buxton-simp
 Version:        2
 Release:        1
@@ -9,14 +8,15 @@ Group:          System/Configuration
 Source0:        %{name}-%{version}.tar.gz
 Source1:        tizen.conf
 Source1001:     %{name}.manifest
+#Add the following back in when building with Tizen
 #BuildRequires:  libattr-devel
 #BuildRequires:  gdbm-devel
 #BuildRequires:  pkgconfig(check)
 #BuildRequires:  pkgconfig(systemd)
 #BuildRequires:  pkgconfig(libsystemd-daemon)
-Requires(post): buxton
-Requires(post): smack
-Requires(post): /bin/chown
+#Requires(post): buxton
+#Requires(post): smack
+#Requires(post): /bin/chown
 
 %description
 Buxton is a security-enabled configuration management system. It
@@ -61,7 +61,7 @@ Requires: %{name} = %{version}
 cp %{SOURCE1001} .
 
 %build
-%configure --enable-debug --enable-demos
+%configure --enable-debug --enable-demos --with-systemdsystemunitdir=%{_libdir}/systemd/system/
 
 make %{?_smp_mflags}
 
@@ -69,9 +69,6 @@ make %{?_smp_mflags}
 %make_install
 # TODO: need to define needed layers for Tizen in tizen.conf
 install -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/buxton.conf
-
-#tried this, didn't work =[
-#install -m 0644 ./data/buxton.service %{_libdir}/systemd/system/
 
 %post
 /sbin/ldconfig
@@ -88,28 +85,26 @@ fi
 %postun -p /sbin/ldconfig
 
 %docs_package
-#%license docs/LICENSE.MIT
+%license docs/LICENSE.MIT
 
 %files
-#TODO: fix manifest? Complains that there is no "/" before file name
+#Add this back in when building with Tizen
 #%manifest %{name}.manifest
-#%license /LICENSE.LGPL2.1
+%license ./LICENSE.LGPL2.1
 %config(noreplace) %{_sysconfdir}/buxton.conf
 %{_bindir}/buxtonctl
 %{_libdir}/buxton/*.so
 %{_libdir}/buxton/*.la
 %{_libdir}/libbuxton.so.*
 %{_libdir}/libbuxtonsimp.so.*
-#added these two
-%{_libdir}/libbuxtonsimp.so
-%{_libdir}/*.la
-#%{_libdir}/systemd/system/buxton.service
-#%{_libdir}/systemd/system/buxton.socket
-#%{_libdir}/systemd/system/sockets.target.wants/buxton.socket
+%{_libdir}/systemd/system/buxton.service
+%{_libdir}/systemd/system/buxton.socket
+%{_libdir}/systemd/system/sockets.target.wants/buxton.socket
 %{_sbindir}/buxtond
 %attr(0700,buxton,buxton) %dir %{_localstatedir}/lib/buxton
 #added these b/c rpmbuild was complaining
-/sockets.target.wants/buxton.socket
+#should be able to take this out
+#/sockets.target.wants/buxton.socket
 %{_mandir}/man1/buxtonctl.1.gz
 %{_mandir}/man3/buxton_client_handle_response.3.gz
 %{_mandir}/man3/buxton_close.3.gz
@@ -141,11 +136,14 @@ fi
 %{_mandir}/man8/buxtond.8.gz
 
 %files devel
+#Add this back in when building with Tizen
 #%manifest %{name}.manifest
 %{_includedir}/buxton.h
 %{_includedir}/buxton-simp.h
 %{_libdir}/libbuxton.so
+%{_libdir}/libbuxtonsimp.so
 %{_libdir}/pkgconfig/*.pc
+%{_libdir}/*.la
 
 %files demos
 %{_bindir}/bxt_hello_create_group
