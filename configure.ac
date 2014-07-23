@@ -1,6 +1,7 @@
 
 AC_PREREQ([2.68])
-AC_INIT([buxton],[2],[william.douglas@intel.com],[buxton],[https://github.com/sofar/buxton])
+# changed to buxton-simp
+AC_INIT([buxton-simp],[2],[william.douglas@intel.com],[buxton-simp],[https://github.com/sofar/buxton])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability silent-rules subdir-objects color-tests no-dist-gzip dist-xz])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_FILES([Makefile])
@@ -212,14 +213,16 @@ AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket
 data/libbuxton.pc
+data/libbuxton-simp.pc
 test/test-pass.ini
 test/test-fail.ini
 test/test.conf
 ])
 AC_OUTPUT
 
+#changed this to buxton-simp
 AC_MSG_RESULT([
-        buxton $VERSION
+        buxton-simp $VERSION
         ========
 
         prefix:                 ${prefix}

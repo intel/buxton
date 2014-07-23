@@ -139,10 +139,10 @@ EXTRA_DIST = \
 	HACKING \
 	check_db_clean \
 	data/libbuxton.pc.in \
-	data/libbuxton.pc.in
+	data/libbuxton-simp.pc.in \
 	docs/LICENSE.MIT \
 	src/libbuxton/lbuxton.sym \
-	src/libbuxton-simp/libbuxton-simp.sym
+	src/libbuxton-simp/lbuxton-simp.sym \
 	test/test.load2 \
 	test/test.conf \
 	test/test-configurator.conf

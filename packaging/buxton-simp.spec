@@ -5,7 +5,7 @@ License:        LGPL-2.1+
 Summary:        A simple security-enabled configuration system
 Url:            https://github.com/sofar/buxton
 Group:          System/Configuration
-Source0:        %{name}-%{version}.tar.gz
+Source0:        %{name}-%{version}.tar.xz
 Source1:        tizen.conf
 Source1001:     %{name}.manifest
 #Add the following back in when building with Tizen
@@ -61,7 +61,7 @@ Requires: %{name} = %{version}
 cp %{SOURCE1001} .
 
 %build
-%configure --enable-debug --enable-demos --with-systemdsystemunitdir=%{_libdir}/systemd/system/
+%configure --enable-debug --enable-demos --with-systemdsystemunitdir=%{_libdir}/systemd/system/ --with-module-dir=%{_libdir}/buxton-simp/
 
 make %{?_smp_mflags}
 
@@ -93,8 +93,8 @@ fi
 %license ./LICENSE.LGPL2.1
 %config(noreplace) %{_sysconfdir}/buxton.conf
 %{_bindir}/buxtonctl
-%{_libdir}/buxton/*.so
-%{_libdir}/buxton/*.la
+%{_libdir}/buxton-simp/*.so
+%{_libdir}/buxton-simp/*.la
 %{_libdir}/libbuxton.so.*
 %{_libdir}/libbuxtonsimp.so.*
 %{_libdir}/systemd/system/buxton.service
@@ -134,6 +134,23 @@ fi
 %{_mandir}/man7/buxton-security.7.gz
 %{_mandir}/man7/buxton.7.gz
 %{_mandir}/man8/buxtond.8.gz
+%{_mandir}/man7/buxton-simp-api.7.gz
+%{_mandir}/man3/buxtond_get_int32.3.gz
+%{_mandir}/man3/buxtond_get_uint32.3.gz
+%{_mandir}/man3/buxtond_get_string.3.gz
+%{_mandir}/man3/buxtond_get_int64.3.gz
+%{_mandir}/man3/buxtond_get_uint64.3.gz
+%{_mandir}/man3/buxtond_get_float.3.gz
+%{_mandir}/man3/buxtond_get_double.3.gz
+%{_mandir}/man3/buxtond_get_bool.3.gz
+%{_mandir}/man3/buxtond_set_int32.3.gz
+%{_mandir}/man3/buxtond_set_uint32.3.gz
+%{_mandir}/man3/buxtond_set_string.3.gz
+%{_mandir}/man3/buxtond_set_int64.3.gz
+%{_mandir}/man3/buxtond_set_uint64.3.gz
+%{_mandir}/man3/buxtond_set_float.3.gz
+%{_mandir}/man3/buxtond_set_double.3.gz
+%{_mandir}/man3/buxtond_set_bool.3.gz
 
 %files devel
 #Add this back in when building with Tizen
