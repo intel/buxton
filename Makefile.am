@@ -113,7 +113,9 @@ dist_man_MANS = \
 	docs/buxtond_set_uint64.3 \
 	docs/buxtond_set_float.3 \
 	docs/buxtond_set_double.3 \
-	docs/buxtond_set_bool.3 
+	docs/buxtond_set_bool.3 \
+	docs/buxtond_set_group.3 \
+	docs/buxtond_remove_group.3 
 endif
 
 TESTS = \
