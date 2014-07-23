@@ -6,14 +6,14 @@ License:        LGPL-2.1+
 Summary:        A simple security-enabled configuration system
 Url:            https://github.com/sofar/buxton
 Group:          System/Configuration
-Source0:        %{name}-%{version}.tar.xz
+Source0:        %{name}-%{version}.tar.gz
 Source1:        tizen.conf
 Source1001:     %{name}.manifest
-BuildRequires:  libattr-devel
-BuildRequires:  gdbm-devel
-BuildRequires:  pkgconfig(check)
-BuildRequires:  pkgconfig(systemd)
-BuildRequires:  pkgconfig(libsystemd-daemon)
+#BuildRequires:  libattr-devel
+#BuildRequires:  gdbm-devel
+#BuildRequires:  pkgconfig(check)
+#BuildRequires:  pkgconfig(systemd)
+#BuildRequires:  pkgconfig(libsystemd-daemon)
 Requires(post): buxton
 Requires(post): smack
 Requires(post): /bin/chown
@@ -70,6 +70,9 @@ make %{?_smp_mflags}
 # TODO: need to define needed layers for Tizen in tizen.conf
 install -m 0644 %{SOURCE1} %{buildroot}%{_sysconfdir}/buxton.conf
 
+#tried this, didn't work =[
+#install -m 0644 ./data/buxton.service %{_libdir}/systemd/system/
+
 %post
 /sbin/ldconfig
 buxtonctl create-db base
@@ -88,21 +91,57 @@ fi
 #%license docs/LICENSE.MIT
 
 %files
-%manifest %{name}.manifest
+#TODO: fix manifest? Complains that there is no "/" before file name
+#%manifest %{name}.manifest
 #%license /LICENSE.LGPL2.1
 %config(noreplace) %{_sysconfdir}/buxton.conf
 %{_bindir}/buxtonctl
 %{_libdir}/buxton/*.so
+%{_libdir}/buxton/*.la
 %{_libdir}/libbuxton.so.*
 %{_libdir}/libbuxtonsimp.so.*
-%{_prefix}/lib/systemd/system/buxton.service
-%{_prefix}/lib/systemd/system/buxton.socket
-%{_prefix}/lib/systemd/system/sockets.target.wants/buxton.socket
+#added these two
+%{_libdir}/libbuxtonsimp.so
+%{_libdir}/*.la
+#%{_libdir}/systemd/system/buxton.service
+#%{_libdir}/systemd/system/buxton.socket
+#%{_libdir}/systemd/system/sockets.target.wants/buxton.socket
 %{_sbindir}/buxtond
 %attr(0700,buxton,buxton) %dir %{_localstatedir}/lib/buxton
+#added these b/c rpmbuild was complaining
+/sockets.target.wants/buxton.socket
+%{_mandir}/man1/buxtonctl.1.gz
+%{_mandir}/man3/buxton_client_handle_response.3.gz
+%{_mandir}/man3/buxton_close.3.gz
+%{_mandir}/man3/buxton_create_group.3.gz
+%{_mandir}/man3/buxton_get_value.3.gz
+%{_mandir}/man3/buxton_key_create.3.gz
+%{_mandir}/man3/buxton_key_free.3.gz
+%{_mandir}/man3/buxton_key_get_group.3.gz
+%{_mandir}/man3/buxton_key_get_layer.3.gz
+%{_mandir}/man3/buxton_key_get_name.3.gz
+%{_mandir}/man3/buxton_key_get_type.3.gz
+%{_mandir}/man3/buxton_open.3.gz
+%{_mandir}/man3/buxton_register_notification.3.gz
+%{_mandir}/man3/buxton_remove_group.3.gz
+%{_mandir}/man3/buxton_response_key.3.gz
+%{_mandir}/man3/buxton_response_status.3.gz
+%{_mandir}/man3/buxton_response_type.3.gz
+%{_mandir}/man3/buxton_response_value.3.gz
+%{_mandir}/man3/buxton_set_conf_file.3.gz
+%{_mandir}/man3/buxton_set_label.3.gz
+%{_mandir}/man3/buxton_set_value.3.gz
+%{_mandir}/man3/buxton_unregister_notification.3.gz
+%{_mandir}/man3/buxton_unset_value.3.gz
+%{_mandir}/man5/buxton.conf.5.gz
+%{_mandir}/man7/buxton-api.7.gz
+%{_mandir}/man7/buxton-protocol.7.gz
+%{_mandir}/man7/buxton-security.7.gz
+%{_mandir}/man7/buxton.7.gz
+%{_mandir}/man8/buxtond.8.gz
 
 %files devel
-%manifest %{name}.manifest
+#%manifest %{name}.manifest
 %{_includedir}/buxton.h
 %{_includedir}/buxton-simp.h
 %{_libdir}/libbuxton.so

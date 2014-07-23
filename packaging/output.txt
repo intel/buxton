@@ -1,0 +1,432 @@
+Executing(%prep): /bin/sh -e /var/tmp/rpm-tmp.HI3BEO
++ umask 022
++ cd /home/ceara/rpmbuild/BUILD
++ cd /home/ceara/rpmbuild/BUILD
++ rm -rf buxton-simp-2
++ /bin/gzip -dc /home/ceara/rpmbuild/SOURCES/buxton-simp-2.tar.gz
++ /bin/tar -xf -
++ STATUS=0
++ [ 0 -ne 0 ]
++ cd buxton-simp-2
++ /bin/chmod -Rf a+rX,u+w,g-w,o-w .
++ cp /home/ceara/rpmbuild/SOURCES/buxton-simp.manifest .
++ exit 0
+Executing(%build): /bin/sh -e /var/tmp/rpm-tmp.ZpPenj
++ umask 022
++ cd /home/ceara/rpmbuild/BUILD
++ cd buxton-simp-2
++ CFLAGS=-O2 -g
++ export CFLAGS
++ CXXFLAGS=-O2 -g
++ export CXXFLAGS
++ FFLAGS=-O2 -g
++ export FFLAGS
++ ./configure --host=x86_64-pc-linux-gnu --build=x86_64-pc-linux-gnu --program-prefix= --disable-dependency-tracking --prefix=/usr --exec-prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin --sysconfdir=/etc --datadir=/usr/share --includedir=/usr/include --libdir=/usr/lib64 --libexecdir=/usr/lib/x86_64-linux-gnu --localstatedir=/var --sharedstatedir=/usr/com --mandir=/usr/share/man --infodir=/usr/share/info --enable-debug --enable-demos
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /bin/mkdir -p
+checking for gawk... no
+checking for mawk... mawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking build system type... x86_64-pc-linux-gnu
+checking host system type... x86_64-pc-linux-gnu
+checking how to print strings... printf
+checking for style of include used by make... GNU
+checking for x86_64-pc-linux-gnu-gcc... no
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+checking whether gcc understands -c and -o together... yes
+checking dependency style of gcc... none
+checking for a sed that does not truncate output... /bin/sed
+checking for grep that handles long lines and -e... /bin/grep
+checking for egrep... /bin/grep -E
+checking for fgrep... /bin/grep -F
+checking for ld used by gcc... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B
+checking the name lister (/usr/bin/nm -B) interface... BSD nm
+checking whether ln -s works... yes
+checking the maximum length of command line arguments... 1572864
+checking whether the shell understands some XSI constructs... yes
+checking whether the shell understands "+="... yes
+checking how to convert x86_64-pc-linux-gnu file names to x86_64-pc-linux-gnu format... func_convert_file_noop
+checking how to convert x86_64-pc-linux-gnu file names to toolchain format... func_convert_file_noop
+checking for /usr/bin/ld option to reload object files... -r
+checking for x86_64-pc-linux-gnu-objdump... no
+checking for objdump... objdump
+checking how to recognize dependent libraries... pass_all
+checking for x86_64-pc-linux-gnu-dlltool... no
+checking for dlltool... no
+checking how to associate runtime and link libraries... printf %s\n
+checking for x86_64-pc-linux-gnu-ar... no
+checking for ar... ar
+checking for archiver @FILE support... @
+checking for x86_64-pc-linux-gnu-strip... no
+checking for strip... strip
+checking for x86_64-pc-linux-gnu-ranlib... no
+checking for ranlib... ranlib
+checking command to parse /usr/bin/nm -B output from gcc object... ok
+checking for sysroot... no
+checking for x86_64-pc-linux-gnu-mt... no
+checking for mt... mt
+checking if mt is a manifest tool... no
+checking how to run the C preprocessor... gcc -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking for dlfcn.h... yes
+checking for objdir... .libs
+checking if gcc supports -fno-rtti -fno-exceptions... no
+checking for gcc option to produce PIC... -fPIC -DPIC
+checking if gcc PIC flag -fPIC -DPIC works... yes
+checking if gcc static flag -static works... yes
+checking if gcc supports -c -o file.o... yes
+checking if gcc supports -c -o file.o... (cached) yes
+checking whether the gcc linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking whether -lc should be explicitly linked in... no
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking whether stripping libraries is possible... yes
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... no
+checking for x86_64-pc-linux-gnu-gcc... gcc
+checking whether we are using the GNU C compiler... (cached) yes
+checking whether gcc accepts -g... (cached) yes
+checking for gcc option to accept ISO C89... (cached) none needed
+checking whether gcc understands -c and -o together... (cached) yes
+checking dependency style of gcc... (cached) none
+checking for dlopen in -ldl... yes
+checking for gdbm_open in -lgdbm... yes
+checking for clock_gettime in -lrt... yes
+checking for sqrt in -lm... yes
+checking for inline... inline
+checking for int32_t... yes
+checking for int64_t... yes
+checking for pid_t... yes
+checking for size_t... yes
+checking for ssize_t... yes
+checking for uid_t in sys/types.h... yes
+checking for uint16_t... yes
+checking for uint32_t... yes
+checking for uint64_t... yes
+checking for uint8_t... yes
+checking vfork.h usability... no
+checking vfork.h presence... no
+checking for vfork.h... no
+checking for fork... yes
+checking for vfork... yes
+checking for working fork... yes
+checking for working vfork... (cached) yes
+checking for stdlib.h... (cached) yes
+checking for GNU libc compatible malloc... yes
+checking for stdlib.h... (cached) yes
+checking for GNU libc compatible realloc... yes
+checking for working strtod... yes
+checking for atexit... yes
+checking for memmove... yes
+checking for memset... yes
+checking for socket... yes
+checking for strchr... yes
+checking for strdup... yes
+checking for strndup... yes
+checking for strtol... yes
+checking for __secure_getenv... no
+checking for secure_getenv... yes
+checking whether preprocessor supports #pragma once... yes
+checking for x86_64-pc-linux-gnu-pkg-config... no
+checking for pkg-config... /usr/bin/pkg-config
+checking pkg-config is at least version 0.9.0... yes
+checking for CHECK... yes
+checking for SYSTEMD... yes
+checking for working alloca.h... yes
+checking for alloca... yes
+checking for stdbool.h that conforms to C99... yes
+checking for _Bool... yes
+checking attr/xattr.h usability... yes
+checking attr/xattr.h presence... yes
+checking for attr/xattr.h... yes
+checking fcntl.h usability... yes
+checking fcntl.h presence... yes
+checking for fcntl.h... yes
+checking gdbm.h usability... yes
+checking gdbm.h presence... yes
+checking for gdbm.h... yes
+checking for inttypes.h... (cached) yes
+checking limits.h usability... yes
+checking limits.h presence... yes
+checking for limits.h... yes
+checking locale.h usability... yes
+checking locale.h presence... yes
+checking for locale.h... yes
+checking malloc.h usability... yes
+checking malloc.h presence... yes
+checking for malloc.h... yes
+checking stddef.h usability... yes
+checking stddef.h presence... yes
+checking for stddef.h... yes
+checking for stdint.h... (cached) yes
+checking for stdlib.h... (cached) yes
+checking for string.h... (cached) yes
+checking time.h usability... yes
+checking time.h presence... yes
+checking for time.h... yes
+checking math.h usability... yes
+checking math.h presence... yes
+checking for math.h... yes
+checking pthread.h usability... yes
+checking pthread.h presence... yes
+checking for pthread.h... yes
+checking sys/param.h usability... yes
+checking sys/param.h presence... yes
+checking for sys/param.h... yes
+checking sys/signalfd.h usability... yes
+checking sys/signalfd.h presence... yes
+checking for sys/signalfd.h... yes
+checking sys/socket.h usability... yes
+checking sys/socket.h presence... yes
+checking for sys/socket.h... yes
+checking for sys/stat.h... (cached) yes
+checking sys/time.h usability... yes
+checking sys/time.h presence... yes
+checking for sys/time.h... yes
+checking for unistd.h... (cached) yes
+checking linux/inotify.h usability... yes
+checking linux/inotify.h presence... yes
+checking for linux/inotify.h... yes
+checking for inotify_init... yes
+checking for INIPARSER... no
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating data/buxton.service
+config.status: creating data/buxton.socket
+config.status: creating data/libbuxton.pc
+config.status: creating test/test-pass.ini
+config.status: creating test/test-fail.ini
+config.status: creating test/test.conf
+config.status: creating config.h
+config.status: config.h is unchanged
+config.status: executing depfiles commands
+config.status: executing libtool commands
+config.status: executing mkdir commands
+
+        buxton 2
+        ========
+
+        prefix:                 /usr
+        libdir:                 /usr/lib64
+        sysconfdir:             /etc
+        exec_prefix:            /usr
+        bindir:                 /usr/bin
+        sbindir:                /usr/sbin
+        datarootdir:            ${prefix}/share
+        mandir:                 /usr/share/man
+        modules:                /usr/lib64/buxton
+
+        compiler:               gcc
+        cflags:                 -O2 -g
+        ldflags:                
+
+        debug:                  yes
+        demos:                  yes
+        coverage:               no
+        manpages:               yes
+
++ make -j8
+make  all-recursive
+make[1]: Entering directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
+Making all in .
+make[2]: Entering directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -I./src/shared/ -fvisibility=hidden -O2 -g -c -o src/libbuxton/libbuxton_la-lbuxton.lo `test -f 'src/libbuxton/lbuxton.c' || echo './'`src/libbuxton/lbuxton.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/security/smack.lo src/security/smack.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/backend.lo src/shared/backend.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/buxtonarray.lo src/shared/buxtonarray.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/buxtonlist.lo src/shared/buxtonlist.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/configurator.lo src/shared/configurator.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/direct.lo src/shared/direct.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/hashmap.lo src/shared/hashmap.c
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/buxtonlist.c  -fPIC -DPIC -o src/shared/.libs/buxtonlist.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/buxtonarray.c  -fPIC -DPIC -o src/shared/.libs/buxtonarray.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/backend.c  -fPIC -DPIC -o src/shared/.libs/backend.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/configurator.c  -fPIC -DPIC -o src/shared/.libs/configurator.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/direct.c  -fPIC -DPIC -o src/shared/.libs/direct.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/security/smack.c  -fPIC -DPIC -o src/security/.libs/smack.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/hashmap.c  -fPIC -DPIC -o src/shared/.libs/hashmap.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -I./src/shared/ -fvisibility=hidden -O2 -g -c src/libbuxton/lbuxton.c  -fPIC -DPIC -o src/libbuxton/.libs/libbuxton_la-lbuxton.o
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/log.lo src/shared/log.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/protocol.lo src/shared/protocol.c
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/log.c  -fPIC -DPIC -o src/shared/.libs/log.o
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/serialize.lo src/shared/serialize.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/util.lo src/shared/util.c
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/protocol.c  -fPIC -DPIC -o src/shared/.libs/protocol.o
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/dictionary.lo src/shared/dictionary.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/shared/iniparser.lo src/shared/iniparser.c
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/serialize.c  -fPIC -DPIC -o src/shared/.libs/serialize.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/util.c  -fPIC -DPIC -o src/shared/.libs/util.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/dictionary.c  -fPIC -DPIC -o src/shared/.libs/dictionary.o
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -I./src/shared/ -O2 -g -c -o src/libbuxton/libbuxtonsimp_la-lbuxton.lo `test -f 'src/libbuxton/lbuxton.c' || echo './'`src/libbuxton/lbuxton.c
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/shared/iniparser.c  -fPIC -DPIC -o src/shared/.libs/iniparser.o
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -I./src/shared/ -O2 -g -c -o src/libbuxton-simp/libbuxtonsimp_la-lbuxton-simp.lo `test -f 'src/libbuxton-simp/lbuxton-simp.c' || echo './'`src/libbuxton-simp/lbuxton-simp.c
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -I./src/shared/ -O2 -g -c src/libbuxton/lbuxton.c  -fPIC -DPIC -o src/libbuxton/.libs/libbuxtonsimp_la-lbuxton.o
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/db/gdbm.lo src/db/gdbm.c
+/bin/bash ./libtool  --tag=CC   --mode=compile gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/db/memory.lo src/db/memory.c
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -I./src/shared/ -O2 -g -c src/libbuxton-simp/lbuxton-simp.c  -fPIC -DPIC -o src/libbuxton-simp/.libs/libbuxtonsimp_la-lbuxton-simp.o
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/cli/buxtonctl-main.o `test -f 'src/cli/main.c' || echo './'`src/cli/main.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/cli/buxtonctl-client.o `test -f 'src/cli/client.c' || echo './'`src/cli/client.c
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/db/memory.c  -fPIC -DPIC -o src/db/.libs/memory.o
+libtool: compile:  gcc -DHAVE_CONFIG_H -I. -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\" -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -c src/db/gdbm.c  -fPIC -DPIC -o src/db/.libs/gdbm.o
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/timing.o demo/timing.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/bxt_hello_get-helloget.o `test -f 'demo/helloget.c' || echo './'`demo/helloget.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/bxt_hello_set-helloset.o `test -f 'demo/helloset.c' || echo './'`demo/helloset.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/bxt_hello_set_label-hellosetlabel.o `test -f 'demo/hellosetlabel.c' || echo './'`demo/hellosetlabel.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/bxt_hello_create_group-hellocreategroup.o `test -f 'demo/hellocreategroup.c' || echo './'`demo/hellocreategroup.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/bxt_hello_remove_group-helloremovegroup.o `test -f 'demo/helloremovegroup.c' || echo './'`demo/helloremovegroup.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/bxt_hello_unset-hellounset.o `test -f 'demo/hellounset.c' || echo './'`demo/hellounset.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/bxt_hello_notify-hellonotify.o `test -f 'demo/hellonotify.c' || echo './'`demo/hellonotify.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o demo/bxt_hello_notify_multi-notifytest.o `test -f 'demo/notifytest.c' || echo './'`demo/notifytest.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/core/buxtond-daemon.o `test -f 'src/core/daemon.c' || echo './'`src/core/daemon.c
+gcc -DHAVE_CONFIG_H -I.  -I ./src/include -I ./src/core -I ./src/security -I ./src/shared -D_MODULE_DIRECTORY=\"/usr/lib64/buxton\" -D_DEFAULT_CONFIGURATION_FILE=\"/etc/buxton.conf\" -D_DB_PATH=\"/var/lib/buxton\" -D_BUXTON_SOCKET=\"/run/buxton-0\" -D_SMACK_LOAD_FILE=\"/sys/fs/smackfs/load2\"  -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -c -o src/core/buxtond-main.o `test -f 'src/core/main.c' || echo './'`src/core/main.c
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic -static  -o libbuxton-shared.la  src/security/smack.lo src/shared/backend.lo src/shared/buxtonarray.lo src/shared/buxtonlist.lo src/shared/configurator.lo src/shared/direct.lo src/shared/hashmap.lo src/shared/log.lo src/shared/protocol.lo src/shared/serialize.lo src/shared/util.lo src/shared/dictionary.lo src/shared/iniparser.lo  -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic -fvisibility=hidden -module -avoid-version  -o gdbm.la -rpath /usr/lib64/buxton src/db/gdbm.lo -lgdbm -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic -fvisibility=hidden -module -avoid-version  -o memory.la -rpath /usr/lib64/buxton src/db/memory.lo  -lm -lrt -lgdbm -ldl 
+libtool: link: gcc -shared  -fPIC -DPIC  src/db/.libs/gdbm.o   -lm -lrt -lgdbm -ldl  -O0 -O2   -Wl,-soname -Wl,gdbm.so -o .libs/gdbm.so
+libtool: link: ar cru .libs/libbuxton-shared.a  src/security/.libs/smack.o src/shared/.libs/backend.o src/shared/.libs/buxtonarray.o src/shared/.libs/buxtonlist.o src/shared/.libs/configurator.o src/shared/.libs/direct.o src/shared/.libs/hashmap.o src/shared/.libs/log.o src/shared/.libs/protocol.o src/shared/.libs/serialize.o src/shared/.libs/util.o src/shared/.libs/dictionary.o src/shared/.libs/iniparser.o
+libtool: link: ranlib .libs/libbuxton-shared.a
+libtool: link: gcc -shared  -fPIC -DPIC  src/db/.libs/memory.o   -lm -lrt -lgdbm -ldl  -O0 -O2   -Wl,-soname -Wl,memory.so -o .libs/memory.so
+libtool: link: ( cd ".libs" && rm -f "gdbm.la" && ln -s "../gdbm.la" "gdbm.la" )
+libtool: link: ( cd ".libs" && rm -f "libbuxton-shared.la" && ln -s "../libbuxton-shared.la" "libbuxton-shared.la" )
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -I./src/shared/ -fvisibility=hidden -O2 -g -rdynamic -version-info 1:0:0 -Wl,--version-script=./src/libbuxton/lbuxton.sym  -o libbuxton.la -rpath /usr/lib64 src/libbuxton/libbuxton_la-lbuxton.lo libbuxton-shared.la -ldl -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -I./src/shared/ -O2 -g -version-info 1:0:1 -version-info 1:0:0 -Wl,--version-script=./src/libbuxton-simp/lbuxton-simp.sym  -o libbuxtonsimp.la -rpath /usr/lib64 src/libbuxton/libbuxtonsimp_la-lbuxton.lo src/libbuxton-simp/libbuxtonsimp_la-lbuxton-simp.lo libbuxton-shared.la -ldl -lm -lrt -lgdbm -ldl 
+libtool: link: ( cd ".libs" && rm -f "memory.la" && ln -s "../memory.la" "memory.la" )
+libtool: link: gcc -shared  -fPIC -DPIC  src/libbuxton/.libs/libbuxton_la-lbuxton.o  -Wl,--whole-archive ./.libs/libbuxton-shared.a -Wl,--no-whole-archive  -lm -lrt -lgdbm -ldl  -O0 -O2 -Wl,--version-script=./src/libbuxton/lbuxton.sym   -Wl,-soname -Wl,libbuxton.so.1 -o .libs/libbuxton.so.1.0.0
+libtool: link: gcc -shared  -fPIC -DPIC  src/libbuxton/.libs/libbuxtonsimp_la-lbuxton.o src/libbuxton-simp/.libs/libbuxtonsimp_la-lbuxton-simp.o  -Wl,--whole-archive ./.libs/libbuxton-shared.a -Wl,--no-whole-archive  -lm -lrt -lgdbm -ldl  -O0 -O2 -Wl,--version-script=./src/libbuxton-simp/lbuxton-simp.sym   -Wl,-soname -Wl,libbuxtonsimp.so.1 -o .libs/libbuxtonsimp.so.1.0.0
+libtool: link: (cd ".libs" && rm -f "libbuxton.so.1" && ln -s "libbuxton.so.1.0.0" "libbuxton.so.1")
+libtool: link: (cd ".libs" && rm -f "libbuxtonsimp.so.1" && ln -s "libbuxtonsimp.so.1.0.0" "libbuxtonsimp.so.1")
+libtool: link: (cd ".libs" && rm -f "libbuxton.so" && ln -s "libbuxton.so.1.0.0" "libbuxton.so")
+libtool: link: (cd ".libs" && rm -f "libbuxtonsimp.so" && ln -s "libbuxtonsimp.so.1.0.0" "libbuxtonsimp.so")
+libtool: link: ( cd ".libs" && rm -f "libbuxton.la" && ln -s "../libbuxton.la" "libbuxton.la" )
+libtool: link: ( cd ".libs" && rm -f "libbuxtonsimp.la" && ln -s "../libbuxtonsimp.la" "libbuxtonsimp.la" )
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o buxtonctl src/cli/buxtonctl-main.o src/cli/buxtonctl-client.o libbuxton.la libbuxton-shared.la -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_timing demo/timing.o libbuxton.la libbuxton-shared.la -lrt -lm -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_hello_get demo/bxt_hello_get-helloget.o libbuxton.la -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_hello_set demo/bxt_hello_set-helloset.o libbuxton.la -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_hello_set_label demo/bxt_hello_set_label-hellosetlabel.o libbuxton.la -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_hello_create_group demo/bxt_hello_create_group-hellocreategroup.o libbuxton.la -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_hello_remove_group demo/bxt_hello_remove_group-helloremovegroup.o libbuxton.la -lm -lrt -lgdbm -ldl 
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_hello_set demo/bxt_hello_set-helloset.o  ./.libs/libbuxton.so -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_hello_get demo/bxt_hello_get-helloget.o  ./.libs/libbuxton.so -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_hello_set_label demo/bxt_hello_set_label-hellosetlabel.o  ./.libs/libbuxton.so -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_hello_remove_group demo/bxt_hello_remove_group-helloremovegroup.o  ./.libs/libbuxton.so -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_hello_create_group demo/bxt_hello_create_group-hellocreategroup.o  ./.libs/libbuxton.so -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_timing demo/timing.o  ./.libs/libbuxton.so ./.libs/libbuxton-shared.a -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/buxtonctl src/cli/buxtonctl-main.o src/cli/buxtonctl-client.o  ./.libs/libbuxton.so ./.libs/libbuxton-shared.a -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_hello_unset demo/bxt_hello_unset-hellounset.o libbuxton.la -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_hello_notify demo/bxt_hello_notify-hellonotify.o libbuxton.la -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o bxt_hello_notify_multi demo/bxt_hello_notify_multi-notifytest.o libbuxton.la -lm -lrt -lgdbm -ldl 
+/bin/bash ./libtool  --tag=CC   --mode=link gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0  -O2 -g -rdynamic  -o buxtond src/core/buxtond-daemon.o src/core/buxtond-main.o -lsystemd-daemon   libbuxton-shared.la -lm -lrt -lgdbm -ldl 
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_hello_unset demo/bxt_hello_unset-hellounset.o  ./.libs/libbuxton.so -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_hello_notify demo/bxt_hello_notify-hellonotify.o  ./.libs/libbuxton.so -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o buxtond src/core/buxtond-daemon.o src/core/buxtond-main.o  -lsystemd-daemon ./.libs/libbuxton-shared.a -lm -lrt -lgdbm -ldl
+libtool: link: gcc -std=gnu99 -fstack-protector -Wall -pedantic -Wstrict-prototypes -Wundef -fno-common -Werror-implicit-function-declaration -Wformat -Wformat-security -Werror=format-security -Wconversion -Wunreachable-code -ggdb3 -O0 -O2 -g -rdynamic -o .libs/bxt_hello_notify_multi demo/bxt_hello_notify_multi-notifytest.o  ./.libs/libbuxton.so -lm -lrt -lgdbm -ldl -Wl,-rpath -Wl,/usr/lib64
+make[2]: Leaving directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
+make[1]: Leaving directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
++ exit 0
+Executing(%install): /bin/sh -e /var/tmp/rpm-tmp.JzQG6b
++ umask 022
++ cd /home/ceara/rpmbuild/BUILD
++ cd buxton-simp-2
++ /usr/bin/make install DESTDIR=/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64
+Making install in .
+make[1]: Entering directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
+make[2]: Entering directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64'
+ /bin/bash ./libtool   --mode=install /usr/bin/install -c   libbuxton.la libbuxtonsimp.la '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/libbuxton.so.1.0.0 /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/libbuxton.so.1.0.0
+libtool: install: (cd /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64 && { ln -s -f libbuxton.so.1.0.0 libbuxton.so.1 || { rm -f libbuxton.so.1 && ln -s libbuxton.so.1.0.0 libbuxton.so.1; }; })
+libtool: install: (cd /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64 && { ln -s -f libbuxton.so.1.0.0 libbuxton.so || { rm -f libbuxton.so && ln -s libbuxton.so.1.0.0 libbuxton.so; }; })
+libtool: install: /usr/bin/install -c .libs/libbuxton.lai /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/libbuxton.la
+libtool: install: /usr/bin/install -c .libs/libbuxtonsimp.so.1.0.0 /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/libbuxtonsimp.so.1.0.0
+libtool: install: (cd /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64 && { ln -s -f libbuxtonsimp.so.1.0.0 libbuxtonsimp.so.1 || { rm -f libbuxtonsimp.so.1 && ln -s libbuxtonsimp.so.1.0.0 libbuxtonsimp.so.1; }; })
+libtool: install: (cd /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64 && { ln -s -f libbuxtonsimp.so.1.0.0 libbuxtonsimp.so || { rm -f libbuxtonsimp.so && ln -s libbuxtonsimp.so.1.0.0 libbuxtonsimp.so; }; })
+libtool: install: /usr/bin/install -c .libs/libbuxtonsimp.lai /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/libbuxtonsimp.la
+libtool: install: warning: remember to run `libtool --finish /usr/lib64'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin'
+  /bin/bash ./libtool   --mode=install /usr/bin/install -c buxtonctl bxt_timing bxt_hello_get bxt_hello_set bxt_hello_set_label bxt_hello_create_group bxt_hello_remove_group bxt_hello_unset bxt_hello_notify bxt_hello_notify_multi '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin'
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/buxtonctl /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/buxtonctl
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_timing /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_timing
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_hello_get /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_hello_get
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_hello_set /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_hello_set
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_hello_set_label /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_hello_set_label
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_hello_create_group /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_hello_create_group
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_hello_remove_group /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_hello_remove_group
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_hello_unset /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_hello_unset
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_hello_notify /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_hello_notify
+libtool: install: warning: `libbuxton.la' has not been installed in `/usr/lib64'
+libtool: install: /usr/bin/install -c .libs/bxt_hello_notify_multi /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/bin/bxt_hello_notify_multi
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/etc'
+ /usr/bin/install -c -m 644 data/buxton.conf '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/etc'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/buxton'
+ /bin/bash ./libtool   --mode=install /usr/bin/install -c   gdbm.la memory.la '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/buxton'
+libtool: install: /usr/bin/install -c .libs/gdbm.so /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/buxton/gdbm.so
+libtool: install: /usr/bin/install -c .libs/gdbm.lai /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/buxton/gdbm.la
+libtool: install: /usr/bin/install -c .libs/memory.so /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/buxton/memory.so
+libtool: install: /usr/bin/install -c .libs/memory.lai /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/buxton/memory.la
+libtool: install: warning: remember to run `libtool --finish /usr/lib64/buxton'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/sbin'
+  /bin/bash ./libtool   --mode=install /usr/bin/install -c buxtond '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/sbin'
+libtool: install: /usr/bin/install -c buxtond /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/sbin/buxtond
+/bin/mkdir -p /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/var/lib/buxton
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/include'
+ /usr/bin/install -c -m 644 src/include/buxton.h src/include/buxton-simp.h '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/include'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man1'
+ /usr/bin/install -c -m 644 docs/buxtonctl.1 '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man1'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man3'
+ /usr/bin/install -c -m 644 docs/buxton_client_handle_response.3 docs/buxton_close.3 docs/buxton_create_group.3 docs/buxton_get_value.3 docs/buxton_key_create.3 docs/buxton_key_free.3 docs/buxton_key_get_group.3 docs/buxton_key_get_layer.3 docs/buxton_key_get_name.3 docs/buxton_key_get_type.3 docs/buxton_open.3 docs/buxton_register_notification.3 docs/buxton_remove_group.3 docs/buxton_response_key.3 docs/buxton_response_status.3 docs/buxton_response_type.3 docs/buxton_response_value.3 docs/buxton_set_conf_file.3 docs/buxton_set_label.3 docs/buxton_set_value.3 docs/buxton_unregister_notification.3 docs/buxton_unset_value.3 '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man3'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man5'
+ /usr/bin/install -c -m 644 docs/buxton.conf.5 '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man5'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man7'
+ /usr/bin/install -c -m 644 docs/buxton.7 docs/buxton-api.7 docs/buxton-protocol.7 docs/buxton-security.7 '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man7'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man8'
+ /usr/bin/install -c -m 644 docs/buxtond.8 '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/share/man/man8'
+ /bin/mkdir -p '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/pkgconfig'
+ /usr/bin/install -c -m 644 data/libbuxton.pc data/libbuxton-simp.pc '/home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/usr/lib64/pkgconfig'
+/usr/bin/make  install-data-hook
+make[3]: Entering directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
+mkdir -p /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/sockets.target.wants
+ln -sf ../buxton.socket /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/sockets.target.wants/buxton.socket
+make[3]: Leaving directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
+make[2]: Leaving directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
+make[1]: Leaving directory `/home/ceara/rpmbuild/BUILD/buxton-simp-2'
++ install -m 0644 /home/ceara/rpmbuild/SOURCES/tizen.conf /home/ceara/rpmbuild/BUILDROOT/buxton-simp-2-1.x86_64/etc/buxton.conf
++ install -d /usr/lib64/systemd/system
+install: cannot create directory '/usr/lib64': Permission denied
+error: Bad exit status from /var/tmp/rpm-tmp.JzQG6b (%install)
+
+
+RPM build errors:
+    Bad exit status from /var/tmp/rpm-tmp.JzQG6b (%install)
