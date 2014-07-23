@@ -18,6 +18,7 @@
  * GNU Lesser General Public License 2.1
  */
 
+#include "buxton.h"
 #ifdef HAVE_CONFIG_H
 	#include "config.h"
 #endif

@@ -5,7 +5,6 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <buxton.h>
 #include "buxton-simp.h"
 
 /*DEMONSTRATION*/
