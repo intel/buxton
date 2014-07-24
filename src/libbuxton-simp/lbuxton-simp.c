@@ -629,21 +629,6 @@ BuxtonKey buxton_group_create(char *name, char *layer)
 	return ret;
 }
 
-/*create a buxtond side group*/
-void buxtond_create_group(BuxtonKey group)
-{
-	client_connection();
-	if (buxton_create_group(client, group, NULL, NULL, true)){
-		printf("Create group call failed.\n");
-		buxton_key_free(group);
-		client_disconnect();
-		return;
-	}
-	/*TODO*/
-	//buxton_key_free(group);
-	client_disconnect();
-}
-
 /*buxton_remove_group callback and function*/
 void rg_cb(BuxtonResponse response, void *data)
 {
@@ -665,9 +650,3 @@ void buxtond_remove_group(char *group_name, char *layer)
 	client_disconnect();
 }
 
-/*buxton_key_free insert char key name and type*/
-void buxtond_key_free(char * key_name, BuxtonDataType type)
-{
-	BuxtonKey k = buxton_key_create(_group, strdup(key_name), _layer, type);
-	buxton_key_free(k);
-}

@@ -204,6 +204,19 @@ _bx_export_ void buxtond_set_bool(char *key, bool value);
  */
 _bx_export_ bool buxtond_get_bool(char *key);
 /**
+ * Creates a BuxtonKey internally for buxtond_remove_group to remove
+ * @param name A group name that is a string (char *)
+ * @param layer A layer name that is a string (char *)
+ * @return A BuxtonKey that is a group
+ */
+BuxtonKey buxton_group_create(char *name, char *layer);
+/**
+ * Remove group callback
+ * @param response A BuxtonResponse
+ * @param data A void pointer
+ */
+void rg_cb(BuxtonResponse response, void *data);
+/**
  * Removes a group and clears all of the key value pairs in that group
  * @param group_name A group name that is a string (char *)
  * @param layer A layer name that is a string (char *)
@@ -215,8 +228,6 @@ _bx_export_ void buxtond_remove_group(char *group_name, char *layer);
  * Rename buxtond_remove_group2.
  * Take the 'd' out of buxtond for all functions? Maybe use sbuxton instead?
  */
-BuxtonKey buxton_group_create(char *name, char *layer);
 void buxtond_create_group(BuxtonKey group);
-void rg_cb(BuxtonResponse response, void *data);
 void buxtond_key_free(char * key_name, BuxtonDataType type);
 
