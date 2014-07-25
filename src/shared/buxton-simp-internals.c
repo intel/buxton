@@ -212,11 +212,7 @@ void _bg_cb(BuxtonResponse response, void *data)
 	probably not really needed*/
 BuxtonKey _buxton_group_create(char *name, char *layer)
 {
-	/* Only helper function- not called outside the library, so doesn't need
-	to connect/disconnect
-	_client_connection();*/
 	BuxtonKey ret = buxton_key_create(name, NULL, layer, STRING);
-	/*_client_disconnect();*/
 	return ret;
 }
 

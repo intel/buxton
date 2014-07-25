@@ -1,6 +1,5 @@
 
 AC_PREREQ([2.68])
-# changed to buxton-simp
 AC_INIT([buxton-simp],[2],[william.douglas@intel.com],[buxton-simp],[https://github.com/sofar/buxton])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability silent-rules subdir-objects color-tests no-dist-gzip dist-xz])
 AC_CONFIG_MACRO_DIR([m4])
@@ -220,7 +219,6 @@ test/test.conf
 ])
 AC_OUTPUT
 
-#changed this to buxton-simp
 AC_MSG_RESULT([
         buxton-simp $VERSION
         ========
