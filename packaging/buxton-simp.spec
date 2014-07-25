@@ -174,3 +174,4 @@ fi
 %{_bindir}/bxt_hello_set_label
 %{_bindir}/bxt_hello_unset
 %{_bindir}/bxt_timing
+%{_bindir}/bxt_hello_buxton_simp

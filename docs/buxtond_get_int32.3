@@ -71,12 +71,11 @@ set to EACCES.
 .sp
 #include "../shared/log.h"
 #include <errno.h>
-#include <string.h>
 #include <inttypes.h>
+#include <string.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <buxton.h>
 #include "buxton-simp.h"
 
 /*DEMONSTRATION*/
@@ -88,7 +87,7 @@ int main(void)
 	printf("set_group: 'tg_s0', 'user', Error number: %s.\n", strerror(errno));
 
 	/*Test string setting*/
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
 	char * s="Watermelon";
 	printf("value should be set to %s.\n", s);
 	errno = 0;
@@ -106,7 +105,7 @@ int main(void)
 	printf("set_group: 'tg_s1', Error number: %s.\n", strerror(errno));
 
 	/*Test int32 setting*/
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
 	int32_t i=rand()%100+1;
 	printf("value should be set to %i.\n",i);
 	errno = 0;
@@ -119,7 +118,7 @@ int main(void)
 	printf("set_group: 'tg_s2', Error number: %s.\n", strerror(errno));
 
 	/*Test int32 setting*/
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
 	int32_t i2=rand()%1000+1;
 	printf("Second value should be set to %i.\n", i2);
 	errno = 0;
@@ -152,7 +151,7 @@ int main(void)
 	printf("set_group: 'tg_s3', Error number: %s.\n", strerror(errno));
 
 	/*Test uint32 setting*/
-	uint32_t ui32 = rand()%50+1;
+	uint32_t ui32 = (uint32_t) rand()%50+1;
 	printf("value should be set to %u.\n", ui32);
 	errno = 0;
 	buxtond_set_uint32("tk_ui32", ui32);
@@ -179,7 +178,7 @@ int main(void)
 	buxtond_set_group("tg_s0", "user");
 
 	/*Test uint64 setting*/
-	uint64_t ui64 = rand()%500+1;
+	uint64_t ui64 = (uint64_t) rand()%500+1;
 	printf("value should be set to ""%"PRIu64".\n", ui64);
 	errno = 0;
 	buxtond_set_uint64("tk_ui64", ui64);
@@ -190,7 +189,7 @@ int main(void)
 	printf("get_uint64: 'tg_s0', 'tk_ui64', Error number: %s.\n", strerror(errno));
 
 	/*Test float setting*/
-	float f = rand()%9+1;
+	float f = (float) (rand()%9+1);
 	printf("value should be set to %e.\n", f);
 	errno = 0;
 	buxtond_set_float("tk_f", f);

@@ -429,7 +429,8 @@ bin_PROGRAMS += \
 	bxt_hello_remove_group \
 	bxt_hello_unset \
 	bxt_hello_notify \
-	bxt_hello_notify_multi
+	bxt_hello_notify_multi \
+	bxt_hello_buxton_simp
 
 # Timing test
 bxt_timing_SOURCES = \
@@ -494,6 +495,13 @@ bxt_hello_notify_multi_CFLAGS = \
 	$(AM_CFLAGS)
 bxt_hello_notify_multi_LDADD = \
 	libbuxton.la
+
+bxt_hello_buxton_simp_SOURCES = \
+	demo/lbuxton-simp_test.c
+bxt_hello_buxton_simp_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_buxton_simp_LDADD = \
+	libbuxtonsimp.la
 
 if BUILD_GTK_DEMO
 bin_PROGRAMS += \
