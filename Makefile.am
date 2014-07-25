@@ -181,10 +181,11 @@ buxtonctl_CFLAGS = \
 buxtonctl_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la
-
+#begin adding stuff for libbuxton-simp-internals
 noinst_LTLIBRARIES += \
-	libbuxton-shared.la
-
+	libbuxton-shared.la \
+	libbuxton-simp-shared.la
+#end adding stuff for libbuxton-simp-internals
 libbuxton_shared_la_SOURCES = \
 	src/security/smack.c \
 	src/security/smack.h \
@@ -228,7 +229,14 @@ endif
 libbuxton_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-static
+#begin adding stuff for libbuxton-simp-internals
+libbuxton_simp_shared_la_SOURCES = \
+	src/shared/buxton-simp-internals.h
 
+libbuxton_simp_shared_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-static
+#end adding stuff for libbuxton-simp-internals
 include_HEADERS += \
 	src/include/buxton.h \
 	src/include/buxton-simp.h
@@ -259,7 +267,8 @@ libbuxton_la_LIBADD = \
 #adding stuff for libbuxtonsimp
 libbuxtonsimp_la_SOURCES = \
 	src/libbuxton/lbuxton.c \
-	src/libbuxton-simp/lbuxton-simp.c
+	src/libbuxton-simp/lbuxton-simp.c \
+	src/shared/buxton-simp-internals.c
 
 libbuxtonsimp_la_CFLAGS = \
 	$(AM_CFLAGS) \
@@ -273,6 +282,7 @@ libbuxtonsimp_la_LDFLAGS = \
 
 libbuxtonsimp_la_LIBADD = \
 	libbuxton-shared.la \
+	libbuxton-simp-shared.la \ #added this for libbuxton-simp-internals
 	-ldl
 #end adding stuff for libbuxtonsimp
 

@@ -1,4 +1,3 @@
-#include "../shared/log.h"
 #include <errno.h>
 #include <inttypes.h>
 #include <string.h>

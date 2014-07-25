@@ -29,59 +29,9 @@
 #else
 #  define _bx_export_
 #endif
-/**
- * Structure with possible data types for key values and status for buxton_response_status
- * For setting a value, the caller stores the value to be set and the BuxtonDataType before callback
- * For getting a value, the caller stores the BuxtonDataType before callback
- * The buxton get callback puts the value that should be returned into the structure
- * The buxton set callback accesses the structure for the value to be set and prints it(in debug mode)
- * status is used to check for success or failure of an operation
- * status is set to 0 on failure and 1 on success(set when checking buxton_response_status)
- */
-typedef struct vstatus {
-	int status;
-	BuxtonDataType type;
-	union {
-		char * sval;
-		int32_t i32val;
-		uint32_t ui32val;
-		int64_t i64val;
-		uint64_t ui64val;
-		float fval;
-		double dval;
-		bool bval;
-	} val;
-} vstatus;
+
 
 /*Buxton Simple API Methods*/
-
-/**
- * Saves errno at the beginning of methods that could change errno 
- * errno can be set by the programmer above a method call and checked after to see if method succeeds
- */
-void save_errno(void);
-/**
- * Opens client connection when called by client_connection()
- */
-void sbuxton_open(void);
-/**
- * Closes client connections when called by client_disconnect()
- */
-void sbuxton_close(void);
-/**
- * Checks for client connection and calls sbuxton_open if client connection is not open
- */
-void client_connection(void);
-/**
- * Checks for client connections and calls sbuxton_close if client connection is open
- */
-void client_disconnect(void);
-/**
- * Create group callback
- * @param response BuxtonResponse
- * @param data A void pointer that points to data passed in by buxton_create_group
- */
-void cg_cb(BuxtonResponse response, void *data);
 /**
  * Creates a group if it does not exist and uses that group for all following get and set calls
  * If the group already exists, it will be used for all following get and set calls
@@ -89,24 +39,6 @@ void cg_cb(BuxtonResponse response, void *data);
  * @param layer A layer name that is a string (char *)
  */
 _bx_export_ void buxtond_set_group(char *group, char *layer);
-/**
- * Prints the value that has been set along with the key name, group, and layer (when in debug mode)
- * @param data Pointer to structure with the value to be set, its type, and a status to be set on success
- * @param response A BuxtonResponse used to get and print the key name, group, and layer  
- */
-void bs_print(vstatus *data, BuxtonResponse response);
-/** 
- * Buxton set value callback checks buxton_response_status and calls bs_print
- * @param response A BuxtonResponse that is used to see if value has been set properly  
- * @param data A void pointer to a vstatus structure with status that will be set
- */
-void bs_cb(BuxtonResponse response, void *data);
-/**
- * Buxton get value callback
- * @param response A BuxtonResponse used to get the value and check status (buxton_response_status)
- * @param data A void pointer to a vstatus structure with status and value that will be set
- */
-void bg_cb(BuxtonResponse response, void *data);
 /** 
  * Buxton set int32_t sets an int32_t value for a given key
  * @param key A key name that is a string (char *)
@@ -204,19 +136,6 @@ _bx_export_ void buxtond_set_bool(char *key, bool value);
  */
 _bx_export_ bool buxtond_get_bool(char *key);
 /**
- * Creates a BuxtonKey internally for buxtond_remove_group to remove
- * @param name A group name that is a string (char *)
- * @param layer A layer name that is a string (char *)
- * @return A BuxtonKey that is a group
- */
-BuxtonKey buxton_group_create(char *name, char *layer);
-/**
- * Remove group callback
- * @param response A BuxtonResponse
- * @param data A void pointer
- */
-void rg_cb(BuxtonResponse response, void *data);
-/**
  * Removes a group and clears all of the key value pairs in that group
  * @param group_name A group name that is a string (char *)
  * @param layer A layer name that is a string (char *)
@@ -224,10 +143,6 @@ void rg_cb(BuxtonResponse response, void *data);
 _bx_export_ void buxtond_remove_group(char *group_name, char *layer);
 
 
-/* TODO: remove functions below from library.
- * Rename buxtond_remove_group2.
+/* TODO:
  * Take the 'd' out of buxtond for all functions? Maybe use sbuxton instead?
  */
-void buxtond_create_group(BuxtonKey group);
-void buxtond_key_free(char * key_name, BuxtonDataType type);
-
