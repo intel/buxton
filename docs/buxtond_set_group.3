@@ -46,9 +46,11 @@ void buxtond_remove_group(char *\fIgroup_name\fB,
 These functions are used for managing groups within buxton\&.
 
 Before a value can be set for a key-name, the group for the key-name
-must be created\&. A group can be created by calling
+must be created\&. A group can be created or switched to by calling
 \fBbuxtond_set_group\fR(3). The group is created if it does
-not already exist, then all following function calls (e.g. \fBbuxtond_set_int32\fR(3) or \fBbuxtond_get_float\fR(3)) 
+not already exist, or switched to if a group with that name and layer already
+exists. Then all following key function calls (e.g. \fBbuxtond_set_int32\fR(3)
+or \fBbuxtond_get_float\fR(3)) 
 refer to keys in this group\&.
 For more information about key manipulation, see
 \fBbuxtond_set_int32\fR(3) and \fBbuxtond_get_int32\fR(3)\&.

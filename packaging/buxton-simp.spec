@@ -151,6 +151,8 @@ fi
 %{_mandir}/man3/buxtond_set_float.3.gz
 %{_mandir}/man3/buxtond_set_double.3.gz
 %{_mandir}/man3/buxtond_set_bool.3.gz
+%{_mandir}/man3/buxtond_set_group.3.gz
+%{_mandir}/man3/buxtond_remove_group.3.gz
 
 %files devel
 #Add this back in when building with Tizen
