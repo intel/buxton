@@ -102,9 +102,6 @@ fi
 %{_libdir}/systemd/system/sockets.target.wants/buxton.socket
 %{_sbindir}/buxtond
 %attr(0700,buxton,buxton) %dir %{_localstatedir}/lib/buxton
-#added these b/c rpmbuild was complaining
-#should be able to take this out
-#/sockets.target.wants/buxton.socket
 %{_mandir}/man1/buxtonctl.1.gz
 %{_mandir}/man3/buxton_client_handle_response.3.gz
 %{_mandir}/man3/buxton_close.3.gz
