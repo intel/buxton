@@ -1,4 +1,4 @@
-Name:           buxton-simp
+Name:           buxton
 Version:        2
 Release:        1
 License:        LGPL-2.1+
@@ -26,7 +26,7 @@ contain key-value pairs.  Mandatory Access Control (MAC) is
 implemented at the group level and at the key-value level.
 
 This version of Buxton provides a simpler version of Buxton's
-C library (libbuxtonsimp) for client applications to
+C library (libbuxtonsimple) for client applications to
 use.  Internally, buxton uses a daemon (buxtond) for processing
 client requests and enforcing MAC. Also, a CLI (buxtonctl) is
 provided for interactive use and for use in shell scripts.
@@ -43,7 +43,7 @@ contain key-value pairs.  Mandatory Access Control (MAC) is
 implemented at the group level and at the key-value level.
 
 This version of Buxton provides a simpler version of Buxton's
-C library (libbuxtonsimp) for client applications to
+C library (libbuxtonsimple) for client applications to
 use.  Internally, buxton uses a daemon (buxtond) for processing
 client requests and enforcing MAC. Also, a CLI (buxtonctl) is
 provided for interactive use and for use in shell scripts.
@@ -61,7 +61,7 @@ Requires: %{name} = %{version}
 cp %{SOURCE1001} .
 
 %build
-%configure --enable-debug --enable-demos --with-systemdsystemunitdir=%{_libdir}/systemd/system/ --with-module-dir=%{_libdir}/buxton-simp/
+%configure --enable-debug --enable-demos --with-systemdsystemunitdir=%{_libdir}/systemd/system/ --with-module-dir=%{_libdir}/buxton/
 
 make %{?_smp_mflags}
 
@@ -93,10 +93,10 @@ fi
 %license ./LICENSE.LGPL2.1
 %config(noreplace) %{_sysconfdir}/buxton.conf
 %{_bindir}/buxtonctl
-%{_libdir}/buxton-simp/*.so
-%{_libdir}/buxton-simp/*.la
+%{_libdir}/buxton/*.so
+%{_libdir}/buxton/*.la
 %{_libdir}/libbuxton.so.*
-%{_libdir}/libbuxtonsimp.so.*
+%{_libdir}/libbuxtonsimple.so.*
 %{_libdir}/systemd/system/buxton.service
 %{_libdir}/systemd/system/buxton.socket
 %{_libdir}/systemd/system/sockets.target.wants/buxton.socket
@@ -131,7 +131,7 @@ fi
 %{_mandir}/man7/buxton-security.7.gz
 %{_mandir}/man7/buxton.7.gz
 %{_mandir}/man8/buxtond.8.gz
-%{_mandir}/man7/buxton-simp-api.7.gz
+%{_mandir}/man7/buxtonsimple-api.7.gz
 %{_mandir}/man3/buxtond_get_int32.3.gz
 %{_mandir}/man3/buxtond_get_uint32.3.gz
 %{_mandir}/man3/buxtond_get_string.3.gz
@@ -155,9 +155,9 @@ fi
 #Add this back in when building with Tizen
 #%manifest %{name}.manifest
 %{_includedir}/buxton.h
-%{_includedir}/buxton-simp.h
+%{_includedir}/buxtonsimple.h
 %{_libdir}/libbuxton.so
-%{_libdir}/libbuxtonsimp.so
+%{_libdir}/libbuxtonsimple.so
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/*.la
 
@@ -171,4 +171,4 @@ fi
 %{_bindir}/bxt_hello_set_label
 %{_bindir}/bxt_hello_unset
 %{_bindir}/bxt_timing
-%{_bindir}/bxt_hello_buxton_simp
+%{_bindir}/bxt_hello_simple

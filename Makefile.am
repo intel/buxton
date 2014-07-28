@@ -64,7 +64,7 @@ LIBBUXTON_AGE=0
 pkgconfiglibdir=$(libdir)/pkgconfig
 pkgconfiglib_DATA = \
 	data/libbuxton.pc \
-	data/libbuxton-simp.pc
+	data/libbuxtonsimple.pc
 
 if MANPAGE
 dist_man_MANS = \
@@ -97,7 +97,7 @@ dist_man_MANS = \
 	docs/buxton_set_value.3 \
 	docs/buxton_unregister_notification.3 \
 	docs/buxton_unset_value.3 \
-	docs/buxton-simp-api.7 \
+	docs/buxtonsimple-api.7 \
 	docs/buxtond_get_int32.3 \
 	docs/buxtond_get_uint32.3 \
 	docs/buxtond_get_string.3 \
@@ -141,10 +141,10 @@ EXTRA_DIST = \
 	HACKING \
 	check_db_clean \
 	data/libbuxton.pc.in \
-	data/libbuxton-simp.pc.in \
+	data/libbuxtonsimple.pc.in \
 	docs/LICENSE.MIT \
 	src/libbuxton/lbuxton.sym \
-	src/libbuxton-simp/lbuxton-simp.sym \
+	src/libbuxtonsimple/lbuxtonsimple.sym \
 	test/test.load2 \
 	test/test.conf \
 	test/test-configurator.conf
@@ -184,7 +184,7 @@ buxtonctl_LDADD = \
 
 noinst_LTLIBRARIES += \
 	libbuxton-shared.la \
-	libbuxton-simp-shared.la
+	libbuxtonsimple-shared.la
 
 libbuxton_shared_la_SOURCES = \
 	src/security/smack.c \
@@ -230,21 +230,21 @@ libbuxton_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-static
 
-libbuxton_simp_shared_la_SOURCES = \
-	src/shared/buxton-simp-internals.h
+libbuxtonsimple_shared_la_SOURCES = \
+	src/shared/buxtonsimple-internals.h
 
-libbuxton_simp_shared_la_LDFLAGS = \
+libbuxtonsimple_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-static
 
 include_HEADERS += \
 	src/include/buxton.h \
-	src/include/buxton-simp.h
+	src/include/buxtonsimple.h
 
 
 lib_LTLIBRARIES += \
 	libbuxton.la \
-	libbuxtonsimp.la 
+	libbuxtonsimple.la 
 
 libbuxton_la_SOURCES = \
 	src/libbuxton/lbuxton.c
@@ -265,24 +265,24 @@ libbuxton_la_LIBADD = \
 	-ldl
 
 
-libbuxtonsimp_la_SOURCES = \
+libbuxtonsimple_la_SOURCES = \
 	src/libbuxton/lbuxton.c \
-	src/libbuxton-simp/lbuxton-simp.c \
-	src/shared/buxton-simp-internals.c
+	src/libbuxtonsimple/lbuxtonsimple.c \
+	src/shared/buxtonsimple-internals.c
 
-libbuxtonsimp_la_CFLAGS = \
+libbuxtonsimple_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	@INIPARSER_CFLAGS@
 	-fvisibility=hidden
 
-libbuxtonsimp_la_LDFLAGS = \
+libbuxtonsimple_la_LDFLAGS = \
 	-version-info 1:0:1 \
 	-version-info $(LIBBUXTON_CURRENT):$(LIBBUXTON_REVISION):$(LIBBUXTON_AGE) \
-	-Wl,--version-script=$(top_srcdir)/src/libbuxton-simp/lbuxton-simp.sym
+	-Wl,--version-script=$(top_srcdir)/src/libbuxtonsimple/lbuxtonsimple.sym
 
-libbuxtonsimp_la_LIBADD = \
+libbuxtonsimple_la_LIBADD = \
 	libbuxton-shared.la \
-	libbuxton-simp-shared.la \
+	libbuxtonsimple-shared.la \
 	-ldl
 
 pkglib_LTLIBRARIES += \
@@ -439,7 +439,7 @@ bin_PROGRAMS += \
 	bxt_hello_unset \
 	bxt_hello_notify \
 	bxt_hello_notify_multi \
-	bxt_hello_buxton_simp
+	bxt_hello_simple
 
 # Timing test
 bxt_timing_SOURCES = \
@@ -505,12 +505,12 @@ bxt_hello_notify_multi_CFLAGS = \
 bxt_hello_notify_multi_LDADD = \
 	libbuxton.la
 
-bxt_hello_buxton_simp_SOURCES = \
-	demo/lbuxton-simp_test.c
-bxt_hello_buxton_simp_CFLAGS = \
+bxt_hello_simple_SOURCES = \
+	demo/hellosimple.c
+bxt_hello_simple_CFLAGS = \
 	$(AM_CFLAGS)
-bxt_hello_buxton_simp_LDADD = \
-	libbuxtonsimp.la
+bxt_hello_simple_LDADD = \
+	libbuxtonsimple.la
 
 if BUILD_GTK_DEMO
 bin_PROGRAMS += \

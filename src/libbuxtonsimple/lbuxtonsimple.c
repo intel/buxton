@@ -5,8 +5,8 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "buxton-simp.h"
-#include "buxton-simp-internals.h"
+#include "buxtonsimple.h"
+#include "buxtonsimple-internals.h"
 
 extern BuxtonClient client;
 static char _layer[256];

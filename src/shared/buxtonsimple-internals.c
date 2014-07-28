@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "buxton.h"
-#include "buxton-simp-internals.h"
+#include "buxtonsimple-internals.h"
 
 BuxtonClient client=NULL;
 int saved_errno;

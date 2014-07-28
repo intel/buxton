@@ -1,4 +1,4 @@
-BUXTONSIMP_1 {
+BUXTONSIMPLE_1 {
 	global:
 		save_errno;
 		sbuxton_open;
