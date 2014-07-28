@@ -22,6 +22,7 @@
 .SH "NAME"
 buxtond_get_string, buxtond_get_int32, buxtond_get_uint32, buxtond_get_int64,
 buxtond_get_uint64, buxtond_get_float, buxtond_get_double, buxtond_get_bool
+.sp
 \- Get the value of a typed key\-name
 
 .SH "SYNOPSIS"
@@ -69,13 +70,13 @@ set to EACCES.
 .SH "CODE EXAMPLE"
 .nf
 .sp
-#include "../shared/log.h"
 #include <errno.h>
 #include <inttypes.h>
-#include <string.h>
-#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 #include "buxton-simp.h"
 
 /*DEMONSTRATION*/
