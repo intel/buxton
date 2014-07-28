@@ -7,5 +7,5 @@ Name: buxton simple
 Description: Simple library for buxton clients
 URL: @PACKAGE_URL@
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lbuxton -lbuxtonsimp
+Libs: -L${libdir} -lbuxtonsimp
 Cflags: -I${includedir}
