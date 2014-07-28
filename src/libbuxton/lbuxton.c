@@ -125,6 +125,8 @@ void buxton_close(BuxtonClient client)
 
 	hashmap_free(key_hash);
 
+	key_hash = NULL;
+
 	if (!client) {
 		return;
 	}
