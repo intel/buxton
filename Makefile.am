@@ -231,7 +231,8 @@ libbuxton_shared_la_LDFLAGS = \
 	-static
 
 libbuxtonsimple_shared_la_SOURCES = \
-	src/shared/buxtonsimple-internals.h
+	src/shared/buxtonsimple-internals.h \
+	src/shared/buxtonsimple-internals.c
 
 libbuxtonsimple_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
@@ -266,13 +267,10 @@ libbuxton_la_LIBADD = \
 
 
 libbuxtonsimple_la_SOURCES = \
-	src/libbuxton/lbuxton.c \
-	src/libbuxtonsimple/lbuxtonsimple.c \
-	src/shared/buxtonsimple-internals.c
+	src/libbuxtonsimple/lbuxtonsimple.c
 
 libbuxtonsimple_la_CFLAGS = \
 	$(AM_CFLAGS) \
-	@INIPARSER_CFLAGS@
 	-fvisibility=hidden
 
 libbuxtonsimple_la_LDFLAGS = \
@@ -281,6 +279,7 @@ libbuxtonsimple_la_LDFLAGS = \
 	-Wl,--version-script=$(top_srcdir)/src/libbuxtonsimple/lbuxtonsimple.sym
 
 libbuxtonsimple_la_LIBADD = \
+	libbuxton.la \
 	libbuxton-shared.la \
 	libbuxtonsimple-shared.la \
 	-ldl
