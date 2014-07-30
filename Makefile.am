@@ -63,7 +63,8 @@ LIBBUXTON_AGE=0
 
 pkgconfiglibdir=$(libdir)/pkgconfig
 pkgconfiglib_DATA = \
-	data/libbuxton.pc
+	data/libbuxton.pc \
+	data/libbuxton-simp.pc
 
 if MANPAGE
 dist_man_MANS = \
@@ -95,7 +96,26 @@ dist_man_MANS = \
 	docs/buxton_set_label.3 \
 	docs/buxton_set_value.3 \
 	docs/buxton_unregister_notification.3 \
-	docs/buxton_unset_value.3
+	docs/buxton_unset_value.3 \
+	docs/buxton-simp-api.7 \
+	docs/buxtond_get_int32.3 \
+	docs/buxtond_get_uint32.3 \
+	docs/buxtond_get_string.3 \
+	docs/buxtond_get_int64.3 \
+	docs/buxtond_get_uint64.3 \
+	docs/buxtond_get_float.3 \
+	docs/buxtond_get_double.3 \
+	docs/buxtond_get_bool.3 \
+	docs/buxtond_set_int32.3 \
+	docs/buxtond_set_uint32.3 \
+	docs/buxtond_set_string.3 \
+	docs/buxtond_set_int64.3 \
+	docs/buxtond_set_uint64.3 \
+	docs/buxtond_set_float.3 \
+	docs/buxtond_set_double.3 \
+	docs/buxtond_set_bool.3 \
+	docs/buxtond_set_group.3 \
+	docs/buxtond_remove_group.3 
 endif
 
 TESTS = \
@@ -121,8 +141,10 @@ EXTRA_DIST = \
 	HACKING \
 	check_db_clean \
 	data/libbuxton.pc.in \
+	data/libbuxton-simp.pc.in \
 	docs/LICENSE.MIT \
 	src/libbuxton/lbuxton.sym \
+	src/libbuxton-simp/lbuxton-simp.sym \
 	test/test.load2 \
 	test/test.conf \
 	test/test-configurator.conf
@@ -161,7 +183,8 @@ buxtonctl_LDADD = \
 	libbuxton-shared.la
 
 noinst_LTLIBRARIES += \
-	libbuxton-shared.la
+	libbuxton-shared.la \
+	libbuxton-simp-shared.la
 
 libbuxton_shared_la_SOURCES = \
 	src/security/smack.c \
@@ -207,11 +230,21 @@ libbuxton_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-static
 
+libbuxton_simp_shared_la_SOURCES = \
+	src/shared/buxton-simp-internals.h
+
+libbuxton_simp_shared_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-static
+
 include_HEADERS += \
-	src/include/buxton.h
+	src/include/buxton.h \
+	src/include/buxton-simp.h
+
 
 lib_LTLIBRARIES += \
-	libbuxton.la
+	libbuxton.la \
+	libbuxtonsimp.la 
 
 libbuxton_la_SOURCES = \
 	src/libbuxton/lbuxton.c
@@ -229,6 +262,27 @@ libbuxton_la_LDFLAGS = \
 
 libbuxton_la_LIBADD = \
 	libbuxton-shared.la \
+	-ldl
+
+
+libbuxtonsimp_la_SOURCES = \
+	src/libbuxton/lbuxton.c \
+	src/libbuxton-simp/lbuxton-simp.c \
+	src/shared/buxton-simp-internals.c
+
+libbuxtonsimp_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	@INIPARSER_CFLAGS@
+	-fvisibility=hidden
+
+libbuxtonsimp_la_LDFLAGS = \
+	-version-info 1:0:1 \
+	-version-info $(LIBBUXTON_CURRENT):$(LIBBUXTON_REVISION):$(LIBBUXTON_AGE) \
+	-Wl,--version-script=$(top_srcdir)/src/libbuxton-simp/lbuxton-simp.sym
+
+libbuxtonsimp_la_LIBADD = \
+	libbuxton-shared.la \
+	libbuxton-simp-shared.la \
 	-ldl
 
 pkglib_LTLIBRARIES += \
@@ -384,7 +438,8 @@ bin_PROGRAMS += \
 	bxt_hello_remove_group \
 	bxt_hello_unset \
 	bxt_hello_notify \
-	bxt_hello_notify_multi
+	bxt_hello_notify_multi \
+	bxt_hello_buxton_simp
 
 # Timing test
 bxt_timing_SOURCES = \
@@ -449,6 +504,13 @@ bxt_hello_notify_multi_CFLAGS = \
 	$(AM_CFLAGS)
 bxt_hello_notify_multi_LDADD = \
 	libbuxton.la
+
+bxt_hello_buxton_simp_SOURCES = \
+	demo/lbuxton-simp_test.c
+bxt_hello_buxton_simp_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_buxton_simp_LDADD = \
+	libbuxtonsimp.la
 
 if BUILD_GTK_DEMO
 bin_PROGRAMS += \
