@@ -63,7 +63,8 @@ LIBBUXTON_AGE=0
 
 pkgconfiglibdir=$(libdir)/pkgconfig
 pkgconfiglib_DATA = \
-	data/libbuxton.pc
+	data/libbuxton.pc \
+	data/libbuxtonsimple.pc
 
 if MANPAGE
 dist_man_MANS = \
@@ -95,7 +96,26 @@ dist_man_MANS = \
 	docs/buxton_set_label.3 \
 	docs/buxton_set_value.3 \
 	docs/buxton_unregister_notification.3 \
-	docs/buxton_unset_value.3
+	docs/buxton_unset_value.3 \
+	docs/buxtonsimple-api.7 \
+	docs/sbuxton_get_int32.3 \
+	docs/sbuxton_get_uint32.3 \
+	docs/sbuxton_get_string.3 \
+	docs/sbuxton_get_int64.3 \
+	docs/sbuxton_get_uint64.3 \
+	docs/sbuxton_get_float.3 \
+	docs/sbuxton_get_double.3 \
+	docs/sbuxton_get_bool.3 \
+	docs/sbuxton_set_int32.3 \
+	docs/sbuxton_set_uint32.3 \
+	docs/sbuxton_set_string.3 \
+	docs/sbuxton_set_int64.3 \
+	docs/sbuxton_set_uint64.3 \
+	docs/sbuxton_set_float.3 \
+	docs/sbuxton_set_double.3 \
+	docs/sbuxton_set_bool.3 \
+	docs/sbuxton_set_group.3 \
+	docs/sbuxton_remove_group.3 
 endif
 
 TESTS = \
@@ -104,7 +124,8 @@ TESTS = \
 	check_shared_lib \
 	check_daemon \
 	check_smack \
-	check_configurator
+	check_configurator \
+	check_buxtonsimple
 
 if COVERAGE
 coverage:
@@ -121,8 +142,10 @@ EXTRA_DIST = \
 	HACKING \
 	check_db_clean \
 	data/libbuxton.pc.in \
+	data/libbuxtonsimple.pc.in \
 	docs/LICENSE.MIT \
 	src/libbuxton/lbuxton.sym \
+	src/libbuxtonsimple/lbuxtonsimple.sym \
 	test/test.load2 \
 	test/test.conf \
 	test/test-configurator.conf
@@ -161,7 +184,8 @@ buxtonctl_LDADD = \
 	libbuxton-shared.la
 
 noinst_LTLIBRARIES += \
-	libbuxton-shared.la
+	libbuxton-shared.la \
+	libbuxtonsimple-shared.la
 
 libbuxton_shared_la_SOURCES = \
 	src/security/smack.c \
@@ -207,11 +231,22 @@ libbuxton_shared_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-static
 
+libbuxtonsimple_shared_la_SOURCES = \
+	src/shared/buxtonsimple-internals.h \
+	src/shared/buxtonsimple-internals.c
+
+libbuxtonsimple_shared_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-static
+
 include_HEADERS += \
-	src/include/buxton.h
+	src/include/buxton.h \
+	src/include/buxtonsimple.h
+
 
 lib_LTLIBRARIES += \
-	libbuxton.la
+	libbuxton.la \
+	libbuxtonsimple.la 
 
 libbuxton_la_SOURCES = \
 	src/libbuxton/lbuxton.c
@@ -230,6 +265,24 @@ libbuxton_la_LDFLAGS = \
 libbuxton_la_LIBADD = \
 	libbuxton-shared.la \
 	-ldl
+
+
+libbuxtonsimple_la_SOURCES = \
+	src/libbuxtonsimple/lbuxtonsimple.c
+
+libbuxtonsimple_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	-fvisibility=hidden
+
+libbuxtonsimple_la_LDFLAGS = \
+	-version-info 1:0:1 \
+	-version-info $(LIBBUXTON_CURRENT):$(LIBBUXTON_REVISION):$(LIBBUXTON_AGE) \
+	-Wl,--version-script=$(top_srcdir)/src/libbuxtonsimple/lbuxtonsimple.sym
+
+libbuxtonsimple_la_LIBADD = \
+	libbuxton.la \
+	libbuxton-shared.la \
+	libbuxtonsimple-shared.la 
 
 pkglib_LTLIBRARIES += \
 	gdbm.la \
@@ -262,7 +315,8 @@ check_PROGRAMS = \
 	check_buxtond \
 	check_daemon \
 	check_smack \
-	check_configurator
+	check_configurator \
+	check_buxtonsimple
 
 check_buxton_SOURCES = \
 	test/check_utils.c \
@@ -367,6 +421,23 @@ check_configurator_LDADD = \
 	@INIPARSER_LIBS@ \
 	libbuxton-shared.la
 
+check_buxtonsimple_SOURCES = \
+	test/check_buxtonsimple.c \
+	src/core/daemon.c \
+	src/core/daemon.h
+check_buxtonsimple_CFLAGS = \
+	$(AM_CFLAGS) \
+	@CHECK_CFLAGS@ \
+	-DMAKE_CHECK \
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
+check_buxtonsimple_LDADD = \
+	@CHECK_LIBS@ \
+	libbuxtonsimple.la \
+	libbuxtonsimple-shared.la \
+	libbuxton.la \
+	libbuxton-shared.la
+
 check_DATA = \
 	test/test-pass.ini \
 	test/test-fail.ini \
@@ -384,7 +455,8 @@ bin_PROGRAMS += \
 	bxt_hello_remove_group \
 	bxt_hello_unset \
 	bxt_hello_notify \
-	bxt_hello_notify_multi
+	bxt_hello_notify_multi \
+	bxt_hello_simple
 
 # Timing test
 bxt_timing_SOURCES = \
@@ -449,6 +521,13 @@ bxt_hello_notify_multi_CFLAGS = \
 	$(AM_CFLAGS)
 bxt_hello_notify_multi_LDADD = \
 	libbuxton.la
+
+bxt_hello_simple_SOURCES = \
+	demo/hellosimple.c
+bxt_hello_simple_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_simple_LDADD = \
+	libbuxtonsimple.la
 
 if BUILD_GTK_DEMO
 bin_PROGRAMS += \
