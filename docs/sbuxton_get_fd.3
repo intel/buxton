@@ -1,5 +1,5 @@
 '\" t
-.TH "BUXTON_CLIENT_HANDLE_RESPONSE" "3" "buxton 1" "buxton_client_handle_response"
+.TH "SBUXTON_GET_FD" "3" "buxton 1" "sbuxton_get_fd"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -20,7 +20,7 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-buxton_client_handle_response \- Notification response helper
+sbuxton_get_fd \- Get file descriptor for notifications
 
 .SH "SYNOPSIS"
 .nf
@@ -29,20 +29,23 @@ buxton_client_handle_response \- Notification response helper
 \fR
 .sp
 \fB
-ssize_t buxton_client_handle_response(BuxtonClient \fIclient\fB)
+int sbuxton_get_fd(\fIvoid\fB)
 \fR
 .fi
 
 .SH "DESCRIPTION"
 .PP
-This function retrieves the response from \fBbuxtond\fR for the \fIclient\fR.
+This function retrieves the file descriptor for the currently open
+connection that \fBbuxtond\fR writes to. You must have registered
+notifications to use this. This is use for polling or adding to a
+mainloop to read notifications.
 
-Several manual pages include code examples that use this function.
-For an example, see \fBbuxton_create_group\fR(3).
+For an example, see \fBsbuxton_register_notify\fR(3).
 
 .SH "RETURN VALUE"
 .PP
-Returns the number of messages processed, or -1 if there was an error\&.
+Returns the file descriptor of the currently open connection or -1
+if there was an error.\&.
 
 .SH "COPYRIGHT"
 .PP
@@ -53,7 +56,8 @@ Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2\&.
 .PP
 \fBbuxton\fR(7),
 \fBbuxtond\fR(8),
-\fBbuxton\-api\fR(7)
+\fBbuxtonsimple\-api\fR(7)
+\fBsbuxton_register_notify\fR(3)
 
 .SH "NOTES"
 .IP " 1." 4
