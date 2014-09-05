@@ -104,6 +104,7 @@ typedef struct BuxtonBackend {
 	void *module; /**<Private handle to the module */
 	module_destroy_func destroy; /**<Destroy method */
 	module_value_func set_value; /**<Set value function */
+	module_value_func get_key_type; /**<Get key type function */
 	module_value_func get_value; /**<Get value function */
 	module_list_func list_keys; /**<List keys function */
 	module_value_func unset_value; /**<Unset value function */
