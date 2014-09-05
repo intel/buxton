@@ -146,6 +146,18 @@ void remove_group(BuxtonDaemon *self, client_list_item *client,
 		  _BuxtonKey *key, int32_t *status);
 
 /**
+ * Buxton daemon function for getting the type of a key
+ * @param self buxtond instance being run
+ * @param client Used to validate smack access
+ * @param key Key for the value being sought
+ * @param status Will be set with the int32_t result of the operation
+ * @returns BuxtonData Value stored for key if successful otherwise NULL
+ */
+BuxtonData *get_key_type(BuxtonDaemon *self, client_list_item *client,
+			_BuxtonKey *key, int32_t *status)
+	__attribute__((warn_unused_result));
+
+/**
  * Buxton daemon function for getting a value
  * @param self buxtond instance being run
  * @param client Used to validate smack access

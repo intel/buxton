@@ -78,6 +78,7 @@ dist_man_MANS = \
 	docs/buxton_client_handle_response.3 \
 	docs/buxton_close.3 \
 	docs/buxton_create_group.3 \
+	docs/buxton_get_key_type.3 \
 	docs/buxton_get_value.3 \
 	docs/buxton_key_create.3 \
 	docs/buxton_key_free.3 \
@@ -448,6 +449,7 @@ check_DATA = \
 if BUILD_DEMOS
 bin_PROGRAMS += \
 	bxt_timing \
+	bxt_hello_get_key_type \
 	bxt_hello_get \
 	bxt_hello_set \
 	bxt_hello_set_label \
@@ -465,6 +467,13 @@ bxt_timing_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la \
 	-lrt -lm
+
+bxt_hello_get_key_type_SOURCES = \
+	demo/hellogetkeytype.c
+bxt_hello_get_key_type_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_get_key_type_LDADD =\
+	libbuxton.la
 
 bxt_hello_get_SOURCES = \
 	demo/helloget.c
