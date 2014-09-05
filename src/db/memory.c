@@ -166,6 +166,67 @@ end:
 	return ret;
 }
 
+
+static int get_key_type(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
+			BuxtonString *label)
+{
+	printf("in memory.c, get_key_type\n");
+	Hashmap *db;
+	BuxtonArray *stored;
+	BuxtonData *d;
+	BuxtonString *l;
+	char *full_key = NULL;
+	int ret;
+
+	assert(layer);
+	assert(key);
+	assert(label);
+	assert(data);
+
+	db = _db_for_resource(layer);
+	if (!db) {
+		/*
+		 * Set negative here to indicate layer not found
+		 * rather than key not found, optimization for
+		 * set value
+		 */
+		ret = -ENOENT;
+		goto end;
+	}
+
+	if (key->name.value) {
+		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1) {
+			abort();
+		}
+	} else {
+		full_key = strdup(key->group.value);
+		if (!full_key) {
+			abort();
+		}
+	}
+
+	stored = (BuxtonArray *)hashmap_get(db, full_key);
+	if (!stored) {
+		ret = ENOENT;
+		goto end;
+	}
+	d = buxton_array_get(stored, 0);
+	
+	data->type = UINT32;
+	data->store.d_uint32 = d->type;
+
+	l = buxton_array_get(stored, 1);
+	if (!buxton_string_copy(l, label)) {
+		abort();
+	}
+
+	ret = 0;
+
+end:
+	free(full_key);
+	return ret;
+}
+
 static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
@@ -321,6 +382,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
+	backend->get_key_type = &get_key_type;
 	backend->get_value = &get_value;
 	backend->unset_value = &unset_value;
 	backend->list_keys = NULL;

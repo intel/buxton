@@ -664,6 +664,64 @@ end:
 	return ret;
 }
 
+bool buxton_wire_get_key_type(_BuxtonClient *client, _BuxtonKey *key,
+			BuxtonCallback callback, void *data)
+{
+	bool ret = false;
+	size_t send_len = 0;
+	_cleanup_free_ uint8_t *send = NULL;
+	BuxtonArray *list = NULL;
+	BuxtonData d_layer;
+	BuxtonData d_group;
+	BuxtonData d_name;
+	BuxtonData d_type; //do i need this?
+	uint32_t msgid = get_msgid();
+
+	buxton_string_to_data(&key->group, &d_group);
+	buxton_string_to_data(&key->name, &d_name);
+	d_type.type = UINT32; // do i need this?
+	d_type.store.d_int32 = key->type; // do i need this?
+
+	list = buxton_array_new();
+	if (key->layer.value) {
+		buxton_string_to_data(&key->layer, &d_layer);
+		if (!buxton_array_add(list, &d_layer)) {
+			buxton_log("Unable to prepare get_key_type message\n");
+			goto end;
+		}
+	}
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Failed to add group to get_key_type array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_name)) {
+		buxton_log("Failed to add name to get_key_type array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_type)) {
+		buxton_log("Failed to add type to get_key_type_array\n");
+		goto end;
+	}
+
+	send_len = buxton_serialize_message(&send, BUXTON_CONTROL_GET_KEY_TYPE,
+					msgid, list);
+
+	if (send_len == 0) {
+		goto end;
+	}
+
+	if (!send_message(client, send, send_len, callback, data, msgid,
+			BUXTON_CONTROL_GET_KEY_TYPE, key)) {
+		goto end;
+	}
+
+	ret = true;
+
+end:
+	buxton_array_free(&list, NULL);
+	return ret;
+}
+
 bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 			   BuxtonCallback callback, void *data)
 {
@@ -691,15 +749,15 @@ bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 		}
 	}
 	if (!buxton_array_add(list, &d_group)) {
-		buxton_log("Failed to add group to set_value array\n");
+		buxton_log("Failed to add group to get_value array\n");
 		goto end;
 	}
 	if (!buxton_array_add(list, &d_name)) {
-		buxton_log("Failed to add name to set_value array\n");
+		buxton_log("Failed to add name to get_value array\n");
 		goto end;
 	}
 	if (!buxton_array_add(list, &d_type)) {
-		buxton_log("Failed to add type to set_value array\n");
+		buxton_log("Failed to add type to get_value array\n");
 		goto end;
 	}
 

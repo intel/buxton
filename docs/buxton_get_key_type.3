@@ -1,0 +1,217 @@
+'\" t
+.TH "BUXTON_GET_KEY_TYPE" "3" "buxton 1" "buxton_get_key_type"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_get_key_type \- Get the type of value for a key\-name
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+int buxton_get_key_type(BuxtonClient \fIclient\fB,
+.br
+                     BuxtonKey \fIkey\fB,
+.br
+                     BuxtonCallback \fIcallback\fB,
+.br
+                     void *\fIdata\fB,
+.br
+                     bool \fIsync\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+This function is used to get the type of value for a key\-name for
+\fIclient\fR. The key\-name is referenced by \fIkey\fR. If the layer
+for \fIkey\fR is NULL, buxton will traverse layers in priority order
+searching for the key-name value, selecting the value for the first
+key\-name found\&. If the argument is non-NULL, the operation will
+target only that layer\&. For more information on creating a
+BuxtonKey to pass for \fIkey\fR, see \fBbuxton_key_create\fR(3)\&.
+
+To retrieve the result of the operation, clients should define a
+callback function, referenced by the \fIcallback\fR argument; the
+callback function is called upon completion of the operation\&. The
+\fIdata\fR argument is a pointer to arbitrary userdata that is passed
+along to the callback function\&. Additonally, the \fIsync\fR
+argument controls whether the operation should be synchronous or not;
+if \fIsync\fR is false, the operation is asynchronous\&.
+
+.SH "CODE EXAMPLE"
+.nf
+.sp
+#define _GNU_SOURCE
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "buxton.h"
+
+void get_cb(BuxtonResponse response, void *data)
+{
+	BuxtonDataType *ret = (BuxtonDataType*) data;
+
+	if (buxton_response_status(response) != 0) {
+		
+		printf("Failed to get value\\n");
+		return;
+	} else {
+		printf("Get successful, got type\\n");
+		void *p = buxton_response_value(response);
+		*ret = *(BuxtonDataType*)p;
+		return;
+	}
+}
+
+int main(void)
+{
+	BuxtonClient client;
+	BuxtonKey key;
+	struct pollfd pfd[1];
+	int r;
+	BuxtonDataType d_type = BUXTON_TYPE_MIN;
+	int fd;
+	char *type;
+
+	if ((fd = buxton_open(&client)) < 0) {
+		printf("couldn't connect\\n");
+		return -1;
+	}
+
+/*
+ * A fully qualified key-name is being created since both group and key-name are not null.
+ * Group: "hello", Key-name: "test", Layer: "user", DataType: DOUBLE, but it doesn't matter
+ */
+	key = buxton_key_create("hello", "test", "user", DOUBLE);
+	if (!key) {
+		return -1;
+	}
+
+	if (buxton_get_key_type(client, key, get_cb,
+			     &d_type, false)) {
+		printf("get call failed to run\\n");
+		return -1;
+	}
+
+	pfd[0].fd = fd;
+	pfd[0].events = POLLIN;
+	pfd[0].revents = 0;
+	r = poll(pfd, 1, 5000);
+
+	if (r <= 0) {
+		printf("poll error\n");
+		return -1;
+	}
+
+	if (!buxton_client_handle_response(client)) {
+		printf("bad response from daemon\\n");
+		return -1;
+	}
+
+	switch (d_type) {
+		case BUXTON_TYPE_MIN:
+		{
+			type = "invalid- still min";
+		}
+		case STRING:
+		{
+			type = "string";
+			break;
+		}
+		case INT32:
+		{
+			type = "int32_t";
+			break;
+		}
+		case UINT32:
+		{
+			type = "uint32_t";
+			break;
+		}
+		case INT64:
+		{
+			type = "int64_t";
+			break;
+		}
+		case UINT64:
+		{
+			type = "uint64_t";
+			break;
+		}
+		case FLOAT:
+		{
+			type = "float";
+			break;
+		}
+		case DOUBLE:
+		{
+			type = "double";
+			break;
+		}
+		case BOOLEAN:
+		{
+			type = "bool";
+			break;
+		}
+		default:
+		{
+			type = "unknown";
+			break;
+		}
+	}
+
+	printf("type of key is: %d = %s\\n", d_type, type);
+	
+	buxton_key_free(key);
+	buxton_close(client);
+	return 0;
+}
+.fi
+
+.SH "RETURN VALUE"
+.PP
+Returns 0 on success, and a non\-zero value on failure\&.
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2, with exception
+for code examples found in the \fBCODE EXAMPLE\fR section, which are
+licensed under the MIT license provided in the \fIdocs/LICENSE.MIT\fR
+file from this buxton distribution\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE

@@ -90,6 +90,7 @@ int main(int argc, char **argv)
 	Command c_get_float, c_set_float;
 	Command c_get_double, c_set_double;
 	Command c_get_bool, c_set_bool;
+	Command c_get_key_type;
 	Command c_set_label;
 	Command c_create_group, c_remove_group;
 	Command c_unset_value;
@@ -185,6 +186,11 @@ int main(int argc, char **argv)
 	c_set_bool = (Command) { "set-bool", "Set a key with a boolean value",
 				 4, 4, "layer group name value", &cli_set_value, BOOLEAN };
 	hashmap_put(commands, c_set_bool.name, &c_set_bool);
+
+	/* Get key type */
+	c_get_key_type = (Command) { "get-key-type", "Get the data type of a key",
+				2, 3, "[layer] group name", &cli_get_key_type, UINT32 };
+	hashmap_put(commands, c_get_key_type.name, &c_get_key_type);
 
 	/* SMACK labels */
 	c_set_label = (Command) { "set-label", "Set a value's label",
