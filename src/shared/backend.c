@@ -249,6 +249,7 @@ void destroy_backend(BuxtonBackend *backend)
 	assert(backend);
 
 	backend->set_value = NULL;
+	backend->get_key_type = NULL;
 	backend->get_value = NULL;
 	backend->list_keys = NULL;
 	backend->unset_value = NULL;

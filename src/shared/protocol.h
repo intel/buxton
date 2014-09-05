@@ -161,6 +161,18 @@ bool buxton_wire_remove_group(_BuxtonClient *client, _BuxtonKey *key,
 	__attribute__((warn_unused_result));
 
 /**
+ * Send a GET_KEY_TYPE message over the wire protocol, return the type of the key
+ * @param client Client connection
+ * @param key _BuxtonKey pointer
+ * @param callback A callback function to handle daemon reply
+ * @param data User data to be used with callback functionb
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_get_key_type(_BuxtonClient *client, _BuxtonKey *key,
+				BuxtonCallback callback, void *data)
+	__attribute__((warn_unused_result));
+
+/**
  * Send a GET message over the wire protocol, return the data
  * @param client Client connection
  * @param key _BuxtonKey pointer

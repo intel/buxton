@@ -143,6 +143,21 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type, char *one,
 	__attribute__((warn_unused_result));
 
 /**
+ * Get a key type from Buxton
+ * @param control An initialized control structure
+ * @param type Type of key used to request type
+ * @param one Layer or Group of data being set
+ * @param two  or key of data being set
+ * @param two Key if one is Layer
+ * @param three NULL (unused)
+ * @returns bool indicating success or failure
+ */
+bool cli_get_key_type(BuxtonControl *control, BuxtonDataType type, char *one,
+		   char *two, char *three,
+		   __attribute__((unused)) char *four)
+	__attribute__((warn_unused_result));
+
+/**
  * Get a value from Buxton
  * @param control An initialized control structure
  * @param type Type of data being sought
