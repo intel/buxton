@@ -335,6 +335,136 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 	return ret;
 }
 
+void get_key_type_callback(BuxtonResponse response, void *data)
+{
+	BuxtonData *r = (BuxtonData *)data;
+	void *p;
+
+	if (buxton_response_status(response) != 0) {
+		return;
+	}
+
+	p = buxton_response_value(response);
+	if (!p) {
+		return;
+	}
+	
+	r->type = UINT32;
+	r->store.d_uint32 = *(uint32_t *)p;
+}
+
+bool cli_get_key_type(BuxtonControl *control, BuxtonDataType type,
+		   char *one, char *two, char *three, __attribute__((unused)) char * four)
+{
+	BuxtonKey key;
+	BuxtonData get;
+	_cleanup_free_ char *prefix = NULL;
+	_cleanup_free_ char *group = NULL;
+	_cleanup_free_ char *name = NULL;
+	BuxtonString dlabel;
+	bool ret = false;
+	int32_t ret_val;
+	int r;
+
+	memzero((void *)&get, sizeof(BuxtonData));
+	if (three != NULL) {
+		key = buxton_key_create(two, three, one, type);
+		r = asprintf(&prefix, "[%s]", one);
+		if (!r) {
+			abort();
+		}
+	} else {
+		key = buxton_key_create(one, two, NULL, type);
+		r = asprintf(&prefix, " ");
+		if (!r) { 
+			abort();
+		}
+	}
+
+	if (!key) {
+		return false;
+	}
+
+	if (three != NULL) {
+		if (control->client.direct) {
+			ret = buxton_direct_get_key_type_for_layer(control, key,
+								&get, &dlabel,
+								NULL);
+		} else {
+			ret = buxton_get_key_type(&control->client, key,
+							get_key_type_callback,
+							&get, true);
+		}
+		if (ret) {
+			group = get_group(key);
+			name = get_name(key);
+			printf("Requested key was not found in layer \'%s\': %s:%s\n",
+				one, nv(group), nv(name));
+			return false;
+		}
+	} else {
+		if (control->client.direct) {
+			ret_val = buxton_direct_get_key_type(control, key, &get, &dlabel, NULL);
+			if (ret_val == 0) {
+				ret = true;     
+			}
+		} else {
+			ret = buxton_get_key_type(&control->client, key,
+							get_key_type_callback,
+							&get, true);
+		}
+		if (ret) {
+			group = get_group(key);
+			name = get_name(key);
+			printf("Requested key was not found: %s:%s\n", nv(group),
+				nv(name));
+			return false;
+		}
+	}
+
+	group = get_group(key);
+	name = get_name(key);
+	if (get.type != UINT32) {
+		printf("Get Key Type did not return a BuxtonDataType.\n");
+		return false;
+	}
+
+	switch ((BuxtonDataType)get.store.d_uint32) {
+	case STRING:
+		printf("%s%s:%s = STRING \n", prefix, nv(group), nv(name));
+		break;
+	case INT32:
+		printf("%s%s:%s = INT32 \n", prefix, nv(group), nv(name));
+		break;
+	case UINT32:
+		printf("%s%s:%s = UINT32 \n", prefix, nv(group), nv(name));
+		break;
+	case INT64:
+		printf("%s%s:%s = INT64 \n", prefix, nv(group), nv(name));
+		break;
+	case UINT64:
+		printf("%s%s:%s = UINT64 \n", prefix, nv(group), nv(name));
+		break;
+	case FLOAT:
+		printf("%s%s:%s = FLOAT \n", prefix, nv(group), nv(name));
+		break;
+	case DOUBLE:
+		printf("%s%s:%s = DOUBLE \n", prefix, nv(group), nv(name));
+		break;
+	case BOOLEAN:
+		printf("%s%s:%s = BOOLEAN \n", prefix, nv(group), nv(name));
+		break;
+	case BUXTON_TYPE_MIN:
+		printf("Requested key was not found: %s:%s\n", nv(group), nv(name));
+		return false;
+	default:
+		printf("unknown type\n");
+		return false;
+	}
+
+	return true; 
+}
+
 void get_value_callback(BuxtonResponse response, void *data)
 {
 	BuxtonKey key;

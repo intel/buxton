@@ -140,6 +140,41 @@ void buxton_close(BuxtonClient client)
 	free(c);
 }
 
+int buxton_get_key_type(BuxtonClient client,
+			BuxtonKey key,
+			BuxtonCallback callback,
+			void *data,
+			bool sync)
+{
+	bool r;
+	int ret = 0;
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	//TODO: double check to see if i really need to have a type
+	if (!k || !(k->group.value) || !(k->name.value) ||
+		k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+		return EINVAL;
+	}
+
+	//call buxton_wire_get_key_type
+	r = buxton_wire_get_key_type((_BuxtonClient *)client, k, callback, data);
+	if (!r) {
+		return -1;
+	}
+
+	//if sync, call buxton_wire_get_response
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			ret = -1;
+		} else {
+			ret = 0;
+		}
+	}
+
+	return ret;
+}
+
 int buxton_get_value(BuxtonClient client,
 		     BuxtonKey key,
 		     BuxtonCallback callback,
@@ -654,7 +689,7 @@ void *buxton_response_value(BuxtonResponse response)
 	}
 
 	type = buxton_response_type(response);
-	if (type == BUXTON_CONTROL_GET) {
+	if (type == BUXTON_CONTROL_GET || BUXTON_CONTROL_GET_KEY_TYPE) {
 		d = buxton_array_get(r->data, 1);
 	} else if (type == BUXTON_CONTROL_CHANGED) {
 		if (r->data->len) {

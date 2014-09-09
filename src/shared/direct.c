@@ -38,6 +38,156 @@ bool buxton_direct_open(BuxtonControl *control)
 	return true;
 }
 
+int32_t buxton_direct_get_key_type(BuxtonControl *control, _BuxtonKey *key,
+				BuxtonData *data, BuxtonString *data_label,
+				BuxtonString *client_label)
+{
+	BuxtonLayer *l;
+	BuxtonConfig *config;
+	BuxtonString layer = (BuxtonString){NULL, 0};
+	Iterator i;
+	BuxtonData d;
+	int priority = 0;
+	BuxtonLayerType layer_origin = -1;
+	int ret;
+
+	assert(control);
+	assert(key);
+
+	if(key->layer.value) {
+		ret = (int32_t)buxton_direct_get_key_type_for_layer(control, key,
+							data, data_label,
+							client_label);
+		return ret;
+	}
+
+	config = &control->config;
+
+	HASHMAP_FOREACH(l, config->layers, i) {
+		key->layer.value = l->name.value;
+		key->layer.length = l->name.length;
+		ret = (int32_t)buxton_direct_get_key_type_for_layer(control, key,
+							&d, data_label,
+							client_label);
+		if (!ret) {
+			free(data_label->value);
+			data_label->value = NULL;
+			data_label->length = 0;
+			if (d.type == STRING) {
+				free(d.store.d_string.value);
+			}
+			if ((l->type == LAYER_SYSTEM && (layer_origin != LAYER_SYSTEM ||
+							priority <= l->priority)) ||
+			    (l->type == LAYER_USER && layer_origin != LAYER_SYSTEM &&
+							priority <= l->priority)) {
+				if (l->type == LAYER_SYSTEM) {
+					layer_origin = LAYER_SYSTEM;
+				} else {
+					layer_origin = LAYER_USER;
+				}
+				priority = l->priority;
+				layer.value = l->name.value;
+				layer.length = l->name.length;
+			}
+		}
+	}
+	if (layer.value) {
+		key->layer.value = layer.value;
+		key->layer.length = layer.length;
+		ret = (int32_t)buxton_direct_get_key_type_for_layer(control, key,
+								data, data_label,
+								client_label);
+		key->layer.value = NULL;
+		key->layer.length = 0;
+
+		return ret;
+	}
+
+	return ENOENT;
+}
+
+int buxton_direct_get_key_type_for_layer(BuxtonControl *control,
+						_BuxtonKey *key,
+						BuxtonData *data,
+						BuxtonString *data_label,
+						BuxtonString *client_label)
+{
+	BuxtonBackend *backend = NULL;
+	BuxtonLayer *layer = NULL;
+	BuxtonConfig *config;
+	BuxtonData g;
+	_BuxtonKey group;
+	BuxtonString group_label;
+	int ret;
+
+	assert(control);
+	assert(key);
+	assert(data_label);
+
+	buxton_debug("get_key_type '%s:%s' for layer '%s' start\n",
+			key->group.value, key->name.value, key->layer.value);
+
+	memzero(&g, sizeof(BuxtonData));
+	memzero(&group, sizeof(_BuxtonKey));
+	memzero(&group_label, sizeof(BuxtonString));
+
+	if (!key->layer.value) {
+		ret = EINVAL;
+		goto fail;
+	}
+
+	config = &control->config;
+	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+		ret = EINVAL;
+		goto fail;
+	}
+	backend = backend_for_layer(config, layer);
+	assert(backend);
+
+	layer->uid = control->client.uid;
+
+	/* fail if group does not exist */
+	if(key->name.value) {
+		if (!buxton_copy_key_group(key, &group)) {
+			abort();
+		}
+		ret = buxton_direct_get_value_for_layer(control, &group, &g,
+							&group_label, NULL);
+		if (ret) {
+			buxton_debug("Group %s for name %s missing for get value\n",
+					key->group.value, key->name.value);
+			goto fail;
+		}
+	}
+
+	/* group check only needed for key lookups, don't recurse forever */
+	if (key->name.value && client_label) {
+		if (!buxton_check_smack_access(client_label, &group_label, ACCESS_READ)) {
+			ret = EPERM;
+			goto fail;
+		}
+	}
+
+	ret = backend->get_key_type(layer, key, data, data_label);
+	if (!ret) {
+		if (data_label->value && client_label && client_label->value &&
+		    !buxton_check_smack_access(client_label, data_label, ACCESS_READ)) {
+			free(data_label->value);
+			ret = EPERM;
+			goto fail;
+		}
+	}
+
+fail:
+	free(g.store.d_string.value);
+	free(group.group.value);
+	free(group.layer.value);
+	free(group_label.value);
+	buxton_debug("get_key_type '%s:%s' for layer '%s' end\n",
+			key->group.value, key->name.value, key->layer.value);
+	return ret;
+}
+
 int32_t buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 			     BuxtonData *data, BuxtonString *data_label,
 			     BuxtonString *client_label)

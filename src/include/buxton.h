@@ -65,6 +65,7 @@ typedef enum BuxtonControlMessage {
 	BUXTON_CONTROL_SET_LABEL, /**<Set a label within Buxton */
 	BUXTON_CONTROL_CREATE_GROUP, /**<Create a group within Buxton */
 	BUXTON_CONTROL_REMOVE_GROUP, /**<Remove a group within Buxton */
+	BUXTON_CONTROL_GET_KEY_TYPE, /**<Retrieve the type of a key */
 	BUXTON_CONTROL_GET, /**<Retrieve a value from Buxton */
 	BUXTON_CONTROL_UNSET, /**<Unset a value within Buxton */
 	BUXTON_CONTROL_LIST, /**<List keys within a Buxton layer */
@@ -193,6 +194,22 @@ _bx_export_ int buxton_remove_group(BuxtonClient client,
 				    BuxtonCallback callback,
 				    void *data,
 				    bool sync)
+	__attribute__((warn_unused_result));
+
+/**
+ * Retrieve a key's type from Buxton
+ * @param client An open client connection
+ * @param key The key to retrieve
+ * @param callback A callback function to handle daemon reply
+ * @param data User data to be used with callback function
+ * @param sync Indicator for running a synchronous request
+ * @return An int value, indicating success of the operation
+ */
+_bx_export_ int buxton_get_key_type(BuxtonClient client,
+				BuxtonKey key,
+				BuxtonCallback callback,
+				void *data,
+				bool sync)
 	__attribute__((warn_unused_result));
 
 /**
