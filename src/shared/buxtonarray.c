@@ -80,7 +80,6 @@ void *buxton_array_get(BuxtonArray *array, uint16_t index)
 	return array->data[index];
 }
 
-
 void buxton_array_free(BuxtonArray **array,
 		       buxton_free_func free_method)
 {

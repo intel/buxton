@@ -95,6 +95,7 @@ int main(int argc, char **argv)
 	Command c_create_group, c_remove_group;
 	Command c_unset_value;
 	Command c_create_db;
+	Command c_list_groups, c_list_keys;
 	Command *command;
 	int i = 0;
 	int c;
@@ -115,7 +116,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	/* unknowns */
+	/* unknown get */
 	c_get = (Command) { "get", "Get a value by key",
 				   2, 3, "[layer] group name", &cli_get_value, BUXTON_TYPE_UNSET };
 	hashmap_put(commands, c_get.name, &c_get);
@@ -216,6 +217,15 @@ int main(int argc, char **argv)
 	c_create_db = (Command) { "create-db", "Create the database file for a layer",
 				    1, 1, "layer", &cli_create_db, BUXTON_TYPE_STRING };
 	hashmap_put(commands, c_create_db.name, &c_create_db);
+
+	/* Listing of names */
+	c_list_groups = (Command) { "list-groups", "List the groups for a layer",
+				    1, 2, "layer [prefix-filter]", &cli_list_names, 0 };
+	hashmap_put(commands, c_list_groups.name, &c_list_groups);
+
+	c_list_keys = (Command) { "list-keys", "List the keys for a layer",
+				    2, 3, "layer group [prefix-filter]", &cli_list_names, 1 };
+	hashmap_put(commands, c_list_keys.name, &c_list_keys);
 
 	static struct option opts[] = {
 		{ "config-file", 1, NULL, 'c' },

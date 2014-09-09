@@ -784,8 +784,10 @@ end:
 	return ret;
 }
 
-bool buxton_wire_list_keys(_BuxtonClient *client,
+bool buxton_wire_list_names(_BuxtonClient *client,
 			   BuxtonString *layer,
+			   BuxtonString *group,
+			   BuxtonString *prefix,
 			   BuxtonCallback callback,
 			   void *data)
 {
@@ -796,14 +798,26 @@ bool buxton_wire_list_keys(_BuxtonClient *client,
 	size_t send_len = 0;
 	BuxtonArray *list = NULL;
 	BuxtonData d_layer;
+	BuxtonData d_group;
+	BuxtonData d_prefix;
 	bool ret = false;
 	uint32_t msgid = get_msgid();
 
 	buxton_string_to_data(layer, &d_layer);
+	buxton_string_to_data(group, &d_group);
+	buxton_string_to_data(prefix, &d_prefix);
 
 	list = buxton_array_new();
 	if (!buxton_array_add(list, &d_layer)) {
-		buxton_log("Unable to add layer to list_keys array\n");
+		buxton_log("Unable to add layer to list_names array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_group)) {
+		buxton_log("Unable to add group to list_names array\n");
+		goto end;
+	}
+	if (!buxton_array_add(list, &d_prefix)) {
+		buxton_log("Unable to add prefix to list_names array\n");
 		goto end;
 	}
 

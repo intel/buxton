@@ -717,7 +717,9 @@ START_TEST(buxton_message_serialize_check)
 	list2->len = 0;
 	r = buxton_array_add(list2, &dsource1);
 	fail_if(!r, "Failed to add element to array");
-	list2->len = 2;
+	r = buxton_array_add(list2, &dsource1);
+	fail_if(!r, "Failed to add element to array");
+	list2->data[1] = NULL;
 	ret = buxton_serialize_message(&packed, csource, msource, list2);
 	fail_if(ret != 0, "Serialized with incorrect parameter count");
 	list2->len = 0;

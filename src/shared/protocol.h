@@ -202,15 +202,19 @@ bool buxton_wire_register_notification(_BuxtonClient *client,
 	__attribute__((warn_unused_result));
 
 /**
- * Send a LIST message over the protocol, retrieve key list
+ * Send a LIST message over the protocol, retrieve key/group list
  * @param client Client connection
  * @param layer Layer name
+ * @param group Group name
+ * @param prefix Filtering prefix
  * @param callback A callback function to handle daemon reply
  * @param data User data to be used with callback function
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_wire_list_keys(_BuxtonClient *client,
+bool buxton_wire_list_names(_BuxtonClient *client,
 			   BuxtonString *layer,
+			   BuxtonString *group,
+			   BuxtonString *prefix,
 			   BuxtonCallback callback,
 			   void *data)
 	__attribute__((warn_unused_result));
