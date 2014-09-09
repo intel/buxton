@@ -366,6 +366,23 @@ _bx_export_ BuxtonKey buxton_response_key(BuxtonResponse response)
 _bx_export_ void *buxton_response_value(BuxtonResponse response)
 	__attribute__((warn_unused_result));
 
+/**
+ * Get the count of value for a buxton response of get list of keys
+ * @param response a BuxtonResponse
+ * @return the count of items
+ */
+_bx_export_ uint32_t buxton_response_list_count(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the count of value for a buxton response of get list of keys
+ * @param response a BuxtonResponse
+ * @param index the index of the queried item
+ * @return the name of the key or NULL
+ */
+_bx_export_ char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
+	__attribute__((warn_unused_result));
+
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *

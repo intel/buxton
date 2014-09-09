@@ -728,6 +728,50 @@ out:
 	return p;
 }
 
+uint32_t buxton_response_list_count(BuxtonResponse response)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+
+	if (!response) {
+		return 0;
+	}
+
+	type = buxton_response_type(response);
+	if (type != BUXTON_CONTROL_LIST) {
+		return 0;
+	}
+	return r->data->len;
+}
+
+char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+	BuxtonData *d = NULL;
+
+	if (!response) {
+		return NULL;
+	}
+
+	type = buxton_response_type(response);
+	if (type != BUXTON_CONTROL_LIST) {
+		return NULL;
+	}
+	if (index >= r->data->len) {
+		return NULL;
+	}
+	d = buxton_array_get(r->data, index);
+	if (d == NULL) {
+		return NULL;
+	}
+	if (d->type != STRING) {
+		return NULL;		
+	}
+	return strdup(d->store.d_string.value);
+}
+
+
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
  *
