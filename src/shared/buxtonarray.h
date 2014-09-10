@@ -68,7 +68,7 @@ void buxton_array_free(BuxtonArray **array,
  * @param index index of the element in the array
  * @return a data pointer refered to by index, or NULL
  */
-void *buxton_array_get(BuxtonArray *array, uint16_t index)
+void *buxton_array_get(BuxtonArray *array, uint index)
 	__attribute__((warn_unused_result));
 
 /*

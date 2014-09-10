@@ -76,7 +76,7 @@ int32_t buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 			free(data_label->value);
 			data_label->value = NULL;
 			data_label->length = 0;
-			if (d.type == STRING) {
+			if (d.type == BUXTON_TYPE_STRING) {
 				free(d.store.d_string.value);
 			}
 
@@ -428,7 +428,7 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	assert(backend);
 
 	/* Since groups don't have a value, we create a dummy value */
-	data->type = STRING;
+	data->type = BUXTON_TYPE_STRING;
 	s = buxton_string_pack("BUXTON_GROUP_VALUE");
 	if (!buxton_string_copy(&s, &data->store.d_string)) {
 		abort();

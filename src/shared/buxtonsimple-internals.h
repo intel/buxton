@@ -46,21 +46,21 @@
  * @var vstatus::type
  * Member 'type' contains a BuxtonDataType that holds the type of value being set or gotten
  * @var vstatus::sval
- * Member 'sval' a string that contains the value for (set) or from (get) a STRING key
+ * Member 'sval' a string that contains the value for (set) or from (get) a BUXTON_TYPE_STRING key
  * @var vstatus::i32val
- * Member 'i32val' a 32-bit integer that contains the value for or from an INT32 key
+ * Member 'i32val' a 32-bit integer that contains the value for or from an BUXTON_TYPE_INT32 key
  * @var vstatus::ui32val
- * Member 'ui32val' an unsigned 32-bit integer that contains the value for or from a UINT32 key
+ * Member 'ui32val' an unsigned 32-bit integer that contains the value for or from a BUXTON_TYPE_UINT32 key
  * @var vstatus::i64val
- * Member 'i64val' a 64-bit integer that contains the value for or from an INT64 key
+ * Member 'i64val' a 64-bit integer that contains the value for or from an BUXTON_TYPE_INT64 key
  * @var vstatus::ui64val
- * Member 'ui64val' an unsigned 64-bit integer that contains the value for or from a UINT64 key
+ * Member 'ui64val' an unsigned 64-bit integer that contains the value for or from a BUXTON_TYPE_UINT64 key
  * @var vstatus::fval
- * Member 'fval' a floating point that contains the value for or from a FLOAT key
+ * Member 'fval' a floating point that contains the value for or from a BUXTON_TYPE_FLOAT key
  * @var vstatus::dval
- * Member 'dval' a double that contains the value for or from a DOUBLE key
+ * Member 'dval' a double that contains the value for or from a BUXTON_TYPE_DOUBLE key
  * @var vstatus::bval
- * Member 'bval' a boolean that contains the value for or from a BOOLEAN key
+ * Member 'bval' a boolean that contains the value for or from a BUXTON_TYPE_BOOLEAN key
  */
 typedef struct vstatus {
 	int status;
