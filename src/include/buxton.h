@@ -45,14 +45,14 @@
  */
 typedef enum BuxtonDataType {
 	BUXTON_TYPE_MIN,
-	STRING, /**<Represents type of a string value */
-	INT32, /**<Represents type of an int32_t value */
-	UINT32, /**<Represents type of an uint32_t value */
-	INT64, /**<Represents type of a int64_t value */
-	UINT64, /**<Represents type of a uint64_t value */
-	FLOAT, /**<Represents type of a float value */
-	DOUBLE, /**<Represents type of a double value */
-	BOOLEAN, /**<Represents type of a boolean value */
+	BUXTON_TYPE_STRING, /**<Represents type of a string value */
+	BUXTON_TYPE_INT32, /**<Represents type of an int32_t value */
+	BUXTON_TYPE_UINT32, /**<Represents type of an uint32_t value */
+	BUXTON_TYPE_INT64, /**<Represents type of a int64_t value */
+	BUXTON_TYPE_UINT64, /**<Represents type of a uint64_t value */
+	BUXTON_TYPE_FLOAT, /**<Represents type of a float value */
+	BUXTON_TYPE_DOUBLE, /**<Represents type of a double value */
+	BUXTON_TYPE_BOOLEAN, /**<Represents type of a boolean value */
 	BUXTON_TYPE_MAX
 } BuxtonDataType;
 

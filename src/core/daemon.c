@@ -34,8 +34,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 4) {
 			return false;
 		}
-		if (list[0].type != STRING || list[1].type != STRING ||
-		    list[2].type != STRING || list[3].type == BUXTON_TYPE_MIN ||
+		if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+		    list[2].type != BUXTON_TYPE_STRING || list[3].type == BUXTON_TYPE_MIN ||
 		    list[3].type == BUXTON_TYPE_MAX) {
 			return false;
 		}
@@ -47,20 +47,20 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		break;
 	case BUXTON_CONTROL_SET_LABEL:
 		if (count == 3) {
-			if (list[0].type != STRING || list[1].type != STRING ||
-			    list[2].type != STRING) {
+			if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+			    list[2].type != BUXTON_TYPE_STRING) {
 				return false;
 			}
-			key->type = STRING;
+			key->type = BUXTON_TYPE_STRING;
 			key->layer = list[0].store.d_string;
 			key->group = list[1].store.d_string;
 			*value = &list[2];
 		} else if (count == 4) {
-			if (list[0].type != STRING || list[1].type != STRING ||
-			    list[2].type != STRING || list[3].type != STRING) {
+			if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+			    list[2].type != BUXTON_TYPE_STRING || list[3].type != BUXTON_TYPE_STRING) {
 				return false;
 			}
-			key->type = STRING;
+			key->type = BUXTON_TYPE_STRING;
 			key->layer = list[0].store.d_string;
 			key->group = list[1].store.d_string;
 			key->name = list[2].store.d_string;
@@ -73,10 +73,10 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 2) {
 			return false;
 		}
-		if (list[0].type != STRING || list[1].type != STRING) {
+		if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING) {
 			return false;
 		}
-		key->type = STRING;
+		key->type = BUXTON_TYPE_STRING;
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		break;
@@ -84,17 +84,17 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 2) {
 			return false;
 		}
-		if (list[0].type != STRING || list[1].type != STRING) {
+		if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING) {
 			return false;
 		}
-		key->type = STRING;
+		key->type = BUXTON_TYPE_STRING;
 		key->layer = list[0].store.d_string;
 		key->group = list[1].store.d_string;
 		break;
 	case BUXTON_CONTROL_GET:
 		if (count == 4) {
-			if (list[0].type != STRING || list[1].type != STRING ||
-			    list[2].type != STRING || list[3].type != UINT32) {
+			if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+			    list[2].type != BUXTON_TYPE_STRING || list[3].type != BUXTON_TYPE_UINT32) {
 				return false;
 			}
 			key->layer = list[0].store.d_string;
@@ -102,8 +102,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			key->name = list[2].store.d_string;
 			key->type = list[3].store.d_uint32;
 		} else if (count == 3) {
-			if (list[0].type != STRING || list[1].type != STRING ||
-			    list[2].type != UINT32) {
+			if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+			    list[2].type != BUXTON_TYPE_UINT32) {
 				return false;
 			}
 			key->group = list[0].store.d_string;
@@ -118,7 +118,7 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 1) {
 			return false;
 		}
-		if (list[0].type != STRING) {
+		if (list[0].type != BUXTON_TYPE_STRING) {
 			return false;
 		}
 		*value = &list[0];
@@ -127,8 +127,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 4) {
 			return false;
 		}
-		if (list[0].type != STRING || list[1].type != STRING ||
-		    list[2].type != STRING || list[3].type != UINT32) {
+		if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+		    list[2].type != BUXTON_TYPE_STRING || list[3].type != BUXTON_TYPE_UINT32) {
 			return false;
 		}
 		key->layer = list[0].store.d_string;
@@ -140,8 +140,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 3) {
 			return false;
 		}
-		if (list[0].type != STRING || list[1].type != STRING ||
-		    list[2].type != UINT32) {
+		if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+		    list[2].type != BUXTON_TYPE_UINT32) {
 			return false;
 		}
 		key->group = list[0].store.d_string;
@@ -152,8 +152,8 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		if (count != 3) {
 			return false;
 		}
-		if (list[0].type != STRING || list[1].type != STRING ||
-		    list[2].type != UINT32) {
+		if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+		    list[2].type != BUXTON_TYPE_UINT32) {
 			return false;
 		}
 		key->group = list[0].store.d_string;
@@ -244,7 +244,7 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 		goto end;
 	}
 	/* Set a response code */
-	response_data.type = INT32;
+	response_data.type = BUXTON_TYPE_INT32;
 	response_data.store.d_int32 = response;
 	out_list = buxton_array_new();
 	if (!out_list) {
@@ -365,7 +365,7 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 		}
 		break;
 	case BUXTON_CONTROL_UNNOTIFY:
-		mdata.type = UINT32;
+		mdata.type = BUXTON_TYPE_UINT32;
 		mdata.store.d_uint32 = n_msgid;
 		if (!buxton_array_add(out_list, &mdata)) {
 			abort();
@@ -403,7 +403,7 @@ end:
 	}
 	if (list) {
 		for (i=0; i < p_count; i++) {
-			if (list[i].type == STRING) {
+			if (list[i].type == BUXTON_TYPE_STRING) {
 				free(list[i].store.d_string.value);
 			}
 		}
@@ -446,43 +446,43 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 
 		if (nitem->old_data && value) {
 			switch (value->type) {
-			case STRING:
+			case BUXTON_TYPE_STRING:
 				c = memcmp((const void *)
 					   (nitem->old_data->store.d_string.value),
 					   (const void *)(value->store.d_string.value),
 					   value->store.d_string.length);
 				break;
-			case INT32:
+			case BUXTON_TYPE_INT32:
 				c = memcmp((const void *)&(nitem->old_data->store.d_int32),
 					   (const void *)&(value->store.d_int32),
 					   sizeof(int32_t));
 				break;
-			case UINT32:
+			case BUXTON_TYPE_UINT32:
 				c = memcmp((const void *)&(nitem->old_data->store.d_uint32),
 					   (const void *)&(value->store.d_uint32),
 					   sizeof(uint32_t));
 				break;
-			case INT64:
+			case BUXTON_TYPE_INT64:
 				c = memcmp((const void *)&(nitem->old_data->store.d_int64),
 					   (const void *)&(value->store.d_int64),
 					   sizeof(int64_t));
 				break;
-			case UINT64:
+			case BUXTON_TYPE_UINT64:
 				c = memcmp((const void *)&(nitem->old_data->store.d_uint64),
 					   (const void *)&(value->store.d_uint64),
 					   sizeof(uint64_t));
 				break;
-			case FLOAT:
+			case BUXTON_TYPE_FLOAT:
 				c = memcmp((const void *)&(nitem->old_data->store.d_float),
 					   (const void *)&(value->store.d_float),
 					   sizeof(float));
 				break;
-			case DOUBLE:
+			case BUXTON_TYPE_DOUBLE:
 				c = memcmp((const void *)&(nitem->old_data->store.d_double),
 					   (const void *)&(value->store.d_double),
 					   sizeof(double));
 				break;
-			case BOOLEAN:
+			case BUXTON_TYPE_BOOLEAN:
 				c = memcmp((const void *)&(nitem->old_data->store.d_boolean),
 					   (const void *)&(value->store.d_boolean),
 					   sizeof(bool));
@@ -496,7 +496,7 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 		if (!c) {
 			continue;
 		}
-		if (nitem->old_data && (nitem->old_data->type == STRING)) {
+		if (nitem->old_data && (nitem->old_data->type == BUXTON_TYPE_STRING)) {
 			free(nitem->old_data->store.d_string.value);
 		}
 		free(nitem->old_data);

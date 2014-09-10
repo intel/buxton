@@ -86,7 +86,7 @@ START_TEST(buxton_direct_create_group_check)
 	group.layer = buxton_string_pack("base");
 	group.group = buxton_string_pack("tgroup");
 	group.name = (BuxtonString){ NULL, 0 };
-	group.type = STRING;
+	group.type = BUXTON_TYPE_STRING;
 	fail_if(!buxton_direct_create_group(&c, &group, NULL),
 		"Create group failed");
 }
@@ -102,7 +102,7 @@ START_TEST(buxton_direct_remove_group_check)
 	group.layer = buxton_string_pack("base");
 	group.group = buxton_string_pack("tgroup");
 	group.name = (BuxtonString){ NULL, 0 };
-	group.type = STRING;
+	group.type = BUXTON_TYPE_STRING;
 	fail_if(!buxton_direct_remove_group(&c, &group, NULL),
 		"Failed to remove group");
 }
@@ -121,20 +121,20 @@ START_TEST(buxton_direct_set_value_check)
 	group.layer = buxton_string_pack("test-gdbm");
 	group.group = buxton_string_pack("bxt_test_group");
 	group.name = (BuxtonString){ NULL, 0 };
-	group.type = STRING;
+	group.type = BUXTON_TYPE_STRING;
 	glabel = buxton_string_pack("*");
 
 	key.layer = group.layer;
 	key.group = group.group;
 	key.name = buxton_string_pack("bxt_test_key");
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 
 	c.client.uid = getuid();
 	fail_if(buxton_direct_create_group(&c, &group, NULL) == false,
 		"Creating group failed.");
 	fail_if(buxton_direct_set_label(&c, &group, &glabel) == false,
 		"Setting group label failed.");
-	data.type = STRING;
+	data.type = BUXTON_TYPE_STRING;
 	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
 		"Setting value in buxton directly failed.");
@@ -152,14 +152,14 @@ START_TEST(buxton_direct_get_value_for_layer_check)
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("bxt_test_group");
 	key.name = buxton_string_pack("bxt_test_key");
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 
 	c.client.uid = getuid();
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL),
 		"Retrieving value from buxton gdbm backend failed.");
-	fail_if(result.type != STRING,
+	fail_if(result.type != BUXTON_TYPE_STRING,
 		"Buxton gdbm backend returned incorrect result type.");
 	//FIXME: get label test figured out
 	fail_if(strcmp(result.store.d_string.value, "bxt_test_value") != 0,
@@ -179,13 +179,13 @@ START_TEST(buxton_direct_get_value_check)
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("bxt_test_group");
 	key.name = buxton_string_pack("bxt_test_key");
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
 
 	c.client.uid = getuid();
-	data.type = STRING;
+	data.type = BUXTON_TYPE_STRING;
 	data.store.d_string = buxton_string_pack("bxt_test_value2");
 	fail_if(data.store.d_string.value == NULL,
 		"Failed to allocate test string.");
@@ -193,7 +193,7 @@ START_TEST(buxton_direct_get_value_check)
 		"Failed to set second value.");
 	fail_if(buxton_direct_get_value(&c, &key, &result, &dlabel, NULL) == -1,
 		"Retrieving value from buxton gdbm backend failed.");
-	fail_if(result.type != STRING,
+	fail_if(result.type != BUXTON_TYPE_STRING,
 		"Buxton gdbm backend returned incorrect result type.");
 	//FIXME: figure out label check
 	fail_if(strcmp(result.store.d_string.value, "bxt_test_value2") != 0,
@@ -215,13 +215,13 @@ START_TEST(buxton_memory_backend_check)
 	group.layer = buxton_string_pack("temp");
 	group.group = buxton_string_pack("bxt_mem_test_group");
 	group.name = (BuxtonString){ NULL, 0 };
-	group.type = STRING;
+	group.type = BUXTON_TYPE_STRING;
 	glabel = buxton_string_pack("*");
 
 	key.layer = group.layer;
 	key.group = group.group;
 	key.name = buxton_string_pack("bxt_mem_test_key");
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 
 	fail_if(buxton_direct_open(&c) == false,
 		"Direct open failed without daemon.");
@@ -231,7 +231,7 @@ START_TEST(buxton_memory_backend_check)
 		"Creating group failed.");
 	fail_if(buxton_direct_set_label(&c, &group, &glabel) == false,
 		"Setting group label failed.");
-	data.type = STRING;
+	data.type = BUXTON_TYPE_STRING;
 	data.store.d_string = buxton_string_pack("bxt_test_value");
 	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
 		"Setting value in buxton memory backend directly failed.");
@@ -254,7 +254,7 @@ START_TEST(buxton_key_check)
 	char *g;
 	char *n;
 	char *l;
-	BuxtonDataType type = STRING;
+	BuxtonDataType type = BUXTON_TYPE_STRING;
 
 	key = buxton_key_create(group, name, layer, type);
 	fail_if(!key, "Failed to create buxton key");
@@ -300,7 +300,7 @@ START_TEST(buxton_set_label_check)
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("bxt_test");
 	key.name.value = NULL;
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 	char *root_check = getenv(BUXTON_ROOT_CHECK_ENV);
 	bool skip_check = (root_check && streq(root_check, "0"));
 
@@ -335,7 +335,7 @@ START_TEST(buxton_group_label_check)
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("test-group");
 	key.name.value = NULL;
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 
 
 	c.client.uid = 0;
@@ -366,7 +366,7 @@ START_TEST(buxton_name_label_check)
 	key.layer = buxton_string_pack("test-gdbm");
 	key.group = buxton_string_pack("group-foo");
 	key.name.value = NULL;
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 	label = buxton_string_pack("*");
 
 	c.client.uid = 0;
@@ -385,7 +385,7 @@ START_TEST(buxton_name_label_check)
 
 	/* then create the name (key), and validate the label */
 	key.name = buxton_string_pack("name-foo");
-	data.type = STRING;
+	data.type = BUXTON_TYPE_STRING;
 	data.store.d_string = buxton_string_pack("value1-foo");
 	fail_if(buxton_direct_set_value(&c, &key, &data, NULL) == false,
 		"Failed to set key name-foo.");
@@ -451,7 +451,7 @@ static void run_callback_cb_test(BuxtonResponse response, void *data)
 		fail_if(r->data->len != 1, "Failed setup array size");
 		d = buxton_array_get(r->data, 0);
 		fail_if(!d, "Failed to set array element");
-		fail_if(d->type != INT32, "Failed to setup array element value");
+		fail_if(d->type != BUXTON_TYPE_INT32, "Failed to setup array element value");
 		run_callback_test_value = 2;
 		break;
 	case 2:
@@ -468,7 +468,7 @@ START_TEST(run_callback_check)
 {
 	bool data = false;
 	BuxtonData list[] = {
-		{INT32, {.d_int32 = 1}}
+		{BUXTON_TYPE_INT32, {.d_int32 = 1}}
 	};
 	_BuxtonKey key;
 	key.group = buxton_string_pack("group");
@@ -509,7 +509,7 @@ START_TEST(send_message_check)
 		"Failed to setup callbacks");
 
 	out_list = buxton_array_new();
-	data.type = INT32;
+	data.type = BUXTON_TYPE_INT32;
 	data.store.d_int32 = 0;
 	fail_if(!buxton_array_add(out_list, &data),
 		"Failed to add get response to array");
@@ -546,18 +546,18 @@ START_TEST(handle_callback_response_check)
 	BuxtonData data;
 	uint32_t msgid;
 	BuxtonData good[] = {
-		{INT32, {.d_int32 = 0}}
+		{BUXTON_TYPE_INT32, {.d_int32 = 0}}
 	};
 	BuxtonData good_unnotify[] = {
-		{INT32,	 {.d_int32 = 0	 }},
-		{STRING, {.d_string = {0}}},
-		{UINT32, {.d_uint32 = 4	 }}
+		{BUXTON_TYPE_INT32,  {.d_int32 = 0}},
+		{BUXTON_TYPE_STRING, {.d_string = {0}}},
+		{BUXTON_TYPE_UINT32, {.d_uint32 = 4}}
 	};
 	BuxtonData bad1[] = {
-		{INT64, {.d_int64 = 0}}
+		{BUXTON_TYPE_INT64, {.d_int64 = 0}}
 	};
 	BuxtonData bad2[] = {
-		{INT32, {.d_int32 = 1}}
+		{BUXTON_TYPE_INT32, {.d_int32 = 1}}
 	};
 
 	setup_socket_pair(&(client.fd), &server);
@@ -570,7 +570,7 @@ START_TEST(handle_callback_response_check)
 	fail_if(!setup_callbacks(),
 		"Failed to initialeze response callbacks");
 	out_list = buxton_array_new();
-	data.type = INT32;
+	data.type = BUXTON_TYPE_INT32;
 	data.store.d_int32 = 0;
 	msgid = 1;
 	fail_if(!buxton_array_add(out_list, &data),
@@ -689,7 +689,7 @@ START_TEST(buxton_wire_handle_response_check)
 	fail_if(!setup_callbacks(),
 		"Failed to initialeze get response callbacks");
 	out_list = buxton_array_new();
-	data.type = INT32;
+	data.type = BUXTON_TYPE_INT32;
 	data.store.d_int32 = 0;
 	fail_if(!buxton_array_add(out_list, &data),
 		"Failed to add get response to array");
@@ -737,7 +737,7 @@ START_TEST(buxton_wire_get_response_check)
 	fail_if(!setup_callbacks(),
 		"Failed to initialeze callbacks");
 	out_list = buxton_array_new();
-	data.type = INT32;
+	data.type = BUXTON_TYPE_INT32;
 	data.store.d_int32 = 0;
 	fail_if(!buxton_array_add(out_list, &data),
 		"Failed to add data to array");
@@ -789,7 +789,7 @@ START_TEST(buxton_wire_set_value_check)
 	key.layer = buxton_string_pack("layer");
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name");
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 
 	fail_if(buxton_wire_set_value(&client, &key, "value", NULL,
 				      NULL) != true,
@@ -801,10 +801,10 @@ START_TEST(buxton_wire_set_value_check)
 	fail_if(size != 4, "Failed to get valid message from buffer");
 	fail_if(msg != BUXTON_CONTROL_SET,
 		"Failed to get correct control type");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type");
-	fail_if(list[1].type != STRING, "Failed to set correct group type");
-	fail_if(list[2].type != STRING, "Failed to set correct name type");
-	fail_if(list[3].type != STRING, "Failed to set correct value type");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type");
+	fail_if(list[2].type != BUXTON_TYPE_STRING, "Failed to set correct name type");
+	fail_if(list[3].type != BUXTON_TYPE_STRING, "Failed to set correct value type");
 	fail_if(!streq(list[0].store.d_string.value, "layer"),
 		"Failed to set correct layer");
 	fail_if(!streq(list[1].store.d_string.value, "group"),
@@ -863,9 +863,9 @@ START_TEST(buxton_wire_set_label_check)
 	fail_if(size != 3, "Failed to get valid message from buffer");
 	fail_if(msg != BUXTON_CONTROL_SET_LABEL,
 		"Failed to get correct control type");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type");
-	fail_if(list[1].type != STRING, "Failed to set correct group type");
-	fail_if(list[2].type != STRING, "Failed to set correct label type");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type");
+	fail_if(list[2].type != BUXTON_TYPE_STRING, "Failed to set correct label type");
 	fail_if(!streq(list[0].store.d_string.value, "layer"),
 		"Failed to set correct layer");
 	fail_if(!streq(list[1].store.d_string.value, "group"),
@@ -893,10 +893,10 @@ START_TEST(buxton_wire_set_label_check)
 	fail_if(size != 4, "Failed to get valid message from buffer");
 	fail_if(msg != BUXTON_CONTROL_SET_LABEL,
 		"Failed to get correct control type");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type");
-	fail_if(list[1].type != STRING, "Failed to set correct group type");
-	fail_if(list[2].type != STRING, "Failed to set correct name type");
-	fail_if(list[3].type != STRING, "Failed to set correct label type");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type");
+	fail_if(list[2].type != BUXTON_TYPE_STRING, "Failed to set correct name type");
+	fail_if(list[3].type != BUXTON_TYPE_STRING, "Failed to set correct label type");
 	fail_if(!streq(list[0].store.d_string.value, "layer"),
 		"Failed to set correct layer");
 	fail_if(!streq(list[1].store.d_string.value, "group"),
@@ -942,7 +942,7 @@ START_TEST(buxton_wire_get_value_check)
 	key.layer = buxton_string_pack("layer");
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name");
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 	fail_if(buxton_wire_get_value(&client, &key, NULL,
 				      NULL) != true,
 		"Failed to properly get value 1");
@@ -953,17 +953,17 @@ START_TEST(buxton_wire_get_value_check)
 	fail_if(size != 4, "Failed to get valid message from buffer 1");
 	fail_if(msg != BUXTON_CONTROL_GET,
 		"Failed to get correct control type 1");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type 1");
-	fail_if(list[1].type != STRING, "Failed to set correct group type 1");
-	fail_if(list[2].type != STRING, "Failed to set correct name type 1");
-	fail_if(list[3].type != UINT32, "Failed to set correct type type 1");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type 1");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type 1");
+	fail_if(list[2].type != BUXTON_TYPE_STRING, "Failed to set correct name type 1");
+	fail_if(list[3].type != BUXTON_TYPE_UINT32, "Failed to set correct type type 1");
 	fail_if(!streq(list[0].store.d_string.value, "layer"),
 		"Failed to set correct layer 1");
 	fail_if(!streq(list[1].store.d_string.value, "group"),
 		"Failed to set correct group 1");
 	fail_if(!streq(list[2].store.d_string.value, "name"),
 		"Failed to set correct name 1");
-	fail_if(list[3].store.d_uint32 != STRING,
+	fail_if(list[3].store.d_uint32 != BUXTON_TYPE_STRING,
 		"Failed to set correct type 1");
 
 	free(list[0].store.d_string.value);
@@ -982,14 +982,14 @@ START_TEST(buxton_wire_get_value_check)
 	fail_if(size != 3, "Failed to get valid message from buffer 2");
 	fail_if(msg != BUXTON_CONTROL_GET,
 		"Failed to get correct control type 2");
-	fail_if(list[0].type != STRING, "Failed to set correct group type 2");
-	fail_if(list[1].type != STRING, "Failed to set correct name type 2");
-	fail_if(list[2].type != UINT32, "Failed to set correct type type 2");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct group type 2");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct name type 2");
+	fail_if(list[2].type != BUXTON_TYPE_UINT32, "Failed to set correct type type 2");
 	fail_if(!streq(list[0].store.d_string.value, "group"),
 		"Failed to set correct group 2");
 	fail_if(!streq(list[1].store.d_string.value, "name"),
 		"Failed to set correct name 2");
-	fail_if(list[2].store.d_uint32 != STRING,
+	fail_if(list[2].store.d_uint32 != BUXTON_TYPE_STRING,
 		"Failed to set correct type 2");
 
 	free(list[0].store.d_string.value);
@@ -1026,7 +1026,7 @@ START_TEST(buxton_wire_unset_value_check)
 	key.layer = buxton_string_pack("layer");
 	key.group = buxton_string_pack("group");
 	key.name = buxton_string_pack("name");
-	key.type = STRING;
+	key.type = BUXTON_TYPE_STRING;
 	fail_if(!buxton_wire_unset_value(&client, &key, NULL,
 					 NULL),
 		"Failed to properly unset value");
@@ -1037,17 +1037,17 @@ START_TEST(buxton_wire_unset_value_check)
 	fail_if(size != 4, "Failed to get valid message from buffer");
 	fail_if(msg != BUXTON_CONTROL_UNSET,
 		"Failed to get correct control type");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type");
-	fail_if(list[1].type != STRING, "Failed to set correct group type");
-	fail_if(list[2].type != STRING, "Failed to set correct name type");
-	fail_if(list[3].type != UINT32, "Failed to set correct type type");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type");
+	fail_if(list[2].type != BUXTON_TYPE_STRING, "Failed to set correct name type");
+	fail_if(list[3].type != BUXTON_TYPE_UINT32, "Failed to set correct type type");
 	fail_if(!streq(list[0].store.d_string.value, "layer"),
 		"Failed to set correct layer");
 	fail_if(!streq(list[1].store.d_string.value, "group"),
 		"Failed to set correct group");
 	fail_if(!streq(list[2].store.d_string.value, "name"),
 		"Failed to set correct group");
-	fail_if(list[3].store.d_uint32 != STRING,
+	fail_if(list[3].store.d_uint32 != BUXTON_TYPE_STRING,
 		"Failed to set correct type");
 
 	free(list[0].store.d_string.value);
@@ -1096,8 +1096,8 @@ START_TEST(buxton_wire_create_group_check)
 	fail_if(size != 2, "Failed to get valid message from buffer");
 	fail_if(msg != BUXTON_CONTROL_CREATE_GROUP,
 		"Failed to get correct control type");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type");
-	fail_if(list[1].type != STRING, "Failed to set correct group type");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type");
 	fail_if(!streq(list[0].store.d_string.value, "layer"),
 		"Failed to set correct layer");
 	fail_if(!streq(list[1].store.d_string.value, "group"),
@@ -1147,8 +1147,8 @@ START_TEST(buxton_wire_remove_group_check)
 	fail_if(size != 2, "Failed to get valid message from buffer");
 	fail_if(msg != BUXTON_CONTROL_REMOVE_GROUP,
 		"Failed to get correct control type");
-	fail_if(list[0].type != STRING, "Failed to set correct layer type");
-	fail_if(list[1].type != STRING, "Failed to set correct group type");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type");
 	fail_if(!streq(list[0].store.d_string.value, "layer"),
 		"Failed to set correct layer");
 	fail_if(!streq(list[1].store.d_string.value, "group"),

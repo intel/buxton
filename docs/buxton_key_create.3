@@ -82,7 +82,7 @@ type fields can be requested by calling
 respectively\&. Each of these functions take a single argument, the
 BuxtonKey that is being queried, and return the value requested\&.
 Note that calling \fBbuxton_key_get_type\fR(3) for a group will
-return STRING, since buxton treats groups as strings internally\&.
+return BUXTON_TYPE_STRING, since buxton treats groups as strings internally\&.
 Calling \fBbuxton_key_get_name\fR(3) for a group will return NULL,
 since the name field is not used for groups\&.
 

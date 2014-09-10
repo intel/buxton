@@ -47,7 +47,7 @@ typedef struct BuxtonData {
 
 static inline void buxton_string_to_data(BuxtonString *s, BuxtonData *d)
 {
-	d->type = STRING;
+	d->type = BUXTON_TYPE_STRING;
 	d->store.d_string.value = s->value;
 	d->store.d_string.length = s->length;
 }
