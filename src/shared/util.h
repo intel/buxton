@@ -69,7 +69,7 @@ static inline void freep(void *p)
 static inline void free_buxton_data(void *p)
 {
 	BuxtonData *s = (*(void**) p);
-	if (s && s->type == STRING) {
+	if (s && s->type == BUXTON_TYPE_STRING) {
 		free(s->store.d_string.value);
 	}
 	free(s);

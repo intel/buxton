@@ -45,14 +45,14 @@
  */
 typedef enum BuxtonDataType {
 	BUXTON_TYPE_MIN,
-	STRING, /**<Represents type of a string value */
-	INT32, /**<Represents type of an int32_t value */
-	UINT32, /**<Represents type of an uint32_t value */
-	INT64, /**<Represents type of a int64_t value */
-	UINT64, /**<Represents type of a uint64_t value */
-	FLOAT, /**<Represents type of a float value */
-	DOUBLE, /**<Represents type of a double value */
-	BOOLEAN, /**<Represents type of a boolean value */
+	BUXTON_TYPE_STRING, /**<Represents type of a string value */
+	BUXTON_TYPE_INT32, /**<Represents type of an int32_t value */
+	BUXTON_TYPE_UINT32, /**<Represents type of an uint32_t value */
+	BUXTON_TYPE_INT64, /**<Represents type of a int64_t value */
+	BUXTON_TYPE_UINT64, /**<Represents type of a uint64_t value */
+	BUXTON_TYPE_FLOAT, /**<Represents type of a float value */
+	BUXTON_TYPE_DOUBLE, /**<Represents type of a double value */
+	BUXTON_TYPE_BOOLEAN, /**<Represents type of a boolean value */
 	BUXTON_TYPE_MAX
 } BuxtonDataType;
 
@@ -104,7 +104,7 @@ typedef void (*BuxtonCallback)(BuxtonResponse, void *);
  * @param path Path to the buxton configuration file to use
  * @return An int with 0 indicating success or an errno value
  */
-_bx_export_ int buxton_set_conf_file(char *path);
+_bx_export_ int buxton_set_conf_file(const char *path);
 
 /**
  * Open a connection to Buxton
@@ -155,7 +155,7 @@ _bx_export_ int buxton_set_value(BuxtonClient client,
  */
 _bx_export_ int buxton_set_label(BuxtonClient client,
 				 BuxtonKey key,
-				 char *value,
+				 const char *value,
 				 BuxtonCallback callback,
 				 void *data,
 				 bool sync)
@@ -221,7 +221,7 @@ _bx_export_ int buxton_get_value(BuxtonClient client,
  * @return An boolean value, indicating success of the operation
  */
 _bx_export_ int buxton_client_list_keys(BuxtonClient client,
-					char *layer_name,
+					const char *layer_name,
 					BuxtonCallback callback,
 					void *data,
 					bool sync)
@@ -292,8 +292,8 @@ _bx_export_ ssize_t buxton_client_handle_response(BuxtonClient client)
  * @param layer Pointer to a character string representing a layer (optional)
  * @return A pointer to a BuxtonString containing the key
  */
-_bx_export_ BuxtonKey buxton_key_create(char *group, char *name, char *layer,
-				      BuxtonDataType type)
+_bx_export_ BuxtonKey buxton_key_create(const char *group, const char *name,
+					const char *layer, BuxtonDataType type)
 	__attribute__((warn_unused_result));
 
 /**
@@ -364,6 +364,23 @@ _bx_export_ BuxtonKey buxton_response_key(BuxtonResponse response)
  * @return pointer to data from the response
  */
 _bx_export_ void *buxton_response_value(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the count of value for a buxton response of get list of keys
+ * @param response a BuxtonResponse
+ * @return the count of items
+ */
+_bx_export_ uint32_t buxton_response_list_count(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the count of value for a buxton response of get list of keys
+ * @param response a BuxtonResponse
+ * @param index the index of the queried item
+ * @return the name of the key or NULL
+ */
+_bx_export_ char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
 	__attribute__((warn_unused_result));
 
 /*

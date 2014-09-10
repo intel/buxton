@@ -90,8 +90,9 @@ Data type (2 bytes)
 All recognized data types belong to an enum with 8 elements\&. Each
 type is cast to a uint16_t value when serialized\&.
 
-Accepted types include STRING, INT32, UINT32, INT64, UINT64, FLOAT,
-DOUBLE, and BOOLEAN\&.
+Accepted types include BUXTON_TYPE_STRING, BUXTON_TYPE_INT32, BUXTON_TYPE_UINT32,
+BUXTON_TYPE_INT64, BUXTON_TYPE_UINT64, BUXTON_TYPE_FLOAT,
+BUXTON_TYPE_DOUBLE, and BUXTON_TYPE_BOOLEAN\&.
 \&.
 .RE
 .PP
@@ -102,7 +103,7 @@ The length the data value, as defined in the next entry\&.
 .PP
 Data value (varies depending on data type)
 .RS 4
-For data with STRING type, the value may range from 0 (zero) bytes to
+For data with BUXTON_TYPE_STRING type, the value may range from 0 (zero) bytes to
 an arbitrary maximum, as permitted by the maximum message length and
 factoring in the overall payload of the message\&. For all other data
 types, the value size depends on the data type, with maximum size of

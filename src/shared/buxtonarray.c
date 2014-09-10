@@ -56,7 +56,7 @@ bool buxton_array_add(BuxtonArray *array,
 	return true;
 }
 
-void *buxton_array_get(BuxtonArray *array, uint16_t index)
+void *buxton_array_get(BuxtonArray *array, uint index)
 {
 	if (!array) {
 		return NULL;
