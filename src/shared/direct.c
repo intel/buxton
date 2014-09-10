@@ -172,7 +172,12 @@ int buxton_direct_get_value_for_layer(BuxtonControl *control,
 		}
 	}
 
-	ret = backend->get_value(layer, key, data, data_label);
+	if (key->type == UNKNOWN) {
+		ret = backend->get_key_type(layer, key, data, data_label);
+	} else {
+		ret = backend->get_value(layer, key, data, data_label);
+	}
+
 	if (!ret) {
 		/* Access checks are not needed for direct clients, where client_label is NULL */
 		if (data_label->value && client_label && client_label->value &&

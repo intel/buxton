@@ -100,6 +100,38 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	__attribute__((warn_unused_result));
 
 /**
+ * Retrieve a key type from Buxton
+ * @param control An initialized control structure
+ * @param key The key to retrieve
+ * @param data An empty BuxtonData, where data is stored
+ * @param data_label The Smack label of the data
+ * @param client_label The Smack label of the client
+ * @return A int32_t value, indicating success of the operation
+ */
+int32_t buxton_direct_get_key_type(BuxtonControl *control,
+				_BuxtonKey *key,
+				BuxtonData *data,
+				BuxtonString *data_label,
+				BuxtonString *client_label)
+	__attribute__((warn_unused_result));
+
+/**
+ * Retrieve a key type from Buxton by layer
+ * @param control An initialized control structure
+ * @param key The key to retrieve
+ * @param data An empty BuxtonData, where type is stored
+ * @param data_label The Smack label of the data
+ * @param client_label The Smack label of the client
+ * @return An int value, indicating success of the operation
+ */
+int buxton_direct_get_key_type_for_layer(BuxtonControl *control,
+				       _BuxtonKey *key,
+				       BuxtonData *data,
+				       BuxtonString *data_label,
+				       BuxtonString *client_label)
+	__attribute__((warn_unused_result));
+
+/**
  * Retrieve a value from Buxton
  * @param control An initialized control structure
  * @param key The key to retrieve
