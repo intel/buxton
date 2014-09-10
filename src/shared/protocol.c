@@ -691,15 +691,15 @@ bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 		}
 	}
 	if (!buxton_array_add(list, &d_group)) {
-		buxton_log("Failed to add group to set_value array\n");
+		buxton_log("Failed to add group to get_value array\n");
 		goto end;
 	}
 	if (!buxton_array_add(list, &d_name)) {
-		buxton_log("Failed to add name to set_value array\n");
+		buxton_log("Failed to add name to get_value array\n");
 		goto end;
 	}
 	if (!buxton_array_add(list, &d_type)) {
-		buxton_log("Failed to add type to set_value array\n");
+		buxton_log("Failed to add type to get_value array\n");
 		goto end;
 	}
 
