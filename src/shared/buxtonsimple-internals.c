@@ -64,49 +64,49 @@ void _cg_cb(BuxtonResponse response, void *data)
 void _bs_print(vstatus *data, BuxtonResponse response)
 {
 	switch (data->type) {
-		case STRING:
+		case BUXTON_TYPE_STRING:
 		{
 			char *val = data->val.sval;
 			buxton_debug("Success: value has been set: %s(string). ", val);
 			break;
 		}
-		case INT32:
+		case BUXTON_TYPE_INT32:
 		{
 			int32_t val = data->val.i32val;
 			buxton_debug("Success: value has been set: %d(int32_t). ", val);
 			break;
 		}
-		case UINT32:
+		case BUXTON_TYPE_UINT32:
 		{
 			uint32_t val = data->val.ui32val;
 			buxton_debug("Success: value has been set: %d(uint32_t). ", val);
 			break;
 		}
-		case INT64:
+		case BUXTON_TYPE_INT64:
 		{
 			int64_t val = data->val.i64val;
 			buxton_debug("Success: value has been set: ""%"PRId64"(int64_t). ", val);
 			break;
 		}
-		case UINT64:
+		case BUXTON_TYPE_UINT64:
 		{
 			uint64_t val = data->val.ui64val;
 			buxton_debug("Success: value has been set: ""%"PRIu64"(uint64_t). ", val);
 			break;
 		}
-		case FLOAT:
+		case BUXTON_TYPE_FLOAT:
 		{
 			float val = data->val.fval;
 			buxton_debug("Success: value has been set: %f(float). ", val);
 			break;
 		}
-		case DOUBLE:
+		case BUXTON_TYPE_DOUBLE:
 		{
 			double val = data->val.dval;
 			buxton_debug("Success: value has been set: %e(double). ", val);
 			break;
 		}
-		case BOOLEAN:
+		case BUXTON_TYPE_BOOLEAN:
 		{
 			bool val = data->val.bval;
 			buxton_debug("Success: value has been set: %i(bool). ", val);
@@ -153,49 +153,49 @@ void _bg_cb(BuxtonResponse response, void *data)
 		return;
 	}
 	switch (ret->type) {
-		case STRING:
+		case BUXTON_TYPE_STRING:
 		{
 			ret->val.sval = *(char**)p;
 			type = "string";
 			break;
 		}
-		case INT32:
+		case BUXTON_TYPE_INT32:
 		{
 			ret->val.i32val = *(int32_t*)p;
 			type = "int32_t";
 			break;
 		}
-		case UINT32:
+		case BUXTON_TYPE_UINT32:
 		{
 			ret->val.ui32val = *(uint32_t*)p;
 			type = "uint32_t";
 			break;
 		}
-		case INT64:
+		case BUXTON_TYPE_INT64:
 		{
 			ret->val.i64val = *(int64_t*)p;
 			type = "int64_t";
 			break;
 		}
-		case UINT64:
+		case BUXTON_TYPE_UINT64:
 		{
 			ret->val.ui64val = *(uint64_t*)p;
 			type = "uint64_t";
 			break;
 		}
-		case FLOAT:
+		case BUXTON_TYPE_FLOAT:
 		{
 			ret->val.fval = *(float*)p;
 			type = "float";
 			break;
 		}
-		case DOUBLE:
+		case BUXTON_TYPE_DOUBLE:
 		{
 			ret->val.dval = *(double*)p;
 			type = "double";
 			break;
 		}
-		case BOOLEAN:
+		case BUXTON_TYPE_BOOLEAN:
 		{
 			ret->val.bval = *(bool*)p;
 			type = "bool";
@@ -214,7 +214,7 @@ void _bg_cb(BuxtonResponse response, void *data)
 /* create a client side group TODO: create BuxtonGroup type probably not really needed */
 BuxtonKey _buxton_group_create(char *name, char *layer)
 {
-	BuxtonKey ret = buxton_key_create(name, NULL, layer, STRING);
+	BuxtonKey ret = buxton_key_create(name, NULL, layer, BUXTON_TYPE_STRING);
 	return ret;
 }
 

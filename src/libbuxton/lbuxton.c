@@ -288,7 +288,7 @@ int buxton_set_label(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = STRING;
+	k->type = BUXTON_TYPE_STRING;
 	v = buxton_string_pack((char*)value); /* discarding const is okay */
 
 	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
@@ -324,7 +324,7 @@ int buxton_create_group(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = STRING;
+	k->type = BUXTON_TYPE_STRING;
 	r = buxton_wire_create_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
@@ -357,7 +357,7 @@ int buxton_remove_group(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = STRING;
+	k->type = BUXTON_TYPE_STRING;
 	r = buxton_wire_remove_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
@@ -669,51 +669,51 @@ void *buxton_response_value(BuxtonResponse response)
 	}
 
 	switch (d->type) {
-	case STRING:
+	case BUXTON_TYPE_STRING:
 		return strdup(d->store.d_string.value);
-	case INT32:
+	case BUXTON_TYPE_INT32:
 		p = malloc0(sizeof(int32_t));
 		if (!p) {
 			goto out;
 		}
 		*(int32_t *)p = (int32_t)d->store.d_int32;
 		break;
-	case UINT32:
+	case BUXTON_TYPE_UINT32:
 		p = malloc0(sizeof(uint32_t));
 		if (!p) {
 			goto out;
 		}
 		*(uint32_t *)p = (uint32_t)d->store.d_uint32;
 		break;
-	case INT64:
+	case BUXTON_TYPE_INT64:
 		p = malloc0(sizeof(int64_t));
 		if (!p) {
 			goto out;
 		}
 		*(int64_t *)p = (int64_t)d->store.d_int64;
 		break;
-	case UINT64:
+	case BUXTON_TYPE_UINT64:
 		p = malloc0(sizeof(uint64_t));
 		if (!p) {
 			goto out;
 		}
 		*(uint64_t *)p = (uint64_t)d->store.d_uint64;
 		break;
-	case FLOAT:
+	case BUXTON_TYPE_FLOAT:
 		p = malloc0(sizeof(float));
 		if (!p) {
 			goto out;
 		}
 		*(float *)p = (float)d->store.d_float;
 		break;
-	case DOUBLE:
+	case BUXTON_TYPE_DOUBLE:
 		p = malloc0(sizeof(double));
 		if (!p) {
 			goto out;
 		}
 		*(double *)p = (double)d->store.d_double;
 		break;
-	case BOOLEAN:
+	case BUXTON_TYPE_BOOLEAN:
 		p = malloc0(sizeof(bool));
 		if (!p) {
 			goto out;
@@ -765,7 +765,7 @@ char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
 	if (d == NULL) {
 		return NULL;
 	}
-	if (d->type != STRING) {
+	if (d->type != BUXTON_TYPE_STRING) {
 		return NULL;		
 	}
 	return strdup(d->store.d_string.value);
