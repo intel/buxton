@@ -160,8 +160,6 @@ START_TEST(list_check)
 				"Failed to append to BuxtonList");
 		} else {
 			int j = asprintf(&tmp, "i #%d", i);
-			fail_if(j < 0,
-				"Failed to pass test due to allocation error");
 			fail_if(buxton_list_prepend(&list, tmp) == false,
 				"Failed to prepend to BuxtonList");
 		}
