@@ -82,6 +82,7 @@ static void print_usage(Command *command)
 int main(int argc, char **argv)
 {
 	bool ret = false;
+	Command c_get;
 	Command c_get_string, c_set_string;
 	Command c_get_int32, c_set_int32;
 	Command c_get_uint32, c_set_uint32;
@@ -113,6 +114,11 @@ int main(int argc, char **argv)
 	if (!commands) {
 		exit(EXIT_FAILURE);
 	}
+
+	/* unknowns */
+	c_get = (Command) { "get", "Get a value by key",
+				   2, 3, "[layer] group name", &cli_get_value, BUXTON_TYPE_UNSET };
+	hashmap_put(commands, c_get.name, &c_get);
 
 	/* Strings */
 	c_get_string = (Command) { "get-string", "Get a string value by key",
@@ -203,7 +209,7 @@ int main(int argc, char **argv)
 
 	/* Unset value */
 	c_unset_value = (Command) { "unset-value", "Unset a value by key",
-				    3, 3, "layer group name", &cli_unset_value, BUXTON_TYPE_STRING };
+				    3, 3, "layer group name", &cli_unset_value, BUXTON_TYPE_UNSET };
 	hashmap_put(commands, c_unset_value.name, &c_unset_value);
 
 	/* Create db for layer */

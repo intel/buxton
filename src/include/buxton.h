@@ -44,7 +44,8 @@
  * Possible data types for use in Buxton
  */
 typedef enum BuxtonDataType {
-	BUXTON_TYPE_MIN,
+	BUXTON_TYPE_MIN = 0,
+	BUXTON_TYPE_UNSET = 0,
 	BUXTON_TYPE_STRING, /**<Represents type of a string value */
 	BUXTON_TYPE_INT32, /**<Represents type of an int32_t value */
 	BUXTON_TYPE_UINT32, /**<Represents type of an uint32_t value */
@@ -259,7 +260,6 @@ _bx_export_ int buxton_unregister_notification(BuxtonClient client,
 					       bool sync)
 	__attribute__((warn_unused_result));
 
-
 /**
  * Unset a value by key in the given BuxtonLayer
  * @param client An open client connection
@@ -351,19 +351,35 @@ _bx_export_ int32_t buxton_response_status(BuxtonResponse response)
 	__attribute__((warn_unused_result));
 
 /**
- * Get the key for a buxton response
+ * Get the request's key for a buxton response
+ * The returned key MUST be deleted using buxton_key_free.
  * @param response a BuxtonResponse
- * @return BuxtonKey from the response
+ * @return BuxtonKey of the request from the response
  */
 _bx_export_ BuxtonKey buxton_response_key(BuxtonResponse response)
 	__attribute__((warn_unused_result));
 
 /**
  * Get the value for a buxton response
+ * The returned value MUST be deleted using free.
  * @param response a BuxtonResponse
- * @return pointer to data from the response
+ * @return pointer to data from the response or NULL if not applicable
  */
 _bx_export_ void *buxton_response_value(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the type of the value for a buxton response
+ * This type is the real type of the value and differs of the
+ * type of the request key only if the request key as the
+ * type BUXTON_TYPE_UNSET.
+ * In other words:
+ *  buxton_key_get_type(buxton_response_key(r)) == buxton_response_value_type(r)
+ *  || buxton_key_get_type(buxton_response_key(r)) == BUXTON_TYPE_UNSET
+ * @param response a BuxtonResponse
+ * @return The type of the value or BUXTON_TYPE_UNSET if not applicable
+ */
+_bx_export_ BuxtonDataType buxton_response_value_type(BuxtonResponse response)
 	__attribute__((warn_unused_result));
 
 /*

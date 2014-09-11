@@ -151,7 +151,7 @@ int buxton_get_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !(k->group.value) || !(k->name.value) ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return EINVAL;
 	}
 
@@ -183,7 +183,7 @@ int buxton_register_notification(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return EINVAL;
 	}
 
@@ -216,7 +216,7 @@ int buxton_unregister_notification(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return EINVAL;
 	}
 
@@ -325,7 +325,6 @@ int buxton_create_group(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = BUXTON_TYPE_STRING;
 	r = buxton_wire_create_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
@@ -421,7 +420,7 @@ int buxton_unset_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return EINVAL;
 	}
 
@@ -454,7 +453,10 @@ BuxtonKey buxton_key_create(const char *group, const char *name,
 		goto fail;
 	}
 
-	if (type <= BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX) {
+	if (type < BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX) {
+		goto fail;
+	}
+	if (!name && type != BUXTON_TYPE_STRING) {
 		goto fail;
 	}
 
@@ -728,6 +730,34 @@ void *buxton_response_value(BuxtonResponse response)
 
 out:
 	return p;
+}
+
+BuxtonDataType buxton_response_value_type(BuxtonResponse response)
+{
+	BuxtonData *d = NULL;
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+
+	if (!response) {
+		return BUXTON_TYPE_UNSET;
+	}
+
+	type = buxton_response_type(response);
+	if (type == BUXTON_CONTROL_GET) {
+		d = buxton_array_get(r->data, 1);
+	} else if (type == BUXTON_CONTROL_CHANGED) {
+		if (r->data->len) {
+			d = buxton_array_get(r->data, 0);
+		}
+	} else {
+		return BUXTON_TYPE_UNSET;
+	}
+
+	if (!d) {
+		return BUXTON_TYPE_UNSET;
+	}
+
+	return d->type;
 }
 
 /*

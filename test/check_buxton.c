@@ -275,7 +275,7 @@ START_TEST(buxton_key_check)
 	buxton_key_free(key);
 
 	fail_if(buxton_key_create(NULL, name, layer, type), "Got key back with invalid group");
-	fail_if(buxton_key_create(group, name, layer, BUXTON_TYPE_MIN),
+	fail_if(buxton_key_create(group, name, layer, BUXTON_TYPE_MIN-1),
 		"Got key back with invalid type 1");
 	fail_if(buxton_key_create(group, name, layer, BUXTON_TYPE_MAX),
 		"Got key back with invalid type 2");
