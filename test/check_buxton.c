@@ -200,6 +200,15 @@ START_TEST(buxton_direct_get_value_check)
 		"Buxton gdbm returned a different value to that set.");
 	if (result.store.d_string.value)
 		free(result.store.d_string.value);
+	key.type = BUXTON_TYPE_UNSET;
+	fail_if(buxton_direct_get_value(&c, &key, &result, &dlabel, NULL) == -1,
+		"Retrieving value from buxton gdbm backend failed.");
+	fail_if(result.type != BUXTON_TYPE_STRING,
+		"Buxton gdbm backend returned incorrect result type.");
+	fail_if(strcmp(result.store.d_string.value, "bxt_test_value2") != 0,
+		"Buxton gdbm returned a different value to that set.");
+	if (result.store.d_string.value)
+		free(result.store.d_string.value);
 	buxton_direct_close(&c);
 }
 END_TEST
@@ -239,6 +248,11 @@ START_TEST(buxton_memory_backend_check)
 		"Retrieving value from buxton memory backend directly failed.");
 	// FIXME: BUXTON_GROUP_VALUE is the dummy group data value, but the memory
 	// backend doesn't understand groups, so this is the current workaround.
+	fail_if(!streq(result.store.d_string.value, "bxt_test_value"),
+		"Buxton memory returned a different value to that set.");
+	key.type = BUXTON_TYPE_UNSET;
+	fail_if(buxton_direct_get_value_for_layer(&c, &key, &result, &dlabel, NULL),
+		"Retrieving value from buxton memory backend directly failed.");
 	fail_if(!streq(result.store.d_string.value, "bxt_test_value"),
 		"Buxton memory returned a different value to that set.");
 	buxton_direct_close(&c);

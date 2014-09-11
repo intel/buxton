@@ -200,6 +200,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
 			     BuxtonData *data,
 			     BuxtonString *label)
 {
+	BuxtonDataType memo_type;
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
@@ -259,7 +260,10 @@ bool buxton_direct_set_value(BuxtonControl *control,
 			goto fail;
 		}
 
+		memo_type = key->type;
+		key->type = BUXTON_TYPE_UNSET;
 		ret = buxton_direct_get_value_for_layer(control, key, d, data_label, NULL);
+		key->type = memo_type;
 		if (ret == -ENOENT || ret == EINVAL) {
 			goto fail;
 		}
@@ -272,7 +276,10 @@ bool buxton_direct_set_value(BuxtonControl *control,
 			l = label;
 		}
 	} else {
+		memo_type = key->type;
+		key->type = BUXTON_TYPE_UNSET;
 		ret = buxton_direct_get_value_for_layer(control, key, d, data_label, NULL);
+		key->type = memo_type;
 		if (ret == -ENOENT || ret == EINVAL) {
 			goto fail;
 		} else if (!ret) {

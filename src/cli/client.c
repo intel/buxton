@@ -343,10 +343,10 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 
 void get_value_callback(BuxtonResponse response, void *data)
 {
-	BuxtonKey key;
 	BuxtonData *r = (BuxtonData *)data;
 	void *p;
 
+	r->type = BUXTON_TYPE_UNSET;
 	if (buxton_response_status(response) != 0) {
 		return;
 	}
@@ -355,17 +355,13 @@ void get_value_callback(BuxtonResponse response, void *data)
 	if (!p) {
 		return;
 	}
-	key = buxton_response_key(response);
-	if (!key) {
-		free(p);
-		return;
-	}
 
-	switch (buxton_key_get_type(key)) {
+	switch (buxton_response_value_type(response)) {
 	case BUXTON_TYPE_STRING:
 		r->store.d_string.value = (char *)p;
 		r->store.d_string.length = (uint32_t)strlen(r->store.d_string.value) + 1;
 		r->type = BUXTON_TYPE_STRING;
+		p = NULL;
 		break;
 	case BUXTON_TYPE_INT32:
 		r->store.d_int32 = *(int32_t *)p;
@@ -399,10 +395,7 @@ void get_value_callback(BuxtonResponse response, void *data)
 		break;
 	}
 
-	if (buxton_key_get_type(key) != BUXTON_TYPE_STRING) {
-		free(p);
-	}
-	free(key);
+	free(p);
 }
 
 bool cli_get_value(BuxtonControl *control, BuxtonDataType type,

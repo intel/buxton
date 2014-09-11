@@ -40,6 +40,9 @@ BuxtonKey buxton_reponse_key(BuxtonResponse \fIresponse\fB)
 .sp
 .br
 void *buxton_reponse_value(BuxtonResponse \fIresponse\fB)
+.sp
+.br
+BuxtonDataType buxton_reponse_value_type(BuxtonResponse \fIresponse\fB)
 \fR
 .fi
 
@@ -73,7 +76,9 @@ query the BuxtonKey operated on by the daemon, the client should call
 \fBbuxton_response_key\fR(3), which returns the BuxtonKey in
 question\&. To query the value acted on by the daemon for this
 BuxtonKey, a call to \fBbuxton_response_value\fR(3) returns an
-untyped pointer to this value\&.
+untyped pointer to this value\&. This returnned pointer must be
+freed using \fBfree\fR(3). The effective type of the returned
+value can be checked using \fBbuxton_reponse_value_type\fR(3).
 
 .SH "COPYRIGHT"
 .PP

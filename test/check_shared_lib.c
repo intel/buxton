@@ -70,7 +70,6 @@ START_TEST(log_write_check)
 }
 END_TEST
 
-
 START_TEST(hashmap_check)
 {
 	Hashmap *map;
@@ -757,7 +756,6 @@ int main(void)
 
 	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
 
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

@@ -253,7 +253,7 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	data_store = (uint8_t*)value.dptr;
 	buxton_deserialize(data_store, data, label);
 
-	if (data->type != key->type) {
+	if (data->type != key->type && key->type != BUXTON_TYPE_UNSET) {
 		free(label->value);
 		label->value = NULL;
 		if (data->type == BUXTON_TYPE_STRING) {
