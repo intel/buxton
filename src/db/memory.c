@@ -209,7 +209,7 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		goto end;
 	}
 	d = buxton_array_get(stored, 0);
-	if (d->type != key->type) {
+	if (d->type != key->type && key->type != BUXTON_TYPE_UNSET) {
 		ret = EINVAL;
 		goto end;
 	}
@@ -323,7 +323,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
 	backend->unset_value = &unset_value;
-	backend->list_keys = NULL;
+	backend->list_names = NULL;
 	backend->create_db = NULL;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);
