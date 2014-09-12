@@ -22,6 +22,9 @@ BUXTON_1 {
 		buxton_response_type;
 		buxton_response_key;
 		buxton_response_value;
+		buxton_response_value_type;
+		buxton_response_list_count;
+		buxton_response_list_name;
 	local:
 		*;
 };

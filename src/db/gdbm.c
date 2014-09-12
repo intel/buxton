@@ -188,7 +188,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(ret == 0);
 
 end:
-	if (cdata.type == STRING) {
+	if (cdata.type == BUXTON_TYPE_STRING) {
 		free(cdata.store.d_string.value);
 	}
 	free(key_data.dptr);
@@ -253,10 +253,10 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	data_store = (uint8_t*)value.dptr;
 	buxton_deserialize(data_store, data, label);
 
-	if (data->type != key->type) {
+	if (data->type != key->type && key->type != BUXTON_TYPE_UNSET) {
 		free(label->value);
 		label->value = NULL;
-		if (data->type == STRING) {
+		if (data->type == BUXTON_TYPE_STRING) {
 			free(data->store.d_string.value);
 			data->store.d_string.value = NULL;
 		}
@@ -367,7 +367,7 @@ static bool list_keys(BuxtonLayer *layer,
 		if (!current) {
 			abort();
 		}
-		current->type = STRING;
+		current->type = BUXTON_TYPE_STRING;
 		current->store.d_string.value = strdup(name);
 		if (!current->store.d_string.value) {
 			abort();

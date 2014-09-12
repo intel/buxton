@@ -409,10 +409,10 @@ START_TEST (bs_print_check)
 	vstatus *data = malloc(sizeof(vstatus));
 	fail_if(!data, "Failed to allocate space for vstatus");
 	data->status = 1;
-	data->type = STRING;
+	data->type = BUXTON_TYPE_STRING;
 	data->val.sval = "test";
 
-	BuxtonKey key = buxton_key_create("tg_s0", "keyname", "user", STRING);
+	BuxtonKey key = buxton_key_create("tg_s0", "keyname", "user", BUXTON_TYPE_STRING);
 	_BuxtonResponse resp;
 	resp.data = NULL;
 	resp.type = BUXTON_CONTROL_GET;
@@ -429,10 +429,10 @@ START_TEST (bs_cb_check)
 {
 	vstatus data;
 	data.status = 1;
-	data.type = STRING;
+	data.type = BUXTON_TYPE_STRING;
 	data.val.sval = "test";
 
-	BuxtonKey key = buxton_key_create("tg_s0", "keyname", "user", STRING);
+	BuxtonKey key = buxton_key_create("tg_s0", "keyname", "user", BUXTON_TYPE_STRING);
 	_BuxtonResponse resp;
 	resp.data = NULL;
 	resp.type = BUXTON_CONTROL_GET;
@@ -447,10 +447,10 @@ END_TEST
 START_TEST (bg_cb_check)
 {
 	vstatus data;
-	data.type = STRING;
-	BuxtonKey key = buxton_key_create("tg_s0", "keyname", "user", STRING);
+	data.type = BUXTON_TYPE_STRING;
+	BuxtonKey key = buxton_key_create("tg_s0", "keyname", "user", BUXTON_TYPE_STRING);
 	BuxtonData bd;
-	bd.type = STRING;
+	bd.type = BUXTON_TYPE_STRING;
 	bd.store.d_string = buxton_string_pack("test");
 	BuxtonArray *a = buxton_array_new();
 	fail_if(!buxton_array_add(a, &bd), "Unable to add element to array");
