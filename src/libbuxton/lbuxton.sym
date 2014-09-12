@@ -7,6 +7,7 @@ BUXTON_1 {
 		buxton_set_label;
 		buxton_create_group;
 		buxton_remove_group;
+		buxton_get_key_type;
 		buxton_get_value;
 		buxton_unset_value;
 		buxton_register_notification;

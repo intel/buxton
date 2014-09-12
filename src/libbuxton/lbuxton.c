@@ -140,6 +140,37 @@ void buxton_close(BuxtonClient client)
 	free(c);
 }
 
+int buxton_get_key_type(BuxtonClient client,
+			BuxtonKey key,
+			BuxtonCallback callback,
+			void *data,
+			bool sync)
+{
+	bool r;
+	int ret = 0;
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	if (!k || !(k->group.value) || !(k->name.value) || k->type != UNKNOWN) {
+		return EINVAL;
+	}
+
+	r = buxton_wire_get_key_type((_BuxtonClient *)client, k, callback, data);
+	if (!r) {
+		return -1;
+	}
+
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			ret = -1;
+		} else {
+			ret = 0;
+		}
+	}
+
+	return ret;
+}
+
 int buxton_get_value(BuxtonClient client,
 		     BuxtonKey key,
 		     BuxtonCallback callback,
@@ -151,7 +182,8 @@ int buxton_get_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !(k->group.value) || !(k->name.value) ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX ||
+	    k->type == UNKNOWN) {
 		return EINVAL;
 	}
 
@@ -183,7 +215,8 @@ int buxton_register_notification(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX ||
+	    k->type == UNKNOWN) {
 		return EINVAL;
 	}
 
@@ -216,7 +249,8 @@ int buxton_unregister_notification(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX ||
+	    k->type == UNKNOWN) {
 		return EINVAL;
 	}
 
@@ -250,7 +284,8 @@ int buxton_set_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX || !value) {
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX ||
+	    k->type == UNKNOWN || !value) {
 		return EINVAL;
 	}
 
@@ -419,7 +454,8 @@ int buxton_unset_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX ||
+	    k->type == UNKNOWN) {
 		return EINVAL;
 	}
 
@@ -654,7 +690,7 @@ void *buxton_response_value(BuxtonResponse response)
 	}
 
 	type = buxton_response_type(response);
-	if (type == BUXTON_CONTROL_GET) {
+	if (type == BUXTON_CONTROL_GET || BUXTON_CONTROL_GET_KEY_TYPE) {
 		d = buxton_array_get(r->data, 1);
 	} else if (type == BUXTON_CONTROL_CHANGED) {
 		if (r->data->len) {
