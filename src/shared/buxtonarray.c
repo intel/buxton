@@ -15,6 +15,8 @@
 #include "buxtonarray.h"
 #include "util.h"
 
+#define INITIAL_ARRAY_ALLOC  8  /* MUST be a power of 2!!! */
+
 BuxtonArray *buxton_array_new(void)
 {
 	BuxtonArray *ret = NULL;
@@ -27,32 +29,39 @@ BuxtonArray *buxton_array_new(void)
 bool buxton_array_add(BuxtonArray *array,
 		      void *data)
 {
-	uint new_len;
-	size_t curr, new_size;
+	uint len, alen;
+	void **p;
 
 	if (!array || !data) {
 		return false;
 	}
-	if (!array->data) {
-		array->data = calloc(1, sizeof(void*));
-		if (!array->data) {
+
+	p = array->data;
+	len = array->len;
+
+	/*
+	* Resize the array if needed to hold at least one more pointer
+	*
+	* ALGO: the current length is scanned and the reallocation
+	* occurs only if it is a power of 2, doubling the allocated size.
+	* Also, a minimal allocation count is managed
+	*/
+	if (!(len & (len - 1)) && (!len || len >= INITIAL_ARRAY_ALLOC)) {
+		alen = MAX(INITIAL_ARRAY_ALLOC, 2 * len);
+		p = realloc(p, alen * sizeof * p);
+		if (!p) {
 			return false;
 		}
+		/* this following erasing isn't strictly needed */
+		memset(p + len + 1, 0, (alen - len - 1) * sizeof * p);
+		array->data = p;
 	}
 
-	new_len = array->len += 1;
-	curr = (size_t)(array->len*sizeof(void*));
-	new_size = curr + sizeof(void*);
-	if (new_len >= array->len) {
-		/* Resize the array to hold one more pointer */
-		array->data = greedy_realloc((void**)&array->data, &curr, new_size);
-		if (!array->data) {
-			return false;
-		}
-	}
-	/* Store the pointer at the end of the array */
-	array->len = new_len;
-	array->data[array->len-1] = data;
+	/* Store the data at the end of the array that is updated */
+	assert(p);
+	p[len] = data;
+	array->len = len + 1;
+
 	return true;
 }
 
@@ -61,12 +70,11 @@ void *buxton_array_get(BuxtonArray *array, uint index)
 	if (!array) {
 		return NULL;
 	}
-	if (index > array->len) {
+	if (index >= array->len) {
 		return NULL;
 	}
 	return array->data[index];
 }
-
 
 void buxton_array_free(BuxtonArray **array,
 		       buxton_free_func free_method)

@@ -18,6 +18,7 @@ BUXTON_1 {
 		buxton_key_get_type;
 		buxton_key_create;
 		buxton_key_free;
+		buxton_list_names;
 		buxton_response_status;
 		buxton_response_type;
 		buxton_response_key;

@@ -517,13 +517,76 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	return true;
 }
 
-bool cli_list_keys(BuxtonControl *control,
-		   __attribute__((unused))BuxtonDataType type,
-		   char *one, char *two, char *three,
-		   __attribute__((unused)) char *four)
+void list_names_callback(BuxtonResponse response, void *data)
 {
-	/* not yet implemented */
-	return false;
+	uint32_t index;
+	uint32_t count;
+	char *name;
+	char *group;
+
+	if (buxton_response_status(response) != 0) {
+		return;
+	}
+
+	group = data;
+	count = buxton_response_list_count(response);
+	for (index = 0 ; index < count ; index++) {
+		name = buxton_response_list_name(response, index);
+		printf("found %s %s\n", group ? "key" : "group", name);
+		free(name);
+	}
+}
+
+bool cli_list_names(BuxtonControl *control,
+		    BuxtonDataType type,
+		    char *layer, char *group, char *prefix,
+		    __attribute__((unused)) char *four)
+{
+	uint32_t index;
+	uint32_t count;
+	const char *name;
+	BuxtonString slayer;
+	BuxtonString sgroup;
+	BuxtonString sprefix;
+	BuxtonArray *array;
+	BuxtonData *item;
+	
+	if (!type) {
+		prefix = group;
+		group = NULL;
+	}
+
+	if (!control->client.direct) {
+		return !buxton_list_names(&control->client,
+					   layer, group, prefix, list_names_callback,
+					   group, true);
+	}
+
+	array = NULL;
+	slayer.value = layer;
+	slayer.length = (uint32_t)strlen(layer) + 1;
+	sgroup.value = group;
+	sgroup.length = group ? (uint32_t)strlen(group) + 1 : 0;
+	sprefix.value = prefix;
+	sprefix.length = prefix ? (uint32_t)strlen(prefix) + 1 : 0;
+	if (!buxton_direct_list_names(control, &slayer, &sgroup,
+	    &sprefix, &array)) {
+		return false;
+	}
+
+	count = array->len;
+	for (index = 0 ; index < count ; index++) {
+		item = buxton_array_get(array, index);
+		if (item == NULL) {
+			return false;
+		}
+		if (item->type != BUXTON_TYPE_STRING) {
+			return false;		
+		}
+		name = item->store.d_string.value;
+		printf("found %s %s\n", group ? "key" : "group", name);
+	}
+	return true;
 }
 
 void unset_value_callback(BuxtonResponse response, void *data)

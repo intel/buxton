@@ -374,8 +374,10 @@ int buxton_remove_group(BuxtonClient client,
 	return ret;
 }
 
-int buxton_client_list_keys(BuxtonClient client,
+int buxton_list_names(BuxtonClient client,
 			    const char *layer_name,
+			    const char *group_name,
+			    const char *prefix_filter,
 			    BuxtonCallback callback,
 			    void *data,
 			    bool sync)
@@ -383,6 +385,8 @@ int buxton_client_list_keys(BuxtonClient client,
 	bool r;
 	int ret = 0;
 	BuxtonString l;
+	BuxtonString g;
+	BuxtonString p;
 
 	if (!layer_name) {
 		return EINVAL;
@@ -390,7 +394,21 @@ int buxton_client_list_keys(BuxtonClient client,
 
 	l = buxton_string_pack((char*)layer_name); /* discarding const is okay */
 
-	r = buxton_wire_list_keys((_BuxtonClient *)client, &l, callback, data);
+	if (group_name) {
+		g = buxton_string_pack((char*)group_name); /* discarding const is okay */
+	} else {
+		g.value = NULL;
+		g.length = 0;
+	}
+
+	if (prefix_filter) {
+		p = buxton_string_pack((char*)prefix_filter); /* discarding const is okay */
+	} else {
+		p.value = NULL;
+		p.length = 0;
+	}
+
+	r = buxton_wire_list_names((_BuxtonClient *)client, &l, &g, &p, callback, data);
 	if (!r) {
 		return -1;
 	}
@@ -771,14 +789,14 @@ uint32_t buxton_response_list_count(BuxtonResponse response)
 	if (type != BUXTON_CONTROL_LIST) {
 		return 0;
 	}
-	return r->data->len;
+	return r->data->len - 1;
 }
 
 char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
 {
 	_BuxtonResponse *r = (_BuxtonResponse *)response;
 	BuxtonControlMessage type;
-	BuxtonData *d = NULL;
+	BuxtonData *d;
 
 	if (!response) {
 		return NULL;
@@ -788,10 +806,10 @@ char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
 	if (type != BUXTON_CONTROL_LIST) {
 		return NULL;
 	}
-	if (index >= r->data->len) {
+	if (index + 1 >= r->data->len) {
 		return NULL;
 	}
-	d = buxton_array_get(r->data, index);
+	d = buxton_array_get(r->data, index + 1);
 	if (d == NULL) {
 		return NULL;
 	}

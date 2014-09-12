@@ -114,14 +114,16 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		}
 		break;
 	case BUXTON_CONTROL_LIST:
-		return false;
-		if (count != 1) {
+		if (count != 3) {
 			return false;
 		}
-		if (list[0].type != BUXTON_TYPE_STRING) {
+		if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+		    list[2].type != BUXTON_TYPE_STRING) {
 			return false;
 		}
-		*value = &list[0];
+		key->layer = list[0].store.d_string;
+		key->group = list[1].store.d_string;
+		key->name = list[2].store.d_string;
 		break;
 	case BUXTON_CONTROL_UNSET:
 		if (count != 4) {
@@ -231,8 +233,7 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 		unset_value(self, client, &key, &response);
 		break;
 	case BUXTON_CONTROL_LIST:
-		key_list = list_keys(self, client, &value->store.d_string,
-				     &response);
+		key_list = list_names(self, client, &key, &response);
 		break;
 	case BUXTON_CONTROL_NOTIFY:
 		register_notification(self, client, &key, msgid, &response);
@@ -718,17 +719,17 @@ end:
 	return data;
 }
 
-BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
-		       BuxtonString *layer, int32_t *status)
+BuxtonArray *list_names(BuxtonDaemon *self,  client_list_item *client,
+			_BuxtonKey *key, int32_t *status)
 {
 	BuxtonArray *ret_list = NULL;
 	assert(self);
 	assert(client);
-	assert(layer);
 	assert(status);
 
 	*status = -1;
-	if (buxton_direct_list_keys(&self->buxton, layer, &ret_list)) {
+	if (buxton_direct_list_names(&self->buxton, &key->layer, &key->group,
+	    &key->name, &ret_list)) {
 		*status = 0;
 	}
 	return ret_list;

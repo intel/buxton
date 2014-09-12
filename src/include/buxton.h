@@ -213,16 +213,24 @@ _bx_export_ int buxton_get_value(BuxtonClient client,
 	__attribute__((warn_unused_result));
 
 /**
- * List all keys within a given layer in Buxon
+ * List the keys or the groups within a given layer in Buxon.
+ * For listing groups, the group must be put to NULL.
+ * Otherwise, if the group name is given, lists the keys of that group.
+ * If a prefix is given, the returned list will only contain names
+ * having the given prefix.
  * @param client An open client connection
- * @param layer_name The layer to query
+ * @param layer_name The layer of the query
+ * @param group_name The group of the query or NUUL
+ * @param prefix_filter A filtering prefix that can be NULL
  * @param callback A callback function to handle daemon reply
  * @param data User data to be used with callback function
  * @param sync Indicator for running a synchronous request
  * @return An boolean value, indicating success of the operation
  */
-_bx_export_ int buxton_client_list_keys(BuxtonClient client,
+_bx_export_ int buxton_list_names(BuxtonClient client,
 					const char *layer_name,
+					const char *group_name,
+					const char *prefix_filter,
 					BuxtonCallback callback,
 					void *data,
 					bool sync)
@@ -353,8 +361,9 @@ _bx_export_ int32_t buxton_response_status(BuxtonResponse response)
 /**
  * Get the request's key for a buxton response
  * The returned key MUST be deleted using buxton_key_free.
+ * Applicable if buxton_response_type(response) != BUXTON_CONTROL_LIST
  * @param response a BuxtonResponse
- * @return BuxtonKey of the request from the response
+ * @return BuxtonKey of the request from the response or NULL if not applicable
  */
 _bx_export_ BuxtonKey buxton_response_key(BuxtonResponse response)
 	__attribute__((warn_unused_result));
@@ -362,6 +371,8 @@ _bx_export_ BuxtonKey buxton_response_key(BuxtonResponse response)
 /**
  * Get the value for a buxton response
  * The returned value MUST be deleted using free.
+ * Applicable if buxton_response_type(response) == BUXTON_CONTROL_GET
+ * or buxton_response_type(response) == BUXTON_CONTROL_CHANGED
  * @param response a BuxtonResponse
  * @return pointer to data from the response or NULL if not applicable
  */
@@ -376,6 +387,8 @@ _bx_export_ void *buxton_response_value(BuxtonResponse response)
  * In other words:
  *  buxton_key_get_type(buxton_response_key(r)) == buxton_response_value_type(r)
  *  || buxton_key_get_type(buxton_response_key(r)) == BUXTON_TYPE_UNSET
+ * Applicable if buxton_response_type(response) == BUXTON_CONTROL_GET
+ * or buxton_response_type(response) == BUXTON_CONTROL_CHANGED
  * @param response a BuxtonResponse
  * @return The type of the value or BUXTON_TYPE_UNSET if not applicable
  */
@@ -384,17 +397,20 @@ _bx_export_ BuxtonDataType buxton_response_value_type(BuxtonResponse response)
 
 /**
  * Get the count of value for a buxton response of get list of keys
+ * Applicable if buxton_response_type(response) == BUXTON_CONTROL_LIST
  * @param response a BuxtonResponse
- * @return the count of items
+ * @return the count of items or zero if not applicable
  */
 _bx_export_ uint32_t buxton_response_list_count(BuxtonResponse response)
 	__attribute__((warn_unused_result));
 
 /**
  * Get the count of value for a buxton response of get list of keys
+ * Applicable if buxton_response_type(response) == BUXTON_CONTROL_LIST
+ * The returned value MUST be deleted using free.
  * @param response a BuxtonResponse
  * @param index the index of the queried item
- * @return the name of the key or NULL
+ * @return the name of the key or NULL if not applicable or bad index
  */
 _bx_export_ char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
 	__attribute__((warn_unused_result));
