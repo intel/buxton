@@ -72,3 +72,9 @@ Difficulty: Simple
 Time to complete: 1
 Target: ??
 Status:
+
+Description: Replace existing Hashmap implementation with cleaner version
+Difficulty: Simple
+Time to complete: 3
+Target: ??
+Status:
