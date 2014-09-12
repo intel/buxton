@@ -43,7 +43,7 @@
 
 static Hashmap *key_hash = NULL;
 
-int buxton_set_conf_file(char *path)
+int buxton_set_conf_file(const char *path)
 {
 	int r;
 	struct stat st;
@@ -274,7 +274,7 @@ int buxton_set_value(BuxtonClient client,
 
 int buxton_set_label(BuxtonClient client,
 		     BuxtonKey key,
-		     char *value,
+		     const char *value,
 		     BuxtonCallback callback,
 		     void *data,
 		     bool sync)
@@ -289,7 +289,7 @@ int buxton_set_label(BuxtonClient client,
 	}
 
 	k->type = STRING;
-	v = buxton_string_pack(value);
+	v = buxton_string_pack((char*)value); /* discarding const is okay */
 
 	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
 				  data);
@@ -376,7 +376,7 @@ int buxton_remove_group(BuxtonClient client,
 }
 
 int buxton_client_list_keys(BuxtonClient client,
-			    char *layer_name,
+			    const char *layer_name,
 			    BuxtonCallback callback,
 			    void *data,
 			    bool sync)
@@ -389,7 +389,7 @@ int buxton_client_list_keys(BuxtonClient client,
 		return EINVAL;
 	}
 
-	l = buxton_string_pack(layer_name);
+	l = buxton_string_pack((char*)layer_name); /* discarding const is okay */
 
 	r = buxton_wire_list_keys((_BuxtonClient *)client, &l, callback, data);
 	if (!r) {
@@ -440,8 +440,8 @@ int buxton_unset_value(BuxtonClient client,
 	return ret;
 }
 
-BuxtonKey buxton_key_create(char *group, char *name, char *layer,
-			  BuxtonDataType type)
+BuxtonKey buxton_key_create(const char *group, const char *name, 
+			  const char *layer, BuxtonDataType type)
 {
 	_BuxtonKey *key = NULL;
 	char *g = NULL;
@@ -727,6 +727,50 @@ void *buxton_response_value(BuxtonResponse response)
 out:
 	return p;
 }
+
+uint32_t buxton_response_list_count(BuxtonResponse response)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+
+	if (!response) {
+		return 0;
+	}
+
+	type = buxton_response_type(response);
+	if (type != BUXTON_CONTROL_LIST) {
+		return 0;
+	}
+	return r->data->len;
+}
+
+char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+	BuxtonData *d = NULL;
+
+	if (!response) {
+		return NULL;
+	}
+
+	type = buxton_response_type(response);
+	if (type != BUXTON_CONTROL_LIST) {
+		return NULL;
+	}
+	if (index >= r->data->len) {
+		return NULL;
+	}
+	d = buxton_array_get(r->data, index);
+	if (d == NULL) {
+		return NULL;
+	}
+	if (d->type != STRING) {
+		return NULL;		
+	}
+	return strdup(d->store.d_string.value);
+}
+
 
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
