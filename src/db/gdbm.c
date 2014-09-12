@@ -480,15 +480,7 @@ static bool list_names(BuxtonLayer *layer,
 
 end:
 	if (!ret && k_list) {
-		for (uint16_t i = 0; i < k_list->len; i++) {
-			data = buxton_array_get(k_list, i);
-			if (!data) {
-				break;
-			}
-			free(data->store.d_string.value);
-			free(data);
-		}
-		buxton_array_free(&k_list, NULL);
+		buxton_array_free(&k_list, (buxton_free_func)data_free);
 	}
 	return ret;
 }
