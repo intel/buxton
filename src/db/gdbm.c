@@ -242,10 +242,8 @@ end:
 	return ret;
 }
 
-static int unset_value(BuxtonLayer *layer,
-			_BuxtonKey *key,
-			__attribute__((unused)) BuxtonData *data,
-			__attribute__((unused)) BuxtonString *label)
+static int unset_key(BuxtonLayer *layer,
+			_BuxtonKey *key)
 {
 	GDBM_FILE db;
 	datum key_data;
@@ -253,6 +251,7 @@ static int unset_value(BuxtonLayer *layer,
 
 	assert(layer);
 	assert(key);
+	assert(key->name.value);
 
 	make_key_data(key, &key_data);
 
@@ -278,6 +277,112 @@ end:
 	free(key_data.dptr);
 
 	return ret;
+}
+
+static int unset_group(BuxtonLayer *layer,
+			_BuxtonKey *key)
+{
+	GDBM_FILE db;
+	datum curkey;
+	datum nextkey;
+	int ret;
+	int retdbm;
+	size_t allocated;
+	size_t count;
+	size_t index;
+	datum *list;
+	datum *relist;
+	
+	assert(layer);
+	assert(key);
+	assert(!key->name.value);
+
+	count = 0;
+	allocated = 0;
+	list = NULL;
+
+	db = db_for_resource(layer);
+	if (!db) {
+		ret = EROFS;
+		goto end;
+	}
+
+	/* Iterate through the keys and record matching keys in k_list */
+	curkey = gdbm_firstkey(db);
+	while (curkey.dptr) {
+
+		/* get the next key */
+		nextkey = gdbm_nextkey(db, curkey);
+
+		/* test if the key matches the group */
+		if (strcmp((char*)curkey.dptr, key->group.value)) {
+			/* no, free the key */
+			free(curkey.dptr);
+		} else {
+			/* yes it matches */
+			if (count == allocated) {
+				/* allocate is needed */
+				allocated = allocated ? 2 * allocated : 32;
+				assert(allocated > count);
+				relist = realloc(list,
+						allocated * sizeof * list);
+				if (relist == NULL) {
+					ret = ENOMEM;
+					free(curkey.dptr);
+					free(nextkey.dptr);
+					goto end;
+				}
+				list = relist;
+			}
+			list[count++] = curkey;
+		}
+
+		/* Iterate the next key */
+		curkey = nextkey;
+	}
+
+	/* check if a key matched */
+	if (!count) {
+		ret = ENOENT;
+		goto end;
+	}
+
+	/* delete all keys that matched */
+	ret = 0;
+	index = count;
+	do {
+		retdbm = gdbm_delete(db, list[--index]);
+		if (retdbm ) {
+			if (gdbm_errno == GDBM_READER_CANT_DELETE) {
+				ret = EROFS;
+			} else {
+				abort();
+			}
+		}
+	} while (index);
+
+end:
+	index = count;
+	while (index) {
+		free(list[--index].dptr);
+	}
+	free(list);
+	return ret;
+}
+
+static int unset_value(BuxtonLayer *layer,
+			_BuxtonKey *key,
+			__attribute__((unused)) BuxtonData *data,
+			__attribute__((unused)) BuxtonString *label)
+{
+	assert(layer);
+	assert(key);
+
+	if (key->name.value) {
+		return unset_key(layer, key);
+	} else {
+		return unset_group(layer, key);
+	}
 }
 
 static bool list_names(BuxtonLayer *layer,

@@ -159,7 +159,7 @@ START_TEST(list_check)
 			fail_if(buxton_list_append(&list, data) == false,
 				"Failed to append to BuxtonList");
 		} else {
-			int j = asprintf(&tmp, "i #%d", i);
+			asprintf(&tmp, "i #%d", i);
 			fail_if(buxton_list_prepend(&list, tmp) == false,
 				"Failed to prepend to BuxtonList");
 		}
