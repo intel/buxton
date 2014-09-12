@@ -76,7 +76,7 @@ int32_t buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 			free(data_label->value);
 			data_label->value = NULL;
 			data_label->length = 0;
-			if (d.type == STRING) {
+			if (d.type == BUXTON_TYPE_STRING) {
 				free(d.store.d_string.value);
 			}
 
@@ -200,6 +200,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
 			     BuxtonData *data,
 			     BuxtonString *label)
 {
+	BuxtonDataType memo_type;
 	BuxtonBackend *backend;
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
@@ -259,7 +260,10 @@ bool buxton_direct_set_value(BuxtonControl *control,
 			goto fail;
 		}
 
+		memo_type = key->type;
+		key->type = BUXTON_TYPE_UNSET;
 		ret = buxton_direct_get_value_for_layer(control, key, d, data_label, NULL);
+		key->type = memo_type;
 		if (ret == -ENOENT || ret == EINVAL) {
 			goto fail;
 		}
@@ -272,7 +276,10 @@ bool buxton_direct_set_value(BuxtonControl *control,
 			l = label;
 		}
 	} else {
+		memo_type = key->type;
+		key->type = BUXTON_TYPE_UNSET;
 		ret = buxton_direct_get_value_for_layer(control, key, d, data_label, NULL);
+		key->type = memo_type;
 		if (ret == -ENOENT || ret == EINVAL) {
 			goto fail;
 		} else if (!ret) {
@@ -428,7 +435,7 @@ bool buxton_direct_create_group(BuxtonControl *control,
 	assert(backend);
 
 	/* Since groups don't have a value, we create a dummy value */
-	data->type = STRING;
+	data->type = BUXTON_TYPE_STRING;
 	s = buxton_string_pack("BUXTON_GROUP_VALUE");
 	if (!buxton_string_copy(&s, &data->store.d_string)) {
 		abort();
@@ -531,17 +538,19 @@ fail:
 	return r;
 }
 
-bool buxton_direct_list_keys(BuxtonControl *control,
+bool buxton_direct_list_names(BuxtonControl *control,
 			     BuxtonString *layer_name,
+			     BuxtonString *group,
+			     BuxtonString *prefix,
 			     BuxtonArray **list)
 {
-	assert(control);
-	assert(layer_name);
-
 	/* Handle direct manipulation */
 	BuxtonBackend *backend = NULL;
 	BuxtonLayer *layer;
 	BuxtonConfig *config;
+
+	assert(control);
+	assert(layer_name && layer_name->value);
 
 	config = &control->config;
 	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
@@ -551,7 +560,7 @@ bool buxton_direct_list_keys(BuxtonControl *control,
 	assert(backend);
 
 	layer->uid = control->client.uid;
-	return backend->list_keys(layer, list);
+	return backend->list_names(layer, group, prefix, list);
 }
 
 bool buxton_direct_unset_value(BuxtonControl *control,

@@ -84,22 +84,22 @@ int main(void)
 		return -1;
 	}
 
-	key1 = buxton_key_create("hello", "test1", NULL, INT32);
+	key1 = buxton_key_create("hello", "test1", NULL, BUXTON_TYPE_INT32);
 	if (!key1) {
 		return -1;
 	}
 
-	key2 = buxton_key_create("hello", "test2", NULL, INT32);
+	key2 = buxton_key_create("hello", "test2", NULL, BUXTON_TYPE_INT32);
 	if (!key2) {
 		return -1;
 	}
 
-	key3 = buxton_key_create("hello", "test3", NULL, INT32);
+	key3 = buxton_key_create("hello", "test3", NULL, BUXTON_TYPE_INT32);
 	if (!key3) {
 		return -1;
 	}
 
-	key4 = buxton_key_create("hello", "test1", "user", INT32);
+	key4 = buxton_key_create("hello", "test1", "user", BUXTON_TYPE_INT32);
 	if (!key4) {
 		return -1;
 	}

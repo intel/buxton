@@ -204,7 +204,7 @@ static gboolean buxton_init(BuxtonTest *self)
 		buxton_update, self->client);
 
 	/* Register primary key */
-	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
+	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, BUXTON_TYPE_STRING);
 	if (buxton_register_notification(self->client, key,
 					 buxton_callback, self, false)) {
 		report_error(self, "Unable to register for notifications");
@@ -224,7 +224,7 @@ static void update_key(GtkWidget *widget, gpointer userdata)
 		return;
 	}
 
-	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
+	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, BUXTON_TYPE_STRING);
 
         self->setting = TRUE;
 	if (buxton_set_value(self->client, key, (void*)value,
@@ -238,7 +238,7 @@ static void update_value(BuxtonTest *self)
 {
 	BuxtonKey key;
 
-	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, STRING);
+	key = buxton_key_create(GROUP, PRIMARY_KEY, LAYER, BUXTON_TYPE_STRING);
 
 	if (buxton_get_value(self->client, key,
 			     buxton_callback, self, false)) {
@@ -315,7 +315,7 @@ static void buxton_callback(BuxtonResponse response, gpointer userdata)
 	value = buxton_response_value(response);
 
 	/* Handle PRIMARY_KEY (string) */
-	if (g_str_equal(key_name, PRIMARY_KEY) && buxton_key_get_type(key) == STRING) {
+	if (g_str_equal(key_name, PRIMARY_KEY) && buxton_key_get_type(key) == BUXTON_TYPE_STRING) {
 		gchar *lab;
 		/* Key unset */
 		if (!value) {
