@@ -66,49 +66,49 @@ void _bs_print(vstatus *data, BuxtonResponse response)
 	switch (data->type) {
 		case STRING:
 		{
-			char *val = data->val.sval;
+			_bxt_used_ char *val = data->val.sval;
 			buxton_debug("Success: value has been set: %s(string). ", val);
 			break;
 		}
 		case INT32:
 		{
-			int32_t val = data->val.i32val;
+			_bxt_used_ int32_t val = data->val.i32val;
 			buxton_debug("Success: value has been set: %d(int32_t). ", val);
 			break;
 		}
 		case UINT32:
 		{
-			uint32_t val = data->val.ui32val;
+			_bxt_used_ uint32_t val = data->val.ui32val;
 			buxton_debug("Success: value has been set: %d(uint32_t). ", val);
 			break;
 		}
 		case INT64:
 		{
-			int64_t val = data->val.i64val;
+			_bxt_used_ int64_t val = data->val.i64val;
 			buxton_debug("Success: value has been set: ""%"PRId64"(int64_t). ", val);
 			break;
 		}
 		case UINT64:
 		{
-			uint64_t val = data->val.ui64val;
+			_bxt_used_ uint64_t val = data->val.ui64val;
 			buxton_debug("Success: value has been set: ""%"PRIu64"(uint64_t). ", val);
 			break;
 		}
 		case FLOAT:
 		{
-			float val = data->val.fval;
+			_bxt_used_ float val = data->val.fval;
 			buxton_debug("Success: value has been set: %f(float). ", val);
 			break;
 		}
 		case DOUBLE:
 		{
-			double val = data->val.dval;
+			_bxt_used_ double val = data->val.dval;
 			buxton_debug("Success: value has been set: %e(double). ", val);
 			break;
 		}
 		case BOOLEAN:
 		{
-			bool val = data->val.bval;
+			_bxt_used_ bool val = data->val.bval;
 			buxton_debug("Success: value has been set: %i(bool). ", val);
 			break;
 		}
@@ -140,7 +140,7 @@ void _bs_cb(BuxtonResponse response, void *data){
 /* buxton_get_value callback for all buxton data types */
 void _bg_cb(BuxtonResponse response, void *data)
 {
-	char *type;
+	_bxt_used_ char *type;
 	vstatus *ret = (vstatus *)data;
 	ret->status = 0;
 	if (buxton_response_status(response)) {

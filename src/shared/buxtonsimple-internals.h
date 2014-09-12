@@ -32,6 +32,13 @@
 
 #pragma once
 
+/* Compiler will think that some variables are unused due to use of macros
+ * to print them out, i.e. via buxton_debug. As a more logical approach to
+ * defining them as as __attribute__ ((unused)) we define a more intuitive
+ * label for them.
+ */
+#define _bxt_used_ __attribute__ ((unused))
+
 /**
  * @struct vstatus
  * @brief Structure with possible data types for key values and status for buxton_response_status
