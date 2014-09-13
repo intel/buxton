@@ -54,7 +54,7 @@ int main(void)
 		return -1;
 	}
 
-	key = buxton_key_create("hello", NULL, "user", STRING);
+	key = buxton_key_create("hello", NULL, "user", BUXTON_TYPE_STRING);
 	if (!key) {
 		return -1;
 	}

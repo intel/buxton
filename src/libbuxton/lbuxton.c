@@ -43,7 +43,7 @@
 
 static Hashmap *key_hash = NULL;
 
-int buxton_set_conf_file(char *path)
+int buxton_set_conf_file(const char *path)
 {
 	int r;
 	struct stat st;
@@ -151,7 +151,7 @@ int buxton_get_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !(k->group.value) || !(k->name.value) ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return EINVAL;
 	}
 
@@ -183,7 +183,7 @@ int buxton_register_notification(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return EINVAL;
 	}
 
@@ -216,7 +216,7 @@ int buxton_unregister_notification(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return EINVAL;
 	}
 
@@ -274,7 +274,7 @@ int buxton_set_value(BuxtonClient client,
 
 int buxton_set_label(BuxtonClient client,
 		     BuxtonKey key,
-		     char *value,
+		     const char *value,
 		     BuxtonCallback callback,
 		     void *data,
 		     bool sync)
@@ -288,8 +288,8 @@ int buxton_set_label(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = STRING;
-	v = buxton_string_pack(value);
+	k->type = BUXTON_TYPE_STRING;
+	v = buxton_string_pack((char*)value); /* discarding const is okay */
 
 	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
 				  data);
@@ -320,11 +320,10 @@ int buxton_create_group(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	/* We require the key name to be NULL, since it is not used for groups */
-	if (!k || !k->group.value || k->name.value || !k->layer.value) {
+	if (!k || !k->group.value || k->name.value || !k->layer.value || k->type != BUXTON_TYPE_STRING) {
 		return EINVAL;
 	}
 
-	k->type = STRING;
 	r = buxton_wire_create_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
@@ -357,7 +356,7 @@ int buxton_remove_group(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = STRING;
+	k->type = BUXTON_TYPE_STRING;
 	r = buxton_wire_remove_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
@@ -375,8 +374,10 @@ int buxton_remove_group(BuxtonClient client,
 	return ret;
 }
 
-int buxton_client_list_keys(BuxtonClient client,
-			    char *layer_name,
+int buxton_list_names(BuxtonClient client,
+			    const char *layer_name,
+			    const char *group_name,
+			    const char *prefix_filter,
 			    BuxtonCallback callback,
 			    void *data,
 			    bool sync)
@@ -384,14 +385,30 @@ int buxton_client_list_keys(BuxtonClient client,
 	bool r;
 	int ret = 0;
 	BuxtonString l;
+	BuxtonString g;
+	BuxtonString p;
 
 	if (!layer_name) {
 		return EINVAL;
 	}
 
-	l = buxton_string_pack(layer_name);
+	l = buxton_string_pack((char*)layer_name); /* discarding const is okay */
 
-	r = buxton_wire_list_keys((_BuxtonClient *)client, &l, callback, data);
+	if (group_name) {
+		g = buxton_string_pack((char*)group_name); /* discarding const is okay */
+	} else {
+		g.value = NULL;
+		g.length = 0;
+	}
+
+	if (prefix_filter) {
+		p = buxton_string_pack((char*)prefix_filter); /* discarding const is okay */
+	} else {
+		p.value = NULL;
+		p.length = 0;
+	}
+
+	r = buxton_wire_list_names((_BuxtonClient *)client, &l, &g, &p, callback, data);
 	if (!r) {
 		return -1;
 	}
@@ -419,7 +436,7 @@ int buxton_unset_value(BuxtonClient client,
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
 	if (!k || !k->group.value || !k->name.value || !k->layer.value ||
-	    k->type <= BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
 		return EINVAL;
 	}
 
@@ -440,8 +457,8 @@ int buxton_unset_value(BuxtonClient client,
 	return ret;
 }
 
-BuxtonKey buxton_key_create(char *group, char *name, char *layer,
-			  BuxtonDataType type)
+BuxtonKey buxton_key_create(const char *group, const char *name, 
+			  const char *layer, BuxtonDataType type)
 {
 	_BuxtonKey *key = NULL;
 	char *g = NULL;
@@ -452,7 +469,10 @@ BuxtonKey buxton_key_create(char *group, char *name, char *layer,
 		goto fail;
 	}
 
-	if (type <= BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX) {
+	if (type < BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX) {
+		goto fail;
+	}
+	if (!name && type != BUXTON_TYPE_STRING) {
 		goto fail;
 	}
 
@@ -669,51 +689,51 @@ void *buxton_response_value(BuxtonResponse response)
 	}
 
 	switch (d->type) {
-	case STRING:
+	case BUXTON_TYPE_STRING:
 		return strdup(d->store.d_string.value);
-	case INT32:
+	case BUXTON_TYPE_INT32:
 		p = malloc0(sizeof(int32_t));
 		if (!p) {
 			goto out;
 		}
 		*(int32_t *)p = (int32_t)d->store.d_int32;
 		break;
-	case UINT32:
+	case BUXTON_TYPE_UINT32:
 		p = malloc0(sizeof(uint32_t));
 		if (!p) {
 			goto out;
 		}
 		*(uint32_t *)p = (uint32_t)d->store.d_uint32;
 		break;
-	case INT64:
+	case BUXTON_TYPE_INT64:
 		p = malloc0(sizeof(int64_t));
 		if (!p) {
 			goto out;
 		}
 		*(int64_t *)p = (int64_t)d->store.d_int64;
 		break;
-	case UINT64:
+	case BUXTON_TYPE_UINT64:
 		p = malloc0(sizeof(uint64_t));
 		if (!p) {
 			goto out;
 		}
 		*(uint64_t *)p = (uint64_t)d->store.d_uint64;
 		break;
-	case FLOAT:
+	case BUXTON_TYPE_FLOAT:
 		p = malloc0(sizeof(float));
 		if (!p) {
 			goto out;
 		}
 		*(float *)p = (float)d->store.d_float;
 		break;
-	case DOUBLE:
+	case BUXTON_TYPE_DOUBLE:
 		p = malloc0(sizeof(double));
 		if (!p) {
 			goto out;
 		}
 		*(double *)p = (double)d->store.d_double;
 		break;
-	case BOOLEAN:
+	case BUXTON_TYPE_BOOLEAN:
 		p = malloc0(sizeof(bool));
 		if (!p) {
 			goto out;
@@ -727,6 +747,78 @@ void *buxton_response_value(BuxtonResponse response)
 out:
 	return p;
 }
+
+BuxtonDataType buxton_response_value_type(BuxtonResponse response)
+{
+	BuxtonData *d = NULL;
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+
+	if (!response) {
+		return BUXTON_TYPE_UNSET;
+	}
+
+	type = buxton_response_type(response);
+	if (type == BUXTON_CONTROL_GET) {
+		d = buxton_array_get(r->data, 1);
+	} else if (type == BUXTON_CONTROL_CHANGED) {
+		if (r->data->len) {
+			d = buxton_array_get(r->data, 0);
+		}
+	} else {
+		return BUXTON_TYPE_UNSET;
+	}
+
+	if (!d) {
+		return BUXTON_TYPE_UNSET;
+	}
+
+	return d->type;
+}
+
+uint32_t buxton_response_list_count(BuxtonResponse response)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+
+	if (!response) {
+		return 0;
+	}
+
+	type = buxton_response_type(response);
+	if (type != BUXTON_CONTROL_LIST) {
+		return 0;
+	}
+	return r->data->len - 1;
+}
+
+char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+	BuxtonData *d;
+
+	if (!response) {
+		return NULL;
+	}
+
+	type = buxton_response_type(response);
+	if (type != BUXTON_CONTROL_LIST) {
+		return NULL;
+	}
+	if (index + 1 >= r->data->len) {
+		return NULL;
+	}
+	d = buxton_array_get(r->data, index + 1);
+	if (d == NULL) {
+		return NULL;
+	}
+	if (d->type != BUXTON_TYPE_STRING) {
+		return NULL;		
+	}
+	return strdup(d->store.d_string.value);
+}
+
 
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

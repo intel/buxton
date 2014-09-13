@@ -159,7 +159,7 @@ START_TEST(list_check)
 			fail_if(buxton_list_append(&list, data) == false,
 				"Failed to append to BuxtonList");
 		} else {
-			asprintf(&tmp, "i #%d", i);
+			int j = asprintf(&tmp, "i #%d", i);
 			fail_if(buxton_list_prepend(&list, tmp) == false,
 				"Failed to prepend to BuxtonList");
 		}
@@ -257,7 +257,7 @@ START_TEST(buxton_data_copy_check)
 {
 	BuxtonData original, copy;
 
-	original.type = STRING;
+	original.type = BUXTON_TYPE_STRING;
 	original.store.d_string = buxton_string_pack("test-data-copy");
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -268,7 +268,7 @@ START_TEST(buxton_data_copy_check)
 	if (copy.store.d_string.value)
 		free(copy.store.d_string.value);
 
-	original.type = INT32;
+	original.type = BUXTON_TYPE_INT32;
 	original.store.d_int32 = INT_MAX;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -276,7 +276,7 @@ START_TEST(buxton_data_copy_check)
 	fail_if(original.store.d_int32 != copy.store.d_int32,
 		"Failed to copy int32 data");
 
-	original.type = UINT32;
+	original.type = BUXTON_TYPE_UINT32;
 	original.store.d_uint32 = UINT_MAX;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -284,7 +284,7 @@ START_TEST(buxton_data_copy_check)
 	fail_if(original.store.d_uint32 != copy.store.d_uint32,
 		"Failed to copy int32 data");
 
-	original.type = INT64;
+	original.type = BUXTON_TYPE_INT64;
 	original.store.d_int64 = LLONG_MAX;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -292,7 +292,7 @@ START_TEST(buxton_data_copy_check)
 	fail_if(original.store.d_int64 != copy.store.d_int64,
 		"Failed to copy int64 data");
 
-	original.type = UINT64;
+	original.type = BUXTON_TYPE_UINT64;
 	original.store.d_uint64 = ULLONG_MAX;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -300,7 +300,7 @@ START_TEST(buxton_data_copy_check)
 	fail_if(original.store.d_uint64 != copy.store.d_uint64,
 		"Failed to copy uint64 data");
 
-	original.type = FLOAT;
+	original.type = BUXTON_TYPE_FLOAT;
 	original.store.d_float = 3.14F;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -308,7 +308,7 @@ START_TEST(buxton_data_copy_check)
 	fail_if(original.store.d_float != copy.store.d_float,
 		"Failed to copy float data");
 
-	original.type = DOUBLE;
+	original.type = BUXTON_TYPE_DOUBLE;
 	original.store.d_double = 3.1415;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -316,7 +316,7 @@ START_TEST(buxton_data_copy_check)
 	fail_if(original.store.d_double != copy.store.d_double,
 		"Failed to copy double data");
 
-	original.type = BOOLEAN;
+	original.type = BUXTON_TYPE_BOOLEAN;
 	original.store.d_boolean = true;
 	buxton_data_copy(&original, &copy);
 	fail_if(copy.type != original.type,
@@ -334,37 +334,37 @@ START_TEST(buxton_type_as_string_check)
 {
 	BuxtonDataType type;
 
-	type = STRING;
+	type = BUXTON_TYPE_STRING;
 	fail_if(strcmp(buxton_type_as_string(type), "string") != 0,
-		"Failed to get string of STRING type");
+		"Failed to get string of BUXTON_TYPE_STRING type");
 
-	type = INT32;
+	type = BUXTON_TYPE_INT32;
 	fail_if(strcmp(buxton_type_as_string(type), "int32_t") != 0,
-		"Failed to get string of INT32 type");
+		"Failed to get string of BUXTON_TYPE_INT32 type");
 
-	type = UINT32;
+	type = BUXTON_TYPE_UINT32;
 	fail_if(strcmp(buxton_type_as_string(type), "uint32_t") != 0,
-		"Failed to get string of UINT32 type");
+		"Failed to get string of BUXTON_TYPE_UINT32 type");
 
-	type = INT64;
+	type = BUXTON_TYPE_INT64;
 	fail_if(strcmp(buxton_type_as_string(type), "int64_t") != 0,
-		"Failed to get string of INT64 type");
+		"Failed to get string of BUXTON_TYPE_INT64 type");
 
-	type = UINT64;
+	type = BUXTON_TYPE_UINT64;
 	fail_if(strcmp(buxton_type_as_string(type), "uint64_t") != 0,
-		"Failed to get string of UINT64 type");
+		"Failed to get string of BUXTON_TYPE_UINT64 type");
 
-	type = FLOAT;
+	type = BUXTON_TYPE_FLOAT;
 	fail_if(strcmp(buxton_type_as_string(type), "float") != 0,
-		"Failed to get string of FLOAT type");
+		"Failed to get string of BUXTON_TYPE_FLOAT type");
 
-	type = DOUBLE;
+	type = BUXTON_TYPE_DOUBLE;
 	fail_if(strcmp(buxton_type_as_string(type), "double") != 0,
-		"Failed to get string of DOUBLE type");
+		"Failed to get string of BUXTON_TYPE_DOUBLE type");
 
-	type = BOOLEAN;
+	type = BUXTON_TYPE_BOOLEAN;
 	fail_if(strcmp(buxton_type_as_string(type), "boolean") != 0,
-		"Failed to get string of BOOLEAN type");
+		"Failed to get string of BUXTON_TYPE_BOOLEAN type");
 }
 END_TEST
 
@@ -390,7 +390,7 @@ START_TEST(buxton_db_serialize_check)
 	uint8_t *packed = NULL;
 	BuxtonString lsource, ltarget;
 
-	dsource.type = STRING;
+	dsource.type = BUXTON_TYPE_STRING;
 	lsource = buxton_string_pack("label");
 	dsource.store.d_string = buxton_string_pack("test-string");
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
@@ -407,7 +407,7 @@ START_TEST(buxton_db_serialize_check)
 	if (dtarget.store.d_string.value)
 		free(dtarget.store.d_string.value);
 
-	dsource.type = INT32;
+	dsource.type = BUXTON_TYPE_INT32;
 	dsource.store.d_int32 = INT_MAX;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize int32 data");
@@ -421,7 +421,7 @@ START_TEST(buxton_db_serialize_check)
 	free(ltarget.value);
 	free(packed);
 
-	dsource.type = UINT32;
+	dsource.type = BUXTON_TYPE_UINT32;
 	dsource.store.d_uint32 = UINT_MAX;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize uint32 data");
@@ -435,7 +435,7 @@ START_TEST(buxton_db_serialize_check)
 	free(ltarget.value);
 	free(packed);
 
-	dsource.type = INT64;
+	dsource.type = BUXTON_TYPE_INT64;
 	dsource.store.d_int64 = LONG_MAX;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize int64 data");
@@ -449,7 +449,7 @@ START_TEST(buxton_db_serialize_check)
 	free(ltarget.value);
 	free(packed);
 
-	dsource.type = UINT64;
+	dsource.type = BUXTON_TYPE_UINT64;
 	dsource.store.d_uint64 = ULLONG_MAX;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize uint64 data");
@@ -463,7 +463,7 @@ START_TEST(buxton_db_serialize_check)
 	free(ltarget.value);
 	free(packed);
 
-	dsource.type = FLOAT;
+	dsource.type = BUXTON_TYPE_FLOAT;
 	dsource.store.d_float = 3.14F;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize float data");
@@ -477,7 +477,7 @@ START_TEST(buxton_db_serialize_check)
 	free(ltarget.value);
 	free(packed);
 
-	dsource.type = DOUBLE;
+	dsource.type = BUXTON_TYPE_DOUBLE;
 	dsource.store.d_double = 3.1415;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize double data");
@@ -491,7 +491,7 @@ START_TEST(buxton_db_serialize_check)
 	free(ltarget.value);
 	free(packed);
 
-	dsource.type = BOOLEAN;
+	dsource.type = BUXTON_TYPE_BOOLEAN;
 	dsource.store.d_boolean = true;
 	fail_if(buxton_serialize(&dsource, &lsource, &packed) == false,
 		"Failed to serialize boolean data");
@@ -523,7 +523,7 @@ START_TEST(buxton_message_serialize_check)
 
 	list = buxton_array_new();
 	fail_if(!list, "Failed to allocate list");
-	dsource1.type = STRING;
+	dsource1.type = BUXTON_TYPE_STRING;
 	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
 	msource = 0;
@@ -549,7 +549,7 @@ START_TEST(buxton_message_serialize_check)
 		free(dtarget);
 	}
 
-	dsource1.type = INT32;
+	dsource1.type = BUXTON_TYPE_INT32;
 	dsource1.store.d_int32 = INT_MAX;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
@@ -567,7 +567,7 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource1.type = UINT32;
+	dsource1.type = BUXTON_TYPE_UINT32;
 	dsource1.store.d_uint32 = UINT_MAX;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
@@ -585,7 +585,7 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource1.type = INT64;
+	dsource1.type = BUXTON_TYPE_INT64;
 	dsource1.store.d_int64 = LONG_MAX;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
@@ -603,7 +603,7 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource1.type = UINT64;
+	dsource1.type = BUXTON_TYPE_UINT64;
 	dsource1.store.d_uint64 = ULLONG_MAX;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
@@ -621,7 +621,7 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource1.type = FLOAT;
+	dsource1.type = BUXTON_TYPE_FLOAT;
 	dsource1.store.d_float = 3.14F;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
@@ -639,7 +639,7 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource1.type = DOUBLE;
+	dsource1.type = BUXTON_TYPE_DOUBLE;
 	dsource1.store.d_double = 3.1415;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
@@ -657,7 +657,7 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource1.type = BOOLEAN;
+	dsource1.type = BUXTON_TYPE_BOOLEAN;
 	dsource1.store.d_boolean = true;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
@@ -675,9 +675,9 @@ START_TEST(buxton_message_serialize_check)
 	free(packed);
 	free(dtarget);
 
-	dsource1.type = INT32;
+	dsource1.type = BUXTON_TYPE_INT32;
 	dsource1.store.d_int32 = 1;
-	dsource2.type = INT32;
+	dsource2.type = BUXTON_TYPE_INT32;
 	dsource2.store.d_int32 = 2;
 	csource = BUXTON_CONTROL_STATUS;
 	r = buxton_array_add(list, &dsource2);
@@ -704,7 +704,7 @@ START_TEST(buxton_message_serialize_check)
 	list2 = buxton_array_new();
 	fail_if(!list, "Failed to allocate list");
 	list2->len = 0;
-	dsource1.type = STRING;
+	dsource1.type = BUXTON_TYPE_STRING;
 	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list2);
@@ -717,7 +717,9 @@ START_TEST(buxton_message_serialize_check)
 	list2->len = 0;
 	r = buxton_array_add(list2, &dsource1);
 	fail_if(!r, "Failed to add element to array");
-	list2->len = 2;
+	r = buxton_array_add(list2, &dsource1);
+	fail_if(!r, "Failed to add element to array");
+	list2->data[1] = NULL;
 	ret = buxton_serialize_message(&packed, csource, msource, list2);
 	fail_if(ret != 0, "Serialized with incorrect parameter count");
 	list2->len = 0;
@@ -728,13 +730,13 @@ START_TEST(buxton_message_serialize_check)
 	ret = buxton_serialize_message(&packed, csource, msource, list);
 	fail_if(ret != 0, "Serialized with bad data type");
 
-	dsource1.type = STRING;
+	dsource1.type = BUXTON_TYPE_STRING;
 	dsource1.store.d_string = buxton_string_pack("test-key");
 	csource = -1;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
 	fail_if(ret != 0, "Serialized with bad message type");
 
-	dsource1.type = INT32;
+	dsource1.type = BUXTON_TYPE_INT32;
 	dsource1.store.d_int32 = INT_MAX;
 	csource = BUXTON_CONTROL_GET;
 	ret = buxton_serialize_message(&packed, csource, msource, list);
@@ -807,7 +809,7 @@ START_TEST(buxton_get_message_size_check)
 
 	list = buxton_array_new();
 	fail_if(!list, "Failed to allocate list");
-	dsource.type = STRING;
+	dsource.type = BUXTON_TYPE_STRING;
 	dsource.store.d_string = buxton_string_pack("test-key");
 	csource = BUXTON_CONTROL_GET;
 	r = buxton_array_add(list, &dsource);

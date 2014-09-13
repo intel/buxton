@@ -31,22 +31,6 @@
 
 static Hashmap *_resources = NULL;
 
-static char *key_get_name(BuxtonString *key)
-{
-	char *c;
-
-	c = strchr(key->value, 0);
-	if (!c) {
-		return NULL;
-	}
-	if (c - (key->value + (key->length - 1)) >= 0) {
-		return NULL;
-	}
-	c++;
-
-	return c;
-}
-
 static GDBM_FILE try_open_database(char *path, const int oflag)
 {
 	GDBM_FILE db = gdbm_open(path, 0, oflag, S_IRUSR | S_IWUSR, NULL);
@@ -115,6 +99,35 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 	return db;
 }
 
+static int make_key_data(_BuxtonKey *key, datum *key_data)
+{
+	uint32_t sz;
+	char *ptr;
+
+	/* compute requested size */
+	sz = key->group.length;
+	if (key->name.value) {
+		sz += key->name.length;
+	}
+
+	/* allocate */
+	ptr = malloc(sz);
+	if (!ptr) {
+		abort();
+		return ENOMEM;
+	}
+
+	/* set */
+	key_data->dsize = (int)sz;
+	key_data->dptr = ptr;
+	memcpy(ptr, key->group.value, key->group.length);
+	if (key->name.value) {
+		memcpy(ptr + key->group.length, key->name.value,
+		       key->name.length);
+	}
+	return 0;
+}
+
 static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
@@ -125,7 +138,6 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	datum value;
 	_cleanup_free_ uint8_t *data_store = NULL;
 	size_t size;
-	uint32_t sz;
 	BuxtonData cdata = {0};
 	BuxtonString clabel;
 
@@ -133,28 +145,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(key);
 	assert(label);
 
-	if (key->name.value) {
-		sz = key->group.length + key->name.length;
-		key_data.dptr = malloc(sz);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		/* size is string\0string\0 so just write, bonus for
-		   nil seperator being added without extra work */
-		key_data.dsize = (int)sz;
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		memcpy(key_data.dptr + key->group.length, key->name.value,
-		       key->name.length);
-	} else {
-		key_data.dptr = malloc(key->group.length);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		key_data.dsize = (int)key->group.length;
-	}
+	make_key_data(key, &key_data);
 
 	db = db_for_resource(layer);
 	if (!db || errno) {
@@ -188,7 +179,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(ret == 0);
 
 end:
-	if (cdata.type == STRING) {
+	if (cdata.type == BUXTON_TYPE_STRING) {
 		free(cdata.store.d_string.value);
 	}
 	free(key_data.dptr);
@@ -205,32 +196,10 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	datum value;
 	uint8_t *data_store = NULL;
 	int ret;
-	uint32_t sz;
 
 	assert(layer);
 
-	if (key->name.value) {
-		sz = key->group.length + key->name.length;
-		key_data.dptr = malloc(sz);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		/* size is string\0string\0 so just write, bonus for
-		   nil seperator being added without extra work */
-		key_data.dsize = (int)sz;
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		memcpy(key_data.dptr + key->group.length, key->name.value,
-		       key->name.length);
-	} else {
-		key_data.dptr = malloc(key->group.length);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		key_data.dsize = (int)key->group.length;
-	}
+	make_key_data(key, &key_data);
 
 	memzero(&value, sizeof(datum));
 	db = db_for_resource(layer);
@@ -253,10 +222,10 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	data_store = (uint8_t*)value.dptr;
 	buxton_deserialize(data_store, data, label);
 
-	if (data->type != key->type) {
+	if (data->type != key->type && key->type != BUXTON_TYPE_UNSET) {
 		free(label->value);
 		label->value = NULL;
-		if (data->type == STRING) {
+		if (data->type == BUXTON_TYPE_STRING) {
 			free(data->store.d_string.value);
 			data->store.d_string.value = NULL;
 		}
@@ -281,33 +250,11 @@ static int unset_value(BuxtonLayer *layer,
 	GDBM_FILE db;
 	datum key_data;
 	int ret;
-	uint32_t sz;
 
 	assert(layer);
 	assert(key);
 
-	if (key->name.value) {
-		sz = key->group.length + key->name.length;
-		key_data.dptr = malloc(sz);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		/* size is string\0string\0 so just write, bonus for
-		   nil seperator being added without extra work */
-		key_data.dsize = (int)sz;
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		memcpy(key_data.dptr + key->group.length, key->name.value,
-		       key->name.length);
-	} else {
-		key_data.dptr = malloc(key->group.length);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		key_data.dsize = (int)key->group.length;
-	}
+	make_key_data(key, &key_data);
 
 	errno = 0;
 	db = db_for_resource(layer);
@@ -333,15 +280,21 @@ end:
 	return ret;
 }
 
-static bool list_keys(BuxtonLayer *layer,
-		      BuxtonArray **list)
+static bool list_names(BuxtonLayer *layer,
+		       BuxtonString *group,
+		       BuxtonString *prefix,
+		       BuxtonArray **list)
 {
 	GDBM_FILE db;
 	datum key, nextkey;
 	BuxtonArray *k_list = NULL;
-	BuxtonData *current = NULL;
-	BuxtonString in_key;
-	char *name;
+	BuxtonData *data = NULL;
+	char *gname;
+	char *value;
+	char *copy;
+	uint32_t glen;
+	uint32_t klen;
+	uint32_t length;
 	bool ret = false;
 
 	assert(layer);
@@ -351,30 +304,63 @@ static bool list_keys(BuxtonLayer *layer,
 		goto end;
 	}
 
+	if (group && !group->length) {
+		group = NULL;
+	}
+	if (prefix && !prefix->length) {
+		prefix = NULL;
+	}
+
+	value = NULL;
 	k_list = buxton_array_new();
 	key = gdbm_firstkey(db);
 	/* Iterate through all of the keys */
 	while (key.dptr) {
-		/* Split the key name from the rest of the key */
-		in_key.value = (char*)key.dptr;
-		in_key.length = (uint32_t)key.dsize;
-		name = key_get_name(&in_key);
-		if (!name) {
-			continue;
+
+		/* get main data of the key */
+		gname = (char*)key.dptr;
+		glen = (uint32_t)strlen(gname) + 1;
+		assert(key.dsize >= (size_t)glen);
+		klen = (uint32_t)key.dsize - glen;
+		assert(!klen || klen == (uint32_t)strlen(gname+glen) + 1);
+
+		/* treat the key value if it*/
+		if (klen) {
+			/* it is a key */
+			if (group && glen == group->length
+				&& !strcmp(gname, group->value)) {
+				value = gname + glen;
+				length = klen;
+			}
+		} else {
+			/* it is a group */
+			if (!group) {
+				value = gname;
+				length = glen;
+			}
 		}
 
-		current = malloc0(sizeof(BuxtonData));
-		if (!current) {
-			abort();
-		}
-		current->type = STRING;
-		current->store.d_string.value = strdup(name);
-		if (!current->store.d_string.value) {
-			abort();
-		}
-		current->store.d_string.length = (uint32_t)strlen(name) + 1;
-		if (!buxton_array_add(k_list, current)) {
-			abort();
+		/* treat a potential value */
+		if (value) {
+			/* check the prefix */
+			if (!prefix || !strncmp(value, prefix->value,
+				prefix->length - 1))  {
+				/* add the value */
+				data = malloc0(sizeof(BuxtonData));
+				copy = malloc(length);
+				if (data && copy
+				    && buxton_array_add(k_list, data)) {
+					data->type = BUXTON_TYPE_STRING;
+					data->store.d_string.value = copy;
+					data->store.d_string.length = length;
+					memcpy(copy, value, length);
+				} else {
+					free(data);
+					free(copy);
+					goto end;
+				}
+			}
+			value = NULL;
 		}
 
 		/* Visit the next key */
@@ -390,12 +376,12 @@ static bool list_keys(BuxtonLayer *layer,
 end:
 	if (!ret && k_list) {
 		for (uint16_t i = 0; i < k_list->len; i++) {
-			current = buxton_array_get(k_list, i);
-			if (!current) {
+			data = buxton_array_get(k_list, i);
+			if (!data) {
 				break;
 			}
-			free(current->store.d_string.value);
-			free(current);
+			free(data->store.d_string.value);
+			free(data);
 		}
 		buxton_array_free(&k_list, NULL);
 	}
@@ -426,7 +412,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	/* Point the struct methods back to our own */
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
-	backend->list_keys = &list_keys;
+	backend->list_names = &list_names;
 	backend->unset_value = &unset_value;
 	backend->create_db = (module_db_init_func) &db_for_resource;
 
