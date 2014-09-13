@@ -101,7 +101,7 @@ bool buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 	assert(copy);
 
 	switch (original->type) {
-	case STRING:
+	case BUXTON_TYPE_STRING:
 		store.d_string.value = malloc(original->store.d_string.length);
 		if (!store.d_string.value) {
 			goto fail;
@@ -109,25 +109,25 @@ bool buxton_data_copy(BuxtonData* original, BuxtonData *copy)
 		memcpy(store.d_string.value, original->store.d_string.value, original->store.d_string.length);
 		store.d_string.length = original->store.d_string.length;
 		break;
-	case INT32:
+	case BUXTON_TYPE_INT32:
 		store.d_int32 = original->store.d_int32;
 		break;
-	case UINT32:
+	case BUXTON_TYPE_UINT32:
 		store.d_uint32 = original->store.d_uint32;
 		break;
-	case INT64:
+	case BUXTON_TYPE_INT64:
 		store.d_int64 = original->store.d_int64;
 		break;
-	case UINT64:
+	case BUXTON_TYPE_UINT64:
 		store.d_uint64 = original->store.d_uint64;
 		break;
-	case FLOAT:
+	case BUXTON_TYPE_FLOAT:
 		store.d_float = original->store.d_float;
 		break;
-	case DOUBLE:
+	case BUXTON_TYPE_DOUBLE:
 		store.d_double = original->store.d_double;
 		break;
-	case BOOLEAN:
+	case BUXTON_TYPE_BOOLEAN:
 		store.d_boolean = original->store.d_boolean;
 		break;
 	default:
@@ -218,7 +218,7 @@ bool buxton_copy_key_group(_BuxtonKey *original, _BuxtonKey *group)
 			goto fail;
 		}
 	}
-	group->type = STRING;
+	group->type = BUXTON_TYPE_STRING;
 
 	return true;
 
@@ -240,7 +240,7 @@ void data_free(BuxtonData *data)
 		return;
 	}
 
-	if (data->type == STRING && data->store.d_string.value) {
+	if (data->type == BUXTON_TYPE_STRING && data->store.d_string.value) {
 		free(data->store.d_string.value);
 	}
 	free(data);
@@ -273,21 +273,21 @@ void key_free(_BuxtonKey *key)
 const char* buxton_type_as_string(BuxtonDataType type)
 {
 	switch (type) {
-	case STRING:
+	case BUXTON_TYPE_STRING:
 		return "string";
-	case INT32:
+	case BUXTON_TYPE_INT32:
 		return "int32_t";
-	case UINT32:
+	case BUXTON_TYPE_UINT32:
 		return "uint32_t";
-	case INT64:
+	case BUXTON_TYPE_INT64:
 		return "int64_t";
-	case UINT64:
+	case BUXTON_TYPE_UINT64:
 		return "uint64_t";
-	case FLOAT:
+	case BUXTON_TYPE_FLOAT:
 		return "float";
-	case DOUBLE:
+	case BUXTON_TYPE_DOUBLE:
 		return "double";
-	case BOOLEAN:
+	case BUXTON_TYPE_BOOLEAN:
 		return "boolean";
 	default:
 		return "[unknown]";
