@@ -164,48 +164,6 @@ static bool set_valrec(struct valrec *item, BuxtonData *data,
 	
 	return true;
 }
-#if 0
-static inline BuxtonString *string_dup(const BuxtonString *source)
-{
-	BuxtonString *result;
-
-	result = malloc(sizeof * result);
-	if (result) {
-		result->value = malloc(source->length);
-		if (result->value) {
-			result->length = source->length;
-			memcpy(result->value, source->value, source->length);
-		} else {
-			free(result);
-			result = NULL;
-		}
-	}
-	return result;
-}
-
-static inline Buxtondata *data_dup(const BuxtonData *source)
-{
-	BuxtonData *result;
-
-	result = malloc(sizeof * result);
-	if (result) {
-		*result = *source;
-		if (result->type == BUXTON_TYPE_STRING) {
-			result->store.d_string.value = malloc(
-				result->store.d_string.length);
-			if (result->store.d_string.value) {
-				memcpy(result->store.d_string.value,
-					source->store.d_string.value,
-					result->store.d_string.length);
-			} else {
-				free(result);
-				result = NULL;
-			}
-		}
-	}
-	return result;
-}
-#endif
 
 /* Return existing hashmap or create new hashmap on the fly */
 static Hashmap *_db_for_resource(BuxtonLayer *layer)
