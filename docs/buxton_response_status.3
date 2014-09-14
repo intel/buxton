@@ -40,6 +40,9 @@ BuxtonKey buxton_reponse_key(BuxtonResponse \fIresponse\fB)
 .sp
 .br
 void *buxton_reponse_value(BuxtonResponse \fIresponse\fB)
+.sp
+.br
+BuxtonDataType buxton_reponse_value_type(BuxtonResponse \fIresponse\fB)
 \fR
 .fi
 
@@ -63,9 +66,10 @@ requested\&. There are several possible return values, depending on
 the type of operation; for operations that manipulate or query
 configuration, the values include BUXTON_CONTROL_SET,
 BUXTON_CONTROL_SET_LABEL, BUXTON_CONTROL_CREATE_GROUP,
-BUXTON_CONTROL_REMOVE_GROUP, BUXTON_CONTROL_GET, and
-BUXTON_CONTROL_UNSET; for operations related to notifications, the
-values include BUXTON_CONTROL_NOTIFY and BUXTON_CONTROL_UNNOTIFY\&.
+BUXTON_CONTROL_REMOVE_GROUP, BUXTON_CONTROL_GET, 
+BUXTON_CONTROL_UNSET and BUXTON_CONTROL_LIST; for operations related 
+to notifications, the values include BUXTON_CONTROL_NOTIFY and 
+BUXTON_CONTROL_UNNOTIFY\&.
 
 Finally, the client can validate that the configuration action
 requested by the client matches the action taken by the daemon\&. To
@@ -73,7 +77,9 @@ query the BuxtonKey operated on by the daemon, the client should call
 \fBbuxton_response_key\fR(3), which returns the BuxtonKey in
 question\&. To query the value acted on by the daemon for this
 BuxtonKey, a call to \fBbuxton_response_value\fR(3) returns an
-untyped pointer to this value\&.
+untyped pointer to this value\&. This returnned pointer must be
+freed using \fBfree\fR(3). The effective type of the returned
+value can be check using \fBbuxton_reponse_value_type\fR(3).
 
 .SH "COPYRIGHT"
 .PP

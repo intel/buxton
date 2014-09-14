@@ -158,16 +158,16 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type, char *one,
 	__attribute__((warn_unused_result));
 
 /*
- * List keys for a layer in Buxton
+ * List keys or groups for a layer in Buxton
  * @param control An initialized control structure
- * @param type Type of data (unused)
+ * @param type Type of query: 0 for groups, 1 for keys
  * @param one Layer to query
- * @param two NULL (unused)
- * @param three NULL (unusued)
+ * @param two group or prefix or NULL
+ * @param three prefix or NULL
  * @param four NULL (unused)
  * @returns bool indicating success or failure
  */
-bool cli_list_keys(BuxtonControl *control,
+bool cli_list_names(BuxtonControl *control,
 		   __attribute__((unused))BuxtonDataType type,
 		   char *one, char *two, char *three,
 		   __attribute__((unused)) char *four)

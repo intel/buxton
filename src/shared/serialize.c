@@ -45,7 +45,7 @@ size_t buxton_serialize(BuxtonData *source, BuxtonString *label,
 
 	/* Total size will be different for string data */
 	switch (source->type) {
-	case STRING:
+	case BUXTON_TYPE_STRING:
 		length = source->store.d_string.length;
 		break;
 	default:
@@ -79,28 +79,28 @@ size_t buxton_serialize(BuxtonData *source, BuxtonString *label,
 
 	/* Write the data itself */
 	switch (source->type) {
-	case STRING:
+	case BUXTON_TYPE_STRING:
 		memcpy(data+offset, source->store.d_string.value, length);
 		break;
-	case INT32:
+	case BUXTON_TYPE_INT32:
 		memcpy(data+offset, &(source->store.d_int32), sizeof(int32_t));
 		break;
-	case UINT32:
+	case BUXTON_TYPE_UINT32:
 		memcpy(data+offset, &(source->store.d_uint32), sizeof(uint32_t));
 		break;
-	case INT64:
+	case BUXTON_TYPE_INT64:
 		memcpy(data+offset, &(source->store.d_int64), sizeof(int64_t));
 		break;
-	case UINT64:
+	case BUXTON_TYPE_UINT64:
 		memcpy(data+offset, &(source->store.d_uint64), sizeof(uint64_t));
 		break;
-	case FLOAT:
+	case BUXTON_TYPE_FLOAT:
 		memcpy(data+offset, &(source->store.d_float), sizeof(float));
 		break;
-	case DOUBLE:
+	case BUXTON_TYPE_DOUBLE:
 		memcpy(data+offset, &(source->store.d_double), sizeof(double));
 		break;
-	case BOOLEAN:
+	case BUXTON_TYPE_BOOLEAN:
 		memcpy(data+offset, &(source->store.d_boolean), sizeof(bool));
 		break;
 	default:
@@ -147,7 +147,7 @@ void buxton_deserialize(uint8_t *source, BuxtonData *target,
 	offset += label->length;
 
 	switch (type) {
-	case STRING:
+	case BUXTON_TYPE_STRING:
 		/* User must free the string */
 		target->store.d_string.value = malloc(length);
 		if (!target->store.d_string.value) {
@@ -156,25 +156,25 @@ void buxton_deserialize(uint8_t *source, BuxtonData *target,
 		memcpy(target->store.d_string.value, source+offset, length);
 		target->store.d_string.length = (uint32_t)length;
 		break;
-	case INT32:
+	case BUXTON_TYPE_INT32:
 		target->store.d_int32 = *(int32_t*)(source+offset);
 		break;
-	case UINT32:
+	case BUXTON_TYPE_UINT32:
 		target->store.d_uint32 = *(uint32_t*)(source+offset);
 		break;
-	case INT64:
+	case BUXTON_TYPE_INT64:
 		target->store.d_int64 = *(int64_t*)(source+offset);
 		break;
-	case UINT64:
+	case BUXTON_TYPE_UINT64:
 		target->store.d_uint64 = *(uint64_t*)(source+offset);
 		break;
-	case FLOAT:
+	case BUXTON_TYPE_FLOAT:
 		target->store.d_float = *(float*)(source+offset);
 		break;
-	case DOUBLE:
+	case BUXTON_TYPE_DOUBLE:
 		memcpy(&target->store.d_double, source + offset, sizeof(double));
 		break;
-	case BOOLEAN:
+	case BUXTON_TYPE_BOOLEAN:
 		target->store.d_boolean = *(bool*)(source+offset);
 		break;
 	default:
@@ -256,28 +256,28 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		}
 
 		switch (param->type) {
-		case STRING:
+		case BUXTON_TYPE_STRING:
 			p_length = param->store.d_string.length;
 			break;
-		case INT32:
+		case BUXTON_TYPE_INT32:
 			p_length = sizeof(int32_t);
 			break;
-		case UINT32:
+		case BUXTON_TYPE_UINT32:
 			p_length = sizeof(uint32_t);
 			break;
-		case INT64:
+		case BUXTON_TYPE_INT64:
 			p_length = sizeof(int64_t);
 			break;
-		case UINT64:
+		case BUXTON_TYPE_UINT64:
 			p_length = sizeof(uint64_t);
 			break;
-		case FLOAT:
+		case BUXTON_TYPE_FLOAT:
 			p_length = sizeof(float);
 			break;
-		case DOUBLE:
+		case BUXTON_TYPE_DOUBLE:
 			p_length = sizeof(double);
 			break;
-		case BOOLEAN:
+		case BUXTON_TYPE_BOOLEAN:
 			p_length = sizeof(bool);
 			break;
 		default:
@@ -309,28 +309,28 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 		offset += sizeof(uint32_t);
 
 		switch (param->type) {
-		case STRING:
+		case BUXTON_TYPE_STRING:
 			memcpy(data+offset, param->store.d_string.value, p_length);
 			break;
-		case INT32:
+		case BUXTON_TYPE_INT32:
 			memcpy(data+offset, &(param->store.d_int32), sizeof(int32_t));
 			break;
-		case UINT32:
+		case BUXTON_TYPE_UINT32:
 			memcpy(data+offset, &(param->store.d_uint32), sizeof(uint32_t));
 			break;
-		case INT64:
+		case BUXTON_TYPE_INT64:
 			memcpy(data+offset, &(param->store.d_int64), sizeof(int64_t));
 			break;
-		case UINT64:
+		case BUXTON_TYPE_UINT64:
 			memcpy(data+offset, &(param->store.d_uint64), sizeof(uint64_t));
 			break;
-		case FLOAT:
+		case BUXTON_TYPE_FLOAT:
 			memcpy(data+offset, &(param->store.d_float), sizeof(float));
 			break;
-		case DOUBLE:
+		case BUXTON_TYPE_DOUBLE:
 			memcpy(data+offset, &(param->store.d_double), sizeof(double));
 			break;
-		case BOOLEAN:
+		case BUXTON_TYPE_BOOLEAN:
 			memcpy(data+offset, &(param->store.d_boolean), sizeof(bool));
 			break;
 		default:
@@ -449,7 +449,7 @@ ssize_t buxton_deserialize_message(uint8_t *data,
 
 		/* Retrieve the length of the value */
 		c_length = *(uint32_t*)(data+offset);
-		if (c_length == 0 && c_type != STRING) {
+		if (c_length == 0 && c_type != BUXTON_TYPE_STRING) {
 			errno = EINVAL;
 			goto end;
 		}
@@ -463,7 +463,7 @@ ssize_t buxton_deserialize_message(uint8_t *data,
 		}
 
 		switch (c_type) {
-		case STRING:
+		case BUXTON_TYPE_STRING:
 			if (c_length) {
 				c_data.store.d_string.value = malloc(c_length);
 				if (!c_data.store.d_string.value) {
@@ -483,25 +483,25 @@ ssize_t buxton_deserialize_message(uint8_t *data,
 				c_data.store.d_string.length = 0;
 			}
 			break;
-		case INT32:
+		case BUXTON_TYPE_INT32:
 			c_data.store.d_int32 = *(int32_t*)(data+offset);
 			break;
-		case UINT32:
+		case BUXTON_TYPE_UINT32:
 			c_data.store.d_uint32 = *(uint32_t*)(data+offset);
 			break;
-		case INT64:
+		case BUXTON_TYPE_INT64:
 			c_data.store.d_int64 = *(int64_t*)(data+offset);
 			break;
-		case UINT64:
+		case BUXTON_TYPE_UINT64:
 			c_data.store.d_uint64 = *(uint64_t*)(data+offset);
 			break;
-		case FLOAT:
+		case BUXTON_TYPE_FLOAT:
 			c_data.store.d_float = *(float*)(data+offset);
 			break;
-		case DOUBLE:
+		case BUXTON_TYPE_DOUBLE:
 			memcpy(&c_data.store.d_double, data + offset, sizeof(double));
 			break;
-		case BOOLEAN:
+		case BUXTON_TYPE_BOOLEAN:
 			c_data.store.d_boolean = *(bool*)(data+offset);
 			break;
 		default:

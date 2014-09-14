@@ -45,7 +45,7 @@ void sbuxton_set_group(char *group, char *layer)
 	/* In case a string is longer than MAX_LG_LEN, set the last byte to null */
 	_layer[MAX_LG_LEN -1] = '\0';
 	_group[MAX_LG_LEN -1] = '\0';
-	BuxtonKey g = buxton_key_create(_group, NULL, _layer, STRING);
+	BuxtonKey g = buxton_key_create(_group, NULL, _layer, BUXTON_TYPE_STRING);
 	buxton_debug("buxton key group = %s\n", buxton_key_get_group(g));
 	if (buxton_create_group(client, g, _cg_cb, &status, true)
 		|| !status) {
@@ -59,7 +59,7 @@ void sbuxton_set_group(char *group, char *layer)
 	_client_disconnect();
 }
 
-/* Set and get int32_t value for buxton key with type INT32 */
+/* Set and get int32_t value for buxton key with type BUXTON_TYPE_INT32 */
 void sbuxton_set_int32(char *key, int32_t value)
 {
 	/* make sure client connection is open */
@@ -68,13 +68,13 @@ void sbuxton_set_int32(char *key, int32_t value)
 		return;
 	}
 	/* create key  */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, INT32);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_INT32);
 	/* return value and status */
 	vstatus ret;
-	ret.type = INT32;
+	ret.type = BUXTON_TYPE_INT32;
 	ret.val.i32val = value;
 	saved_errno = errno;
-	/* call buxton_set_value for type INT32 */
+	/* call buxton_set_value for type BUXTON_TYPE_INT32 */
 	if (buxton_set_value(client, _key, &value, _bs_cb, &ret, true)) {
 		buxton_debug("Set int32_t call failed.\n");
 		return;
@@ -95,10 +95,10 @@ int32_t sbuxton_get_int32(char *key)
 		return -1;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, INT32);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_INT32);
 	/* return value */
 	vstatus ret;
-	ret.type = INT32;
+	ret.type = BUXTON_TYPE_INT32;
 	saved_errno = errno;
 	/* get value */
 	if (buxton_get_value(client, _key, _bg_cb, &ret, true)) {
@@ -113,7 +113,7 @@ int32_t sbuxton_get_int32(char *key)
 	return ret.val.i32val;
 }
 
-/* Set and get char * value for buxton key with type STRING */
+/* Set and get char * value for buxton key with type BUXTON_TYPE_STRING */
 void sbuxton_set_string(char *key, char *value )
 {
 	/* make sure client connection is open */
@@ -122,10 +122,10 @@ void sbuxton_set_string(char *key, char *value )
 		return;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, STRING);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_STRING);
 	/* return value and status */
 	vstatus ret;
-	ret.type = STRING;
+	ret.type = BUXTON_TYPE_STRING;
 	ret.val.sval = value;
 	saved_errno = errno;
 	/* set value */
@@ -148,10 +148,10 @@ char* sbuxton_get_string(char *key)
 		return NULL;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, STRING);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_STRING);
 	/* return value */
 	vstatus ret;
-	ret.type = STRING;
+	ret.type = BUXTON_TYPE_STRING;
 	saved_errno = errno;
 	/* get value */
 	if (buxton_get_value(client, _key, _bg_cb, &ret, true)) {
@@ -166,7 +166,7 @@ char* sbuxton_get_string(char *key)
 	return ret.val.sval;
 }
 
-/* Set and get uint32_t value for buxton key with type UINT32 */
+/* Set and get uint32_t value for buxton key with type BUXTON_TYPE_UINT32 */
 void sbuxton_set_uint32(char *key, uint32_t value)
 {
 	/* make sure client connection is open */
@@ -175,10 +175,10 @@ void sbuxton_set_uint32(char *key, uint32_t value)
 		return;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, UINT32);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_UINT32);
 	/* return value and status */
 	vstatus ret;
-	ret.type = UINT32;
+	ret.type = BUXTON_TYPE_UINT32;
 	ret.val.ui32val = value;
 	saved_errno = errno;
 	if (buxton_set_value(client,_key, &value, _bs_cb, &ret, true)) {
@@ -200,10 +200,10 @@ uint32_t sbuxton_get_uint32(char *key)
 		return 0;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, UINT32);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_UINT32);
 	/* return value */
 	vstatus ret;
-	ret.type = UINT32;
+	ret.type = BUXTON_TYPE_UINT32;
 	saved_errno = errno;
 	/* get value */
 	if (buxton_get_value(client, _key, _bg_cb, &ret, true)) {
@@ -218,7 +218,7 @@ uint32_t sbuxton_get_uint32(char *key)
 	return ret.val.ui32val;
 }
 
-/* Set and get int64_t value for buxton key with type INT64 */
+/* Set and get int64_t value for buxton key with type BUXTON_TYPE_INT64 */
 void sbuxton_set_int64(char *key, int64_t value)
 {
 	/* make sure client connection is open */
@@ -227,10 +227,10 @@ void sbuxton_set_int64(char *key, int64_t value)
 		return;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, INT64);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_INT64);
 	/* return value and status */
 	vstatus ret;
-	ret.type = INT64;
+	ret.type = BUXTON_TYPE_INT64;
 	ret.val.i64val = value;
 	saved_errno = errno;
 	if (buxton_set_value(client, _key, &value, _bs_cb, &ret, true)) {
@@ -252,10 +252,10 @@ int64_t sbuxton_get_int64(char *key)
 		return -1;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, INT64);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_INT64);
 	/* return value */
 	vstatus ret;
-	ret.type = INT64;
+	ret.type = BUXTON_TYPE_INT64;
 	saved_errno = errno;
 	/* get value */
 	if (buxton_get_value(client, _key, _bg_cb, &ret, true)) {
@@ -270,7 +270,7 @@ int64_t sbuxton_get_int64(char *key)
 	return ret.val.i64val;
 }
 
-/* Set and get uint64_t value for buxton key with type UINT64 */
+/* Set and get uint64_t value for buxton key with type BUXTON_TYPE_UINT64 */
 void sbuxton_set_uint64(char *key, uint64_t value)
 {
 	/* make sure client connection is open */
@@ -279,10 +279,10 @@ void sbuxton_set_uint64(char *key, uint64_t value)
 		return;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, UINT64);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_UINT64);
 	/* return value and status */
 	vstatus ret;
-	ret.type = UINT64;
+	ret.type = BUXTON_TYPE_UINT64;
 	ret.val.ui64val = value;
 	saved_errno = errno;
 	if (buxton_set_value(client, _key, &value, _bs_cb, &ret, true)) {
@@ -304,10 +304,10 @@ uint64_t sbuxton_get_uint64(char *key)
 		return 0;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, UINT64);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_UINT64);
 	/* return value */
 	vstatus ret;
-	ret.type = UINT64;
+	ret.type = BUXTON_TYPE_UINT64;
 	saved_errno = errno;
 	/* get value */
 	if (buxton_get_value(client, _key, _bg_cb, &ret, true)) {
@@ -322,7 +322,7 @@ uint64_t sbuxton_get_uint64(char *key)
 	return ret.val.ui64val;
 }
 
-/* Set and get float value for buxton key with type FLOAT */
+/* Set and get float value for buxton key with type BUXTON_TYPE_FLOAT */
 void sbuxton_set_float(char *key, float value)
 {
 	/* make sure client connection is open */
@@ -331,10 +331,10 @@ void sbuxton_set_float(char *key, float value)
 		return;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, FLOAT);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_FLOAT);
 	/* return value and status */
 	vstatus ret;
-	ret.type = FLOAT;
+	ret.type = BUXTON_TYPE_FLOAT;
 	ret.val.fval = value;
 	saved_errno = errno;
 	if (buxton_set_value(client, _key, &value, _bs_cb, &ret, true)) {
@@ -356,10 +356,10 @@ float sbuxton_get_float(char *key)
 		return -1;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, FLOAT);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_FLOAT);
 	/* return value */
 	vstatus ret;
-	ret.type = FLOAT;
+	ret.type = BUXTON_TYPE_FLOAT;
 	saved_errno = errno;
 	/* get value */
 	if (buxton_get_value(client, _key, _bg_cb, &ret, true)) {
@@ -374,7 +374,7 @@ float sbuxton_get_float(char *key)
 	return ret.val.fval;
 }
 
-/* Set and get double value for buxton key with type DOUBLE */
+/* Set and get double value for buxton key with type BUXTON_TYPE_DOUBLE */
 void sbuxton_set_double(char *key, double value)
 {
 	/* make sure client connection is open */
@@ -383,10 +383,10 @@ void sbuxton_set_double(char *key, double value)
 		return;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, DOUBLE);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_DOUBLE);
 	/* return value and status */
 	vstatus ret;
-	ret.type = DOUBLE;
+	ret.type = BUXTON_TYPE_DOUBLE;
 	ret.val.dval = value;
 	saved_errno = errno;
 	if (buxton_set_value(client, _key, &value, _bs_cb, &ret, true)) {
@@ -408,10 +408,10 @@ double sbuxton_get_double(char *key)
 		return -1;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, DOUBLE);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_DOUBLE);
 	/* return value */
 	vstatus ret;
-	ret.type = DOUBLE;
+	ret.type = BUXTON_TYPE_DOUBLE;
 	saved_errno = errno;
 	/* get value */
 	if (buxton_get_value(client, _key, _bg_cb, &ret, true)) {
@@ -426,7 +426,7 @@ double sbuxton_get_double(char *key)
 	return ret.val.dval;
 }
 
-/* Set and get bool value for buxton key with type BOOLEAN */
+/* Set and get bool value for buxton key with type BUXTON_TYPE_BOOLEAN */
 void sbuxton_set_bool(char *key, bool value)
 {
 	/* make sure client connection is open */
@@ -435,10 +435,10 @@ void sbuxton_set_bool(char *key, bool value)
 		return;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, BOOLEAN);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_BOOLEAN);
 	/* return value and status */
 	vstatus ret;
-	ret.type = BOOLEAN;
+	ret.type = BUXTON_TYPE_BOOLEAN;
 	ret.val.bval = value;
 	saved_errno = errno;
 	if (buxton_set_value(client, _key, &value, _bs_cb, &ret, true)) {
@@ -460,10 +460,10 @@ bool sbuxton_get_bool(char *key)
 		return false;
 	}
 	/* create key */
-	BuxtonKey _key = buxton_key_create(_group, key, _layer, BOOLEAN);
+	BuxtonKey _key = buxton_key_create(_group, key, _layer, BUXTON_TYPE_BOOLEAN);
 	/* return value */
 	vstatus ret;
-	ret.type = BOOLEAN;
+	ret.type = BUXTON_TYPE_BOOLEAN;
 	saved_errno = errno;
 	/* get value */
 	if (buxton_get_value(client, _key, _bg_cb, &ret, true)) {
