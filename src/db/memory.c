@@ -35,15 +35,15 @@ static Hashmap *_resources;
 
 /* structure for storing keys */
 struct keyrec {
-	unsigned hash; /*< precomputed hash  */
-	uint32_t size; /*< key size in bytes */
-	char value[1]; /*< the key value */
+	unsigned hash; /**< Precomputed hash  */
+	uint32_t size; /**< Key size in bytes */
+	char value[1]; /**< The key value */
 };
 
 /* structure for storing values */
 struct valrec {
-	BuxtonData data;    /*< the recorded data */
-	BuxtonString label; /*< the recorded label */
+	BuxtonData data;    /**< Recorded data */
+	BuxtonString label; /**< Recorded label */
 };
 
 /* creates a keyrec from the key */
@@ -62,7 +62,6 @@ static struct keyrec *make_keyrec(_BuxtonKey *key)
 	/* allocate */
 	result = malloc(sz - 1 + sizeof * result);
 	if (!result) {
-		abort();
 		return NULL;
 	}
 
@@ -84,26 +83,26 @@ static struct keyrec *make_keyrec(_BuxtonKey *key)
 	return result;
 }
 
-/* free the keyrec */
+/* free the keyrec item */
 static inline void free_keyrec(struct keyrec *item)
 {
 	free(item);
 }
 
-/* gets the hash code of the keyrec */
+/* gets the hash code of the keyrec item */
 static unsigned hash_keyrec(const struct keyrec *item)
 {
 	return item->hash;
 }
 
-/* compares two keyrecs */
+/* compares two keyrecs a and b */
 static int compare_keyrec(const struct keyrec *a, const struct keyrec *b)
 {
-	return a->size == b->size ? memcmp(a->value, b->value, a->size)
-		: a->size < b->size ? -1 : 1;
+	return a->size == b->size ? memcmp(a->value, b->value, a->size) :
+		a->size < b->size ? -1 : 1;
 }
 
-/* structure for storing values */
+/* free the valrec item */
 static void free_valrec(struct valrec *item)
 {
 	if (item) {
@@ -122,8 +121,8 @@ static bool set_valrec(struct valrec *item, BuxtonData *data,
 	char *slabel;
 
 	/* allocate data if needed */
-	if (data && data->type == BUXTON_TYPE_STRING
-	    && data->store.d_string.value) {
+	if (data && data->type == BUXTON_TYPE_STRING &&
+	    data->store.d_string.value) {
 		sdata = malloc(data->store.d_string.length);
 		if (!sdata) {
 			return false;
@@ -187,7 +186,7 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 	db = hashmap_get(_resources, name);
 	if (!db) {
 		db = hashmap_new((hash_func_t)hash_keyrec,
-			(compare_func_t)compare_keyrec);
+				 (compare_func_t)compare_keyrec);
 		hashmap_put(_resources, name, db);
 	} else {
 		free(name);
@@ -232,12 +231,10 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		}
 		valrec = calloc(1, sizeof * valrec);
 		if (!valrec) {
-			free_keyrec(keyrec);
 			abort();
 		}
-		if (!set_valrec(valrec, data, label)
-		   || hashmap_put(db, keyrec, valrec) != 1) {
-			free_valrec(valrec);
+		if (!set_valrec(valrec, data, label) ||
+		    hashmap_put(db, keyrec, valrec) != 1) {
 			abort();
 		}
 	}
@@ -469,8 +466,8 @@ static bool list_names(BuxtonLayer *layer,
 				/* add the value */
 				data = malloc0(sizeof(BuxtonData));
 				copy = malloc(length);
-				if (data && copy
-				    && buxton_array_add(list, data)) {
+				if (data && copy &&
+				    buxton_array_add(list, data)) {
 					data->type = BUXTON_TYPE_STRING;
 					data->store.d_string.value = copy;
 					data->store.d_string.length = length;
