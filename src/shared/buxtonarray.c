@@ -81,8 +81,9 @@ void buxton_array_free(BuxtonArray **array,
 
 	if (free_method) {
 		/* Call the free_method on all members */
-		for (i = 0; i < (*array)->len; i++)
+		for (i = 0; i < (*array)->len; i++) {
 			free_method((*array)->data[i]);
+		}
 	}
 	/* Ensure this array is indeed gone. */
 	free((*array)->data);
