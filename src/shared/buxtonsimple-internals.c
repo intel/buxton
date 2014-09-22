@@ -16,10 +16,19 @@
 
 #include "buxton.h"
 #include "buxtonsimple-internals.h"
+#include "buxtonresponse.h"
 #include "log.h"
 
 BuxtonClient client = NULL;
 
+typedef void (*NotifyCallback)(void *, char*);
+
+typedef struct nstatus {
+	int status;
+	NotifyCallback callback;
+} nstatus;
+
+extern BuxtonClient client;
 /* Make sure client connection is open */
 int _client_connection(void)
 {
@@ -228,6 +237,136 @@ void _rg_cb(BuxtonResponse response, void *data)
 	} else {
 		*ret = 1;
 		buxton_debug("Removed group.\n");
+	}
+}
+
+/* Callback for buxton_register_notification */
+void _rn_cb(BuxtonResponse response, void *data)
+{
+	nstatus *ret = (nstatus *)data;
+	NotifyCallback cb; 
+	BuxtonKey key = NULL;
+	char *name = NULL;
+	void *value = NULL;
+
+	if (buxton_response_status(response) != 0) {
+		buxton_debug("Notify failed\n");
+		ret->status = -1;
+		return;
+	}
+
+	key = buxton_response_key(response);
+	name = buxton_key_get_name(key);
+	value = buxton_response_value(response);
+
+	buxton_debug("Calling client cb....\n");
+	cb = (NotifyCallback)ret->callback;
+
+	cb(value, name);
+}
+
+BuxtonKey _buxton_notify_create(char *layer, char *group, char *name)
+{
+	BuxtonKey key;
+	BuxtonDataType type = UNKNOWN;
+	char *stype;
+
+	if (!group || !name) {
+		return NULL;
+	}
+
+	if (!client) {
+		return NULL;
+	}
+
+	key = buxton_key_create(group, name, layer, UNKNOWN);
+
+	if (buxton_get_key_type(client, key, _gkt_cb, &type, true)) {
+		buxton_debug("Get key type call failed\n");
+		return NULL;
+	}
+
+	switch (type) {
+		case BUXTON_TYPE_MIN:
+		{
+			stype = "invalid- still min";
+		}
+		case STRING:
+		{
+			stype = "string";
+			break;
+		}
+		case INT32:
+		{
+			stype = "int32_t";
+			break;
+		}
+		case UINT32:
+		{
+			stype = "uint32_t";
+			break;
+		}
+		case INT64:
+		{
+			stype = "int64_t";
+			break;
+		}
+		case UINT64:
+		{
+			stype = "uint64_t";
+			break;
+		}
+		case FLOAT:
+		{
+			stype = "float";
+			break;
+		}
+		case DOUBLE:
+		{
+			stype = "double";
+			break;
+		}
+		case BOOLEAN:
+		{
+			stype = "bool";
+			break;
+		}
+		default:
+		{
+			stype = "unknown";
+			break;
+		}
+	}
+
+	printf("type of key is: %d = %s\n", type, stype);
+
+	if (type > BUXTON_TYPE_MIN && type < BUXTON_TYPE_MAX && type != UNKNOWN) {
+		BuxtonKey k = buxton_key_create(group, name, layer, type);
+		return k;
+	} else {
+		buxton_debug("Invalid type returned\n");
+	}
+
+	return NULL;
+}
+
+void _gkt_cb(BuxtonResponse response, void *data)
+{
+	if (data == NULL) {
+		return;
+	}
+
+	BuxtonDataType *ret = (BuxtonDataType*) data;
+
+	if (buxton_response_status(response) != 0) {
+		
+		buxton_debug("Failed to get type\n");
+		return;
+	} else {
+		buxton_debug("Get successful, got type\n");
+		void *p = buxton_response_value(response);
+		*ret = *(BuxtonDataType*)p;
+		return;
 	}
 }
 

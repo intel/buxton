@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "buxtonclient.h"
 #include "buxtonsimple.h"
 #include "buxtonsimple-internals.h"
 #include "log.h"
@@ -29,13 +30,131 @@ extern BuxtonClient client;
 static char _layer[MAX_LG_LEN];
 static char _group[MAX_LG_LEN];
 static int saved_errno;
+static int num_notify = 0; 
+
+/* return the client's file descriptor */
+int sbuxton_get_fd(void)
+{
+	if (!client) {
+		buxton_debug("No notifications registered, not connected\n");
+		return -1;
+	}
+
+	_BuxtonClient *c = NULL;
+	c = (_BuxtonClient *)client;
+
+	return c->fd;
+}
+
+/* wrapper for buxton_client_handle_response */
+ssize_t sbuxton_handle_response(void)
+{
+	if (!client) {
+		errno = ENOTCONN;
+		buxton_debug("No notifications registered, not connected\n");
+		return -1;
+	}
+
+	return buxton_client_handle_response(client);
+}
+
+/* Register a key for notification */
+void sbuxton_register_notify(char *key, NotifyCallback callback)
+{
+	if (num_notify < 0) {
+		buxton_debug("Error in notification count\n");
+		return;
+	}
+
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
+	}
+
+	saved_errno = errno;
+	BuxtonKey _key;
+
+	_key = _buxton_notify_create(_layer, _group, key);
+
+	if (!_key) {
+		errno = EACCES;
+		goto end;
+		return;
+	}
+
+	nstatus *cb = malloc(sizeof(nstatus));
+
+	if (!cb) {
+		errno = ENOMEM;
+		goto end;
+	}
+
+	cb->callback = callback;
+	cb->status = 0;
+
+	if(buxton_register_notification(client, _key, _rn_cb, cb, true)) {
+		buxton_debug("Register notification call failed\n");
+		errno = EACCES;
+	} else {
+		errno = saved_errno;
+		buxton_debug("Registration successful\n");
+		++num_notify;
+	}
+
+end:
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
+}
+
+void sbuxton_unregister_notify(char *key)
+{
+	if (num_notify == 0) {
+		buxton_debug("No notifications registered\n");
+		errno = EACCES;
+		return;
+	}
+
+	if (!client) {
+		buxton_debug("No client connected\n");
+		errno = ENOTCONN;
+		return;
+	}
+
+	saved_errno = errno;
+	BuxtonKey _key;
+
+	_key = _buxton_notify_create(_layer, _group, key);
+
+	if (!_key) {
+		errno = EACCES;
+		return;
+	}
+
+	if (buxton_unregister_notification(client, _key, NULL, NULL, true)) {
+		buxton_debug("Unregister notification failed\n");
+		errno = EACCES;
+	} else {
+		errno = saved_errno;
+		buxton_debug("Unregistration successful\n");
+		--num_notify;
+	}
+
+	if (num_notify == 0) {
+		_client_disconnect();
+	}		
+}
 
 /* Initialization of group */
 void sbuxton_set_group(char *group, char *layer)
 {
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	saved_errno = errno;
 	int status = 0;
@@ -56,16 +175,20 @@ void sbuxton_set_group(char *group, char *layer)
  	buxton_key_get_layer(g));
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 /* Set and get int32_t value for buxton key with type INT32 */
 void sbuxton_set_int32(char *key, int32_t value)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	/* create key  */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, INT32);
@@ -84,15 +207,19 @@ void sbuxton_set_int32(char *key, int32_t value)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 int32_t sbuxton_get_int32(char *key)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return -1;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return 0;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, INT32);
@@ -109,7 +236,9 @@ int32_t sbuxton_get_int32(char *key)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 	return ret.val.i32val;
 }
 
@@ -117,9 +246,11 @@ int32_t sbuxton_get_int32(char *key)
 void sbuxton_set_string(char *key, char *value )
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, STRING);
@@ -137,15 +268,19 @@ void sbuxton_set_string(char *key, char *value )
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 char* sbuxton_get_string(char *key)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return NULL;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return "";
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, STRING);
@@ -162,7 +297,9 @@ char* sbuxton_get_string(char *key)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 	return ret.val.sval;
 }
 
@@ -170,9 +307,11 @@ char* sbuxton_get_string(char *key)
 void sbuxton_set_uint32(char *key, uint32_t value)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, UINT32);
@@ -189,15 +328,19 @@ void sbuxton_set_uint32(char *key, uint32_t value)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 uint32_t sbuxton_get_uint32(char *key)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return 0;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return 0;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, UINT32);
@@ -214,7 +357,9 @@ uint32_t sbuxton_get_uint32(char *key)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 	return ret.val.ui32val;
 }
 
@@ -222,9 +367,11 @@ uint32_t sbuxton_get_uint32(char *key)
 void sbuxton_set_int64(char *key, int64_t value)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, INT64);
@@ -241,15 +388,19 @@ void sbuxton_set_int64(char *key, int64_t value)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 int64_t sbuxton_get_int64(char *key)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return -1;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return 0;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, INT64);
@@ -266,7 +417,9 @@ int64_t sbuxton_get_int64(char *key)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 	return ret.val.i64val;
 }
 
@@ -274,9 +427,11 @@ int64_t sbuxton_get_int64(char *key)
 void sbuxton_set_uint64(char *key, uint64_t value)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, UINT64);
@@ -293,15 +448,19 @@ void sbuxton_set_uint64(char *key, uint64_t value)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 uint64_t sbuxton_get_uint64(char *key)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return 0;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return 0;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, UINT64);
@@ -318,7 +477,9 @@ uint64_t sbuxton_get_uint64(char *key)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 	return ret.val.ui64val;
 }
 
@@ -326,9 +487,11 @@ uint64_t sbuxton_get_uint64(char *key)
 void sbuxton_set_float(char *key, float value)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, FLOAT);
@@ -345,15 +508,19 @@ void sbuxton_set_float(char *key, float value)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 float sbuxton_get_float(char *key)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return -1;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return 0;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, FLOAT);
@@ -370,7 +537,9 @@ float sbuxton_get_float(char *key)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 	return ret.val.fval;
 }
 
@@ -378,9 +547,11 @@ float sbuxton_get_float(char *key)
 void sbuxton_set_double(char *key, double value)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, DOUBLE);
@@ -397,15 +568,19 @@ void sbuxton_set_double(char *key, double value)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 double sbuxton_get_double(char *key)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return -1;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return 0;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, DOUBLE);
@@ -422,7 +597,9 @@ double sbuxton_get_double(char *key)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 	return ret.val.dval;
 }
 
@@ -430,9 +607,11 @@ double sbuxton_get_double(char *key)
 void sbuxton_set_bool(char *key, bool value)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, BOOLEAN);
@@ -449,15 +628,19 @@ void sbuxton_set_bool(char *key, bool value)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 bool sbuxton_get_bool(char *key)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return false;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return false;
+		}
 	}
 	/* create key */
 	BuxtonKey _key = buxton_key_create(_group, key, _layer, BOOLEAN);
@@ -474,7 +657,9 @@ bool sbuxton_get_bool(char *key)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 	return ret.val.bval;
 }
 
@@ -482,9 +667,11 @@ bool sbuxton_get_bool(char *key)
 void sbuxton_remove_group(char *group_name, char *layer)
 {
 	/* make sure client connection is open */
-	if (!_client_connection()) {
-		errno = ENOTCONN;
-		return;
+	if (!client) {
+		if (!_client_connection()) {
+			errno = ENOTCONN;
+			return;
+		}
 	}
 	saved_errno = errno;
 	BuxtonKey group = _buxton_group_create(group_name, layer);
@@ -497,7 +684,9 @@ void sbuxton_remove_group(char *group_name, char *layer)
 	} else {
 		errno = saved_errno;
 	}
-	_client_disconnect();
+	if (num_notify == 0) {
+		_client_disconnect();
+	}
 }
 
 /*

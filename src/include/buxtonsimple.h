@@ -19,6 +19,7 @@
  */
 
 #include "buxton.h"
+//#include "buxtonsimple-internals.h"
 #ifdef HAVE_CONFIG_H
 	#include "config.h"
 #endif
@@ -30,8 +31,40 @@
 #  define _bx_export_
 #endif
 
+typedef void (*NotifyCallback)(void *, char*);
+
+typedef struct nstatus {
+	int status;
+	NotifyCallback callback;
+} nstatus;
 
 /*Buxton Simple API Methods*/
+
+/**
+ * Returns the client's file descriptor if there is a registered notification
+ * and the client connection is already open
+ * @ return An int representing the client's file descriptor, or -1 if not connected
+ */
+_bx_export_ int sbuxton_get_fd(void);
+/**
+ * This wraps buxton_client_handle_response, which handles responses from the daemon
+ * It is used for handling notifications in the fd. It returns the number of messages
+ * it has handled, or -1 if the client is not connected
+ * @return An ssize_t
+ */
+_bx_export_ ssize_t sbuxton_handle_response(void);
+/**
+ * Registers for notifications for the key name key. When the key is changed,
+ * calls the NotifyCallback callback
+ * @param key A key name to register (char *)
+ * @param callback A function pointer, takes a void * and a char * (NotifyCallback)
+ */
+_bx_export_ void sbuxton_register_notify(char *key, NotifyCallback callback);
+/**
+ * Unregisters notifications for the key name (char *) key
+ * @param key A key name to unregister (char *)
+ */
+_bx_export_ void sbuxton_unregister_notify(char *key);
 /**
  * Creates a group if it does not exist and uses that group for all following get and set calls
  * If the group already exists, it will be used for all following get and set calls

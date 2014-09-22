@@ -78,6 +78,7 @@ dist_man_MANS = \
 	docs/buxton_client_handle_response.3 \
 	docs/buxton_close.3 \
 	docs/buxton_create_group.3 \
+	docs/buxton_get_key_type.3 \
 	docs/buxton_get_value.3 \
 	docs/buxton_key_create.3 \
 	docs/buxton_key_free.3 \
@@ -103,8 +104,10 @@ dist_man_MANS = \
 	docs/sbuxton_get_string.3 \
 	docs/sbuxton_get_int64.3 \
 	docs/sbuxton_get_uint64.3 \
+	docs/sbuxton_get_fd.3 \
 	docs/sbuxton_get_float.3 \
 	docs/sbuxton_get_double.3 \
+	docs/sbuxton_handle_response.3 \
 	docs/sbuxton_get_bool.3 \
 	docs/sbuxton_set_int32.3 \
 	docs/sbuxton_set_uint32.3 \
@@ -115,7 +118,9 @@ dist_man_MANS = \
 	docs/sbuxton_set_double.3 \
 	docs/sbuxton_set_bool.3 \
 	docs/sbuxton_set_group.3 \
-	docs/sbuxton_remove_group.3 
+	docs/sbuxton_register_notify.3 \
+	docs/sbuxton_remove_group.3 \
+	docs/sbuxton_unregister_notify.3
 endif
 
 TESTS = \
@@ -448,6 +453,7 @@ check_DATA = \
 if BUILD_DEMOS
 bin_PROGRAMS += \
 	bxt_timing \
+	bxt_hello_get_key_type \
 	bxt_hello_get \
 	bxt_hello_set \
 	bxt_hello_set_label \
@@ -456,7 +462,8 @@ bin_PROGRAMS += \
 	bxt_hello_unset \
 	bxt_hello_notify \
 	bxt_hello_notify_multi \
-	bxt_hello_simple
+	bxt_hello_simple \
+	bxt_hello_notify_simple
 
 # Timing test
 bxt_timing_SOURCES = \
@@ -465,6 +472,13 @@ bxt_timing_LDADD = \
 	libbuxton.la \
 	libbuxton-shared.la \
 	-lrt -lm
+
+bxt_hello_get_key_type_SOURCES = \
+	demo/hellogetkeytype.c
+bxt_hello_get_key_type_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_get_key_type_LDADD =\
+	libbuxton.la
 
 bxt_hello_get_SOURCES = \
 	demo/helloget.c
@@ -527,6 +541,13 @@ bxt_hello_simple_SOURCES = \
 bxt_hello_simple_CFLAGS = \
 	$(AM_CFLAGS)
 bxt_hello_simple_LDADD = \
+	libbuxtonsimple.la
+
+bxt_hello_notify_simple_SOURCES = \
+	demo/hellonotifysimple.c
+bxt_hello_notify_simple_CFLAGS = \
+	$(AM_CFLAGS)
+bxt_hello_notify_simple_LDADD = \
 	libbuxtonsimple.la
 
 if BUILD_GTK_DEMO

@@ -484,6 +484,105 @@ START_TEST (rg_cb_check)
 }
 END_TEST
 
+void client_string_cb(void *data, char *key)
+{
+	fail_if(!data, "Data value is void\n");
+
+	char *val = (char *)data;
+	fail_if(strcmp(val, "test"), "Wrong data passed into client_string_cb");
+	fail_if(strcmp(key, "keyname"), "Wrong key name passed into client_string_cb");
+}
+
+START_TEST (rn_cb_check)
+{
+	nstatus ns;
+	ns.status = 0;
+	ns.callback = client_string_cb;
+	BuxtonKey key = buxton_key_create("tg_s0", "keyname", "user", STRING);
+
+	BuxtonData bd;
+	bd.type = STRING;
+	bd.store.d_string = buxton_string_pack("test");
+	BuxtonArray *a = buxton_array_new();
+	fail_if(!buxton_array_add(a, &bd), "Unable to add element to array");
+
+	_BuxtonResponse resp;
+	resp.data = a;
+	fail_if (!buxton_array_get(resp.data, 0), "No array in resp.data");
+	resp.type = BUXTON_CONTROL_CHANGED;
+	BuxtonControlMessage bcm = buxton_response_type(&resp);
+	fail_if(bcm !=BUXTON_CONTROL_CHANGED, "Response type incorrect");
+	resp.key = key;
+	
+	_rn_cb(&resp, &ns);
+}
+END_TEST
+
+START_TEST (buxton_notify_create_check)
+{
+	errno = 0;	
+	sbuxton_set_group("tg_s0", "user");
+	fail_if(errno == ENOTCONN, "Connection failed");
+	int64_t int64_val = 5;
+	errno = 0;
+	sbuxton_set_int64("int64key", int64_val);
+	fail_if(errno == ENOTCONN, "Connection failed");
+	fail_if(errno == EACCES, "Set int64 failed");
+	errno = 0;
+
+	int ret;
+	ret = _client_connection();
+	fail_if(!ret, "Client connection failed- returned 0");
+	fail_if(client == NULL, "could not open client connection");
+
+	BuxtonKey key = _buxton_notify_create("user", "tg_s0", "int64key");
+	fail_if(!key, "Failed to create key");
+	fail_if(strcmp(buxton_key_get_layer(key), "user"),
+		"Wrong key layer");
+	fail_if(strcmp(buxton_key_get_name(key), "int64key"),
+		"Wrong key name");
+	fail_if(strcmp(buxton_key_get_group(key), "tg_s0"),
+		"Wrong key group");
+	fail_if(buxton_key_get_type(key) != INT64, "Wrong key type");
+
+	_client_disconnect();
+	fail_if(client != NULL, "could not close client connection");
+}
+END_TEST
+
+START_TEST (gkt_cb_check)
+{
+	BuxtonDataType data = UNKNOWN;
+	BuxtonDataType type = STRING;
+
+	BuxtonKey key = buxton_key_create("tg_s0", "keyname", "user", UNKNOWN);
+
+	BuxtonData bd1;
+	bd1.type = INT32;
+	bd1.store.d_int32 = 0;
+	BuxtonArray *a = buxton_array_new();
+	fail_if(!buxton_array_add(a, &bd1), "Unable to add element to array");
+		
+	BuxtonData bd;
+	bd.type = UINT32;
+	bd.store.d_uint32 = (uint32_t)type;
+	fail_if(!buxton_array_add(a, &bd), "Unable to add element to array");
+
+	_BuxtonResponse resp;
+	resp.data = a;
+	fail_if(!buxton_array_get(resp.data, 0), "No array in resp.data[0]");
+	fail_if(!buxton_array_get(resp.data, 1), "No data in resp.data[1]");
+	resp.type = BUXTON_CONTROL_GET_KEY_TYPE;
+	BuxtonControlMessage bcm = buxton_response_type(&resp);
+	fail_if(bcm !=BUXTON_CONTROL_GET_KEY_TYPE, "Response type incorrect");
+	resp.key = key;
+
+	_gkt_cb(&resp, &data);
+
+	fail_if(data != STRING, "Did not get correct type");
+}
+END_TEST
+
 static Suite *
 buxtonsimp_suite(void)
 {
@@ -524,6 +623,9 @@ buxtonsimp_suite(void)
 	tcase_add_test(tc, bg_cb_check);
 	tcase_add_test(tc, buxton_group_create_check);
 	tcase_add_test(tc, rg_cb_check);
+	tcase_add_test(tc, rn_cb_check);
+	tcase_add_test(tc, buxton_notify_create_check);
+	tcase_add_test(tc, gkt_cb_check);
 	suite_add_tcase(s, tc);
 
 	return s;

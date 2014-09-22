@@ -84,7 +84,20 @@ typedef struct vstatus {
 	} val;
 } vstatus;
 
+/*
+ * typedef for NotifyCallback, the format the client program's callback function
+ * to sbuxton_register_notify must be in
+ *
+typedef void (*NotifyCallback)(void *, char*);
+
+typedef struct nstatus {
+	int status;
+	NotifyCallback callback;
+} nstatus; */
+
 extern BuxtonClient client;
+
+void _rn_cb(BuxtonResponse response, void *data);
 
 /**
  * Checks for client connection and opens it if client connection is not open
@@ -139,6 +152,23 @@ BuxtonKey _buxton_group_create(char *name, char *layer);
  * @param data A void pointer
  */
 void _rg_cb(BuxtonResponse response, void *data);
+
+/**
+ * Creates a BuxtonKey internally for registering notifications
+ * with the correct buxton key type for that key
+ * @param layer A layer name that is a string (char *)
+ * @param group A group name that is a string (char *)
+ * @param name A group name that is a string (char *)
+ * @return A BuxtonKey that is a group
+ */
+BuxtonKey _buxton_notify_create(char *layer, char *group, char *name);
+
+/**
+ * Callback for buxton_get_key_type called in _buxton_notify_create
+ * @param response A BuxtonResponse
+ * @param data A voi pointer
+ */
+void _gkt_cb(BuxtonResponse response, void *data);
 
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html
