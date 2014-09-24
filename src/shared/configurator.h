@@ -50,7 +50,7 @@ typedef struct ConfigLayer {
  *
  * @note This API is draft
  */
-void buxton_add_cmd_line(ConfigKey confkey, char* data);
+void buxton_add_cmd_line(ConfigKey confkey, const char *data);
 
 /**
  * @internal

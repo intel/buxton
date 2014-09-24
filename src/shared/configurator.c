@@ -238,7 +238,7 @@ __attribute__ ((destructor)) static void free_conf(void)
 	iniparser_freedict(conf.ini);
 }
 
-void buxton_add_cmd_line(ConfigKey confkey, char* data)
+void buxton_add_cmd_line(ConfigKey confkey, const char *data)
 {
 	if (confkey >= CONFIG_MAX || confkey <= CONFIG_MIN) {
 		buxton_log("invalid confkey");
