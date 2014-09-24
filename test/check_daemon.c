@@ -164,6 +164,24 @@ static void teardown(void)
 	}
 }
 
+static void do_write(int fd, const void *buf, size_t count)
+{
+	ssize_t ret;
+
+	for (;;) {
+		ret = write(fd, buf, count);
+		if (ret < 0) {
+			fail_if(errno != EAGAIN, "Write error");
+		} else {
+			count -= (size_t)ret;
+			if (count == 0) {
+				return;
+			}
+			buf = ((const char*)buf) + (size_t)ret;
+		}
+	}
+}
+
 START_TEST(buxton_open_check)
 {
 	BuxtonClient c = NULL;
@@ -2065,7 +2083,7 @@ START_TEST(identify_client_check)
 	r = identify_client(&client);
 	fail_if(r, "Identified client without message");
 
-	write(sender, &msg, sizeof(int32_t));
+	do_write(sender, &msg, sizeof(int32_t));
 	r = identify_client(&client);
 	fail_if(!r, "Identify client failed");
 
@@ -2281,14 +2299,14 @@ START_TEST(handle_client_check)
 	fcntl(daemon.client_list->fd, F_SETFL, O_NONBLOCK);
 	add_pollfd(&daemon, daemon.client_list->fd, 2, false);
 	fail_if(daemon.nfds != 1, "Failed to add pollfd 2");
-	write(dummy, buf, 1);
+	do_write(dummy, buf, 1);
 	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 2");
 	fail_if(!daemon.client_list, "Terminated client with insufficient data");
 	fail_if(daemon.client_list->data, "Didn't clean up left over client data 1");
 
 	bsize = 0;
 	memcpy(message + BUXTON_LENGTH_OFFSET, &bsize, sizeof(uint32_t));
-	write(dummy, message, BUXTON_MESSAGE_HEADER_LENGTH);
+	do_write(dummy, message, BUXTON_MESSAGE_HEADER_LENGTH);
 	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 3");
 	fail_if(daemon.client_list, "Failed to terminate client with bad size 1");
 	close(dummy);
@@ -2301,7 +2319,7 @@ START_TEST(handle_client_check)
 	fail_if(daemon.nfds != 1, "Failed to add pollfd 3");
 	bsize = BUXTON_MESSAGE_MAX_LENGTH + 1;
 	memcpy(message + BUXTON_LENGTH_OFFSET, &bsize, sizeof(uint32_t));
-	write(dummy, message, BUXTON_MESSAGE_HEADER_LENGTH);
+	do_write(dummy, message, BUXTON_MESSAGE_HEADER_LENGTH);
 	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 4");
 	fail_if(daemon.client_list, "Failed to terminate client with bad size 2");
 	close(dummy);
@@ -2314,12 +2332,12 @@ START_TEST(handle_client_check)
 	fail_if(daemon.nfds != 1, "Failed to add pollfd 4");
 	bsize = (uint32_t)ret;
 	memcpy(message + BUXTON_LENGTH_OFFSET, &bsize, sizeof(uint32_t));
-	write(dummy, message, ret);
+	do_write(dummy, message, ret);
 	fail_if(handle_client(&daemon, daemon.client_list, 0), "More data available 5");
 	fail_if(!daemon.client_list, "Terminated client with correct data length");
 
 	for (int i = 0; i < 33; i++) {
-		write(dummy, message, ret);
+		do_write(dummy, message, ret);
 	}
 	fail_if(!handle_client(&daemon, daemon.client_list, 0), "No more data available");
 	fail_if(!daemon.client_list, "Terminated client with correct data length");
