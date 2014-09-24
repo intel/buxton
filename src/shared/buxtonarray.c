@@ -41,6 +41,9 @@ bool buxton_array_add(BuxtonArray *array,
 	}
 
 	new_len = array->len += 1;
+	if (!new_len) {
+		return false;
+	}
 	curr = (size_t)(array->len*sizeof(void*));
 	new_size = curr + sizeof(void*);
 	if (new_len >= array->len) {
@@ -61,7 +64,7 @@ void *buxton_array_get(BuxtonArray *array, uint16_t index)
 	if (!array) {
 		return NULL;
 	}
-	if (index > array->len) {
+	if (index > array->len || index < 0) {
 		return NULL;
 	}
 	return array->data[index];
