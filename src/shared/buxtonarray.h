@@ -26,7 +26,7 @@
  */
 typedef struct BuxtonArray {
 	void **data; /**<Dynamic array contents */
-	uint len; /**<Length of the array */
+	uint16_t len; /**<Length of the array */
 } BuxtonArray;
 
 

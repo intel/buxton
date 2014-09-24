@@ -27,7 +27,7 @@ BuxtonArray *buxton_array_new(void)
 bool buxton_array_add(BuxtonArray *array,
 		      void *data)
 {
-	uint new_len;
+	uint16_t new_len;
 	size_t curr, new_size;
 
 	if (!array || !data) {
@@ -40,7 +40,7 @@ bool buxton_array_add(BuxtonArray *array,
 		}
 	}
 
-	new_len = array->len += 1;
+	new_len = (uint16_t)(array->len + 1);
 	if (!new_len) {
 		return false;
 	}
