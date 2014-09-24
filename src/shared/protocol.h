@@ -109,8 +109,9 @@ int buxton_wire_get_response(_BuxtonClient *client);
  * @param data User data to be used with callback function
  * @return a boolean value, indicating success of the operation
  */
-bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
-			   BuxtonCallback callback, void *data)
+bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key,
+			   const void *value, BuxtonCallback callback,
+			   void *data)
 	__attribute__((warn_unused_result));
 
 /**

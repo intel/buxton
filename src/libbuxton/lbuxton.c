@@ -240,7 +240,7 @@ int buxton_unregister_notification(BuxtonClient client,
 
 int buxton_set_value(BuxtonClient client,
 		     BuxtonKey key,
-		     void *value,
+		     const void *value,
 		     BuxtonCallback callback,
 		     void *data,
 		     bool sync)

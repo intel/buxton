@@ -133,7 +133,7 @@ _bx_export_ void buxton_close(BuxtonClient client);
  */
 _bx_export_ int buxton_set_value(BuxtonClient client,
 				 BuxtonKey key,
-				 void *value,
+				 const void *value,
 				 BuxtonCallback callback,
 				 void *data,
 				 bool sync)

@@ -429,8 +429,9 @@ int buxton_wire_get_response(_BuxtonClient *client)
 	return (int)processed;
 }
 
-bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
-			   BuxtonCallback callback, void *data)
+bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key,
+			   const void *value, BuxtonCallback callback,
+			   void *data)
 {
 	_cleanup_free_ uint8_t *send = NULL;
 	bool ret = false;
@@ -448,29 +449,30 @@ bool buxton_wire_set_value(_BuxtonClient *client, _BuxtonKey *key, void *value,
 	d_value.type = key->type;
 	switch (key->type) {
 	case STRING:
+		/* cast until BuxtonString is updated */
 		d_value.store.d_string.value = (char *)value;
 		d_value.store.d_string.length = (uint32_t)strlen((char *)value) + 1;
 		break;
 	case INT32:
-		d_value.store.d_int32 = *(int32_t *)value;
+		d_value.store.d_int32 = *(const int32_t *)value;
 		break;
 	case INT64:
-		d_value.store.d_int64 = *(int64_t *)value;
+		d_value.store.d_int64 = *(const int64_t *)value;
 		break;
 	case UINT32:
-		d_value.store.d_uint32 = *(uint32_t *)value;
+		d_value.store.d_uint32 = *(const uint32_t *)value;
 		break;
 	case UINT64:
-		d_value.store.d_uint64 = *(uint64_t *)value;
+		d_value.store.d_uint64 = *(const uint64_t *)value;
 		break;
 	case FLOAT:
-		d_value.store.d_float = *(float *)value;
+		d_value.store.d_float = *(const float *)value;
 		break;
 	case DOUBLE:
 		memcpy(&d_value.store.d_double, value, sizeof(double));
 		break;
 	case BOOLEAN:
-		d_value.store.d_boolean = *(bool *)value;
+		d_value.store.d_boolean = *(const bool *)value;
 		break;
 	default:
 		break;
