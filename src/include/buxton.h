@@ -104,7 +104,7 @@ typedef void (*BuxtonCallback)(BuxtonResponse, void *);
  * @param path Path to the buxton configuration file to use
  * @return An int with 0 indicating success or an errno value
  */
-_bx_export_ int buxton_set_conf_file(char *path);
+_bx_export_ int buxton_set_conf_file(const char *path);
 
 /**
  * Open a connection to Buxton
@@ -155,7 +155,7 @@ _bx_export_ int buxton_set_value(BuxtonClient client,
  */
 _bx_export_ int buxton_set_label(BuxtonClient client,
 				 BuxtonKey key,
-				 char *value,
+				 const char *value,
 				 BuxtonCallback callback,
 				 void *data,
 				 bool sync)
@@ -221,7 +221,7 @@ _bx_export_ int buxton_get_value(BuxtonClient client,
  * @return An boolean value, indicating success of the operation
  */
 _bx_export_ int buxton_client_list_keys(BuxtonClient client,
-					char *layer_name,
+					const char *layer_name,
 					BuxtonCallback callback,
 					void *data,
 					bool sync)
@@ -292,8 +292,8 @@ _bx_export_ ssize_t buxton_client_handle_response(BuxtonClient client)
  * @param layer Pointer to a character string representing a layer (optional)
  * @return A pointer to a BuxtonString containing the key
  */
-_bx_export_ BuxtonKey buxton_key_create(char *group, char *name, char *layer,
-				      BuxtonDataType type)
+_bx_export_ BuxtonKey buxton_key_create(const char *group, const char *name,
+					const char *layer, BuxtonDataType type)
 	__attribute__((warn_unused_result));
 
 /**
