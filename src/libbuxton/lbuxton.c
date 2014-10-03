@@ -288,7 +288,6 @@ int buxton_set_label(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = BUXTON_TYPE_STRING;
 	/* discarding const until BuxtonString updated */
 	v = buxton_string_pack((char*)value);
 
