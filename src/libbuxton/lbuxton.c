@@ -292,7 +292,7 @@ int buxton_set_label(BuxtonClient client,
 	/* discarding const until BuxtonString updated */
 	v = buxton_string_pack((char*)value);
 
-	k->type = BUXTON_TYPE_STRING;
+	k->type = BUXTON_TYPE_UNSET;
 	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
 				  data);
 	if (!r) {

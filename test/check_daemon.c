@@ -724,7 +724,8 @@ START_TEST(parse_list_check)
 		"Failed to set correct set label group 1");
 	fail_if(!streq(value->store.d_string.value, l1[2].store.d_string.value),
 		"Failed to set correct set label label 1");
-	fail_if(key.type != BUXTON_TYPE_STRING, "Failed to key type in set label");
+	fail_if(key.type != BUXTON_TYPE_UNSET,
+		"Failed to set key type in set label");
 	l2[0].type = BUXTON_TYPE_INT32;
 	l2[1].type = BUXTON_TYPE_STRING;
 	l2[2].type = BUXTON_TYPE_STRING;

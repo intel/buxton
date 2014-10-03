@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 
 	/* SMACK labels */
 	c_set_label = (Command) { "set-label", "Set a value's label",
-				  3, 4, "layer group [name] label", &cli_set_label, BUXTON_TYPE_STRING };
+				  3, 4, "layer group [name] label", &cli_set_label, BUXTON_TYPE_UNSET };
 
 	hashmap_put(commands, c_set_label.name, &c_set_label);
 
