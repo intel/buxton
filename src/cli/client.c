@@ -190,6 +190,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		}
 		break;
 	case BUXTON_TYPE_INT32:
+		errno = 0;
 		set.store.d_int32 = (int32_t)strtol(four, NULL, 10);
 		if (errno) {
 			printf("Invalid int32_t value\n");
@@ -206,6 +207,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		}
 		break;
 	case BUXTON_TYPE_UINT32:
+		errno = 0;
 		set.store.d_uint32 = (uint32_t)strtol(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid uint32_t value\n");
@@ -222,6 +224,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		}
 		break;
 	case BUXTON_TYPE_INT64:
+		errno = 0;
 		set.store.d_int64 = strtoll(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid int64_t value\n");
@@ -238,6 +241,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		}
 		break;
 	case BUXTON_TYPE_UINT64:
+		errno = 0;
 		set.store.d_uint64 = strtoull(value.value, NULL, 10);
 		if (errno) {
 			printf("Invalid uint64_t value\n");
@@ -254,6 +258,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		}
 		break;
 	case BUXTON_TYPE_FLOAT:
+		errno = 0;
 		set.store.d_float = strtof(value.value, NULL);
 		if (errno) {
 			printf("Invalid float value\n");
@@ -270,6 +275,7 @@ bool cli_set_value(BuxtonControl *control, BuxtonDataType type,
 		}
 		break;
 	case BUXTON_TYPE_DOUBLE:
+		errno = 0;
 		set.store.d_double = strtod(value.value, NULL);
 		if (errno) {
 			printf("Invalid double value\n");
