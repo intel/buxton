@@ -3,6 +3,9 @@ Description=Buxton Configuration Service
 
 [Socket]
 ListenStream=@BUXTON_SOCKET@
+SocketMode=0777
+SmackLabelIPIn=*
+SmackLabelIPOut=@
 
 [Install]
 WantedBy=sockets.target
