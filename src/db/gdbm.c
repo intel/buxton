@@ -175,6 +175,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	ret = gdbm_store(db, key_data, value, GDBM_REPLACE);
 	if (ret && gdbm_errno == GDBM_READER_CANT_STORE) {
 		ret = EROFS;
+		goto end;
 	}
 	assert(ret == 0);
 
