@@ -356,7 +356,6 @@ int buxton_remove_group(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = BUXTON_TYPE_STRING;
 	r = buxton_wire_remove_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
@@ -473,7 +472,7 @@ BuxtonKey buxton_key_create(const char *group, const char *name,
 	if (type < BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX) {
 		goto fail;
 	}
-	if (!name && type != BUXTON_TYPE_STRING) {
+	if (!name && type != BUXTON_TYPE_STRING && type != BUXTON_TYPE_UNSET) {
 		goto fail;
 	}
 
