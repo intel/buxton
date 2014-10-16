@@ -789,7 +789,7 @@ uint32_t buxton_response_list_count(BuxtonResponse response)
 	if (type != BUXTON_CONTROL_LIST) {
 		return 0;
 	}
-	return r->data->len - 1;
+	return r->data->len ? ((uint32_t)r->data->len - 1) : 0;
 }
 
 char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
@@ -809,7 +809,7 @@ char *buxton_response_list_name(BuxtonResponse response, uint32_t index)
 	if (index + 1 >= r->data->len) {
 		return NULL;
 	}
-	d = buxton_array_get(r->data, index + 1);
+	d = buxton_array_get(r->data, (uint16_t)(index + 1));
 	if (d == NULL) {
 		return NULL;
 	}
