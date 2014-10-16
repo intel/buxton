@@ -150,12 +150,70 @@ bool cli_remove_group(BuxtonControl *control, BuxtonDataType type,
 	return ret;
 }
 
-bool cli_get_label(BuxtonControl *control, BuxtonDataType type,
-		   char *one, char *two, char *three,
-		   __attribute__((unused)) char *four)
+void get_label_callback(BuxtonResponse response, void *data)
 {
-	/* Not yet implemented */
-	return false;
+	void **r = data;
+
+	*r = NULL;
+	if (buxton_response_status(response) != 0) {
+		return;
+	}
+
+	if (buxton_response_value_type(response) != BUXTON_TYPE_STRING) {
+		return;
+	}
+
+	*r = buxton_response_value(response);
+}
+
+bool cli_get_label(BuxtonControl *control, BuxtonDataType type,
+		   char *one, char *two, char *three, __attribute__((unused)) char * four)
+{
+	BuxtonKey key;
+	_cleanup_free_ char *label = NULL;
+	char *layer = one;
+	char *group = two;
+	char *name = three;
+
+
+	BuxtonData ddata;
+	BuxtonString dlabel;
+	bool ret = false;
+
+	if (!layer || !group) {
+		return false;
+	}
+
+	key = buxton_key_create(group, name, layer, type);
+	if (!key) {
+		return false;
+	}
+
+	if (control->client.direct) {
+		ddata.type = BUXTON_TYPE_UNSET;
+		dlabel.value = NULL;
+		ret = buxton_direct_get_value_for_layer(control, key,
+							&ddata, &dlabel,
+							NULL);
+		if (ddata.type == BUXTON_TYPE_STRING) {
+			free(ddata.store.d_string.value);
+		}
+		label = dlabel.value;
+	} else {
+		ret = buxton_get_label(&control->client,
+					      key,
+					      get_label_callback,
+					      &label, true);
+	}
+	if (ret) {
+		printf("Requested key not found in layer \'%s\': %s:%s\n",
+		       layer, group, name);
+		return false;
+	}
+
+	printf("[%s] %s:%s - %s\n", layer, group, name, label);
+
+	return true;
 }
 
 bool cli_set_value(BuxtonControl *control, BuxtonDataType type,

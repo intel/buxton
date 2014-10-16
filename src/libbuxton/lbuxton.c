@@ -309,6 +309,38 @@ int buxton_set_label(BuxtonClient client,
 	return ret;
 }
 
+int buxton_get_label(BuxtonClient client,
+		     BuxtonKey key,
+		     BuxtonCallback callback,
+		     void *data,
+		     bool sync)
+{
+	bool r;
+	int ret = 0;
+	_BuxtonKey *k = (_BuxtonKey *)key;
+
+	if (!k || !k->group.value || !k->layer.value ||
+	    k->type < BUXTON_TYPE_MIN || k->type >= BUXTON_TYPE_MAX) {
+		return EINVAL;
+	}
+
+	r = buxton_wire_get_label((_BuxtonClient *)client, k, callback, data);
+	if (!r) {
+		return -1;
+	}
+
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			ret = -1;
+		} else {
+			ret = 0;
+		}
+	}
+
+	return ret;
+}
+
 int buxton_create_group(BuxtonClient client,
 			BuxtonKey key,
 			BuxtonCallback callback,
@@ -674,7 +706,7 @@ void *buxton_response_value(BuxtonResponse response)
 	}
 
 	type = buxton_response_type(response);
-	if (type == BUXTON_CONTROL_GET) {
+	if (type == BUXTON_CONTROL_GET || type == BUXTON_CONTROL_GET_LABEL) {
 		d = buxton_array_get(r->data, 1);
 	} else if (type == BUXTON_CONTROL_CHANGED) {
 		if (r->data->len) {
@@ -759,7 +791,7 @@ BuxtonDataType buxton_response_value_type(BuxtonResponse response)
 	}
 
 	type = buxton_response_type(response);
-	if (type == BUXTON_CONTROL_GET) {
+	if (type == BUXTON_CONTROL_GET || type == BUXTON_CONTROL_GET_LABEL) {
 		d = buxton_array_get(r->data, 1);
 	} else if (type == BUXTON_CONTROL_CHANGED) {
 		if (r->data->len) {

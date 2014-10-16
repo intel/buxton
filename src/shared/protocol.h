@@ -132,6 +132,21 @@ bool buxton_wire_set_label(_BuxtonClient *client, _BuxtonKey *key,
 	__attribute__((warn_unused_result));
 
 /**
+ * Send a GET_LABEL message over the wire protocol, return the response
+ *
+ * @note This is a privileged operation, so it will return false for unprivileged clients
+ *
+ * @param client Client connection
+ * @param key Key or group name
+ * @param callback A callback function to handle daemon reply
+ * @param data User data to be used with callback function
+ * @return a boolean value, indicating success of the operation
+ */
+bool buxton_wire_get_label(_BuxtonClient *client, _BuxtonKey *key,
+			   BuxtonCallback callback, void *data)
+	__attribute__((warn_unused_result));
+
+/**
  * Send a CREATE_GROUP message over the wire protocol, return the response
  *
  * @note This is a privileged operation, so it will return false for unprivileged clients
@@ -173,7 +188,6 @@ bool buxton_wire_get_value(_BuxtonClient *client, _BuxtonKey *key,
 			   BuxtonCallback callback, void *data)
 	__attribute__((warn_unused_result));
 
-
 /**
  * Send an UNSET message over the wire protocol, return the response
  * @param client Client connection
@@ -187,6 +201,7 @@ bool buxton_wire_unset_value(_BuxtonClient *client,
 			     BuxtonCallback callback,
 			     void *data)
 	__attribute__((warn_unused_result));
+
 /**
  * Send a NOTIFY message over the protocol, register for events
  * @param client Client connection
