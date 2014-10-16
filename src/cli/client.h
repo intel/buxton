@@ -118,7 +118,7 @@ bool cli_remove_group(BuxtonControl *control,
  * @param type Type of label being sought (unused)
  * @param one Layer of the label being sought
  * @param two Group of the label being sought
- * @param two Name of the label being sought
+ * @param two Name of the label being sought (optional)
  * @param four NULL (unused)
  * @returns bool indicating success or failure
  */

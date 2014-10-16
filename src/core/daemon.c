@@ -113,6 +113,27 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 			return false;
 		}
 		break;
+	case BUXTON_CONTROL_GET_LABEL:
+		if (count == 3) {
+			if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+			    list[2].type != BUXTON_TYPE_STRING) {
+				return false;
+			}
+			key->type = BUXTON_TYPE_UNSET;
+			key->layer = list[0].store.d_string;
+			key->group = list[1].store.d_string;
+			key->name = list[2].store.d_string;
+		} else if (count == 2) {
+			if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING) {
+				return false;
+			}
+			key->type = BUXTON_TYPE_UNSET;
+			key->layer = list[0].store.d_string;
+			key->group = list[1].store.d_string;
+		} else {
+			return false;
+		}
+		break;
 	case BUXTON_CONTROL_LIST:
 		return false;
 		if (count != 1) {
@@ -227,6 +248,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	case BUXTON_CONTROL_GET:
 		data = get_value(self, client, &key, &response);
 		break;
+	case BUXTON_CONTROL_GET_LABEL:
+		data = get_label(self, client, &key, &response);
+		break;
 	case BUXTON_CONTROL_UNSET:
 		unset_value(self, client, &key, &response);
 		break;
@@ -317,6 +341,21 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 				abort();
 			}
 			buxton_log("Failed to serialize get response message\n");
+			abort();
+		}
+		break;
+	case BUXTON_CONTROL_GET_LABEL:
+		if (data && !buxton_array_add(out_list, data)) {
+			abort();
+		}
+		response_len = buxton_serialize_message(&response_store,
+							BUXTON_CONTROL_STATUS,
+							msgid, out_list);
+		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
+			buxton_log("Failed to serialize get_label response message\n");
 			abort();
 		}
 		break;
@@ -712,6 +751,57 @@ BuxtonData *get_value(BuxtonDaemon *self, client_list_item *client,
 fail:
 	buxton_debug("get value failed\n");
 	free(data);
+	data = NULL;
+end:
+
+	return data;
+}
+
+BuxtonData *get_label(BuxtonDaemon *self, client_list_item *client,
+		      _BuxtonKey *key, int32_t *status)
+{
+	BuxtonData *data = NULL;
+	BuxtonString label = { NULL, 0 };
+	int32_t ret;
+
+	assert(self);
+	assert(client);
+	assert(key);
+	assert(status);
+
+	*status = -1;
+
+	data = malloc0(sizeof(BuxtonData));
+	if (!data) {
+		abort();
+	}
+
+	buxton_debug("Daemon getting label on [%s][%s][%s]\n",
+		     key->layer.value,
+		     key->group.value,
+		     key->name.value);
+
+	self->buxton.client.uid = client->cred.uid;
+
+	ret = buxton_direct_get_value(&self->buxton, key, data, &label,
+				      client->smack_label);
+	if (ret) {
+		goto fail;
+	}
+
+	if (data->type == BUXTON_TYPE_STRING) {
+		free(data->store.d_string.value);
+	}
+	data->type = BUXTON_TYPE_STRING;
+	data->store.d_string = label;
+	buxton_debug("get label returned successfully from db\n");
+
+	*status = 0;
+	goto end;
+fail:
+	buxton_debug("get label failed\n");
+	free(data);
+	free(label.value);
 	data = NULL;
 end:
 

@@ -1016,6 +1016,88 @@ START_TEST(buxton_wire_get_value_check)
 }
 END_TEST
 
+START_TEST(buxton_wire_get_label_check)
+{
+	_BuxtonClient client;
+	int server;
+	ssize_t size;
+	BuxtonData *list = NULL;
+	uint8_t buf[4096];
+	ssize_t r;
+	_BuxtonKey key;
+	BuxtonControlMessage msg;
+	uint32_t msgid;
+
+	client.uid = 0;
+	setup_socket_pair(&(client.fd), &server);
+	fail_if(fcntl(client.fd, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+	fail_if(fcntl(server, F_SETFL, O_NONBLOCK),
+		"Failed to set socket to non blocking");
+
+	fail_if(!setup_callbacks(),
+		"Failed to initialize callbacks");
+
+	/* first, get a label on a group */
+	key.layer = buxton_string_pack("layer");
+	key.group = buxton_string_pack("group");
+	key.name.value = NULL;
+	fail_if(buxton_wire_get_label(&client, &key, NULL,
+				      NULL) != true,
+		"Failed to properly get label");
+
+	r = read(server, buf, 4096);
+	fail_if(r < 0, "Read from client failed");
+	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
+	fail_if(size != 2, "Failed to get valid message from buffer");
+	fail_if(msg != BUXTON_CONTROL_GET_LABEL,
+		"Failed to get correct control type");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type");
+	fail_if(!streq(list[0].store.d_string.value, "layer"),
+		"Failed to set correct layer");
+	fail_if(!streq(list[1].store.d_string.value, "group"),
+		"Failed to set correct group");
+
+	free(list[0].store.d_string.value);
+	free(list[1].store.d_string.value);
+	free(list);
+
+	/* ... then, get a label on a key */
+	key.layer = buxton_string_pack("layer");
+	key.group = buxton_string_pack("group");
+	key.name = buxton_string_pack("name");
+	fail_if(buxton_wire_get_label(&client, &key, NULL,
+				      NULL) != true,
+		"Failed to properly get label");
+
+	r = read(server, buf, 4096);
+	fail_if(r < 0, "Read from client failed");
+	size = buxton_deserialize_message(buf, &msg, (size_t)r, &msgid, &list);
+	fail_if(size != 3, "Failed to get valid message from buffer");
+	fail_if(msg != BUXTON_CONTROL_GET_LABEL,
+		"Failed to get correct control type");
+	fail_if(list[0].type != BUXTON_TYPE_STRING, "Failed to set correct layer type");
+	fail_if(list[1].type != BUXTON_TYPE_STRING, "Failed to set correct group type");
+	fail_if(list[2].type != BUXTON_TYPE_STRING, "Failed to set correct name type");
+	fail_if(!streq(list[0].store.d_string.value, "layer"),
+		"Failed to set correct layer");
+	fail_if(!streq(list[1].store.d_string.value, "group"),
+		"Failed to set correct group");
+	fail_if(!streq(list[2].store.d_string.value, "name"),
+		"Failed to set correct name");
+
+	free(list[0].store.d_string.value);
+	free(list[1].store.d_string.value);
+	free(list[2].store.d_string.value);
+	free(list);
+
+	cleanup_callbacks();
+	close(client.fd);
+	close(server);
+}
+END_TEST
+
 START_TEST(buxton_wire_unset_value_check)
 {
 	_BuxtonClient client;
@@ -1209,6 +1291,7 @@ buxton_suite(void)
 	tcase_add_test(tc, buxton_wire_set_value_check);
 	tcase_add_test(tc, buxton_wire_set_label_check);
 	tcase_add_test(tc, buxton_wire_get_value_check);
+	tcase_add_test(tc, buxton_wire_get_label_check);
 	tcase_add_test(tc, buxton_wire_unset_value_check);
 	tcase_add_test(tc, buxton_wire_create_group_check);
 	tcase_add_test(tc, buxton_wire_remove_group_check);
