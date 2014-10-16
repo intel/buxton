@@ -57,14 +57,14 @@ bool buxton_array_add(BuxtonArray *array,
 			return false;
 		}
 		/* this following erasing isn't strictly needed */
-		memset(p + len + 1, 0, (alen - len - 1) * sizeof * p);
+		memset(p + len + 1, 0, (unsigned)(alen - len - 1) * sizeof * p);
 		array->data = p;
 	}
 
 	/* Store the data at the end of the array that is updated */
 	assert(p);
 	p[len] = data;
-	array->len = len + 1;
+	array->len = (uint16_t)(len + 1);
 
 	return true;
 }
