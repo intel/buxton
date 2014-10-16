@@ -535,7 +535,7 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 		return false;
 	}
 	printf("%s%s:%s = %s: %s\n", prefix, nv(group),
-		       nv(name), nv(tname), nv(value));
+		       nv(name), tname, nv(value));
 
 	return true;
 }
@@ -565,8 +565,8 @@ bool cli_list_names(BuxtonControl *control,
 		    char *layer, char *group, char *prefix,
 		    __attribute__((unused)) char *four)
 {
-	uint32_t index;
-	uint32_t count;
+	uint16_t index;
+	uint16_t count;
 	const char *name;
 	BuxtonString slayer;
 	BuxtonString sgroup;
