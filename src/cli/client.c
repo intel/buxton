@@ -598,24 +598,110 @@ bool cli_get_value(BuxtonControl *control, BuxtonDataType type,
 	return true;
 }
 
+struct nameslist {
+	int status;
+	int count;
+	char **names;
+};
+
 void list_names_callback(BuxtonResponse response, void *data)
 {
 	uint32_t index;
 	uint32_t count;
-	char *name;
-	char *group;
+	struct nameslist *list = data;
 
-	if (buxton_response_status(response) != 0) {
+	list->status = buxton_response_status(response);
+	if (list->status != 0) {
 		return;
 	}
 
-	group = data;
 	count = buxton_response_list_count(response);
-	for (index = 0 ; index < count ; index++) {
-		name = buxton_response_list_name(response, index);
-		printf("found %s %s\n", group ? "key" : "group", name);
-		free(name);
+	list->count = (int)count;
+	list->names = calloc(count, sizeof * list->names);
+	if (list->names == NULL) {
+		list->status = ENOMEM;
+		return;
 	}
+
+	list->status = 0;
+	for (index = 0 ; index < count ; index++)
+		list->names[index] = buxton_response_list_name(response, index);
+}
+
+/* from man qsort: */
+static int
+cmpstringp(const void *p1, const void *p2)
+{
+   /* The actual arguments to this function are "pointers to
+      pointers to char", but strcmp(3) arguments are "pointers
+      to char", hence the following cast plus dereference */
+
+   return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
+
+bool get_list_names(BuxtonControl *control, char *layer, char *group, char *prefix, struct nameslist *list)
+{
+	uint16_t index;
+	uint16_t count;
+	BuxtonString slayer;
+	BuxtonString sgroup;
+	BuxtonString sprefix;
+	BuxtonArray *array;
+	BuxtonData *item;
+	
+	if (!control->client.direct) {
+		if (buxton_list_names(&control->client,
+					   layer, group, prefix, list_names_callback,
+					   list, true)) {
+			list->status = errno;
+			return false;
+		}
+		if (list->status) {
+			return false;
+		}
+	} else {
+		array = NULL;
+		slayer.value = layer;
+		slayer.length = (uint32_t)strlen(layer) + 1;
+		sgroup.value = group;
+		sgroup.length = group ? (uint32_t)strlen(group) + 1 : 0;
+		sprefix.value = prefix;
+		sprefix.length = prefix ? (uint32_t)strlen(prefix) + 1 : 0;
+
+		if (!buxton_direct_list_names(control, &slayer, &sgroup,
+			    &sprefix, &array)) {
+			list->status = errno;
+			return false;
+		}
+
+		count = array->len;
+		for (index = 0 ; index < count ; index++) {
+			item = buxton_array_get(array, index);
+			if (item == NULL || item->type != BUXTON_TYPE_STRING) {
+				list->status = EINVAL;
+				buxton_array_free(&array, free_buxton_data);
+				return false;
+			}
+		}
+
+		list->names = calloc(count, sizeof * list->names);
+		if (list->names == NULL) {
+			list->status = ENOMEM;
+			buxton_array_free(&array, free_buxton_data);
+			return false;
+		}
+
+		list->count = (int)count;
+		list->status = 0;
+		for (index = 0 ; index < count ; index++) {
+			item = buxton_array_get(array, index);
+			list->names[index] = item->store.d_string.value;
+			item->type = BUXTON_TYPE_UNSET;
+		}
+		buxton_array_free(&array, free_buxton_data);
+	}
+	qsort(list->names, list->count, sizeof * list->names, cmpstringp);
+	return true;
 }
 
 bool cli_list_names(BuxtonControl *control,
@@ -623,50 +709,32 @@ bool cli_list_names(BuxtonControl *control,
 		    char *layer, char *group, char *prefix,
 		    __attribute__((unused)) char *four)
 {
-	uint16_t index;
-	uint16_t count;
-	const char *name;
-	BuxtonString slayer;
-	BuxtonString sgroup;
-	BuxtonString sprefix;
-	BuxtonArray *array;
-	BuxtonData *item;
+	int index;
+	char *name;
+	const char *what;
+	struct nameslist list;
 	
+	/* 
+          type here is used in a special way: 
+          selecting between list of groups or of keys
+        */
 	if (!type) {
+		what = "group";
 		prefix = group;
 		group = NULL;
+	} else {
+		what = "key";
 	}
 
-	if (!control->client.direct) {
-		return !buxton_list_names(&control->client,
-					   layer, group, prefix, list_names_callback,
-					   group, true);
-	}
-
-	array = NULL;
-	slayer.value = layer;
-	slayer.length = (uint32_t)strlen(layer) + 1;
-	sgroup.value = group;
-	sgroup.length = group ? (uint32_t)strlen(group) + 1 : 0;
-	sprefix.value = prefix;
-	sprefix.length = prefix ? (uint32_t)strlen(prefix) + 1 : 0;
-	if (!buxton_direct_list_names(control, &slayer, &sgroup,
-	    &sprefix, &array)) {
+	if (!get_list_names(control, layer, group, prefix, &list))
 		return false;
-	}
 
-	count = array->len;
-	for (index = 0 ; index < count ; index++) {
-		item = buxton_array_get(array, index);
-		if (item == NULL) {
-			return false;
-		}
-		if (item->type != BUXTON_TYPE_STRING) {
-			return false;		
-		}
-		name = item->store.d_string.value;
-		printf("found %s %s\n", group ? "key" : "group", name);
+	for (index = 0 ; index < list.count ; index ++) {
+		name = list.names[index];
+		printf("found %s %s\n", what, name);
+		free(name);
 	}
+	free(list.names);
 	return true;
 }
 
