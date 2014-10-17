@@ -154,7 +154,7 @@ START_TEST(list_check)
 	/* Append a million strings. Results in about 3 million allocs
 	 * due to asprintf, calloc of node, etc */
 	int DEFAULT_SIZE = (10*1000)*100;
-	for (i = 0; i <= DEFAULT_SIZE; i++) {
+	for (i = 0; i < DEFAULT_SIZE; i++) {
 		if (i == 5) {
 			fail_if(buxton_list_append(&list, data) == false,
 				"Failed to append to BuxtonList");

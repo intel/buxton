@@ -69,7 +69,7 @@ bool buxton_list_prepend(BuxtonList **list, void *data)
 			return false;
 		}
 		prev = head;
-		head->size = 0;
+		head->size = 1;
 		prev->tail = head;
 		prev->next = NULL;
 	} else {
