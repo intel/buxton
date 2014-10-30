@@ -28,32 +28,29 @@ bool buxton_list_append(BuxtonList **list, void *data)
 	BuxtonList *next = NULL;
 
 	if (!head) {
-		/* New head generation */
+		/* New list generation */
 		head = calloc(1, sizeof(BuxtonList));
 		if (!head) {
 			return false;
 		}
-		next = parent = head;
-		head->size = 0;
-		next->tail = NULL;
-	}
-
-	if (!next) {
+		head->size = 1;
+		head->tail = head;
+		head->next = NULL;
+		head->data = data;
+		*list = head;
+	} else {
+		/* New tail generation */
 		next = calloc(1, sizeof(BuxtonList));
 		if (!next) {
 			return false;
 		}
-		if (head->tail) {
-			parent = head->tail;
-		} else {
-			parent = head;
-		}
+		head->size += 1;
+		parent = head->tail;
 		parent->next = next;
 		head->tail = next;
+		next->next = NULL;
+		next->data = data;
 	}
-	head->size += 1;
-	next->data = data;
-	*list = head;
 	return true;
 }
 
@@ -63,30 +60,30 @@ bool buxton_list_prepend(BuxtonList **list, void *data)
 	BuxtonList *prev = NULL;
 
 	if (!head) {
-		/* New head generation */
+		/* New list generation */
 		head = calloc(1, sizeof(BuxtonList));
 		if (!head) {
 			return false;
 		}
-		prev = head;
-		head->size = 0;
-		prev->tail = head;
-		prev->next = NULL;
+		head->size = 1;
+		head->tail = head;
+		head->next = NULL;
+		head->data = data;
+		*list = head;
 	} else {
-		/* New item */
+		/* New head generation */
 		prev = calloc(1, sizeof(BuxtonList));
 		if (!prev) {
 			return false;
 		}
-		prev->size = head->size+1;
+		prev->size = head->size + 1;
 		head->size = 0;
 		prev->next = head;
 		prev->tail = head->tail;
 		head->tail = NULL;
+		prev->data = data;
+		*list = prev;
 	}
-	/* Previous item is now the head */
-	prev->data = data;
-	*list = prev;
 
 	return true;
 }
@@ -107,11 +104,11 @@ bool buxton_list_remove(BuxtonList **list, void *data, bool do_free)
 		return false;
 	}
 
-	/* Data on the head (head removal)*/
+	/* Data on the head (head removal) */
 	if (current == head) {
 		if (head->next) {
-			head->next->size = head->size -1;
-			head->size = 0;
+			head->next->size = head->size - 1;
+			head->next->tail = head->tail;
 		}
 		head = head->next;
 	} else {
@@ -123,7 +120,6 @@ bool buxton_list_remove(BuxtonList **list, void *data, bool do_free)
 	/* Update tail pointer */
 	if (head && head->tail == current) {
 		head->tail = prev;
-		head->tail->next = NULL;
 	}
 
 	/* Should free? */
