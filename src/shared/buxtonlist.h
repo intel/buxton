@@ -73,7 +73,8 @@ bool buxton_list_remove(BuxtonList **list, void *data, bool do_free);
  */
 static inline void buxton_list_free(void *p)
 {
-	BuxtonList *list = *(BuxtonList**)p;
+	BuxtonList **listp = (BuxtonList **)p;
+	BuxtonList *list = *(BuxtonList **)p;
 	if (!list) {
 		return;
 	}
@@ -84,6 +85,7 @@ static inline void buxton_list_free(void *p)
 		free(elem);
 		elem = node;
 	}
+	*listp = NULL;
 }
 
 /**
@@ -91,7 +93,8 @@ static inline void buxton_list_free(void *p)
  */
 static inline void buxton_list_free_all(void *p)
 {
-	BuxtonList *list = *(BuxtonList**)p;
+	BuxtonList **listp = (BuxtonList **)p;
+	BuxtonList *list = *(BuxtonList **)p;
 	if (!list) {
 		return;
 	}
@@ -103,6 +106,7 @@ static inline void buxton_list_free_all(void *p)
 		free(elem);
 		elem = node;
 	}
+	*listp = NULL;
 }
 
 /*
