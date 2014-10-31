@@ -121,6 +121,7 @@ endif
 TESTS = \
 	check_db_clean \
 	check_buxton \
+	check_buxton_array \
 	check_buxton_list \
 	check_shared_lib \
 	check_daemon \
@@ -312,6 +313,7 @@ memory_la_LDFLAGS = \
 
 check_PROGRAMS = \
 	check_buxton \
+	check_buxton_array \
 	check_buxton_list \
 	check_shared_lib \
 	check_buxtond \
@@ -333,6 +335,20 @@ check_buxton_CFLAGS = \
 check_buxton_LDADD = \
 	@CHECK_LIBS@ \
 	libbuxton.la \
+	libbuxton-shared.la
+
+check_buxton_array_SOURCES = \
+	test/check_utils.c \
+	test/check_utils.h \
+        test/check_buxton_array.c
+check_buxton_array_CFLAGS = \
+	$(AM_CFLAGS) \
+	@CHECK_CFLAGS@ \
+	-DMAKE_CHECK \
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
+check_buxton_array_LDADD = \
+	@CHECK_LIBS@ \
 	libbuxton-shared.la
 
 check_buxton_list_SOURCES = \

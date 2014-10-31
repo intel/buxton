@@ -98,50 +98,6 @@ START_TEST(hashmap_check)
 }
 END_TEST
 
-static inline void array_free_fun(void *p)
-{
-	free(p);
-}
-
-START_TEST(array_check)
-{
-	BuxtonArray *array = NULL;
-	char *value;
-	char *element;
-	void *f;
-	bool r;
-
-	array = buxton_array_new();
-	fail_if(array == NULL, "Failed to allocate memory for BuxtonArray");
-	element = strdup("test");
-	fail_if(!element, "Failed to allocate memory for array item");
-	r = buxton_array_add(NULL, element);
-	fail_if(r, "Added element to NULL array");
-	r = buxton_array_add(array, NULL);
-	fail_if(r, "Added NULL element to array");
-	r = buxton_array_add(array, element);
-	fail_if(r  == false, "Failed to add element to BuxtonArray");
-	fail_if(array->len != 1,
-		"Failed to get correct value for number of elements in array");
-
-	f = buxton_array_get(NULL, 0);
-	fail_if(f, "Got value from NULL array");
-	f = buxton_array_get(array, (uint16_t)(array->len + 1));
-	fail_if(f, "Got value from index bigger than maximum index");
-	value = (char *)buxton_array_get(array, 0);
-
-	fail_if(value == NULL,
-		"Failed to get value from BuxtonArray");
-
-	fail_if(strcmp(value, "test") != 0,
-		"Failed to retrieve the stored value");
-
-	buxton_array_free(&array, array_free_fun);
-	fail_if(array != NULL,
-		"Failed to free BuxtonArray");
-}
-END_TEST
-
 START_TEST(get_layer_path_check)
 {
 	BuxtonLayer layer;
@@ -768,10 +724,6 @@ shared_lib_suite(void)
 
 	tc = tcase_create("hashmap_functions");
 	tcase_add_test(tc, hashmap_check);
-	suite_add_tcase(s, tc);
-
-	tc = tcase_create("array_functions");
-	tcase_add_test(tc, array_check);
 	suite_add_tcase(s, tc);
 
 	tc = tcase_create("util_functions");
