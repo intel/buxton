@@ -155,7 +155,7 @@ void _bg_cb(BuxtonResponse response, void *data)
 	switch (ret->type) {
 		case BUXTON_TYPE_STRING:
 		{
-			ret->val.sval = *(char**)p;
+			ret->val.sval = strdup((char*)p);
 			type = "string";
 			break;
 		}
@@ -207,6 +207,7 @@ void _bg_cb(BuxtonResponse response, void *data)
 			break;
 		}
 	}
+	free(p);
 	buxton_debug("Got %s value.\n", type);
 	ret->status = 1;
 }

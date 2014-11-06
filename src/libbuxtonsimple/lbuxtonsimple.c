@@ -129,7 +129,7 @@ void sbuxton_set_string(char *key, char *value )
 	ret.val.sval = value;
 	saved_errno = errno;
 	/* set value */
-	if (buxton_set_value(client, _key, &value, _bs_cb, &ret, true)) {
+	if (buxton_set_value(client, _key, value, _bs_cb, &ret, true)) {
 		buxton_debug("Set string call failed.\n");
 	}
 	if (!ret.status) {
