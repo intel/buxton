@@ -103,7 +103,7 @@ static void teardown(void)
 /* start libbuxtonsimple test */
 START_TEST (sbuxton_set_group_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	fail_if(errno == EBADMSG, "Set group failed");
@@ -112,7 +112,7 @@ END_TEST
 
 START_TEST (sbuxton_set_int32_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	int32_t int32_val = 5;
@@ -125,7 +125,7 @@ END_TEST
 
 START_TEST (sbuxton_get_int32_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	int32_t int32_val = 5;
@@ -143,7 +143,7 @@ END_TEST
 
 START_TEST (sbuxton_set_string_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	char *string_val = "Testing...";
@@ -156,7 +156,7 @@ END_TEST
 
 START_TEST (sbuxton_get_string_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	char *string_val = "Testing...";
@@ -174,7 +174,7 @@ END_TEST
 
 START_TEST (sbuxton_set_uint32_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	uint32_t uint32_val = 5;
@@ -187,7 +187,7 @@ END_TEST
 
 START_TEST (sbuxton_get_uint32_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	uint32_t uint32_val = 5;
@@ -205,7 +205,7 @@ END_TEST
 
 START_TEST (sbuxton_set_int64_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	int64_t int64_val = 5;
@@ -218,7 +218,7 @@ END_TEST
 
 START_TEST (sbuxton_get_int64_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	int64_t int64_val = 5;
@@ -236,7 +236,7 @@ END_TEST
 
 START_TEST (sbuxton_set_uint64_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	uint64_t uint64_val = 5;
@@ -249,7 +249,7 @@ END_TEST
 
 START_TEST (sbuxton_get_uint64_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	uint64_t uint64_val = 5;
@@ -267,7 +267,7 @@ END_TEST
 
 START_TEST (sbuxton_set_float_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	float float_val = 5.5;
@@ -280,7 +280,7 @@ END_TEST
 
 START_TEST (sbuxton_get_float_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	float float_val = 5.5;
@@ -298,7 +298,7 @@ END_TEST
 
 START_TEST (sbuxton_set_double_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	double double_val = 5;
@@ -311,7 +311,7 @@ END_TEST
 
 START_TEST (sbuxton_get_double_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	double double_val = 5;
@@ -329,7 +329,7 @@ END_TEST
 
 START_TEST (sbuxton_set_bool_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	bool bool_val = false;
@@ -342,7 +342,7 @@ END_TEST
 
 START_TEST (sbuxton_get_bool_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	bool bool_val = false;
@@ -360,7 +360,7 @@ END_TEST
 
 START_TEST (sbuxton_remove_group_check)
 {
-	errno = 0;	
+	errno = 0;
 	sbuxton_set_group("tg_s0", "user");
 	fail_if(errno == ENOTCONN, "Connection failed");
 	sbuxton_remove_group("tg_s0", "user");

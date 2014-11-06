@@ -107,13 +107,13 @@ void _cg_cb(BuxtonResponse response, void *data);
 /**
  * Prints the value that has been set along with the key name, group, and layer (when in debug mode)
  * @param data Pointer to structure with the value to be set, its type, and a status to be set on success
- * @param response A BuxtonResponse used to get and print the key name, group, and layer  
+ * @param response A BuxtonResponse used to get and print the key name, group, and layer
  */
 void _bs_print(vstatus *data, BuxtonResponse response);
 
-/** 
+/**
  * Buxton set value callback checks buxton_response_status and calls bs_print
- * @param response A BuxtonResponse that is used to see if value has been set properly  
+ * @param response A BuxtonResponse that is used to see if value has been set properly
  * @param data A void pointer to a vstatus structure with status that will be set
  */
 void _bs_cb(BuxtonResponse response, void *data);

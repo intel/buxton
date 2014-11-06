@@ -8,7 +8,7 @@
  * published by the Free Software Foundation; either version 2.1
  * of the license, or (at your option) any later version.
  */
- 
+
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +29,7 @@ int _client_connection(void)
 		if ((buxton_open(&client)) <0 ) {
 			buxton_debug("Couldn't connect.\n");
 			return 0;
-		}	
+		}
 		buxton_debug("Connection successful.\n");
 	}
 	return 1;
@@ -120,7 +120,7 @@ void _bs_print(vstatus *data, BuxtonResponse response)
 	}
 	BuxtonKey k = buxton_response_key(response);
 	buxton_debug("Key: %s, Group: %s, Layer: %s.\n", buxton_key_get_name(k), buxton_key_get_group(k), buxton_key_get_layer(k));
-	buxton_key_free(k);	
+	buxton_key_free(k);
 }
 
 /* buxton_set_value callback for all buxton data types */

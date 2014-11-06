@@ -8,11 +8,11 @@
  * published by the Free Software Foundation; either version 2.1
  * of the license, or (at your option) any later version.
  */
- 
+
  /**
  * \file lbuxtonsimple.c Buxton library implementation
  */
- 
+
 #include <errno.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -53,7 +53,7 @@ void sbuxton_set_group(char *group, char *layer)
 		errno = EBADMSG;
 	} else {
 		buxton_debug("Switched to group: %s, layer: %s.\n", buxton_key_get_group(g),
- 	buxton_key_get_layer(g));
+	buxton_key_get_layer(g));
 		errno = saved_errno;
 	}
 	_client_disconnect();
