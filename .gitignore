@@ -31,6 +31,7 @@ buxtond
 buxtonctl
 check_buxton
 check_buxton_array
+check_buxton_hashmap
 check_buxton_list
 data/buxton.service
 data/buxton.socket
