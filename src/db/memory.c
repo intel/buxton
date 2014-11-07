@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "hashmap.h"
+#include "buxtonhashmap.h"
 #include "log.h"
 #include "buxton.h"
 #include "backend.h"
@@ -31,12 +31,32 @@
  */
 
 
-static Hashmap *_resources;
+static BuxtonHashmap *_resources;
+
+/** Cleanup handler */
+static void memory_vfree(const void *p)
+{
+	BuxtonArray *array = NULL;
+	BuxtonString *l;
+	BuxtonData *d;
+
+	if (!p) {
+		return;
+	}
+	array = (BuxtonArray*)p;
+
+	d = buxton_array_get(array, 0);
+	data_free(d);
+	l = buxton_array_get(array, 1);
+	string_free(l);
+	/* Item 3 is also the key, autofreed */
+	buxton_array_free(&array, NULL);
+}
 
 /* Return existing hashmap or create new hashmap on the fly */
-static Hashmap *_db_for_resource(BuxtonLayer *layer)
+static BuxtonHashmap *_db_for_resource(BuxtonLayer *layer)
 {
-	Hashmap *db;
+	BuxtonHashmap *db;
 	char *name = NULL;
 	int r;
 
@@ -52,10 +72,10 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 		return NULL;
 	}
 
-	db = hashmap_get(_resources, name);
+	db = buxton_hashmap_get(_resources, name);
 	if (!db) {
-		db = hashmap_new(string_hash_func, string_compare_func);
-		hashmap_put(_resources, name, db);
+		db = buxton_hashmap_new_full(string_compare, string_hash, (hash_free_func)free, (hash_free_func)memory_vfree);
+		buxton_hashmap_put(&_resources, name, db);
 	} else {
 		free(name);
 	}
@@ -66,15 +86,13 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
-	Hashmap *db;
+	BuxtonHashmap *db;
 	BuxtonArray *array = NULL;
 	BuxtonArray *stored;
 	BuxtonData *data_copy = NULL;
-	BuxtonData *d;
 	BuxtonString *label_copy = NULL;
-	BuxtonString *l;
 	char *full_key = NULL;
-	char *k;
+	bool should_free = false;
 	int ret;
 
 	assert(layer);
@@ -99,7 +117,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	if (!data) {
-		stored = (BuxtonArray *)hashmap_get(db, full_key);
+		stored = (BuxtonArray *)buxton_hashmap_get(db, full_key);
 		if (!stored) {
 			ret = ENOENT;
 			free(full_key);
@@ -137,31 +155,19 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		abort();
 	}
 
-	ret = hashmap_put(db, full_key, array);
+	/* Implicit replace -ENOMEM is only possibility for failure */
+	if (buxton_hashmap_contains(db, full_key)) {
+		should_free = true;
+	}
+	ret = buxton_hashmap_put(&db, full_key, array);
 	if (ret != 1) {
-		if (ret == -ENOMEM) {
-			abort();
-		}
-		/* remove the old value */
-		stored = (BuxtonArray *)hashmap_remove(db, full_key);
-		assert(stored);
-
-		/* free the data */
-		d = buxton_array_get(stored, 0);
-		data_free(d);
-		l = buxton_array_get(stored, 1);
-		string_free(l);
-		k = buxton_array_get(stored, 2);
-		free(k);
-		buxton_array_free(&stored, NULL);
-		ret = hashmap_put(db, full_key, array);
-		if (ret != 1) {
-			abort();
-		}
+		abort();
 	}
 
 	ret = 0;
-
+	if (should_free) {
+		free(full_key);
+	}
 end:
 	return ret;
 }
@@ -169,7 +175,7 @@ end:
 static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
-	Hashmap *db;
+	BuxtonHashmap *db;
 	BuxtonArray *stored;
 	BuxtonData *d;
 	BuxtonString *l;
@@ -203,7 +209,7 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		}
 	}
 
-	stored = (BuxtonArray *)hashmap_get(db, full_key);
+	stored = (BuxtonArray *)buxton_hashmap_get(db, full_key);
 	if (!stored) {
 		ret = ENOENT;
 		goto end;
@@ -224,7 +230,6 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	}
 
 	ret = 0;
-
 end:
 	free(full_key);
 	return ret;
@@ -235,12 +240,9 @@ static int unset_value(BuxtonLayer *layer,
 			__attribute__((unused)) BuxtonData *data,
 			__attribute__((unused)) BuxtonString *label)
 {
-	Hashmap *db;
-	BuxtonArray *stored;
-	BuxtonData *d;
-	BuxtonString *l;
+	BuxtonHashmap *db;
+	bool stored;
 	char *full_key = NULL;
-	char *k;
 	int ret;
 
 	assert(layer);
@@ -264,20 +266,11 @@ static int unset_value(BuxtonLayer *layer,
 	}
 
 	/* test if the value exists */
-	stored = (BuxtonArray *)hashmap_remove(db, full_key);
+	stored = buxton_hashmap_remove(db, full_key);
 	if (!stored) {
 		ret = ENOENT;
 		goto end;
 	}
-
-	/* free the data */
-	d = buxton_array_get(stored, 0);
-	data_free(d);
-	l = buxton_array_get(stored, 1);
-	string_free(l);
-	k = buxton_array_get(stored, 2);
-	free(k);
-	buxton_array_free(&stored, NULL);
 
 	ret = 0;
 
@@ -288,29 +281,8 @@ end:
 
 _bx_export_ void buxton_module_destroy(void)
 {
-	const char *key1, *key2;
-	Iterator iteratori, iteratoro;
-	Hashmap *map;
-	BuxtonArray *array;
-	BuxtonData *d;
-	BuxtonString *l;
-
 	/* free all hashmaps */
-	HASHMAP_FOREACH_KEY(map, key1, _resources, iteratoro) {
-		HASHMAP_FOREACH_KEY(array, key2, map, iteratori) {
-			hashmap_remove(map, key2);
-			d = buxton_array_get(array, 0);
-			data_free(d);
-			l = buxton_array_get(array, 1);
-			string_free(l);
-			buxton_array_free(&array, NULL);
-		}
-		hashmap_remove(_resources, key1);
-		hashmap_free(map);
-		free((void *)key1);
-		map = NULL;
-	}
-	hashmap_free(_resources);
+	buxton_hashmap_free(_resources);
 	_resources = NULL;
 }
 
@@ -326,7 +298,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	backend->list_keys = NULL;
 	backend->create_db = NULL;
 
-	_resources = hashmap_new(string_hash_func, string_compare_func);
+	_resources = buxton_hashmap_new_full(string_compare, string_hash, (hash_free_func)free, (hash_free_func)buxton_hashmap_free);
 	if (!_resources) {
 		abort();
 	}
