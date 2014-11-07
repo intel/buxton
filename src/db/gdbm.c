@@ -20,7 +20,7 @@
 #include <string.h>
 
 #include "log.h"
-#include "hashmap.h"
+#include "buxtonhashmap.h"
 #include "serialize.h"
 #include "util.h"
 
@@ -29,7 +29,7 @@
  */
 
 
-static Hashmap *_resources = NULL;
+static BuxtonHashmap *_resources = NULL;
 
 static char *key_get_name(BuxtonString *key)
 {
@@ -88,7 +88,7 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 		abort();
 	}
 
-	db = hashmap_get(_resources, name);
+	db = buxton_hashmap_get(_resources, name);
 	if (!db) {
 		path = get_layer_path(layer);
 		if (!path) {
@@ -102,12 +102,12 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 			buxton_log("Couldn't create db for path: %s\n", path);
 			return 0;
 		}
-		r = hashmap_put(_resources, name, db);
+		r = buxton_hashmap_put(&_resources, name, db);
 		if (r != 1) {
 			abort();
 		}
 	} else {
-		db = (GDBM_FILE) hashmap_get(_resources, name);
+		db = (GDBM_FILE) buxton_hashmap_get(_resources, name);
 		free(name);
 	}
 
@@ -405,17 +405,14 @@ end:
 
 _bx_export_ void buxton_module_destroy(void)
 {
-	const char *key;
-	Iterator iterator;
 	GDBM_FILE db;
 
 	/* close all gdbm handles */
-	HASHMAP_FOREACH_KEY(db, key, _resources, iterator) {
-		hashmap_remove(_resources, key);
+	BUXTON_HASHMAP_FOREACH(_resources, iter, key, value) {
+		db = (GDBM_FILE)value;
 		gdbm_close(db);
-		free((void *)key);
 	}
-	hashmap_free(_resources);
+	buxton_hashmap_free(_resources);
 	_resources = NULL;
 }
 
@@ -431,7 +428,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	backend->unset_value = &unset_value;
 	backend->create_db = (module_db_init_func) &db_for_resource;
 
-	_resources = hashmap_new(string_hash_func, string_compare_func);
+	_resources = buxton_hashmap_new_full(string_compare, string_hash, (hash_free_func)free, NULL);
 	if (!_resources) {
 		abort();
 	}
