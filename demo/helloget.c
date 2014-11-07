@@ -35,13 +35,16 @@
 void get_cb(BuxtonResponse response, void *data)
 {
 	int32_t* ret = (int32_t*)data;
+	void *vret = NULL;
 
 	if (buxton_response_status(response) != 0) {
 		printf("Failed to get value\n");
 		return;
 	}
 
-	*ret = *(int32_t*)buxton_response_value(response);
+	vret = buxton_response_value(response);
+	*ret = *(int32_t*)vret;
+	free(vret);
 }
 
 int main(void)
