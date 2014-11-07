@@ -36,12 +36,12 @@
 #include "buxtonresponse.h"
 #include "buxtonstring.h"
 #include "configurator.h"
-#include "hashmap.h"
+#include "buxtonhashmap.h"
 #include "log.h"
 #include "protocol.h"
 #include "util.h"
 
-static Hashmap *key_hash = NULL;
+static BuxtonHashmap *key_hash = NULL;
 
 int buxton_set_conf_file(const char *path)
 {
@@ -111,19 +111,22 @@ int buxton_open(BuxtonClient *client)
 	return bx_socket;
 }
 
+__attribute__ ((destructor)) void _lbuxton_cleanup(void)
+{
+	if (key_hash) {
+		BUXTON_HASHMAP_FOREACH(key_hash, iter, key, value) {
+			buxton_key_free((BuxtonKey)key);
+		}
+		buxton_hashmap_free(key_hash);
+	}
+}
+
 void buxton_close(BuxtonClient client)
 {
 	_BuxtonClient *c;
-	BuxtonKey key = NULL;
-	Iterator i;
 
 	/* Free all remaining allocated keys */
-	HASHMAP_FOREACH_KEY(key, key, key_hash, i) {
-		hashmap_remove_value(key_hash, key, key);
-		buxton_key_free(key);
-	}
-
-	hashmap_free(key_hash);
+	_lbuxton_cleanup();
 
 	key_hash = NULL;
 
@@ -460,7 +463,7 @@ BuxtonKey buxton_key_create(const char *group, const char *name,
 
 	if (!key_hash) {
 		/* Create on hashmap on first call to key_create */
-		key_hash = hashmap_new(trivial_hash_func, trivial_compare_func);
+		key_hash = buxton_hashmap_new(NULL, NULL);
 		if (!key_hash) {
 			return NULL;
 		}
@@ -509,7 +512,7 @@ BuxtonKey buxton_key_create(const char *group, const char *name,
 	key->type = type;
 
 	/* Add new keys to internal hash for cleanup on close */
-	hashmap_put(key_hash, key, key);
+	buxton_hashmap_put(&key_hash, key, key);
 
 	return (BuxtonKey)key;
 
@@ -568,11 +571,12 @@ void buxton_key_free(BuxtonKey key)
 {
 	_BuxtonKey *k = (_BuxtonKey *)key;
 
+
 	if (!k) {
 		return;
 	}
 
-	hashmap_remove_value(key_hash, key, key);
+	buxton_hashmap_remove(key_hash, key);
 
 	free(k->group.value);
 	free(k->name.value);
