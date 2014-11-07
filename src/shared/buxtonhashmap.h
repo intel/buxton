@@ -93,7 +93,7 @@ typedef struct BuxtonHashmapIter {
  * @param v Name of local HashValue
  */
 #define BUXTON_HASHMAP_FOREACH(m,i,k,v) \
-	BuxtonHashmapIter i = {0, true, NULL, false} ; HashKey k = NULL; HashValue v = NULL; k = buxton_hashmap_iter(m, &i, &v); for (; !i.done; k = buxton_hashmap_iter(m, &i, &v))
+	BuxtonHashmapIter i = {0, true, NULL, false} ; __attribute__ ((unused)) HashKey k = NULL; __attribute__ ((unused)) HashValue v = NULL; k = buxton_hashmap_iter(m, &i, &v); for (; !i.done; k = buxton_hashmap_iter(m, &i, &v))
 
 /**
  * Construct a new BuxtonHashmap

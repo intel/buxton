@@ -28,7 +28,7 @@
 
 static inline void _bmap_free(const void *p)
 {
-	free(p);
+	free((void*)p);
 }
 
 START_TEST(buxton_hashmap_new_check)
@@ -102,7 +102,7 @@ START_TEST(buxton_hashmap_complex_check)
 	}
 	for (uint i = 0; i < 10; i++) {
 		hvalue = buxton_hashmap_get(map, HASH_KEY(i));
-		fail_if(UNHASH_KEY(value) != UNHASH_VALUE(value),
+		fail_if(UNHASH_VALUE(hvalue) != i,
 			"Value returned by hashmap incorrect");
 	}
 	count = 0;
