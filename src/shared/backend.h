@@ -26,7 +26,7 @@
 #include "buxtondata.h"
 #include "buxtonstring.h"
 #include "protocol.h"
-#include "hashmap.h"
+#include "buxtonhashmap.h"
 
 /**
  * Possible backends for Buxton
@@ -114,9 +114,9 @@ typedef struct BuxtonBackend {
  * Stores internal configuration of Buxton
  */
 typedef struct BuxtonConfig {
-	Hashmap *databases; /**<Database mapping */
-	Hashmap *layers; /**<Global layer configuration */
-	Hashmap *backends; /**<Backend mapping */
+	BuxtonHashmap *databases; /**<Database mapping */
+	BuxtonHashmap *layers; /**<Global layer configuration */
+	BuxtonHashmap *backends; /**<Backend mapping */
 } BuxtonConfig;
 
 /**

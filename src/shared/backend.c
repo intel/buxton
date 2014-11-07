@@ -17,7 +17,7 @@
 
 #include "configurator.h"
 #include "backend.h"
-#include "hashmap.h"
+#include "buxtonhashmap.h"
 #include "util.h"
 #include "log.h"
 #include "buxtonarray.h"
@@ -38,13 +38,12 @@ static BuxtonLayer *buxton_layer_new(ConfigLayer *conf_layer);
 /* Load layer configurations from disk */
 void buxton_init_layers(BuxtonConfig *config)
 {
-	Hashmap *layers = NULL;
+	BuxtonHashmap *layers = NULL;
 	int nlayers = 0;
 	ConfigLayer *config_layers = NULL;
-	int r;
 
 	nlayers = buxton_key_get_layers(&config_layers);
-	layers = hashmap_new(string_hash_func, string_compare_func);
+	layers = buxton_hashmap_new_full(string_compare, string_hash, NULL, NULL);
 	if (!layers) {
 		abort();
 	}
@@ -57,8 +56,7 @@ void buxton_init_layers(BuxtonConfig *config)
 			abort();
 		}
 
-		r = hashmap_put(layers, layer->name.value, layer);
-		if (r != 1) {
+		if (!buxton_hashmap_put(&layers, layer->name.value, layer)) {
 			abort();
 		}
 	}
@@ -134,11 +132,11 @@ static void init_backend(BuxtonConfig *config,
 	_cleanup_free_ char *path = NULL;
 	const char *name;
 	char *error;
-	int r;
 	bool rb;
 	module_init_func i_func;
 	module_destroy_func d_func;
 	BuxtonBackend *backend_tmp;
+	int r;
 
 	assert(layer);
 	assert(backend);
@@ -152,7 +150,7 @@ static void init_backend(BuxtonConfig *config,
 		abort();
 	}
 
-	backend_tmp = hashmap_get(config->backends, name);
+	backend_tmp = buxton_hashmap_get(config->backends, name);
 
 	if (backend_tmp) {
 		*backend = backend_tmp;
@@ -200,14 +198,13 @@ static void init_backend(BuxtonConfig *config,
 	}
 
 	if (!config->backends) {
-		config->backends = hashmap_new(trivial_hash_func, trivial_compare_func);
+		config->backends = buxton_hashmap_new(NULL, (hash_free_func)destroy_backend);
 		if (!config->backends) {
 			abort();
 		}
 	}
 
-	r = hashmap_put(config->backends, name, backend_tmp);
-	if (r != 1) {
+	if (!buxton_hashmap_put(&config->backends, name, backend_tmp)) {
 		abort();
 	}
 
@@ -221,26 +218,24 @@ BuxtonBackend *backend_for_layer(BuxtonConfig *config,
 				 BuxtonLayer *layer)
 {
 	BuxtonBackend *backend;
-	int ret;
 
 	assert(layer);
 
 	if (!config->databases) {
-		config->databases = hashmap_new(string_hash_func, string_compare_func);
+		config->databases = buxton_hashmap_new_full(string_compare, string_hash, NULL, NULL);
 		if (!config->databases) {
 			abort();
 		}
 	}
-	if ((backend = (BuxtonBackend*)hashmap_get(config->databases, layer->name.value)) == NULL) {
+	if ((backend = (BuxtonBackend*)buxton_hashmap_get(config->databases, layer->name.value)) == NULL) {
 		/* attempt load of backend */
 		init_backend(config, layer, &backend);
 
-		ret = hashmap_put(config->databases, layer->name.value, backend);
-		if (ret != 1) {
+		if (!buxton_hashmap_put(&config->databases, layer->name.value, backend)) {
 			abort();
 		}
 	}
-	return (BuxtonBackend*)hashmap_get(config->databases, layer->name.value);
+	return (BuxtonBackend*)buxton_hashmap_get(config->databases, layer->name.value);
 }
 
 void destroy_backend(BuxtonBackend *backend)
