@@ -51,8 +51,9 @@ int main(void)
 
 	/* Test string getting */
 	char * sv = sbuxton_get_string("tk_s1");
-	printf("Got value: %s(string).\n", sv);		
+	printf("Got value: %s(string).\n", sv);
 	printf("get_string: 'tk_s1', Error number: %s.\n", strerror(errno));
+	free(sv);
 
 	/* Create group */
 	errno = 0;
