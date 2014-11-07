@@ -202,6 +202,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/buxtonkey.h \
 	src/shared/buxtonlist.c \
 	src/shared/buxtonlist.h \
+	src/shared/buxtonhashmap.c \
+	src/shared/buxtonhashmap.h \
 	src/shared/buxtonresponse.h \
 	src/shared/buxtonstring.h \
 	src/shared/configurator.c \
