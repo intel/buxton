@@ -304,7 +304,8 @@ gdbm_la_LDFLAGS = \
 	-avoid-version
 
 gdbm_la_LIBADD = \
-	-lgdbm
+	-lgdbm \
+	libbuxton-shared.la
 
 memory_la_SOURCES = \
 	src/db/memory.c
@@ -314,6 +315,9 @@ memory_la_LDFLAGS = \
 	-fvisibility=hidden \
 	-module \
 	-avoid-version
+
+memory_la_LIBADD = \
+	libbuxton-shared.la
 
 check_PROGRAMS = \
 	check_buxton \
