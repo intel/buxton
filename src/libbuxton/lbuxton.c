@@ -487,6 +487,9 @@ BuxtonKey buxton_key_create(const char *group, const char *name,
 	if (type <= BUXTON_TYPE_MIN || type >= BUXTON_TYPE_MAX) {
 		goto fail;
 	}
+	if (!name && type != BUXTON_TYPE_STRING && type != BUXTON_TYPE_UNSET) {
+		goto fail;
+	}
 
 	if (!key_hash) {
 		/* Create on hashmap on first call to key_create */
