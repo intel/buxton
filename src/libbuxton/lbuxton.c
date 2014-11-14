@@ -292,7 +292,6 @@ int buxton_set_label(BuxtonClient client,
 	/* discarding const until BuxtonString updated */
 	v = buxton_string_pack((char*)value);
 
-	k->type = BUXTON_TYPE_UNSET;
 	r = buxton_wire_set_label((_BuxtonClient *)client, k, &v, callback,
 				  data);
 	if (!r) {
@@ -326,7 +325,6 @@ int buxton_get_label(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = BUXTON_TYPE_UNSET;
 	r = buxton_wire_get_label((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
@@ -359,7 +357,6 @@ int buxton_create_group(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = BUXTON_TYPE_STRING;
 	r = buxton_wire_create_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
@@ -392,7 +389,6 @@ int buxton_remove_group(BuxtonClient client,
 		return EINVAL;
 	}
 
-	k->type = BUXTON_TYPE_STRING;
 	r = buxton_wire_remove_group((_BuxtonClient *)client, k, callback, data);
 	if (!r) {
 		return -1;
