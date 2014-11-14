@@ -33,6 +33,144 @@
 
 static Hashmap *_resources;
 
+/* structure for storing keys */
+struct keyrec {
+	unsigned hash; /**< Precomputed hash  */
+	uint32_t size; /**< Key size in bytes */
+	char *value; /**< The key value */
+};
+
+/* structure for storing values */
+struct valrec {
+	BuxtonData data;    /**< Recorded data */
+	BuxtonString label; /**< Recorded label */
+};
+
+/* creates a keyrec from the key */
+static struct keyrec *make_keyrec(_BuxtonKey *key)
+{
+	uint32_t sz;
+	struct keyrec *result;
+        unsigned hash;
+
+	/* compute requested size */
+	sz = key->group.length;
+	if (key->name.value) {
+		sz += key->name.length;
+	}
+
+	/* allocate */
+	result = malloc(sizeof(result));
+	if (!result) {
+		return NULL;
+	}
+	result->value = malloc(sz - 1);
+	if (!result->value) {
+		free(result);
+		return NULL;
+	}
+
+	/* set */
+	result->size = sz;
+	memcpy(result->value, key->group.value, key->group.length);
+	if (key->name.value) {
+		memcpy(result->value + key->group.length, key->name.value,
+		       key->name.length);
+	}
+
+        /* DJB's hash function */
+        hash = 5381;
+        while (sz) {
+                hash = (hash << 5) + hash + (unsigned char)result->value[--sz];
+	}
+	result ->hash = hash;
+
+	return result;
+}
+
+/* free the keyrec item */
+static inline void free_keyrec(struct keyrec *item)
+{
+	free(item->value);
+	free(item);
+}
+
+/* gets the hash code of the keyrec item */
+static unsigned hash_keyrec(const struct keyrec *item)
+{
+	return item->hash;
+}
+
+/* compares two keyrecs a and b */
+static int compare_keyrec(const struct keyrec *a, const struct keyrec *b)
+{
+	return a->size == b->size ? memcmp(a->value, b->value, a->size) :
+		a->size < b->size ? -1 : 1;
+}
+
+/* free the valrec item */
+static void free_valrec(struct valrec *item)
+{
+	if (item) {
+		if (item->data.type == BUXTON_TYPE_STRING) {
+			free(item->data.store.d_string.value);
+		}
+		free(item->label.value);
+		free(item);
+	}
+}
+
+static bool set_valrec(struct valrec *item, BuxtonData *data,
+			      BuxtonString *label)
+{
+	char *sdata;
+	char *slabel;
+
+	/* allocate data if needed */
+	if (data && data->type == BUXTON_TYPE_STRING &&
+	    data->store.d_string.value) {
+		sdata = malloc(data->store.d_string.length);
+		if (!sdata) {
+			return false;
+		}
+		memcpy(sdata, data->store.d_string.value,
+			data->store.d_string.length);
+	} else {
+		sdata = NULL;
+	}
+
+	/* allocate label if needed */
+	if (label && label->value) {
+		slabel = malloc(label->length);
+		if (!slabel) {
+			free(sdata);
+			return false;
+		}
+		memcpy(slabel, label->value, label->length);
+	} else {
+		slabel = NULL;
+	}
+
+	/* copy now */
+	if (data) {
+		if (item->data.type == BUXTON_TYPE_STRING) {
+			free(item->data.store.d_string.value);
+		}
+		item->data = *data;
+		if (data->type == BUXTON_TYPE_STRING) {
+			item->data.store.d_string.value = sdata;
+		}
+	}
+
+	if (label) {
+		free(item->label.value);
+		item->label.length = label->length;
+		item->label.value = slabel;
+	}
+
+	return true;
+}
+
 /* Return existing hashmap or create new hashmap on the fly */
 static Hashmap *_db_for_resource(BuxtonLayer *layer)
 {
@@ -54,7 +192,8 @@ static Hashmap *_db_for_resource(BuxtonLayer *layer)
 
 	db = hashmap_get(_resources, name);
 	if (!db) {
-		db = hashmap_new(string_hash_func, string_compare_func);
+		db = hashmap_new((hash_func_t)hash_keyrec,
+				 (compare_func_t)compare_keyrec);
 		hashmap_put(_resources, name, db);
 	} else {
 		free(name);
@@ -67,15 +206,9 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
 	Hashmap *db;
-	BuxtonArray *array = NULL;
-	BuxtonArray *stored;
-	BuxtonData *data_copy = NULL;
-	BuxtonData *d;
-	BuxtonString *label_copy = NULL;
-	BuxtonString *l;
-	char *full_key = NULL;
-	char *k;
 	int ret;
+	struct keyrec *keyrec;
+	struct valrec *valrec;
 
 	assert(layer);
 	assert(key);
@@ -87,75 +220,28 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		goto end;
 	}
 
-	if (key->name.value) {
-		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1) {
+	keyrec = make_keyrec(key);
+	if (!keyrec) {
+		abort();
+	}
+
+	valrec = hashmap_get(db, keyrec);
+	if (valrec) {
+		free_keyrec(keyrec);
+		if (!set_valrec(valrec, data, label)) {
 			abort();
 		}
 	} else {
-		full_key = strdup(key->group.value);
-		if (!full_key) {
-			abort();
-		}
-	}
-
-	if (!data) {
-		stored = (BuxtonArray *)hashmap_get(db, full_key);
-		if (!stored) {
+		if (!data) {
 			ret = ENOENT;
-			free(full_key);
 			goto end;
 		}
-		data = buxton_array_get(stored, 0);
-	}
-
-	array = buxton_array_new();
-	if (!array) {
-		abort();
-	}
-	data_copy = malloc0(sizeof(BuxtonData));
-	if (!data_copy) {
-		abort();
-	}
-	label_copy = malloc0(sizeof(BuxtonString));
-	if (!label_copy) {
-		abort();
-	}
-
-	if (!buxton_data_copy(data, data_copy)) {
-		abort();
-	}
-	if (!buxton_string_copy(label, label_copy)) {
-		abort();
-	}
-	if (!buxton_array_add(array, data_copy)) {
-		abort();
-	}
-	if (!buxton_array_add(array, label_copy)) {
-		abort();
-	}
-	if (!buxton_array_add(array, full_key)) {
-		abort();
-	}
-
-	ret = hashmap_put(db, full_key, array);
-	if (ret != 1) {
-		if (ret == -ENOMEM) {
+		valrec = calloc(1, sizeof * valrec);
+		if (!valrec) {
 			abort();
 		}
-		/* remove the old value */
-		stored = (BuxtonArray *)hashmap_remove(db, full_key);
-		assert(stored);
-
-		/* free the data */
-		d = buxton_array_get(stored, 0);
-		data_free(d);
-		l = buxton_array_get(stored, 1);
-		string_free(l);
-		k = buxton_array_get(stored, 2);
-		free(k);
-		buxton_array_free(&stored, NULL);
-		ret = hashmap_put(db, full_key, array);
-		if (ret != 1) {
+		if (!set_valrec(valrec, data, label) ||
+		    hashmap_put(db, keyrec, valrec) != 1) {
 			abort();
 		}
 	}
@@ -170,11 +256,9 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
 	Hashmap *db;
-	BuxtonArray *stored;
-	BuxtonData *d;
-	BuxtonString *l;
-	char *full_key = NULL;
 	int ret;
+	struct keyrec *keyrec;
+	struct valrec *valrec;
 
 	assert(layer);
 	assert(key);
@@ -192,41 +276,115 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		goto end;
 	}
 
-	if (key->name.value) {
-		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1) {
-			abort();
-		}
-	} else {
-		full_key = strdup(key->group.value);
-		if (!full_key) {
-			abort();
-		}
+	keyrec = make_keyrec(key);
+	if (!keyrec) {
+		ret = ENOMEM;
+		goto end;
 	}
 
-	stored = (BuxtonArray *)hashmap_get(db, full_key);
-	if (!stored) {
+	valrec = hashmap_get(db, keyrec);
+	free_keyrec(keyrec);
+
+	if (!valrec) {
 		ret = ENOENT;
 		goto end;
 	}
-	d = buxton_array_get(stored, 0);
-	if (d->type != key->type && key->type != BUXTON_TYPE_UNSET) {
+	if (valrec->data.type != key->type && key->type != BUXTON_TYPE_UNSET) {
 		ret = EINVAL;
 		goto end;
 	}
 
-	if (!buxton_data_copy(d, data)) {
+	if (!buxton_data_copy(&valrec->data, data)) {
 		abort();
 	}
 
-	l = buxton_array_get(stored, 1);
-	if (!buxton_string_copy(l, label)) {
+	if (!buxton_string_copy(&valrec->label, label)) {
 		abort();
 	}
 
 	ret = 0;
 
 end:
-	free(full_key);
+	return ret;
+}
+
+static int unset_key(BuxtonLayer *layer,
+			_BuxtonKey *key)
+{
+	Hashmap *db;
+	int ret;
+	struct keyrec *keyrec;
+	struct keyrec *remkey;
+	struct valrec *valrec;
+
+	assert(layer);
+	assert(key);
+	assert(key->name.value);
+
+	db = _db_for_resource(layer);
+	if (!db) {
+		ret = ENOENT;
+		goto end;
+	}
+
+	keyrec = make_keyrec(key);
+	if (!keyrec) {
+		ret = ENOMEM;
+		goto end;
+	}
+
+	/* test if the value exists */
+	valrec = hashmap_remove2(db, keyrec, (void**)&remkey);
+	free_keyrec(keyrec);
+	if (!valrec) {
+		ret = ENOENT;
+		goto end;
+	}
+
+	/* free the data */
+	free_valrec(valrec);
+	free_keyrec(remkey);
+
+	ret = 0;
+
+end:
+	return ret;
+}
+
+static int unset_group(BuxtonLayer *layer,
+			_BuxtonKey *key)
+{
+	Hashmap *db;
+	int ret;
+	struct keyrec *keyrec;
+	struct valrec *valrec;
+	Iterator iterator;
+
+	assert(layer);
+	assert(key);
+	assert(!key->name.value);
+
+	db = _db_for_resource(layer);
+	if (!db) {
+		ret = EROFS;
+		goto end;
+	}
+
+	ret = ENOENT;
+	/* Iterate through the keys and record matching keys in k_list */
+	HASHMAP_FOREACH_KEY(valrec, keyrec, db, iterator) {
+
+		/* test if the key matches the group */
+		if (!strcmp(keyrec->value, key->group.value)) {
+			/* yes it matches */
+			hashmap_remove(db, keyrec);
+			free_valrec(valrec);
+			free_keyrec(keyrec);
+			ret = 0;
+		}
+	}
+
+end:
 	return ret;
 }
 
@@ -235,80 +393,34 @@ static int unset_value(BuxtonLayer *layer,
 			__attribute__((unused)) BuxtonData *data,
 			__attribute__((unused)) BuxtonString *label)
 {
-	Hashmap *db;
-	BuxtonArray *stored;
-	BuxtonData *d;
-	BuxtonString *l;
-	char *full_key = NULL;
-	char *k;
-	int ret;
-
 	assert(layer);
 	assert(key);
 
-	db = _db_for_resource(layer);
-	if (!db) {
-		ret = ENOENT;
-		goto end;
-	}
-
 	if (key->name.value) {
-		if (asprintf(&full_key, "%s%s", key->group.value, key->name.value) == -1) {
-			abort();
-		}
+		return unset_key(layer, key);
 	} else {
-		full_key = strdup(key->group.value);
-		if (!full_key) {
-			abort();
-		}
+		return unset_group(layer, key);
 	}
-
-	/* test if the value exists */
-	stored = (BuxtonArray *)hashmap_remove(db, full_key);
-	if (!stored) {
-		ret = ENOENT;
-		goto end;
-	}
-
-	/* free the data */
-	d = buxton_array_get(stored, 0);
-	data_free(d);
-	l = buxton_array_get(stored, 1);
-	string_free(l);
-	k = buxton_array_get(stored, 2);
-	free(k);
-	buxton_array_free(&stored, NULL);
-
-	ret = 0;
-
-end:
-	free(full_key);
-	return ret;
 }
 
 _bx_export_ void buxton_module_destroy(void)
 {
-	const char *key1, *key2;
+	char *klayer;
+	struct keyrec *keyrec;
+	struct valrec *valrec;
 	Iterator iteratori, iteratoro;
 	Hashmap *map;
-	BuxtonArray *array;
-	BuxtonData *d;
-	BuxtonString *l;
 
 	/* free all hashmaps */
-	HASHMAP_FOREACH_KEY(map, key1, _resources, iteratoro) {
-		HASHMAP_FOREACH_KEY(array, key2, map, iteratori) {
-			hashmap_remove(map, key2);
-			d = buxton_array_get(array, 0);
-			data_free(d);
-			l = buxton_array_get(array, 1);
-			string_free(l);
-			buxton_array_free(&array, NULL);
+	HASHMAP_FOREACH_KEY(map, klayer, _resources, iteratoro) {
+		HASHMAP_FOREACH_KEY(valrec, keyrec, map, iteratori) {
+			hashmap_remove(map, keyrec);
+			free_valrec(valrec);
+			free_keyrec(keyrec);
 		}
-		hashmap_remove(_resources, key1);
+		hashmap_remove(_resources, klayer);
 		hashmap_free(map);
-		free((void *)key1);
-		map = NULL;
+		free(klayer);
 	}
 	hashmap_free(_resources);
 	_resources = NULL;
