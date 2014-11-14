@@ -48,14 +48,45 @@ Modifies the configuration directly, without connecting to
 \fBbuxtond\fR(8)\&. Note that this is a privileged operation\&.
 .RE
 .PP
+\fB\-s\fR, \fB\-\-server\fR
+.RS 4
+Modifies the configuration only through connection to the service
+\fBbuxtond\fR(8)\&, without retrying directly on failure\&.
+.RE
+.PP
 \fB\-c\fR FILE, \fB\-\-config\-file\fR FILE
 .RS 4
 Path to a buxton configuration file (see \fBbuxton\&.conf\fR(5))\&.
 .RE
+.PP
+\fB\-v\fR, \fB\-\-version\fR
+.RS 4
+Prints the version informations\&.
+.RE
+.PP
+Note than options \fB\-\-direct\fR and \fB\-\-server\fR are not
+exclusives. If these two options are specified, \fBbuxtonctl\fR
+is falling in its default mode: firstly, it tries to connect to the
+service \fBbuxtond\fR(8) and, if it fails, secondly, tries to modify
+directly the configuration.
 
 .SH "COMMANDS"
 .PP
 The following commands are understood:
+.SS "Availability"
+.PP
+\fBcheck\fR
+.RS 4
+Check if buxton is available\&. What this command checks depend
+on the options \fB\-\-direct\fR and \fB\-\-server\fR given.
+If only \fB\-\-server\fR is given, it checks the availability of the
+service \fBbuxtond\fR(8).
+If only \fB\-\-direct\fR is given, it checks that the user has a
+privileged access to the Buxton data and has the availability to
+modify it directly.
+If none or both options are given, it checks that at least one
+of the two previous availibility is granted.
+.RE
 .SS "Group manipulation"
 .PP
 \fBcreate\-group\fR LAYER GROUP

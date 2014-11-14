@@ -50,6 +50,24 @@ typedef struct Command {
 } Command;
 
 /**
+ * Checks the availability of Buxton.
+ * @param control An initialized control structure
+ * @param type Unused
+ * @param one Unused
+ * @param two Unused
+ * @param three Unused
+ * @param four Unused
+ * @returns bool indicating success or failure
+ */
+bool cli_check_availability(BuxtonControl *control,
+		      BuxtonDataType type,
+		      char *one,
+		      char *two,
+		      char *three,
+		      char * four)
+	__attribute__((warn_unused_result));
+
+/**
  * Create an initialized, empty db
  * @param control An initialized control structure
  * @param type Unused

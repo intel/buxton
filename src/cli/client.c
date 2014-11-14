@@ -35,6 +35,24 @@ static char *nv(char *s)
 	return "(null)";
 }
 
+bool cli_check_availability(__attribute__((unused)) BuxtonControl *control,
+			    __attribute__((unused)) BuxtonDataType type,
+			    __attribute__((unused)) char *one,
+			    __attribute__((unused)) char *two,
+			    __attribute__((unused)) char *three,
+			    __attribute__((unused)) char * four)
+{
+	/*
+	 This command is merely simple: if Buxton isn't avalable, this function
+	 isn't called at all because the main fails first by emitting an explanation
+	 and exits with the failure code. Thus, as this function is called only when
+	 buxton is available (opened), the check is done successfully! Note that more
+	 check could be added here if it makes sense.
+	*/
+	printf("Buxton is available\n");
+	return true;
+}
+
 bool cli_create_db(BuxtonControl *control,
 		   __attribute__((unused)) BuxtonDataType type,
 		   char *one,

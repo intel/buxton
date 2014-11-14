@@ -42,7 +42,7 @@ static BuxtonControl control;
 static void print_version(void)
 {
 	printf("buxtonctl " PACKAGE_VERSION "\n"
-	       "Copyright (C) 2013 Intel Corporation\n"
+	       "Copyright (C) 2013-2014 Intel Corporation\n"
 	       "buxton is free software; you can redistribute it and/or modify\n"
 	       "it under the terms of the GNU Lesser General Public License as\n"
 	       "published by the Free Software Foundation; either version 2.1\n"
@@ -82,6 +82,7 @@ static void print_usage(Command *command)
 int main(int argc, char **argv)
 {
 	bool ret = false;
+	Command c_check;
 	Command c_get;
 	Command c_get_string, c_set_string;
 	Command c_get_int32, c_set_int32;
@@ -98,6 +99,8 @@ int main(int argc, char **argv)
 	Command *command;
 	int i = 0;
 	int c;
+	bool direct = false;
+	bool server = false;
 	bool help = false;
 	bool version = false;
 	control.client.direct = false;
@@ -114,6 +117,11 @@ int main(int argc, char **argv)
 	if (!commands) {
 		exit(EXIT_FAILURE);
 	}
+
+	/* check access */
+	c_check = (Command) { "check", "Check the availability of Buxton",
+				   0, 0, "", &cli_check_availability, BUXTON_TYPE_UNSET };
+	hashmap_put(commands, c_check.name, &c_check);
 
 	/* unknowns */
 	c_get = (Command) { "get", "Get a value by key",
@@ -223,13 +231,14 @@ int main(int argc, char **argv)
 	static struct option opts[] = {
 		{ "config-file", 1, NULL, 'c' },
 		{ "direct",	 0, NULL, 'd' },
+		{ "server",	 0, NULL, 's' },
 		{ "help",	 0, NULL, 'h' },
 		{ "version", 0, NULL, 'v' },
 		{ NULL, 0, NULL, 0 }
 	};
 
 	while (true) {
-		c = getopt_long(argc, argv, "c:dvh", opts, &i);
+		c = getopt_long(argc, argv, "c:sdvh", opts, &i);
 
 		if (c == -1) {
 			break;
@@ -243,7 +252,10 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'd':
-			control.client.direct = true;
+			direct = true;
+			break;
+		case 's':
+			server = true;
 			break;
 		case 'v':
 			version = true;
@@ -282,6 +294,7 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
+	/* Check the argument count */
 	if ((argc - optind - 1 < command->min_arguments) ||
 	    (argc - optind - 1 > command->max_arguments)) {
 		print_usage(command);
@@ -290,21 +303,26 @@ int main(int argc, char **argv)
 		goto end;
 	}
 
+	/* Prepare opening */
 	control.client.uid = geteuid();
-	if (!control.client.direct) {
+	if (!direct && !server)
+		direct = server = true; /* Set both opening mode by default */
+
+	/* First, try to open the service */
+	if (server) {
 		if (conf_path) {
 			if (buxton_set_conf_file(conf_path)) {
 				printf("Failed to set configuration file path\n");
 			}
 		}
-		if (buxton_open(&client) < 0) {
-			control.client.direct = true;
-		} else {
+		if (buxton_open(&client) >= 0) {
 			control.client = *(_BuxtonClient *)client;
+			goto opened;
 		}
 	}
 
-	if (control.client.direct) {
+	/* Second, try to open directly */
+	if (direct) {
 		if (conf_path) {
 			int r;
 			struct stat st;
@@ -321,12 +339,24 @@ int main(int argc, char **argv)
 			}
 			buxton_add_cmd_line(CONFIG_CONF_FILE, conf_path);
 		}
-		if (!buxton_direct_open(&(control))) {
-			printf("Failed to directly talk to Buxton\n");
-			ret = false;
-			goto end;
+		control.client.direct = true;
+		if (buxton_direct_open(&(control))) {
+			goto opened;
 		}
 	}
+
+	/* Error on opening buxton */
+	if (direct && server) {
+		printf("Failed to contact the buxton service or directly open the database(s)\n");
+	} else if (!direct && server) {
+		printf("Failed to contact the Buxton service\n");
+	} else if (direct && !server) {
+		printf("Failed to use Buxton directly\n");
+	}
+	ret = false;
+	goto end;
+
+opened:
 
 	/* Connected to buxton_client, execute method */
 	ret = command->method(&control, command->type,
