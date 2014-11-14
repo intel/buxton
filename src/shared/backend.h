@@ -84,6 +84,17 @@ typedef int (*module_value_func) (BuxtonLayer *layer, _BuxtonKey *key,
 typedef bool (*module_list_func) (BuxtonLayer *layer, BuxtonArray **data);
 
 /**
+ * Backend key/group list function
+ * @param layer The layer to query
+ * @param group The group to query or NULL
+ * @param prefix The prefix for filtering or NULL
+ * @param data Pointer to store BuxtonArray in
+ * @return a boolean value, indicating success of the operation
+ */
+typedef bool (*module_list_names_func) (BuxtonLayer *layer, BuxtonString *group,
+				  BuxtonString *prefix, BuxtonArray **data);
+
+/**
  * Backend database creation function
  * @param layer The layer matching the db to create
  * @return A Database (not intended to be used from direct functions)
@@ -106,6 +117,7 @@ typedef struct BuxtonBackend {
 	module_value_func set_value; /**<Set value function */
 	module_value_func get_value; /**<Get value function */
 	module_list_func list_keys; /**<List keys function */
+	module_list_names_func list_names; /**<List names function */
 	module_value_func unset_value; /**<Unset value function */
 	module_db_init_func create_db; /**<DB file creation function */
 } BuxtonBackend;

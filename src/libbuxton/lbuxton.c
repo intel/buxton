@@ -440,6 +440,58 @@ int buxton_client_list_keys(BuxtonClient client,
 	return ret;
 }
 
+int buxton_list_names(BuxtonClient client,
+			    const char *layer_name,
+			    const char *group_name,
+			    const char *prefix_filter,
+			    BuxtonCallback callback,
+			    void *data,
+			    bool sync)
+{
+	bool r;
+	int ret = 0;
+	BuxtonString l;
+	BuxtonString g;
+	BuxtonString p;
+
+	if (!layer_name) {
+		return EINVAL;
+	}
+
+	/* discarding const until BuxtonString is updated */
+	l = buxton_string_pack((char*)layer_name);
+
+	if (group_name) {
+		g = buxton_string_pack((char*)group_name); /* discarding const is okay */
+	} else {
+		g.value = NULL;
+		g.length = 0;
+	}
+
+	if (prefix_filter) {
+		p = buxton_string_pack((char*)prefix_filter); /* discarding const is okay */
+	} else {
+		p.value = NULL;
+		p.length = 0;
+	}
+
+	r = buxton_wire_list_names((_BuxtonClient *)client, &l, &g, &p, callback, data);
+	if (!r) {
+		return -1;
+	}
+
+	if (sync) {
+		ret = buxton_wire_get_response(client);
+		if (ret <= 0) {
+			ret = -1;
+		} else {
+			ret = 0;
+		}
+	}
+
+	return ret;
+}
+
 int buxton_unset_value(BuxtonClient client,
 		       BuxtonKey key,
 		       BuxtonCallback callback,
@@ -660,7 +712,7 @@ BuxtonKey buxton_response_key(BuxtonResponse response)
 		return NULL;
 	}
 
-	if (buxton_response_type(response) == BUXTON_CONTROL_LIST) {
+	if (buxton_response_type(response) == BUXTON_CONTROL_LIST_NAMES) {
 		return NULL;
 	}
 
@@ -790,6 +842,50 @@ BuxtonDataType buxton_response_value_type(BuxtonResponse response)
 
 	return d->type;
 }
+
+uint32_t buxton_response_list_names_count(BuxtonResponse response)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+
+	if (!response) {
+		return 0;
+	}
+
+	type = buxton_response_type(response);
+	if (type != BUXTON_CONTROL_LIST_NAMES) {
+		return 0;
+	}
+	return r->data->len ? ((uint32_t)r->data->len - 1) : 0;
+}
+
+char *buxton_response_list_names_item(BuxtonResponse response, uint32_t index)
+{
+	_BuxtonResponse *r = (_BuxtonResponse *)response;
+	BuxtonControlMessage type;
+	BuxtonData *d;
+
+	if (!response) {
+		return NULL;
+	}
+
+	type = buxton_response_type(response);
+	if (type != BUXTON_CONTROL_LIST_NAMES) {
+		return NULL;
+	}
+	if (index + 1 >= r->data->len) {
+		return NULL;
+	}
+	d = buxton_array_get(r->data, (uint16_t)(index + 1));
+	if (d == NULL) {
+		return NULL;
+	}
+	if (d->type != BUXTON_TYPE_STRING) {
+		return NULL;
+	}
+	return strdup(d->store.d_string.value);
+}
+
 
 /*
  * Editor modelines  -	http://www.wireshark.org/tools/modelines.html

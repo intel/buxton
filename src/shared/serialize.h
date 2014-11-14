@@ -55,9 +55,9 @@
 #define BUXTON_MESSAGE_MAX_LENGTH 32768
 
 /**
- * Maximum length of valid control message
+ * Maximum count of valid parameters of the message
  */
-#define BUXTON_MESSAGE_MAX_PARAMS 16
+#define BUXTON_MESSAGE_MAX_PARAMS 4096
 
 /**
  * Serialize data internally for backend consumption

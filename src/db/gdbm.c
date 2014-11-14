@@ -364,6 +364,107 @@ end:
 	return ret;
 }
 
+static bool list_names(BuxtonLayer *layer,
+		       BuxtonString *group,
+		       BuxtonString *prefix,
+		       BuxtonArray **list)
+{
+	GDBM_FILE db;
+	datum key, nextkey;
+	BuxtonArray *k_list = NULL;
+	BuxtonData *data = NULL;
+	char *gname;
+	char *value;
+	char *copy;
+	uint32_t glen;
+	uint32_t klen;
+	uint32_t length;
+	bool ret = false;
+
+	assert(layer);
+	assert(group);
+
+	db = db_for_resource(layer);
+	if (!db) {
+		goto end;
+	}
+
+	if (!group->length) {
+		group = NULL;
+	}
+	if (prefix && !prefix->length) {
+		prefix = NULL;
+	}
+
+	value = NULL;
+	k_list = buxton_array_new();
+	key = gdbm_firstkey(db);
+	/* Iterate through all of the keys */
+	while (key.dptr) {
+
+		/* get main data of the key */
+		gname = (char*)key.dptr;
+		glen = (uint32_t)strlen(gname) + 1;
+		assert(key.dsize >= (size_t)glen);
+		klen = (uint32_t)key.dsize - glen;
+		assert(!klen || klen == (uint32_t)strlen(gname+glen) + 1);
+
+		/* treat the key value if it*/
+		if (klen) {
+			/* it is a key */
+			if (group && glen == group->length
+				&& !strcmp(gname, group->value)) {
+				value = gname + glen;
+				length = klen;
+			}
+		} else {
+			/* it is a group */
+			if (!group) {
+				value = gname;
+				length = glen;
+			}
+		}
+
+		/* treat a potential value */
+		if (value) {
+			/* check the prefix */
+			if (!prefix || !strncmp(value, prefix->value,
+				prefix->length - 1))  {
+				/* add the value */
+				data = malloc0(sizeof(BuxtonData));
+				copy = malloc(length);
+				if (data && copy
+				    && buxton_array_add(k_list, data)) {
+					data->type = BUXTON_TYPE_STRING;
+					data->store.d_string.value = copy;
+					data->store.d_string.length = length;
+					memcpy(copy, value, length);
+				} else {
+					free(data);
+					free(copy);
+					goto end;
+				}
+			}
+			value = NULL;
+		}
+
+		/* Visit the next key */
+		nextkey = gdbm_nextkey(db, key);
+		free(key.dptr);
+		key = nextkey;
+	}
+
+	/* Pass ownership of the array to the caller */
+	*list = k_list;
+	ret = true;
+
+end:
+	if (!ret && k_list) {
+		buxton_array_free(&k_list, (buxton_free_func)data_free);
+	}
+	return ret;
+}
+
 _bx_export_ void buxton_module_destroy(void)
 {
 	const char *key;
@@ -389,6 +490,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	backend->set_value = &set_value;
 	backend->get_value = &get_value;
 	backend->list_keys = &list_keys;
+	backend->list_names = &list_names;
 	backend->unset_value = &unset_value;
 	backend->create_db = (module_db_init_func) &db_for_resource;
 

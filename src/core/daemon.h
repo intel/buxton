@@ -191,6 +191,18 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 	__attribute__((warn_unused_result));
 
 /**
+ * Buxton daemon function for listing keys or groups in a given layer
+ * filtered by prefix. The prefix is in the name field of the key.
+ * @param self buxtond instance being run
+ * @param client Used to validate smack access
+ * @param key Key recording the layer, the group and the prefix as name
+ * @param status Will be set with the int32_t result of the operation
+ */
+BuxtonArray *list_names(BuxtonDaemon *self, client_list_item *client,
+			_BuxtonKey *key, int32_t *status)
+	__attribute__((warn_unused_result));
+
+/**
  * Buxton daemon function for registering notifications on a given key
  * @param self buxtond instance being run
  * @param client Used to validate smack access

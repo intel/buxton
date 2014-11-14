@@ -403,6 +403,103 @@ static int unset_value(BuxtonLayer *layer,
 	}
 }
 
+static bool list_names(BuxtonLayer *layer,
+		       BuxtonString *group,
+		       BuxtonString *prefix,
+		       BuxtonArray **ret_list)
+{
+	Hashmap *db;
+	BuxtonArray *list = NULL;
+	BuxtonData *data;
+	Iterator iterator;
+	BuxtonArray *array;
+	char *gname;
+	char *value;
+	char *copy;
+	uint32_t glen;
+	uint32_t klen;
+	uint32_t length;
+	bool ret = false;
+	struct keyrec *keyrec;
+
+	assert(layer);
+
+	db = _db_for_resource(layer);
+	if (!db) {
+		goto end;
+	}
+
+	if (group && !group->length) {
+		group = NULL;
+	}
+	if (prefix && !prefix->length) {
+		prefix = NULL;
+	}
+
+	value = NULL;
+	list = buxton_array_new();
+
+	/* Iterate through all of the keys */
+	HASHMAP_FOREACH_KEY(array, keyrec, db, iterator) {
+
+		/* get main data of the key */
+		gname = (char*)keyrec->value;
+		glen = (uint32_t)strlen(gname) + 1;
+		assert(keyrec->size >= glen);
+		klen = keyrec->size - glen;
+		assert(!klen || klen == (uint32_t)strlen(gname+glen) + 1);
+
+		/* treat the key value if it*/
+		if (klen) {
+			/* it is a key */
+			if (group && glen == group->length
+				&& !strcmp(gname, group->value)) {
+				value = gname + glen;
+				length = klen;
+			}
+		} else {
+			/* it is a group */
+			if (!group) {
+				value = gname;
+				length = glen;
+			}
+		}
+
+		/* treat a potential value */
+		if (value) {
+			/* check the prefix */
+			if (!prefix || !strncmp(value, prefix->value,
+				prefix->length - 1))  {
+				/* add the value */
+				data = malloc0(sizeof(BuxtonData));
+				copy = malloc(length);
+				if (data && copy &&
+				    buxton_array_add(list, data)) {
+					data->type = BUXTON_TYPE_STRING;
+					data->store.d_string.value = copy;
+					data->store.d_string.length = length;
+					memcpy(copy, value, length);
+				} else {
+					free(data);
+					free(copy);
+					goto end;
+				}
+			}
+			value = NULL;
+		}
+	}
+
+	/* Pass ownership of the array to the caller */
+	*ret_list = list;
+	ret = true;
+
+end:
+	if (!ret && list) {
+		buxton_array_free(&list, (buxton_free_func)data_free);
+	}
+	return ret;
+}
+
 _bx_export_ void buxton_module_destroy(void)
 {
 	char *klayer;
@@ -436,6 +533,7 @@ _bx_export_ bool buxton_module_init(BuxtonBackend *backend)
 	backend->get_value = &get_value;
 	backend->unset_value = &unset_value;
 	backend->list_keys = NULL;
+	backend->list_names = list_names;
 	backend->create_db = NULL;
 
 	_resources = hashmap_new(string_hash_func, string_compare_func);

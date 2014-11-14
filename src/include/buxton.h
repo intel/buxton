@@ -74,6 +74,7 @@ typedef enum BuxtonControlMessage {
 	BUXTON_CONTROL_UNNOTIFY, /**<Opt out of notifications */
 	BUXTON_CONTROL_CHANGED, /**<A key changed in Buxton */
 	BUXTON_CONTROL_GET_LABEL, /**<Get a label from Buxton */
+	BUXTON_CONTROL_LIST_NAMES, /**<List names within Buxton */
 	BUXTON_CONTROL_MAX
 } BuxtonControlMessage;
 
@@ -246,6 +247,30 @@ _bx_export_ int buxton_client_list_keys(BuxtonClient client,
 	__attribute__((warn_unused_result));
 
 /**
+ * List the keys or the groups within a given layer in Buxon.
+ * For listing groups, the group must be put to NULL.
+ * Otherwise, if the group name is given, lists the keys of that group.
+ * If a prefix is given, the returned list will only contain names
+ * having the given prefix.
+ * @param client An open client connection
+ * @param layer_name The layer of the query
+ * @param group_name The group of the query or NUUL
+ * @param prefix_filter A filtering prefix that can be NULL
+ * @param callback A callback function to handle daemon reply
+ * @param data User data to be used with callback function
+ * @param sync Indicator for running a synchronous request
+ * @return An boolean value, indicating success of the operation
+ */
+_bx_export_ int buxton_list_names(BuxtonClient client,
+					const char *layer_name,
+					const char *group_name,
+					const char *prefix_filter,
+					BuxtonCallback callback,
+					void *data,
+					bool sync)
+	__attribute__((warn_unused_result));
+
+/**
  * Register for notifications on the given key in all layers
  * @param client An open client connection
  * @param key The key to register interest with
@@ -397,6 +422,26 @@ _bx_export_ void *buxton_response_value(BuxtonResponse response)
  * @return The type of the value or BUXTON_TYPE_UNSET if not applicable
  */
 _bx_export_ BuxtonDataType buxton_response_value_type(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the count of value for a buxton response of get list of keys
+ * Applicable if buxton_response_type(response) == BUXTON_CONTROL_LIST_NAMES
+ * @param response a BuxtonResponse
+ * @return the count of items or zero if not applicable
+ */
+_bx_export_ uint32_t buxton_response_list_names_count(BuxtonResponse response)
+	__attribute__((warn_unused_result));
+
+/**
+ * Get the count of value for a buxton response of get list of keys
+ * Applicable if buxton_response_type(response) == BUXTON_CONTROL_LIST_NAMES
+ * The returned value MUST be deleted using free.
+ * @param response a BuxtonResponse
+ * @param index the index of the queried item
+ * @return the name of the key or NULL if not applicable or bad index
+ */
+_bx_export_ char *buxton_response_list_names_item(BuxtonResponse response, uint32_t index)
 	__attribute__((warn_unused_result));
 
 /*

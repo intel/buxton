@@ -159,6 +159,18 @@ bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		}
 		*value = &list[0];
 		break;
+	case BUXTON_CONTROL_LIST_NAMES:
+		if (count != 3) {
+			return false;
+		}
+		if (list[0].type != BUXTON_TYPE_STRING || list[1].type != BUXTON_TYPE_STRING ||
+		    list[2].type != BUXTON_TYPE_STRING) {
+			return false;
+		}
+		key->layer = list[0].store.d_string;
+		key->group = list[1].store.d_string;
+		key->name = list[2].store.d_string;
+		break;
 	case BUXTON_CONTROL_UNSET:
 		if (count != 4) {
 			return false;
@@ -272,6 +284,9 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 	case BUXTON_CONTROL_LIST:
 		key_list = list_keys(self, client, &value->store.d_string,
 				     &response);
+		break;
+	case BUXTON_CONTROL_LIST_NAMES:
+		key_list = list_names(self, client, &key, &response);
 		break;
 	case BUXTON_CONTROL_NOTIFY:
 		register_notification(self, client, &key, msgid, &response);
@@ -403,6 +418,26 @@ bool buxtond_handle_message(BuxtonDaemon *self, client_list_item *client, size_t
 				abort();
 			}
 			buxton_log("Failed to serialize list response message\n");
+			abort();
+		}
+		break;
+	case BUXTON_CONTROL_LIST_NAMES:
+		if (key_list) {
+			for (i = 0; i < key_list->len; i++) {
+				if (!buxton_array_add(out_list, buxton_array_get(key_list, i))) {
+					abort();
+				}
+			}
+			buxton_array_free(&key_list, NULL);
+		}
+		response_len = buxton_serialize_message(&response_store,
+							BUXTON_CONTROL_STATUS,
+							msgid, out_list);
+		if (response_len == 0) {
+			if (errno == ENOMEM) {
+				abort();
+			}
+			buxton_log("Failed to serialize list names response message\n");
 			abort();
 		}
 		break;
@@ -838,6 +873,22 @@ BuxtonArray *list_keys(BuxtonDaemon *self, client_list_item *client,
 	return ret_list;
 }
 
+BuxtonArray *list_names(BuxtonDaemon *self,  client_list_item *client,
+			_BuxtonKey *key, int32_t *status)
+{
+	BuxtonArray *ret_list = NULL;
+	assert(self);
+	assert(client);
+	assert(status);
+
+	*status = -1;
+	if (buxton_direct_list_names(&self->buxton, &key->layer, &key->group,
+	    &key->name, &ret_list)) {
+		*status = 0;
+	}
+	return ret_list;
+}
+
 void register_notification(BuxtonDaemon *self, client_list_item *client,
 			   _BuxtonKey *key, uint32_t msgid,
 			   int32_t *status)
@@ -947,7 +998,7 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	*status = -1;
 	key_name = notify_key_name(key);
 	if (!key_name) {
-		return;
+		return 0;
 	}
 	n_list = hashmap_get2(self->notify_mapping, key_name, &old_key_name);
 	/* This key isn't actually registered for notifications */

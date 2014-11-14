@@ -561,6 +561,31 @@ bool buxton_direct_list_keys(BuxtonControl *control,
 	return backend->list_keys(layer, list);
 }
 
+bool buxton_direct_list_names(BuxtonControl *control,
+			     BuxtonString *layer_name,
+			     BuxtonString *group,
+			     BuxtonString *prefix,
+			     BuxtonArray **list)
+{
+	/* Handle direct manipulation */
+	BuxtonBackend *backend = NULL;
+	BuxtonLayer *layer;
+	BuxtonConfig *config;
+
+	assert(control);
+	assert(layer_name && layer_name->value);
+
+	config = &control->config;
+	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+		return false;
+	}
+	backend = backend_for_layer(config, layer);
+	assert(backend);
+
+	layer->uid = control->client.uid;
+	return backend->list_names(layer, group, prefix, list);
+}
+
 bool buxton_direct_unset_value(BuxtonControl *control,
 			       _BuxtonKey *key,
 			       BuxtonString *label)

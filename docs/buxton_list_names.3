@@ -1,0 +1,175 @@
+'\" t
+.TH "BUXTON_LIST_NAMES" "3" "buxton 1" "buxton_list_names"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+buxton_list_names, buxton_response_list_names_count, buxton_response_list_item \-
+Listing group\-names and key\-names for buxton clients
+
+.SH "SYNOPSIS"
+.nf
+\fB
+#include <buxton.h>
+\fR
+.sp
+\fB
+int buxton_list_names(BuxtonClient \fIclient\fB,
+.br
+                      const char *\fIlayer_name\fB,
+.br
+                      const char *\fIgroup_name\fB,
+.br
+                      const char *\fIprefix_filter\fB,
+.br
+                      BuxtonCallback \fIcallback\fB,
+.br
+                      void *\fIdata\fB,
+.br
+                      bool \fIsync\fB)
+.sp
+.br
+uint32_t buxton_response_list_names_count(BuxtonResponse \fIresponse\fB)
+.sp
+.br
+char *buxton_response_list_names_item(BuxtonResponse \fIresponse\fB,
+.br
+                                uint32_t \fIindex\fB)
+\fR
+.fi
+
+.SH "DESCRIPTION"
+.PP
+These functions are used by buxton clients to get list either the
+group\-names within a layer or the key\-names within a group.
+
+To get the list of the group\-names of a layer, pass the name of
+the queried layer in \fIlayer_name\fR and NULL for \fIgroup_name\fR.
+
+To get the list of the key\-names of a group, pass the name of
+the layer containing the group in \fIlayer_name\fR and the name
+of the queried group in \fIgroup_name\fR.
+
+The returned list can be filtered to contain only the names having
+a given prefix. To get the list of all names, pass NULL for
+\fIprefix_filter\fR otherwise pass the prefix to use for filtering.
+
+To retrieve the result of the operation, clients should define a
+callback function, referenced by the \fIcallback\fR argument; the
+callback function is called upon completion of the operation\&. The
+\fIdata\fR argument is a pointer to arbitrary userdata that is passed
+along to the callback function\&. Additonally, the \fIsync\fR
+argument controls whether the operation should be synchronous or not;
+if \fIsync\fR is false, the operation is asynchronous\&.
+
+The \fIcallback\fR function should check the response using
+\fBbuxton_response_status\fR(3) and, optionnal,
+\fBbuxton_response_type\fR(3). In case of sucess,
+\fBbuxton_response_status\fR(3) returns 0. Then, the callback
+calls the function \fBfBbuxton_response_list_names_count\fR(3) to get the count
+of names returned and iterate the calls to the function
+\fBbuxton_response_list_names_item\fR(3) to retrieve the names one by one.
+
+.SH "RETURN VALUE"
+.PP
+\fBbuxton_list_names\fR(3) returns 0 on success. Otherwise, it returns
+an error code indicating the main error family, using vules defined
+for \fIerrno\fR.
+
+\fBbuxton_response_list_names_count\fR(3) returns the count of names of the
+list or 0 if the \fIresponse\fR is not for a query of list of names.
+
+\fBbuxton_response_list_names_item\fR(3) returns the name in the list at
+the \fIindex\fR if valid (0 <= \fIindex\fR <
+\fBbuxton_response_list_names_count\fR(\fIresponse\fR)). The returned
+string must be freed using \fBfree\fR(3). It returns NULL if
+\fIindex\fR overflows the bound or if the response is not for a query
+of list of names.
+
+.SH "CODE EXAMPLE"
+.nf
+.sp
+#define _GNU_SOURCE
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "buxton.h"
+
+void list_cb(BuxtonResponse response, void *data)
+{
+	uint32_t count;
+	uint32_t index;
+	char *name;
+
+	if (buxton_response_status(response) != 0) {
+		printf("Failed to list names\\n");
+		return;
+	}
+
+	count = buxton_response_list_names_count(response);
+	for (index = 0 ; index < count ; index++ ) {
+		name = buxton_response_list_names_item(
+					response, index);
+		printf("%u: %s\\n", (unsigned)index, name);
+		free(name);
+	}
+}
+
+int main(void)
+{
+	BuxtonClient client;
+
+	if (buxton_open(&client) < 0) {
+		printf("couldn't connect\\n");
+		return -1;
+	}
+
+	if (buxton_list_names(client, "hello", "test", NULL,
+	                     list_cb, NULL, true)) {
+		printf("get call failed to run\\n");
+		return -1;
+	}
+
+	buxton_close(client);
+	return 0;
+}
+.fi
+
+
+.SH "COPYRIGHT"
+.PP
+Copyright 2014 Intel Corporation\&. License: Creative Commons
+Attribution\-ShareAlike 3.0 Unported\s-2\u[1]\d\s+2\&.
+
+.SH "SEE ALSO"
+.PP
+\fBbuxton_reponse_status\fR(3),
+\fBbuxton_reponse_type\fR(3),
+\fBbuxton\fR(7),
+\fBbuxtond\fR(8),
+\fBbuxton\-api\fR(7)
+
+.SH "NOTES"
+.IP " 1." 4
+Creative Commons Attribution\-ShareAlike 3.0 Unported
+.RS 4
+\%http://creativecommons.org/licenses/by-sa/3.0/
+.RE

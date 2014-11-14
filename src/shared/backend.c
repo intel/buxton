@@ -251,6 +251,7 @@ void destroy_backend(BuxtonBackend *backend)
 	backend->set_value = NULL;
 	backend->get_value = NULL;
 	backend->list_keys = NULL;
+	backend->list_names = NULL;
 	backend->unset_value = NULL;
 	backend->destroy();
 	dlclose(backend->module);

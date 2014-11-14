@@ -144,6 +144,23 @@ bool buxton_direct_list_keys(BuxtonControl *control,
 	__attribute__((warn_unused_result));
 
 /**
+ * Retrieve a list of keys or groups in a given layer
+ * filtered by prefix. The prefix is in the name field of the key.
+ * @param control An initialized control structure
+ * @param Layer to query can be NULL or empty (for listing groups)
+ * @param group Group to query can be NULL or empty
+ * @param prefix Filtering prefix of names
+ * @param data An empty BuxtonArray, where results are stored
+ * @return A boolean value, indicating success of the operation
+ */
+bool buxton_direct_list_names(BuxtonControl *control,
+			     BuxtonString *layer,
+			     BuxtonString *group,
+			     BuxtonString *prefix,
+			     BuxtonArray **list)
+	__attribute__((warn_unused_result));
+
+/**
  * Unset a value by key in the given BuxtonLayer
  * @param control An initialized control structure
  * @param key The key to remove
