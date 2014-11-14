@@ -115,6 +115,33 @@ static GDBM_FILE db_for_resource(BuxtonLayer *layer)
 	return db;
 }
 
+static void make_key_data(_BuxtonKey *key, datum *key_data)
+{
+	uint32_t sz;
+	char *ptr;
+
+	/* compute requested size */
+	sz = key->group.length;
+	if (key->name.value) {
+		sz += key->name.length;
+	}
+
+	/* allocate */
+	ptr = malloc(sz);
+	if (!ptr) {
+		abort();
+	}
+
+	/* set */
+	key_data->dsize = (int)sz;
+	key_data->dptr = ptr;
+	memcpy(ptr, key->group.value, key->group.length);
+	if (key->name.value) {
+		memcpy(ptr + key->group.length, key->name.value,
+		       key->name.length);
+	}
+}
+
 static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 		      BuxtonString *label)
 {
@@ -125,7 +152,6 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	datum value;
 	_cleanup_free_ uint8_t *data_store = NULL;
 	size_t size;
-	uint32_t sz;
 	BuxtonData cdata = {0};
 	BuxtonString clabel;
 
@@ -133,28 +159,7 @@ static int set_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	assert(key);
 	assert(label);
 
-	if (key->name.value) {
-		sz = key->group.length + key->name.length;
-		key_data.dptr = malloc(sz);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		/* size is string\0string\0 so just write, bonus for
-		   nil seperator being added without extra work */
-		key_data.dsize = (int)sz;
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		memcpy(key_data.dptr + key->group.length, key->name.value,
-		       key->name.length);
-	} else {
-		key_data.dptr = malloc(key->group.length);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		key_data.dsize = (int)key->group.length;
-	}
+	make_key_data(key, &key_data);
 
 	db = db_for_resource(layer);
 	if (!db || errno) {
@@ -206,32 +211,10 @@ static int get_value(BuxtonLayer *layer, _BuxtonKey *key, BuxtonData *data,
 	datum value;
 	uint8_t *data_store = NULL;
 	int ret;
-	uint32_t sz;
 
 	assert(layer);
 
-	if (key->name.value) {
-		sz = key->group.length + key->name.length;
-		key_data.dptr = malloc(sz);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		/* size is string\0string\0 so just write, bonus for
-		   nil seperator being added without extra work */
-		key_data.dsize = (int)sz;
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		memcpy(key_data.dptr + key->group.length, key->name.value,
-		       key->name.length);
-	} else {
-		key_data.dptr = malloc(key->group.length);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		key_data.dsize = (int)key->group.length;
-	}
+	make_key_data(key, &key_data);
 
 	memzero(&value, sizeof(datum));
 	db = db_for_resource(layer);
@@ -282,33 +265,11 @@ static int unset_value(BuxtonLayer *layer,
 	GDBM_FILE db;
 	datum key_data;
 	int ret;
-	uint32_t sz;
 
 	assert(layer);
 	assert(key);
 
-	if (key->name.value) {
-		sz = key->group.length + key->name.length;
-		key_data.dptr = malloc(sz);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		/* size is string\0string\0 so just write, bonus for
-		   nil seperator being added without extra work */
-		key_data.dsize = (int)sz;
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		memcpy(key_data.dptr + key->group.length, key->name.value,
-		       key->name.length);
-	} else {
-		key_data.dptr = malloc(key->group.length);
-		if (!key_data.dptr) {
-			abort();
-		}
-
-		memcpy(key_data.dptr, key->group.value, key->group.length);
-		key_data.dsize = (int)key->group.length;
-	}
+	make_key_data(key, &key_data);
 
 	errno = 0;
 	db = db_for_resource(layer);
