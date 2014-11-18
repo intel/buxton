@@ -123,6 +123,7 @@ TESTS = \
 	check_buxton \
 	check_buxton_api \
 	check_buxton_array \
+	check_buxton_hashmap \
 	check_buxton_list \
 	check_shared_lib \
 	check_daemon \
@@ -202,6 +203,8 @@ libbuxton_shared_la_SOURCES = \
 	src/shared/buxtonkey.h \
 	src/shared/buxtonlist.c \
 	src/shared/buxtonlist.h \
+	src/shared/buxtonhashmap.c \
+	src/shared/buxtonhashmap.h \
 	src/shared/buxtonresponse.h \
 	src/shared/buxtonstring.h \
 	src/shared/configurator.c \
@@ -301,7 +304,8 @@ gdbm_la_LDFLAGS = \
 	-avoid-version
 
 gdbm_la_LIBADD = \
-	-lgdbm
+	-lgdbm \
+	libbuxton-shared.la
 
 memory_la_SOURCES = \
 	src/db/memory.c
@@ -312,11 +316,15 @@ memory_la_LDFLAGS = \
 	-module \
 	-avoid-version
 
+memory_la_LIBADD = \
+	libbuxton-shared.la
+
 check_PROGRAMS = \
 	check_buxton \
 	check_buxton_api \
 	check_buxton_array \
 	check_buxton_list \
+	check_buxton_hashmap \
 	check_shared_lib \
 	check_buxtond \
 	check_daemon \
@@ -378,6 +386,19 @@ check_buxton_list_CFLAGS = \
 	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
 	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
 check_buxton_list_LDADD = \
+	@CHECK_LIBS@
+
+check_buxton_hashmap_SOURCES = \
+	test/check_utils.c \
+	test/check_utils.h \
+        test/check_buxton_hashmap.c
+check_buxton_hashmap_CFLAGS = \
+	$(AM_CFLAGS) \
+	@CHECK_CFLAGS@ \
+	-DMAKE_CHECK \
+	-DABS_TOP_SRCDIR=\"$(abs_top_srcdir)\" \
+	-DABS_TOP_BUILDDIR=\"$(abs_top_builddir)\"
+check_buxton_hashmap_LDADD = \
 	@CHECK_LIBS@
 
 check_shared_lib_SOURCES = \

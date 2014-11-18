@@ -46,7 +46,6 @@ int32_t buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 	BuxtonLayer *l;
 	BuxtonConfig *config;
 	BuxtonString layer = (BuxtonString){ NULL, 0 };
-	Iterator i;
 	BuxtonData d;
 	int priority = 0;
 	int32_t ret;
@@ -64,7 +63,8 @@ int32_t buxton_direct_get_value(BuxtonControl *control, _BuxtonKey *key,
 
 	config = &control->config;
 
-	HASHMAP_FOREACH(l, config->layers, i) {
+	BUXTON_HASHMAP_FOREACH(config->layers, i, k, v) {
+		l = (BuxtonLayer*)v;
 		key->layer.value = l->name.value;
 		key->layer.length = l->name.length;
 		ret = (int32_t)buxton_direct_get_value_for_layer(control,
@@ -143,7 +143,7 @@ int buxton_direct_get_value_for_layer(BuxtonControl *control,
 	}
 
 	config = &control->config;
-	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+	if ((layer = buxton_hashmap_get(config->layers, key->layer.value)) == NULL) {
 		ret = EINVAL;
 		goto fail;
 	}
@@ -290,7 +290,7 @@ bool buxton_direct_set_value(BuxtonControl *control,
 	}
 
 	config = &control->config;
-	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+	if ((layer = buxton_hashmap_get(config->layers, key->layer.value)) == NULL) {
 		goto fail;
 	}
 
@@ -331,7 +331,7 @@ bool buxton_direct_set_label(BuxtonControl *control,
 
 	config = &control->config;
 
-	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+	if ((layer = buxton_hashmap_get(config->layers, key->layer.value)) == NULL) {
 		goto fail;
 	}
 
@@ -406,7 +406,7 @@ bool buxton_direct_create_group(BuxtonControl *control,
 
 	config = &control->config;
 
-	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+	if ((layer = buxton_hashmap_get(config->layers, key->layer.value)) == NULL) {
 		goto fail;
 	}
 
@@ -491,7 +491,7 @@ bool buxton_direct_remove_group(BuxtonControl *control,
 
 	config = &control->config;
 
-	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+	if ((layer = buxton_hashmap_get(config->layers, key->layer.value)) == NULL) {
 		goto fail;
 	}
 
@@ -551,7 +551,7 @@ bool buxton_direct_list_keys(BuxtonControl *control,
 	BuxtonConfig *config;
 
 	config = &control->config;
-	if ((layer = hashmap_get(config->layers, layer_name->value)) == NULL) {
+	if ((layer = buxton_hashmap_get(config->layers, layer_name->value)) == NULL) {
 		return false;
 	}
 	backend = backend_for_layer(config, layer);
@@ -626,7 +626,7 @@ bool buxton_direct_unset_value(BuxtonControl *control,
 	}
 
 	config = &control->config;
-	if ((layer = hashmap_get(config->layers, key->layer.value)) == NULL) {
+	if ((layer = buxton_hashmap_get(config->layers, key->layer.value)) == NULL) {
 		return false;
 	}
 
@@ -661,7 +661,7 @@ bool buxton_direct_init_db(BuxtonControl *control, BuxtonString *layer_name)
 	assert(layer_name);
 
 	config = &control->config;
-	layer = hashmap_get(config->layers, layer_name->value);
+	layer = buxton_hashmap_get(config->layers, layer_name->value);
 	if (!layer) {
 		goto end;
 	}
@@ -685,26 +685,20 @@ end:
 
 void buxton_direct_close(BuxtonControl *control)
 {
-	Iterator iterator;
-	BuxtonBackend *backend;
 	BuxtonLayer *layer;
-	BuxtonString *key;
 
 	control->client.direct = false;
 
-	HASHMAP_FOREACH(backend, control->config.backends, iterator) {
-		destroy_backend(backend);
-	}
-	hashmap_free(control->config.backends);
-	hashmap_free(control->config.databases);
+	buxton_hashmap_free(control->config.backends);
+	buxton_hashmap_free(control->config.databases);
 
-	HASHMAP_FOREACH_KEY(layer, key, control->config.layers, iterator) {
-		hashmap_remove(control->config.layers, key);
+	BUXTON_HASHMAP_FOREACH(control->config.layers, iter, key, value) {
+		layer = (BuxtonLayer*)value;
 		free(layer->name.value);
 		free(layer->description);
 		free(layer);
 	}
-	hashmap_free(control->config.layers);
+	buxton_hashmap_free(control->config.layers);
 
 	control->client.direct = false;
 	control->config.backends = NULL;
