@@ -26,6 +26,21 @@
 #include "util.h"
 #include "buxtonlist.h"
 
+static char *notify_key_name(_BuxtonKey *key)
+{
+	int r;
+	char *result;
+
+	if (!*key->group.value || !*key->name.value)
+		return NULL;
+
+	r = asprintf(&result, "%s\n%s", key->group.value, key->name.value);
+	if (r == -1) {
+		abort();
+	}
+	return result;
+}
+
 bool parse_list(BuxtonControlMessage msg, size_t count, BuxtonData *list,
 		_BuxtonKey *key, BuxtonData **value)
 {
@@ -461,15 +476,14 @@ void buxtond_notify_clients(BuxtonDaemon *self, client_list_item *client,
 	size_t response_len;
 	BuxtonArray *out_list = NULL;
 	_cleanup_free_ char *key_name;
-	int r;
 
 	assert(self);
 	assert(client);
 	assert(key);
 
-	r = asprintf(&key_name, "%s%s", key->group.value, key->name.value);
-	if (r == -1) {
-		abort();
+	key_name = notify_key_name(key);
+	if (!key_name) {
+		return;
 	}
 	list = hashmap_get(self->notify_mapping, key_name);
 	if (!list) {
@@ -834,7 +848,6 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	BuxtonData *old_data = NULL;
 	int32_t key_status;
 	char *key_name;
-	int r;
 	uint64_t *fd = NULL;
 	char *key_name_copy = NULL;
 
@@ -861,9 +874,9 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 	nitem->msgid = msgid;
 
 	/* May be null, but will append regardless */
-	r = asprintf(&key_name, "%s%s", key->group.value, key->name.value);
-	if (r == -1) {
-		abort();
+	key_name = notify_key_name(key);
+	if (!key_name) {
+		return;
 	}
 
 	key_name_copy = strdup(key_name);
@@ -922,7 +935,6 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	uint32_t msgid = 0;
 	_cleanup_free_ char *key_name = NULL;
 	void *old_key_name;
-	int r;
 	char *client_keyname = NULL;
 	uint64_t fd = 0;
 	void *old_fd = NULL;
@@ -933,9 +945,9 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	assert(status);
 
 	*status = -1;
-	r = asprintf(&key_name, "%s%s", key->group.value, key->name.value);
-	if (r == -1) {
-		abort();
+	key_name = notify_key_name(key);
+	if (!key_name) {
+		return;
 	}
 	n_list = hashmap_get2(self->notify_mapping, key_name, &old_key_name);
 	/* This key isn't actually registered for notifications */
