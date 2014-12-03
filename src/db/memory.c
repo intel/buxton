@@ -60,11 +60,11 @@ static struct keyrec *make_keyrec(_BuxtonKey *key)
 	}
 
 	/* allocate */
-	result = malloc(sizeof(result));
+	result = malloc(sizeof(struct keyrec));
 	if (!result) {
 		return NULL;
 	}
-	result->value = malloc(sz - 1);
+	result->value = malloc(sz);
 	if (!result->value) {
 		free(result);
 		return NULL;
@@ -83,7 +83,7 @@ static struct keyrec *make_keyrec(_BuxtonKey *key)
         while (sz) {
                 hash = (hash << 5) + hash + (unsigned char)result->value[--sz];
 	}
-	result ->hash = hash;
+	result->hash = hash;
 
 	return result;
 }
