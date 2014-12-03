@@ -329,11 +329,15 @@ bool _write(int fd, uint8_t *buf, size_t nbytes)
 		ssize_t b;
 		b = write(fd, buf + nbytes_out, nbytes - nbytes_out);
 
-		if (b == -1 && errno != EAGAIN) {
-			buxton_debug("write error\n");
-			return false;
+		if (b == -1) {
+			if (errno != EAGAIN) {
+				buxton_debug("write error\n");
+				return false;
+			}
 		}
-		nbytes_out += (size_t)b;
+		else {
+			nbytes_out += (size_t)b;
+		}
 	}
 
 	return true;
