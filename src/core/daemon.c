@@ -914,6 +914,7 @@ void register_notification(BuxtonDaemon *self, client_list_item *client,
 uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 				 _BuxtonKey *key, int32_t *status)
 {
+	BuxtonList *plist;
 	BuxtonList *n_list = NULL;
 	BuxtonList *key_list = NULL;
 	BuxtonList *elem = NULL;
@@ -961,7 +962,7 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	key_list = hashmap_get2(self->client_key_mapping, &fd, &old_fd);
 
 	if (!key_list || !old_fd) {
-		abort();
+		return 0;
 	}
 
 	BUXTON_LIST_FOREACH(key_list, elem) {
@@ -972,22 +973,32 @@ uint32_t unregister_notification(BuxtonDaemon *self, client_list_item *client,
 	};
 
 	if (client_keyname) {
+		plist = key_list;
 		buxton_list_remove(&key_list, client_keyname, true);
 		if (!key_list) {
 			hashmap_remove(self->client_key_mapping, &fd);
 			free(old_fd);
+		} else if (plist != key_list) {
+			if(hashmap_update(self->client_key_mapping, &fd, key_list) < 0) {
+				abort();
+			}		
 		}
 	}
 
 	msgid = citem->msgid;
 	/* Remove client from notifications */
 	free_buxton_data(&(citem->old_data));
+	plist = n_list;
 	buxton_list_remove(&n_list, citem, true);
 
 	/* If we removed the last item, remove the mapping too */
 	if (!n_list) {
 		(void)hashmap_remove(self->notify_mapping, key_name);
 		free(old_key_name);
+	} else if (plist != n_list) {
+		if(hashmap_update(self->notify_mapping, key_name, n_list) < 0) {
+			abort();
+		}
 	}
 
 	*status = 0;
