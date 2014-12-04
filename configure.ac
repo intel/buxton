@@ -211,8 +211,8 @@ AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P test/databases])
 AC_CONFIG_FILES([
 data/buxton.service
 data/buxton.socket
-data/libbuxton.pc
-data/libbuxtonsimple.pc
+data/buxton.pc
+data/buxtonsimple.pc
 test/test-pass.ini
 test/test-fail.ini
 test/test.conf

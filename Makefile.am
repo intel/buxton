@@ -63,8 +63,8 @@ LIBBUXTON_AGE=0
 
 pkgconfiglibdir=$(libdir)/pkgconfig
 pkgconfiglib_DATA = \
-	data/libbuxton.pc \
-	data/libbuxtonsimple.pc
+	data/buxton.pc \
+	data/buxtonsimple.pc
 
 if MANPAGE
 dist_man_MANS = \
@@ -144,8 +144,8 @@ EXTRA_DIST = \
 	LICENSE.LGPL2.1 \
 	HACKING \
 	check_db_clean \
-	data/libbuxton.pc.in \
-	data/libbuxtonsimple.pc.in \
+	data/buxton.pc.in \
+	data/buxtonsimple.pc.in \
 	docs/LICENSE.MIT \
 	src/libbuxton/lbuxton.sym \
 	src/libbuxtonsimple/lbuxtonsimple.sym \
