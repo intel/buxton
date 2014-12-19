@@ -1,6 +1,6 @@
 
 AC_PREREQ([2.68])
-AC_INIT([buxton],[4],[william.douglas@intel.com],[buxton],[https://github.com/sofar/buxton])
+AC_INIT([buxton],[5],[william.douglas@intel.com],[buxton],[https://github.com/sofar/buxton])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror -Wno-portability silent-rules subdir-objects color-tests no-dist-gzip dist-xz])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_FILES([Makefile])
