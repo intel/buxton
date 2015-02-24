@@ -1367,7 +1367,15 @@ void terminate_client(BuxtonDaemon *self, client_list_item *cl, nfds_t i)
 
 			/* Remove client from notifications */
 			free_buxton_data(&(citem->old_data));
+
+			BuxtonList *old_n_list = n_list;
+
 			buxton_list_remove(&n_list, citem, true);
+
+			/* If n_list was changed, hashmap should be updated. */
+			if (n_list && n_list != old_n_list) {
+				hashmap_update(self->notify_mapping, key_name, n_list);
+			}
 
 			/* If we removed the last item, remove the mapping too */
 			if (!n_list) {
