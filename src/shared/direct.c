@@ -179,6 +179,7 @@ int buxton_direct_get_value_for_layer(BuxtonControl *control,
 		    !buxton_check_smack_access(client_label, data_label, ACCESS_READ)) {
 			/* Client lacks permission to read the value */
 			free(data_label->value);
+			data_label->value = NULL;
 			ret = EPERM;
 			goto fail;
 		}
