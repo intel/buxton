@@ -79,6 +79,7 @@ int buxton_open(BuxtonClient *client)
 	if (sock_name_len >= sizeof(remote.sun_path)) {
 		buxton_log("Provided socket name: %s is too long, maximum allowed length is %d bytes\n",
 			   buxton_socket(), sizeof(remote.sun_path));
+		close(bx_socket);
 		return -1;
 	}
 
