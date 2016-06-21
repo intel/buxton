@@ -729,8 +729,10 @@ bool get_list_names(BuxtonControl *control, char *layer, char *group, char *pref
 		list->status = 0;
 		for (index = 0 ; index < count ; index++) {
 			item = buxton_array_get(array, index);
-			list->names[index] = item->store.d_string.value;
-			item->type = BUXTON_TYPE_UNSET;
+			if (item) {
+				list->names[index] = item->store.d_string.value;
+				item->type = BUXTON_TYPE_UNSET;
+			}
 		}
 		buxton_array_free(&array, free_data_in_array);
 	}
