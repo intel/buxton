@@ -73,7 +73,6 @@ static char * strlwc(const char * s)
     static char l[ASCIILINESZ+1];
     int i ;
 
-    if (s==NULL) return NULL ;
     memset(l, 0, ASCIILINESZ+1);
     i=0 ;
     while (s[i] && i<ASCIILINESZ) {
@@ -554,6 +553,7 @@ int iniparser_find_entry(
 /*--------------------------------------------------------------------------*/
 int iniparser_set(dictionary * ini, const char * entry, const char * val)
 {
+    assert(entry);
     return dictionary_set(ini, strlwc(entry), val) ;
 }
 
@@ -569,6 +569,7 @@ int iniparser_set(dictionary * ini, const char * entry, const char * val)
 /*--------------------------------------------------------------------------*/
 void iniparser_unset(dictionary * ini, const char * entry)
 {
+    assert(entry);
     dictionary_unset(ini, strlwc(entry));
 }
 
