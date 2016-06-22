@@ -405,6 +405,8 @@ char * iniparser_getstring(dictionary * d, const char * key, char * def)
         return def ;
 
     lc_key = strlwc(key);
+    if (lc_key==NULL)
+    	return def;
     sval = dictionary_get(d, lc_key, def);
     return sval ;
 }
