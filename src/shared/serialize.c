@@ -198,6 +198,7 @@ size_t buxton_serialize_message(uint8_t **dest, BuxtonControlMessage message,
 	uint16_t control, msg;
 
 	assert(dest);
+	assert(list);
 
 	buxton_debug("Serializing message...\n");
 
