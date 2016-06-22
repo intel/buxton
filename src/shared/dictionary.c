@@ -250,7 +250,7 @@ int dictionary_set(dictionary * d, const char * key, const char * val)
     int         i ;
     unsigned    hash ;
 
-    if (d==NULL || key==NULL) return -1 ;
+    if (d==NULL) return -1 ;
 
     /* Compute hash for this key */
     hash = dictionary_hash(key) ;
@@ -317,7 +317,7 @@ void dictionary_unset(dictionary * d, const char * key)
     unsigned    hash ;
     int         i ;
 
-    if (key == NULL) {
+    if (d == NULL) {
         return;
     }
 
