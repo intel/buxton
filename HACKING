@@ -123,5 +123,5 @@ extra unit tests within test/ - Provide these as a separate commit if
 necessary.
 
 ---
- * [1] https://github.com/sofar/buxton
+ * [1] https://github.com/intel/buxton
 
